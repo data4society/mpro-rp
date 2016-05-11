@@ -1,3 +1,4 @@
 class start:
-    def init(self):
+    @staticmethod
+    def init():
         pass;
