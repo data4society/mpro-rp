@@ -1,4 +1,7 @@
+import db.dbDriver
+
 class start:
-    @staticmethod
-    def init():
-        pass;
+
+    if __name__ == "__main__":
+        dbase = db.dbDriver.dbDriver.database
+        print(dbase)
