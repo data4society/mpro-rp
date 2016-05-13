@@ -6,8 +6,7 @@ DATABASE_PASSWORD = ''         # Not used with sqlite3.
 DATABASE_HOST = ''             # Set to empty string for localhost. Not used with sqlite3.
 DATABASE_PORT = ''             # Set to empty string for default. Not used with sqlite3.
 
-
 try:
-    from local_settings import *
+    from config.local_settings import *
 except ImportError:
-    pass
+    pass;
