@@ -10,7 +10,6 @@ requires = [
     'psycopg2',
     'alembic',
     'requests',
-    'tensorflow'
     ]
 
 setup(name='mpro-rp',
