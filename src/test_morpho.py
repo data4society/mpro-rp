@@ -19,13 +19,9 @@ morpho = session.query(Document).filter(Document.doc_id == mi_doc_id).one().morp
 lemmas = {}
 print(morpho)
 for i in morpho:
-    for j in i:
-        if j == 'analysis':
-            for l in i[j]:
-                if l['lex']:
-                    # print(l['lex'], l['wt'], type(l['wt']))
-                    lemmas[l['lex']] = lemmas.get(l['lex'], 0) + l.get('wt', 1)
-
+    for l in i.get('analysis',[]):
+        if l.get('lex',False):
+            lemmas[l['lex']] = lemmas.get(l['lex'], 0) + l.get('wt', 1)
 
 some_doc = session.query(Document).filter(Document.doc_id == mi_doc_id).one()
 some_doc.lemmas = lemmas
