@@ -49,3 +49,9 @@ class Document(Base):
     user = relationship(User)
     meta = Column(JSON())
     tsv = Column(TSVECTOR())
+
+
+class TrainingSet(Base):
+    __tablename__ = 'trainingset'
+
+    set_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
