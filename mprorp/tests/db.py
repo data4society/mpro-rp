@@ -1,7 +1,7 @@
 import unittest
 
 
-class SelectTes(unittest.TestCase):
+class SelectTest(unittest.TestCase):
     def test_something(self):
         self.assertEqual(False, False)
 

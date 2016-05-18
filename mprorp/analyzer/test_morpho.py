@@ -1,14 +1,16 @@
-from src.analyzer.pymystem3_w import Mystem
-import src.db.dbDriver as Driver
-from src.db.models import *
+from mprorp.analyzer.pymystem3_w import Mystem
+import mprorp.db.dbDriver as Driver
+from mprorp.db.models import *
 import numpy as np
 import math
 
 session = Driver.dbDriver.DBSession()
 my_doc_id = "7a721274-151a-4250-bb01-4a4772557d09"
 
-def getDoc(id):
+
+def get_doc(id):
     return session.query(Document).filter(Document.doc_id == id).one().doc_source
+
 
 def putMorpho(id,morpho):
     some_doc = session.query(Document).filter(Document.doc_id == id).one()
@@ -17,7 +19,7 @@ def putMorpho(id,morpho):
 
 def morpho(id):
     m = Mystem(disambiguation=False)
-    text = getDoc(id)
+    text = get_doc(id)
     new_morpho = m.analyze(text)
     putMorpho(id,new_morpho)
 
