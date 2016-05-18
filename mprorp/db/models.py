@@ -1,11 +1,11 @@
 #models which describing database structure
 from sqlalchemy_utils import UUIDType
 from sqlalchemy import Column, ForeignKey, String,Text,Integer, TIMESTAMP
-from sqlalchemy.dialects.postgresql import JSON,TSVECTOR
+from sqlalchemy.dialects.postgresql import JSON, TSVECTOR, ARRAY
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import text
 
-from db.dbDriver import Base
+from mprorp.db.dbDriver import Base
 
 #source types, for example: website, vk, yandex...
 class SourceType(Base):
@@ -55,3 +55,5 @@ class TrainingSet(Base):
     __tablename__ = 'trainingset'
 
     set_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
+    doc_ref = Column(ARRAY(UUIDType(binary=False), ForeignKey('document.doc_id')))
+    #docs = relationship(Document)

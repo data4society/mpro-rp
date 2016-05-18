@@ -1,6 +1,6 @@
-from analyzer.pymystem3_w import Mystem
-import db.dbDriver
-from db.models import *
+from mprorp.analyzer.pymystem3_w import Mystem
+import mprorp.db.dbDriver
+from mprorp.db.models import *
 import numpy as np
 import math
 
