@@ -1,10 +1,10 @@
-from mprorp.analyzer.pymystem3_w import Mystem
-import mprorp.db.dbDriver
-from mprorp.db.models import *
+from src.analyzer.pymystem3_w import Mystem
+import src.db.dbDriver as Driver
+from src.db.models import *
 import numpy as np
 import math
 
-session = db.dbDriver.dbDriver.DBSession()
+session = Driver.dbDriver.DBSession()
 my_doc_id = "7a721274-151a-4250-bb01-4a4772557d09"
 
 def getDoc(id):
@@ -38,8 +38,6 @@ def lemmas_freq(id):
                 lemmas[l['lex']] = lemmas.get(l['lex'], 0) + l.get('wt', 1)
     putLemmas(id,lemmas)
 
-morpho(my_doc_id)
-lemmas_freq(my_doc_id)
 
 def idf_learn(set_id = ''):
     #get lemmas of all docs in set
@@ -64,53 +62,47 @@ def idf_learn(set_id = ''):
         doc_size[doc_id] = 0
         # add lemma in overall list by giving index
         doc_index[doc_id] = doc_counter
-        doc_counter = doc_counter + 1
+        doc_counter += 1
         for lemma in docs[doc_id]:
             #increase number of docs with lemma
             doc_freq[lemma] = doc_freq.get(lemma,0) + 1
             #increase number of lemmas in document
-            doc_size[doc_id] = doc_size[doc_id] + docs[doc_id][lemma]
+            doc_size[doc_id] += docs[doc_id][lemma]
             # add lemma in overall list by giving index
             if lemma_index.get(lemma,-1) == -1:
                 lemma_index[lemma] = lemma_counter
-                lemma_counter = lemma_counter + 1
+                lemma_counter += 1
 
     #eval idf
     idf = {}
     for lemma in doc_freq:
-        idf[lemma] = - math.log(doc_freq[lemma]/num_docs)
+        idf[lemma] = - math.log(doc_freq[lemma]/doc_counter)
 
     print(lemma_index)
     #objects-features
-    main_table = np.zeros((num_docs,lemma_counter))
+    main_table = np.zeros((doc_counter,lemma_counter))
     doc_counter = 0
     #fill table objects-features
-    for doc_lemmas in docs:
+    for doc_id in docs:
+        doc_lemmas = docs[doc_id]
         for lemma in doc_lemmas:
-            main_table[doc_counter,lemma_index[lemma]] = doc_lemmas[lemma]
-        doc_counter = doc_counter + 1
+            main_table[doc_index[doc_id],lemma_index[lemma]] = doc_lemmas[lemma] / doc_size[doc_id] * idf[lemma]
 
-    # eval sum of frequency lemmas in docs
-    doc_freq = main_table.sum(axis=1)
+    #save to db: idf and main_table
+    #idf for calc features of new docs
+    # main_table for learning
 
-    #eval idf
-    idf = {}
-    for lemma in doc_freq:
-        idf[lemma] = - math.log(doc_freq[lemma]/num_docs)
 
-    #eval objects-features: product tf and idf:
-    for i_doc in range(num_docs):
-        for lemma in lemma_index:
-            main_table
 
     print(main_table)
-
-
     print(idf)
+    print(doc_index)
+    print(lemma_index)
 
 
+morpho(my_doc_id)
+lemmas_freq(my_doc_id)
 lemmas_db = session.query(Document).filter(Document.doc_id == my_doc_id).one().lemmas
-
 print(lemmas_db)
 
 idf_learn()
