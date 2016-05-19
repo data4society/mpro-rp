@@ -11,6 +11,7 @@ addons:
 before_script:
     - psql -c 'create database mprorp;' -U postgres
 script: python setup.py test
+    - python -m unittest discover
 notifications:
     slack: ovdinfo:pC2a1JMfPsjs3hKPAzz7yPUB
 
