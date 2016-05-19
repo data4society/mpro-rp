@@ -10,7 +10,7 @@ addons:
     postgresql: "9.4"
 before_script:
     - psql -c 'create database mprorp;' -U postgres
-script: make test
+script: python setup.py test
 notifications:
     slack: ovdinfo:pC2a1JMfPsjs3hKPAzz7yPUB
 
