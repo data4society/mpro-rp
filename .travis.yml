@@ -4,9 +4,7 @@ language: python
 python:
     - 3.4
 before_install:
-    - pip install numpy
-    - pip install matplotlib
-    - pip install https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.8.0-cp34-cp34m-linux_x86_64.whl;
+    - sh setup.sh;
 install: python setup.py install
 addons:
     postgresql: "9.4"
