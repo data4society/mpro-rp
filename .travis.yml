@@ -9,8 +9,7 @@ install: python setup.py install
 addons:
     postgresql: "9.4"
 before_script:
-    - psql -c 'create database mpro;' -U postgres
-    - 'export NODE_ENV=test'
+    - psql -c 'create database mprorp;' -U postgres
 notifications:
     slack: ovdinfo:pC2a1JMfPsjs3hKPAzz7yPUB
 
