@@ -1,6 +1,7 @@
 language: python
 python:
     - 3.4
+sudo: required
 before_install:
     - sh setup.sh
 install: python setup.py install
