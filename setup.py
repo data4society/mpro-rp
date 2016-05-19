@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 here = os.path.abspath(os.path.dirname(__file__))
 
 requires = [
-    'sqlalchemy',
+    'SQLAlchemy',
     'sqlalchemy_utils',
     'psycopg2',
     'alembic',
@@ -18,6 +18,4 @@ setup(name='mpro-rp',
       packages=find_packages(),
       include_package_data=True,
       install_requires=requires,
-      tests_require=["nose"],
-      test_suite="mprorp"
       )
