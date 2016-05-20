@@ -16,12 +16,11 @@ engine = create_engine(connection_string)
 meta = MetaData(bind=engine, reflect=True)
 DBSession = sessionmaker(bind=engine)
 Base = declarative_base()
-import mprorp.db.models
+
 if("maindb" in sys.argv):
+    import mprorp.db.models
     Base.metadata.create_all(engine)
-
-
-Base.metadata.bind = engine
+    print("create_all");
 
 def insert(new_object):
     session = DBSession()
@@ -43,3 +42,11 @@ def update(obj):
     #return engine.execute(sqlalchemy.update().where(where_clause).values(values))
     #return DBDriver.engine.execute(obj.update().values(values).where(where_clause))#obj.c.doc_id == '7a074073-7747-47b9-aba0-1f5990ddbaf9'))
 
+
+
+def dropall_and_create():
+    DBSession.close_all()
+    for tbl in reversed(meta.sorted_tables):
+        tbl.drop(engine);
+    import mprorp.db.models
+    Base.metadata.create_all(engine)

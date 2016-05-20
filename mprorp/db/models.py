@@ -56,7 +56,7 @@ class TrainingSet(Base):
 
     set_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
     doc_ref = Column(ARRAY(UUIDType(binary=False), ForeignKey('document.doc_id')))
-    #idf = Column(JSON())
+    idf = Column(JSON())
     #doc_index = Column(JSON())
     #lemma_index = Column(JSON())
     #object_features = Column(ARRAY(item_type= Float ,dimensions=2))
