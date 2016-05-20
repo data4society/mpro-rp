@@ -1,51 +1,40 @@
+import mprorp.analyzer.db as db
 from mprorp.analyzer.pymystem3_w import Mystem
-import mprorp.db.dbDriver as Driver
-from mprorp.db.models import *
 import numpy as np
 import math
-
-session = Driver.dbDriver.DBSession()
-my_doc_id = "7a721274-151a-4250-bb01-4a4772557d09"
+import tensorflow as tf
 
 
-def get_doc(id):
-    return session.query(Document).filter(Document.doc_id == id).one().doc_source
+doc_id_1 = "7a721274-151a-4250-bb01-4a4772557d09"
+doc_id_2 = "672f361d-1632-41b0-82de-dd8c85745063"
 
-
-def putMorpho(id,morpho):
-    some_doc = session.query(Document).filter(Document.doc_id == id).one()
-    some_doc.morpho = morpho
-    session.commit()
-
+# one document morphological analysis
 def morpho(id):
     m = Mystem(disambiguation=False)
-    text = get_doc(id)
+    text = db.get_doc(id)
     new_morpho = m.analyze(text)
-    putMorpho(id,new_morpho)
+    db.put_morpho(id, new_morpho)
 
-def getMorpho(id):
-    return session.query(Document).filter(Document.doc_id == id).one().morpho
-
-def putLemmas(id,lemmas):
-    some_doc = session.query(Document).filter(Document.doc_id == id).one()
-    some_doc.lemmas = lemmas
-    session.commit()
-
+# counting lemmas frequently for one document
 def lemmas_freq(id):
     lemmas = {}
-    morpho = getMorpho(id)
+    morpho = db.get_morpho(id)
     for i in morpho:
         for l in i.get('analysis',[]):
             if l.get('lex',False):
                 lemmas[l['lex']] = lemmas.get(l['lex'], 0) + l.get('wt', 1)
-    putLemmas(id,lemmas)
+    db.put_lemmas(id,lemmas)
 
+# compute idf and object-features matrix for training set
+# idf for calc features of new docs
+# object-features for learning model
+# doc_index links doc_id and row index in object-features
+# lemma_index links lemmas and column index in object-features
+def idf_learn( set_id = ''):
+    # get lemmas of all docs in set
+    docs = db.get_lemmas_freq(set_id)
 
-def idf_learn(set_id = ''):
-    #get lemmas of all docs in set
-    docs = {'id1':{'тип':1,'становиться':3},'id2':{'тип':1,'есть':2}}
-
-    #document frequency - number of documents with lemma
+    # document frequency - number of documents with lemma
     doc_freq = {}
     #number of lemmas in document
     doc_size = {}
@@ -60,51 +49,97 @@ def idf_learn(set_id = ''):
 
 
     for doc_id in docs:
-        #initialize doc_size
+        # initialize doc_size
         doc_size[doc_id] = 0
-        # add lemma in overall list by giving index
+        # add document in overall list by giving index
         doc_index[doc_id] = doc_counter
         doc_counter += 1
+        # count lemmas of doc
         for lemma in docs[doc_id]:
-            #increase number of docs with lemma
-            doc_freq[lemma] = doc_freq.get(lemma,0) + 1
-            #increase number of lemmas in document
+            # increase number of docs with lemma
+            doc_freq[lemma] = doc_freq.get(lemma, 0) + 1
+            # increase number of lemmas in document
             doc_size[doc_id] += docs[doc_id][lemma]
-            # add lemma in overall list by giving index
-            if lemma_index.get(lemma,-1) == -1:
-                lemma_index[lemma] = lemma_counter
-                lemma_counter += 1
 
-    #eval idf
+    # compute idf
     idf = {}
     for lemma in doc_freq:
         idf[lemma] = - math.log(doc_freq[lemma]/doc_counter)
 
+    # choose most important lemmas and add in overall list by giving index
+
+    for lemma in idf:
+        if idf[lemma] != 0:
+            lemma_index[lemma] = lemma_counter
+            lemma_counter += 1
+
+
     print(lemma_index)
-    #objects-features
-    main_table = np.zeros((doc_counter,lemma_counter))
-    doc_counter = 0
-    #fill table objects-features
+    # initialization objects-features matrix
+    object_features = np.zeros((doc_counter, lemma_counter))
+    # fill objects-features matrix
+    print(doc_index)
+    print(lemma_index)
+    print(idf)
     for doc_id in docs:
         doc_lemmas = docs[doc_id]
         for lemma in doc_lemmas:
-            main_table[doc_index[doc_id],lemma_index[lemma]] = doc_lemmas[lemma] / doc_size[doc_id] * idf[lemma]
+            if lemma_index.get(lemma, -1) != -1:
+                object_features[doc_index[doc_id],lemma_index[lemma]] = doc_lemmas[lemma] / doc_size[doc_id] * idf[lemma]
 
-    #save to db: idf and main_table
-    #idf for calc features of new docs
-    # main_table for learning
+    # save to db: idf, indexes and object_features
+    db.put_training_set_params(set_id, idf,  doc_index, lemma_index, object_features)
 
-
-
-    print(main_table)
     print(idf)
     print(doc_index)
     print(lemma_index)
+    print(object_features)
 
 
-morpho(my_doc_id)
-lemmas_freq(my_doc_id)
-lemmas_db = session.query(Document).filter(Document.doc_id == my_doc_id).one().lemmas
-print(lemmas_db)
 
-idf_learn()
+
+
+    #lerning model
+    #get object_features, lemma_index, doc_index
+    #get answers for rubric
+    answers = {doc_id_1: 0, doc_id_2: 1}
+
+    doc_number = doc_counter
+    lemma_number = lemma_counter
+
+    answers_array = np.zeros((doc_number, 1))
+    answers_array[1, 0] = 1
+    for doc_id in doc_index:
+        answers_array[doc_index[doc_id], 0] = answers[doc_id] * 2 - 1
+
+    x = tf.placeholder(tf.float32, shape=[None, lemma_number])
+    y_ = tf.placeholder(tf.float32, shape=[None, 1])
+    W = tf.Variable(tf.zeros([lemma_number, 1]))
+    b = tf.Variable(0.01)
+
+    y = tf.matmul(x,W) + b
+    cross_entropy = - tf.reduce_mean(tf.sigmoid(y) * y_)
+
+    train_step = tf.train.GradientDescentOptimizer(0.5).minimize(cross_entropy)
+    init = tf.initialize_all_variables()
+
+    sess = tf.Session()
+    sess.run(init)
+
+    for i in range(300):
+        sess.run(train_step,feed_dict={x: object_features, y_:answers_array})
+
+    print(W.eval(sess))
+    print(b.eval(sess))
+    #print(sess.run(accuracy, feed_dict={x: object_features, y_:answers_array}))
+
+
+morpho(doc_id_1)
+lemmas_freq(doc_id_1)
+
+morpho(doc_id_2)
+lemmas_freq(doc_id_2)
+
+set_id_1 = "07e861d2-57d6-4176-a508-b4d716b6fd25"
+
+idf_learn(set_id_1)

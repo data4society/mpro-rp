@@ -1,6 +1,6 @@
 #models which describing database structure
 from sqlalchemy_utils import UUIDType
-from sqlalchemy import Column, ForeignKey, String,Text,Integer, TIMESTAMP
+from sqlalchemy import Column, ForeignKey, String,Text,Integer, TIMESTAMP, Float
 from sqlalchemy.dialects.postgresql import JSON, TSVECTOR, ARRAY
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import text
@@ -56,4 +56,9 @@ class TrainingSet(Base):
 
     set_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
     doc_ref = Column(ARRAY(UUIDType(binary=False), ForeignKey('document.doc_id')))
+    #idf = Column(JSON())
+    #doc_index = Column(JSON())
+    #lemma_index = Column(JSON())
+    #object_features = Column(ARRAY(item_type= Float ,dimensions=2))
+
     #docs = relationship(Document)
