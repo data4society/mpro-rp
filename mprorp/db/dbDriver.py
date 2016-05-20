@@ -9,7 +9,7 @@ import sys
 from mprorp.config.settings import *
 
 if("maindb" in sys.argv):
-    connection_string = testdb_connection
+    connection_string = maindb_connection
 else:
     connection_string = testdb_connection
 engine = create_engine(connection_string)
