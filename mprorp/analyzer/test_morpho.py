@@ -12,6 +12,7 @@ doc_id_2 = "672f361d-1632-41b0-82de-dd8c85745063"
 def morpho(id):
     m = Mystem(disambiguation=False)
     text = db.get_doc(id)
+    print(text)
     new_morpho = m.analyze(text)
     db.put_morpho(id, new_morpho)
 
@@ -19,6 +20,7 @@ def morpho(id):
 def lemmas_freq(id):
     lemmas = {}
     morpho = db.get_morpho(id)
+    print('get_morpho: ', morpho)
     for i in morpho:
         for l in i.get('analysis',[]):
             if l.get('lex',False):
@@ -96,8 +98,15 @@ def idf_learn( set_id = ''):
     print(object_features)
 
 
+def learning_rubric_model(set_id, rubric_id):
 
+    answers = db.get_answers(set_id, rubric_id)
+    doc_index, object_features = db.get_doc_index_object_features(set_id)
 
+    print(answers)
+    print(doc_index)
+    print(object_features)
+    return
 
     #lerning model
     #get object_features, lemma_index, doc_index
@@ -127,12 +136,14 @@ def idf_learn( set_id = ''):
     sess.run(init)
 
     for i in range(300):
-        sess.run(train_step,feed_dict={x: object_features, y_:answers_array})
+        sess.run(train_step, feed_dict={x: object_features, y_: answers_array})
 
     print(W.eval(sess))
     print(b.eval(sess))
     #print(sess.run(accuracy, feed_dict={x: object_features, y_:answers_array}))
 
+#set_id_1 = db.put_training_set([doc_id_1, doc_id_2])
+#print(set_id_1)
 
 morpho(doc_id_1)
 lemmas_freq(doc_id_1)
@@ -140,6 +151,7 @@ lemmas_freq(doc_id_1)
 morpho(doc_id_2)
 lemmas_freq(doc_id_2)
 
-set_id_1 = "07e861d2-57d6-4176-a508-b4d716b6fd25"
+set_id_1 = "d285349c-b908-4b3f-bc76-99854b47adb5"
 
 idf_learn(set_id_1)
+
