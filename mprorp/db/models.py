@@ -1,6 +1,6 @@
 #models which describing database structure
 from sqlalchemy_utils import UUIDType
-from sqlalchemy import Column, ForeignKey, String,Text,Integer, TIMESTAMP, Float
+from sqlalchemy import Column, ForeignKey, String,Text,Integer, TIMESTAMP, Float, PrimaryKeyConstraint
 from sqlalchemy.dialects.postgresql import JSON, TSVECTOR, ARRAY
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import text
@@ -57,8 +57,24 @@ class TrainingSet(Base):
     set_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
     doc_ref = Column(ARRAY(UUIDType(binary=False), ForeignKey('document.doc_id')))
     idf = Column(JSON())
-    #doc_index = Column(JSON())
-    #lemma_index = Column(JSON())
-    #object_features = Column(ARRAY(item_type= Float ,dimensions=2))
+    doc_index = Column(JSON())
+    lemma_index = Column(JSON())
+    object_features = Column(ARRAY(item_type= Float ,dimensions=2))
 
     #docs = relationship(Document)
+
+class Rubric(Base):
+    __tablename__ = 'rubric'
+
+    rubric_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
+    name = Column(String(255), nullable=False)
+
+
+class DocumentRubric(Base):
+    __tablename__ = 'documentrubric'
+
+    doc_id = Column(UUIDType(binary=False), ForeignKey('document.doc_id'))
+    rubric_id = Column(UUIDType(binary=False), ForeignKey('rubric.rubric_id'))
+    __table_args__ = (PrimaryKeyConstraint(doc_id, rubric_id),)
+
+
