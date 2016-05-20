@@ -1,7 +1,7 @@
 import unittest
 
 
-class SelectTest(unittest.TestCase):
+class SimpleDBTest(unittest.TestCase):
     def test_something(self):
         self.assertEqual(False, True)
 
