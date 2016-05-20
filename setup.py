@@ -18,4 +18,6 @@ setup(name='mpro-rp',
       packages=find_packages(),
       include_package_data=True,
       install_requires=requires,
+      tests_require=["nose"],
+      test_suite="mprorp",
       )

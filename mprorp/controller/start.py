@@ -1,16 +1,18 @@
-from mprorp.db.dbDriver import DBDriver
 import mprorp.db.dbDriver
+from mprorp.db.dbDriver import *
 from mprorp.db.models import *
 from sqlalchemy.orm import load_only
+
+
 import random
 
 class start:
 
     if __name__ == "__main__":
-        dbase = DBDriver.engine
+        dbase = engine
         print(dbase)
 
-        session = DBDriver.DBSession()
+        session = DBSession()
 
         # Insert a user in the User table
         '''
@@ -19,7 +21,7 @@ class start:
         session.commit()
         '''
         new_user = User()
-        DBDriver.insert(new_user)
+        insert(new_user)
         print(new_user.user_id)
 
         '''
@@ -42,8 +44,7 @@ class start:
         '''
         #doc_source property of some document
         #print(session.query(Document).filter(Document.doc_id == "7a074073-7747-47b9-aba0-1f5990ddbaf9").one().doc_source)
-        print(DBDriver.select_equal('document','doc_source','doc_id','7a074073-7747-47b9-aba0-1f5990ddbaf9'))
-        print(DBDriver.select(Document.doc_source,Document.doc_id == '7a074073-7747-47b9-aba0-1f5990ddbaf9').fetchone()[0])
+        print(select(Document.doc_source,Document.doc_id == '7a074073-7747-47b9-aba0-1f5990ddbaf9').fetchone()[0])
         #same with not full object
         print(session.query(Document).options(load_only(Document.doc_source)).filter(Document.doc_id == "7a074073-7747-47b9-aba0-1f5990ddbaf9").one().doc_source)
 
@@ -57,6 +58,7 @@ class start:
         some_doc = session.query(Document).filter(Document.doc_id == "7a074073-7747-47b9-aba0-1f5990ddbaf9").one()
         print(some_doc.doc_source)
         '''
-        DBDriver.update('document',Document.doc_id == '7a074073-7747-47b9-aba0-1f5990ddbaf9',doc_source=random.random())
+        update(Document(doc_id='7a074073-7747-47b9-aba0-1f5990ddbaf9',doc_source=random.random()))
+        #update('document',Document.doc_id == '7a074073-7747-47b9-aba0-1f5990ddbaf9',doc_source=random.random())
         # check update:
-        print(DBDriver.select(Document.doc_source,Document.doc_id == '7a074073-7747-47b9-aba0-1f5990ddbaf9').fetchone()[0])
+        print(select(Document.doc_source,Document.doc_id == '7a074073-7747-47b9-aba0-1f5990ddbaf9').fetchone()[0])
