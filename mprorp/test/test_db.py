@@ -32,5 +32,15 @@ class SimpleDBTest(unittest.TestCase):
         sel_doc_title = select(Document.title, Document.doc_id == ins_doc_id).fetchone()[0]
         self.assertEqual(upd_doc_title, sel_doc_title)
 
+    def test_cur_timestamp(self):
+        dropall_and_create()
+        ins_doc = Document()
+        insert(ins_doc)
+        ins_doc_id = ins_doc.doc_id
+
+        sel_timestamp = select(Document.issue_date, Document.doc_id == ins_doc_id).fetchone()[0]
+        print(sel_timestamp)
+        #self.assertEqual(upd_doc_title, sel_doc_title)
+
 if __name__ == '__main__':
     unittest.main()

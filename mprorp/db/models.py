@@ -3,7 +3,7 @@ from sqlalchemy_utils import UUIDType
 from sqlalchemy import Column, ForeignKey, String,Text,Integer, TIMESTAMP, Float, PrimaryKeyConstraint
 from sqlalchemy.dialects.postgresql import JSON, TSVECTOR, ARRAY
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql import text
+from sqlalchemy.sql import text,functions
 
 from mprorp.db.dbDriver import Base
 
@@ -21,6 +21,8 @@ class Source(Base):
     url = Column(String(1023))
     source_type_ref = Column(UUIDType(binary=False), ForeignKey('sourcetype.source_type_id'))#reference to source_type
     sourceType = relationship(SourceType)
+    name = Column(String(255), nullable=False)
+    parse_period = Column(Integer())
 
 class User(Base):
     __tablename__ = 'user'
@@ -31,6 +33,7 @@ class Document(Base):
     __tablename__ = 'document'
 
     doc_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
+    guid = Column(String(1023))
     source_ref = Column(UUIDType(binary=False), ForeignKey('source.source_id'))
     source = relationship(Source)
     doc_source = Column(Text())
@@ -41,7 +44,7 @@ class Document(Base):
     status = Column(Integer())
     title = Column(String(511))
     #type
-    issue_date = Column(TIMESTAMP())
+    issue_date = Column(TIMESTAMP(),server_default=functions.current_timestamp())
     created = Column(TIMESTAMP())
     validated = Column(TIMESTAMP())
     validated_by_ref = Column(UUIDType(binary=False), ForeignKey('user.user_id'))
@@ -55,7 +58,10 @@ class TrainingSet(Base):
     __tablename__ = 'trainingset'
 
     set_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
-    doc_ref = Column(ARRAY(UUIDType(binary=False), ForeignKey('document.doc_id')))
+    set_name = Column(String(511))
+    set_created = Column(TIMESTAMP(), server_default=functions.current_timestamp())
+    doc_num = Column(Integer())
+    doc_refs = Column(ARRAY(UUIDType(binary=False), ForeignKey('document.doc_id')))
     idf = Column(JSON())
     doc_index = Column(JSON())
     lemma_index = Column(JSON())
