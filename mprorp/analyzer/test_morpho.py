@@ -75,14 +75,10 @@ def idf_learn( set_id = ''):
             lemma_index[lemma] = lemma_counter
             lemma_counter += 1
 
-
-    print(lemma_index)
     # initialization objects-features matrix
     object_features = np.zeros((doc_counter, lemma_counter))
+
     # fill objects-features matrix
-    print(doc_index)
-    print(lemma_index)
-    print(idf)
     for doc_id in docs:
         doc_lemmas = docs[doc_id]
         for lemma in doc_lemmas:
@@ -97,15 +93,15 @@ def idf_learn( set_id = ''):
     print(lemma_index)
     print(object_features)
 
-
 def learning_rubric_model(set_id, rubric_id):
 
     answers = db.get_answers(set_id, rubric_id)
     doc_index, object_features = db.get_doc_index_object_features(set_id)
 
-    print(answers)
+    for doc_id in answers:
+        print(answers[doc_id])
     print(doc_index)
-    print(object_features)
+    print(object_features[0])
     return
 
     #lerning model
@@ -145,13 +141,13 @@ def learning_rubric_model(set_id, rubric_id):
 #set_id_1 = db.put_training_set([doc_id_1, doc_id_2])
 #print(set_id_1)
 
-morpho(doc_id_1)
-lemmas_freq(doc_id_1)
+set_id = "1dcc4dc5-a706-4e61-8b37-26b5fd554145"
 
-morpho(doc_id_2)
-lemmas_freq(doc_id_2)
+#for doc_id in db.get_set_docs(set_id):
+#    morpho(doc_id)
+#    lemmas_freq(doc_id)
 
-set_id_1 = "d285349c-b908-4b3f-bc76-99854b47adb5"
+#idf_learn(set_id)
 
-idf_learn(set_id_1)
-
+rubric_id = '693a9b39-cb8e-4525-9333-1dadcda7c34e'
+learning_rubric_model(set_id, rubric_id)
