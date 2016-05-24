@@ -1,6 +1,7 @@
 from mprorp.db.dbDriver import *
 import mprorp.db.dbDriver as Driver
 from mprorp.db.models import *
+from sqlalchemy import and_
 
 session = Driver.DBSession()
 
@@ -49,15 +50,19 @@ def put_training_set(doc_id_array):
     return new_set.set_id
 
 def get_answers(set_id, rubric_id):
-    #docs = Driver.select(TrainingSet.doc_refs,TrainingSet.set_id == set_id).fetchone()[0]
-    #docs_rubric = Driver.select(DocumentRubric.doc_id, (DocumentRubric.doc_id in (docs)) and (DocumentRubric.rubric_id == rubric_id)).fetchall()
-    #docs_rubric = Driver.select(DocumentRubric.doc_id, (DocumentRubric.doc_id in (docs))).fetchall()
+    docs = Driver.select(TrainingSet.doc_refs,TrainingSet.set_id == set_id).fetchone()[0]
+    docs_rubric = Driver.select(DocumentRubric.doc_id, (DocumentRubric.doc_id in (docs)) and (DocumentRubric.rubric_id == rubric_id)).fetchall()
+    docs_rubric = Driver.select(DocumentRubric.doc_id, (DocumentRubric.doc_id in (docs))).fetchall()
 
     docs = session.query(TrainingSet).filter(TrainingSet.set_id == set_id).one()
-    docs_rubric = session.query(DocumentRubric.doc_id).filter((DocumentRubric.rubric_id == rubric_id) and (DocumentRubric.doc_id.in_(docs.doc_refs))).all()
-
-
+    #print(docs.doc_refs)
+    docs_rubric = session.query(DocumentRubric.doc_id).filter(DocumentRubric.rubric_id == rubric_id).all()
+    #print(docs_rubric)
+    docs_rubric = session.query(DocumentRubric.doc_id).filter(DocumentRubric.doc_id.in_(docs.doc_refs)).all()
+    #print(docs_rubric)
+    docs_rubric = session.query(DocumentRubric.doc_id).filter((DocumentRubric.rubric_id == rubric_id) & (DocumentRubric.doc_id.in_(docs.doc_refs))).all()
     print(docs_rubric)
+    return
     #result = dict.fromkeys( docs, value=0)
     result = {}
     for doc_id in docs.doc_refs:
