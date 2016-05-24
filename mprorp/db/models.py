@@ -83,4 +83,16 @@ class DocumentRubric(Base):
     rubric_id = Column(UUIDType(binary=False), ForeignKey('rubric.rubric_id'))
     __table_args__ = (PrimaryKeyConstraint(doc_id, rubric_id),)
 
+class RubricationModel(Base):
+    __tablename__ = 'rubricationmodel'
 
+    model_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
+    rubric_id = Column(UUIDType(binary=False), ForeignKey('rubric.rubric_id'))
+    set_id = Column(UUIDType(binary=False), ForeignKey('trainingset.set_id'))
+    model = Column(ARRAY(item_type= Float, dimensions=1))
+    # Array with length equal number features in training set.
+    # Values: -1 - not used, otherwise - feature index in the model
+    features = Column(ARRAY(item_type= Integer ,dimensions=1))
+    # Number of features in the model oppose number of features in training set, which is bidder (or equal)
+    features_num = Column(Integer())
+    learning_date = Column(TIMESTAMP(), server_default=functions.current_timestamp())

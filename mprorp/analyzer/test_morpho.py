@@ -12,7 +12,7 @@ doc_id_2 = "672f361d-1632-41b0-82de-dd8c85745063"
 def morpho(id):
     m = Mystem(disambiguation=False)
     text = db.get_doc(id)
-    print(text)
+    #print(text)
     new_morpho = m.analyze(text)
     db.put_morpho(id, new_morpho)
 
@@ -20,7 +20,7 @@ def morpho(id):
 def lemmas_freq(id):
     lemmas = {}
     morpho = db.get_morpho(id)
-    print('get_morpho: ', morpho)
+    #print('get_morpho: ', morpho)
     for i in morpho:
         for l in i.get('analysis',[]):
             if l.get('lex',False):
@@ -93,34 +93,37 @@ def idf_learn( set_id = ''):
     print(lemma_index)
     print(object_features)
 
+def sigmoid(x):
+    for l in range(len(x)):
+        x[l] = 1/(1 + math.exp(-x[l]))
+    return x
+
 def learning_rubric_model(set_id, rubric_id):
 
+    # get answers for rubric
     answers = db.get_answers(set_id, rubric_id)
+    # get object_features, lemma_index, doc_index
     doc_index, object_features = db.get_doc_index_object_features(set_id)
 
-    for doc_id in answers:
-        print(answers[doc_id])
-    print(doc_index)
-    print(object_features[0])
-    return
+    doc_number = len(doc_index)
+    # if we know answers, we can select most important features (mif):
+    # mif[k] = l:
+    # feature k from object_features is used in position l, if l >= 0
+    # if feature k ins not most important, l = -1
+    features_number = len(object_features[0])
+    mif = np.zeros(features_number)
+    for i in range(features_number):
+        mif[i] = i
 
-    #lerning model
-    #get object_features, lemma_index, doc_index
-    #get answers for rubric
-    answers = {doc_id_1: 0, doc_id_2: 1}
-
-    doc_number = doc_counter
-    lemma_number = lemma_counter
-
+    #take probability (sigmoid) when answer is true and -sigmoid (instead 1-sigmoid) otherwise
     answers_array = np.zeros((doc_number, 1))
-    answers_array[1, 0] = 1
     for doc_id in doc_index:
         answers_array[doc_index[doc_id], 0] = answers[doc_id] * 2 - 1
 
-    x = tf.placeholder(tf.float32, shape=[None, lemma_number])
+    x = tf.placeholder(tf.float32, shape=[None, features_number])
     y_ = tf.placeholder(tf.float32, shape=[None, 1])
-    W = tf.Variable(tf.zeros([lemma_number, 1]))
-    b = tf.Variable(0.01)
+    W = tf.Variable(tf.ones([features_number, 1]))
+    b = tf.Variable(0.00001)
 
     y = tf.matmul(x,W) + b
     cross_entropy = - tf.reduce_mean(tf.sigmoid(y) * y_)
@@ -131,23 +134,72 @@ def learning_rubric_model(set_id, rubric_id):
     sess = tf.Session()
     sess.run(init)
 
-    for i in range(300):
+    for i in range(50):
         sess.run(train_step, feed_dict={x: object_features, y_: answers_array})
+        #my_W = W.eval(sess)
+        #my_b = b.eval(sess)
+        #print(i, (sigmoid(np.dot(np.asarray(object_features), my_W) + my_b) * np.asarray(answers_array)))
 
-    print(W.eval(sess))
-    print(b.eval(sess))
+    model = W.eval(sess)
+
+    model = model.tolist().append(b.eval(sess))
+    db.put_model(rubric_id, set_id, model, mif, features_number)
+
+    #print(W.eval(sess))
+    #print(b.eval(sess))
+    #print(answers_array)
+    #print(type(my_W))
+    # print(np.dot(np.asarray(object_features),my_W) + my_b)
     #print(sess.run(accuracy, feed_dict={x: object_features, y_:answers_array}))
 
-#set_id_1 = db.put_training_set([doc_id_1, doc_id_2])
-#print(set_id_1)
+# take 1 doc and few rubrics
+# save in DB doc_id, rubric_id and YES or NO
+# rubrics is a dict. key = rubric_id, value = None or set_id
+# value = set_id: use model, learned with this trainingSet
+def spot_doc_rubrics(doc_id, rubrics):
+    # get lemmas by doc_id
+    lemmas = db.get_lemmas(doc_id)
+    # compute document size
+    doc_size = 0
+    for lemma in lemmas:
+        doc_size += lemmas[lemma]
+    #models for rubrics
+    models = {}
+
+    # fill set_id in rubrics and data in models
+    for rubric_id in rubrics:
+        if rubrics[rubric_id] is None:
+            rubrics[rubric_id] = db.get_set_id_by_rubric_id(rubric_id)
+        models[rubric_id] = db.get_model(rubric_id, rubrics[rubric_id])
+    # get dict with idf and lemma_index for each set_id
+    # sets[...] is dict: {'idf':..., 'lemma_index': ...}
+    sets = db.get_idf_lemma_index_by_set_id(rubrics.values())
+    for set_id in sets:
+        # compute idf for doc_id (lemmas) and set_id
+        idf_doc = {}
+        for lemma in lemmas:
+            idf_doc[lemma] = lemmas[lemma] * sets[set_id]['idf'].get(lemma, 0) / doc_size
+        sets[set_id]['idf_doc'] = idf_doc
+    # for each rubric
+    #for rubric_id in rubrics:
+
+
+
 
 set_id = "1dcc4dc5-a706-4e61-8b37-26b5fd554145"
+rubric_id = '693a9b39-cb8e-4525-9333-1dadcda7c34e'
+
+#set_id = "7fc5e799-2fa4-40ce-82cd-2793b6889002"
 
 #for doc_id in db.get_set_docs(set_id):
+#    print(doc_id)
 #    morpho(doc_id)
 #    lemmas_freq(doc_id)
 
 #idf_learn(set_id)
 
-rubric_id = '693a9b39-cb8e-4525-9333-1dadcda7c34e'
+
 learning_rubric_model(set_id, rubric_id)
+
+for doc_id in db.get_set_docs(set_id):
+    spot_doc_rubrics(doc_id, {rubric_id: None})
