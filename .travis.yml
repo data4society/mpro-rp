@@ -14,7 +14,6 @@ before_script:
 script:
     - python setup.py test
     - nosetests3 mprorp/tests/*
-    - python setup.py nosetests3 mprorp/tests/*
 notifications:
     slack: ovdinfo:pC2a1JMfPsjs3hKPAzz7yPUB
 
