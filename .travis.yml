@@ -5,14 +5,12 @@ python:
     - 3.4
 before_install:
     - sh scripts/setup.sh;
-install: python setup.py install
 addons:
     postgresql: "9.4"
 before_script:
     - psql -c 'create database mprorp;' -U postgres
     - pip3 install sqlalchemy
 script:
-    - python setup.py test
     - nosetests3 mprorp/tests/*
 notifications:
     slack: ovdinfo:pC2a1JMfPsjs3hKPAzz7yPUB
