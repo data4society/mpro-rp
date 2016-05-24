@@ -9,7 +9,7 @@ addons:
     postgresql: "9.4"
 before_script:
     - psql -c 'create database mprorp;' -U postgres
-    - pip3 install sqlalchemy
+    - psql -c 'CREATE EXTENSION "uuid-ossp";' -U postgres -d mprorp
 script:
     - nosetests3 mprorp/tests/*
 notifications:
