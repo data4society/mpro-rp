@@ -3,3 +3,4 @@ alembic
 psycopg2
 sqlalchemy_utils
 sqlalchemy >= 1.0.0
+datetime
