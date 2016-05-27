@@ -87,12 +87,19 @@ class TrainingSet(Base):
     set_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
     # human-readable name
     set_name = Column(String(511))
+    # creating date
     set_created = Column(TIMESTAMP(), server_default=functions.current_timestamp())
+    # number of documents in set
     doc_num = Column(Integer())
+    # id of all documents in set
     doc_refs = Column(ARRAY(UUIDType(binary=False), ForeignKey('document.doc_id')))
+    # inverse doument frequency for all lemmas of set
     idf = Column(JSON())
+    # index of documents in object_features: key - doc_id, value - row number
     doc_index = Column(JSON())
+    # index of lemmas in object_features: key - lemma, value - column number
     lemma_index = Column(JSON())
+    # object-features matrix
     object_features = Column(ARRAY(item_type= Float ,dimensions=2))
 
     # docs = relationship(Document)
@@ -107,6 +114,7 @@ class Rubric(Base):
 
 
 class DocumentRubric(Base):
+    # Row in table means document associated with rubric by user
     __tablename__ = 'documentrubric'
 
     doc_id = Column(UUIDType(binary=False), ForeignKey('document.doc_id'))
@@ -118,23 +126,30 @@ class RubricationModel(Base):
     __tablename__ = 'rubricationmodel'
 
     model_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
+    # Model was used for rubric
     rubric_id = Column(UUIDType(binary=False), ForeignKey('rubric.rubric_id'))
+    # Training set used for model
     set_id = Column(UUIDType(binary=False), ForeignKey('trainingset.set_id'))
+    # model = vector
     model = Column(ARRAY(item_type= Float, dimensions=1))
     # Array with length equal number features in training set.
     # Values: -1 - not used, otherwise - feature index in the model
     features = Column(ARRAY(item_type= Integer ,dimensions=1))
     # Number of features in the model oppose number of features in training set, which is bidder (or equal)
     features_num = Column(Integer())
+    # Date of model learning
     learning_date = Column(TIMESTAMP(), server_default=functions.current_timestamp())
 
 
 class RubricationResult(Base):
+    # Row in table means rubric (rubric_id) for document (doc_id) was compute with model (model_id)
     __tablename__ = 'rubricationresult'
 
     model_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"))
     rubric_id = Column(UUIDType(binary=False), ForeignKey('rubric.rubric_id'))
     doc_id = Column(UUIDType(binary=False), ForeignKey('document.doc_id'))
+    # 1 - associated, 0 - not associated
     result = Column(Integer())
+    # date of compute
     learning_date = Column(TIMESTAMP(), server_default=functions.current_timestamp())
     __table_args__ = (PrimaryKeyConstraint(model_id, rubric_id, doc_id),)

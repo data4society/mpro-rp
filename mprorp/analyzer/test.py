@@ -6,12 +6,16 @@ rubric_id = '693a9b39-cb8e-4525-9333-1dadcda7c34e' # Свобода собран
 
 set_id = "7fc5e799-2fa4-40ce-82cd-2793b6889002" # Свобода слова 100
 
-#for doc_id in db.get_set_docs(set_id):
-#    print(doc_id)
-#    morpho_doc(doc_id)
-#    lemmas_freq_doc(doc_id)
+set_id = 'a28852e0-1a06-43f3-adda-30984c992e0f' # Все новости
 
-#idf_object_features_set(set_id)
+counter = 0
+for doc_id in db.get_set_docs(set_id):
+   print(counter, doc_id)
+   counter += 1
+   rb.morpho_doc(doc_id)
+   rb.lemmas_freq_doc(doc_id)
+
+rb.idf_object_features_set(set_id)
 
 
 rb.learning_rubric_model(set_id, rubric_id)
