@@ -9,30 +9,29 @@ doc_id_1 = "7a721274-151a-4250-bb01-4a4772557d09"
 doc_id_2 = "672f361d-1632-41b0-82de-dd8c85745063"
 
 # one document morphological analysis
-def morpho(id):
+def morpho_doc(doc_id):
     m = Mystem(disambiguation=False)
-    text = db.get_doc(id)
+    text = db.get_doc(doc_id)
     #print(text)
     new_morpho = m.analyze(text)
-    db.put_morpho(id, new_morpho)
+    db.put_morpho(doc_id, new_morpho)
 
-# counting lemmas frequently for one document
-def lemmas_freq(id):
+# counting lemmas frequency for one document
+def lemmas_freq_doc(doc_id):
     lemmas = {}
-    morpho = db.get_morpho(id)
-    #print('get_morpho: ', morpho)
+    morpho = db.get_morpho(doc_id)
     for i in morpho:
         for l in i.get('analysis',[]):
             if l.get('lex',False):
                 lemmas[l['lex']] = lemmas.get(l['lex'], 0) + l.get('wt', 1)
-    db.put_lemmas(id,lemmas)
+    db.put_lemmas(doc_id, lemmas)
 
 # compute idf and object-features matrix for training set
 # idf for calc features of new docs
 # object-features for learning model
 # doc_index links doc_id and row index in object-features
 # lemma_index links lemmas and column index in object-features
-def idf_learn( set_id = ''):
+def idf_object_features_set( set_id = ''):
     # get lemmas of all docs in set
     docs = db.get_lemmas_freq(set_id)
 
@@ -221,10 +220,10 @@ rubric_id = '693a9b39-cb8e-4525-9333-1dadcda7c34e'
 
 #for doc_id in db.get_set_docs(set_id):
 #    print(doc_id)
-#    morpho(doc_id)
-#    lemmas_freq(doc_id)
+#    morpho_doc(doc_id)
+#    lemmas_freq_doc(doc_id)
 
-#idf_learn(set_id)
+#idf_object_features_set(set_id)
 
 
 learning_rubric_model(set_id, rubric_id)
