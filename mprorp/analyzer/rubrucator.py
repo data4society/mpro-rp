@@ -10,11 +10,13 @@ doc_id_2 = "672f361d-1632-41b0-82de-dd8c85745063"
 
 # one document morphological analysis
 def morpho_doc(doc_id):
-    m = Mystem(disambiguation=False)
+    #mystem_analyzer = Mystem(disambiguation=False)
     text = db.get_doc(doc_id)
     #print(text)
-    new_morpho = m.analyze(text)
+    mystem_analyzer.start()
+    new_morpho = mystem_analyzer.analyze(text)
     db.put_morpho(doc_id, new_morpho)
+    mystem_analyzer.close()
 
 # counting lemmas frequency for one document
 def lemmas_freq_doc(doc_id):
@@ -211,22 +213,24 @@ def spot_doc_rubrics(doc_id, rubrics):
     print(answers)
 
 
+mystem_analyzer = Mystem(disambiguation=False)
+#mystem_analyzer.start()
 
+#set_id = "1dcc4dc5-a706-4e61-8b37-26b5fd554145"    # Свобода слова 10
+rubric_id = '693a9b39-cb8e-4525-9333-1dadcda7c34e' # Свобода собраний
 
-set_id = "1dcc4dc5-a706-4e61-8b37-26b5fd554145"
-rubric_id = '693a9b39-cb8e-4525-9333-1dadcda7c34e'
+set_id = "7fc5e799-2fa4-40ce-82cd-2793b6889002" # Свобода слова 100
 
-#set_id = "7fc5e799-2fa4-40ce-82cd-2793b6889002"
+for doc_id in db.get_set_docs(set_id):
+    print(doc_id)
+    morpho_doc(doc_id)
+    lemmas_freq_doc(doc_id)
 
-#for doc_id in db.get_set_docs(set_id):
-#    print(doc_id)
-#    morpho_doc(doc_id)
-#    lemmas_freq_doc(doc_id)
-
-#idf_object_features_set(set_id)
+idf_object_features_set(set_id)
 
 
 learning_rubric_model(set_id, rubric_id)
 
 for doc_id in db.get_set_docs(set_id):
     spot_doc_rubrics(doc_id, {rubric_id: None})
+
