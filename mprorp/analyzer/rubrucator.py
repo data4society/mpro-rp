@@ -31,7 +31,7 @@ def lemmas_freq_doc(doc_id):
 # object-features for learning model
 # doc_index links doc_id and row index in object-features
 # lemma_index links lemmas and column index in object-features
-def idf_object_features_set( set_id = ''):
+def idf_object_features_set(set_id):
     # get lemmas of all docs in set
     docs = db.get_lemmas_freq(set_id)
 
