@@ -1,3 +1,4 @@
+"""database driver for more simple working with sqlalchemy and postgres"""
 from sqlalchemy import MetaData
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
@@ -8,7 +9,7 @@ import sys
 
 from mprorp.config.settings import *
 
-if("maindb" in sys.argv):
+if "maindb" in sys.argv:
     connection_string = maindb_connection
 else:
     connection_string = testdb_connection
@@ -17,9 +18,11 @@ meta = MetaData(bind=engine, reflect=True)
 DBSession = sessionmaker(bind=engine)
 Base = declarative_base()
 
-if("maindb" in sys.argv):
+if "maindb" in sys.argv:
     import mprorp.db.models
+
     Base.metadata.create_all(engine)
+
 
 def insert(new_object):
     session = DBSession()
@@ -29,7 +32,7 @@ def insert(new_object):
 
 
 def select(columns, where_clause):
-    if(type(columns) is list):
+    if type(columns) is list:
         return engine.execute(sqlalchemy.select(columns).where(where_clause))
     else:
         return engine.execute(sqlalchemy.select([columns]).where(where_clause))

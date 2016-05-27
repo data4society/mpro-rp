@@ -6,6 +6,16 @@ from mprorp.db.dbDriver import *
 from mprorp.db.models import *
 
 
+def send_get_request(url):
+    """accessory function for sending requests"""
+    s = Session()
+    req = Request('GET', url)
+    prepped = req.prepare()
+    r = s.send(prepped)
+    r.encoding = 'utf-8'
+    return r.text
+
+
 def vk_parse_list(source_id):
     """parses one source, get list and do initial insert"""
 
@@ -61,13 +71,3 @@ def vk_parse_item(item, doc_id):
 
 print(select(Document.issue_date, Document.source_ref == 'd1fb37ef-1808-45f6-9234-5ed2969e920a').fetchall())
 vk_parse_list('d1fb37ef-1808-45f6-9234-5ed2969e920a')
-
-
-def send_get_request(url):
-    """accessory function for sending requests"""
-    s = Session()
-    req = Request('GET', url)
-    prepped = req.prepare()
-    r = s.send(prepped)
-    r.encoding = 'utf-8'
-    return r.text
