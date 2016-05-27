@@ -15,7 +15,6 @@ def morpho_doc(doc_id):
     #print(text)
     mystem_analyzer.start()
     new_morpho = mystem_analyzer.analyze(text)
-    #print(new_morpho)
     db.put_morpho(doc_id, new_morpho)
     mystem_analyzer.close()
 
@@ -107,12 +106,9 @@ def learning_rubric_model(set_id, rubric_id):
 
     # get answers for rubric
     answers = db.get_answers(set_id, rubric_id)
-    #print(answers)
     # get object_features, lemma_index, doc_index
     doc_index, object_features = db.get_doc_index_object_features(set_id)
 
-    #print(doc_index)
-    #print(object_features)
     doc_number = len(doc_index)
     # if we know answers, we can select most important features (mif):
     # mif[k] = l:
@@ -148,7 +144,7 @@ def learning_rubric_model(set_id, rubric_id):
     sess = tf.Session()
     sess.run(init)
 
-    for i in range(5000):
+    for i in range(50):
         sess.run(train_step, feed_dict={x: object_features, y_: answers_array})
         #my_W = W.eval(sess)
         #my_b = b.eval(sess)
@@ -157,7 +153,6 @@ def learning_rubric_model(set_id, rubric_id):
     model = W.eval(sess)[:,0]
     model = model.tolist()
     model.append(float(b.eval(sess)))
-    myvar = float(b.eval(sess))
     #print(type(model[0]), type(myvar))
  #   print(model)
     db.put_model(rubric_id, set_id, model, mif, features_number)
