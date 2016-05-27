@@ -93,10 +93,13 @@ def idf_learn( set_id = ''):
     print(lemma_index)
     print(object_features)
 
-def sigmoid(x):
+def sigmoid_array(x):
     for l in range(len(x)):
         x[l] = 1/(1 + math.exp(-x[l]))
     return x
+
+def sigmoid(x):
+    return 1/(1 + math.exp(-x))
 
 def learning_rubric_model(set_id, rubric_id):
 
@@ -140,9 +143,12 @@ def learning_rubric_model(set_id, rubric_id):
         #my_b = b.eval(sess)
         #print(i, (sigmoid(np.dot(np.asarray(object_features), my_W) + my_b) * np.asarray(answers_array)))
 
-    model = W.eval(sess)
-
-    model = model.tolist().append(b.eval(sess))
+    model = W.eval(sess)[:,0]
+    model = model.tolist()
+    model.append(float(b.eval(sess)))
+    myvar = float(b.eval(sess))
+    #print(type(model[0]), type(myvar))
+ #   print(model)
     db.put_model(rubric_id, set_id, model, mif, features_number)
 
     #print(W.eval(sess))
@@ -181,7 +187,29 @@ def spot_doc_rubrics(doc_id, rubrics):
             idf_doc[lemma] = lemmas[lemma] * sets[set_id]['idf'].get(lemma, 0) / doc_size
         sets[set_id]['idf_doc'] = idf_doc
     # for each rubric
-    #for rubric_id in rubrics:
+    answers = {}
+    for rubric_id in rubrics:
+        set_id = rubrics[rubric_id]
+        features_num = models[rubric_id]['features_num']
+        features_array = np.array([0 for i in range(features_num + 1)])
+        lemma_index = sets[set_id]['lemma_index']
+        for lemma in lemmas:
+            # lemma index in lemmas of set
+            ind_lemma = lemma_index.get(lemma, -1)
+            # if lemma from doc is in lemmas for training set
+            if ind_lemma > -1:
+                index = models[rubric_id]['features'][ind_lemma]
+                if index > -1:
+                    #print(index, len(features_array))
+                    #print(features_array[index] )
+                    #print(sets[set_id]['idf_doc'][lemma])
+                    features_array[index] = sets[set_id]['idf_doc'][lemma]
+        features_array[features_num] = 1
+        #print(models[rubric_id]['model'])
+        probability = sigmoid(np.dot(features_array, models[rubric_id]['model']))
+        answers[rubric_id] = {'result':round(probability), 'model_id':models[rubric_id]['model_id']}
+    db.put_rubrics(doc_id, answers)
+    print(answers)
 
 
 

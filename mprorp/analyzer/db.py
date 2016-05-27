@@ -85,12 +85,12 @@ def put_model(rubric_id, set_id, model, features, features_number):
 
 def get_set_id_by_rubric_id(rubric_id):
     #...
-    return session.query(RubricationModel.set_id).filter(RubricationModel.rubric_id == rubric_id).one().set_id
+    return str(session.query(RubricationModel.set_id).filter(RubricationModel.rubric_id == rubric_id).all()[0].set_id)
 
 def get_model(rubric_id, set_id):
-    model = session.query(RubricationModel.model, RubricationModel.features, RubricationModel.features_num ).filter(
-        (RubricationModel.rubric_id == rubric_id) & (RubricationModel.set_id == set_id)).one()
-    return {'model': model[0], 'features': model[1], 'features_num': model[2]}
+    model = session.query(RubricationModel.model, RubricationModel.features, RubricationModel.features_num, RubricationModel.model_id).filter(
+        (RubricationModel.rubric_id == rubric_id) & (RubricationModel.set_id == set_id)).all()[0]
+    return {'model': model[0], 'features': model[1], 'features_num': model[2], 'model_id': str(model[3])}
 
 # get dict with idf and lemma_index for each set_id
 # sets[...] is dict: {'idf':..., 'lemma_index': ...}
@@ -100,3 +100,11 @@ def get_idf_lemma_index_by_set_id(sets_id):
     for one_thing in few_things:
         result[str(one_thing[0])] = {'idf': one_thing[1], 'lemma_index': one_thing[2]}
     return result
+
+def put_rubrics(doc_id, rubrics):
+    for rubric_id in rubrics:
+        new_result = RubricationResult()
+        new_result.doc_id = doc_id
+        new_result.rubric_id = rubric_id
+        new_result.model_id = rubrics[rubric_id]['model_id']
+        new_result.result = rubrics[rubric_id]['result']
