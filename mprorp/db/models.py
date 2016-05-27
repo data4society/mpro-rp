@@ -100,8 +100,9 @@ class RubricationModel(Base):
 class RubricationResult(Base):
     __tablename__ = 'rubricationresult'
 
-    model_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
+    model_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"))
     rubric_id = Column(UUIDType(binary=False), ForeignKey('rubric.rubric_id'))
     doc_id = Column(UUIDType(binary=False), ForeignKey('document.doc_id'))
     result = Column(Integer())
     learning_date = Column(TIMESTAMP(), server_default=functions.current_timestamp())
+    __table_args__ = (PrimaryKeyConstraint(model_id, rubric_id, doc_id),)

@@ -147,7 +147,6 @@ def learning_rubric_model(set_id, rubric_id):
     model = W.eval(sess)[:,0]
     model = model.tolist()
     model.append(float(b.eval(sess)))
-    myvar = float(b.eval(sess))
     #print(type(model[0]), type(myvar))
  #   print(model)
     db.put_model(rubric_id, set_id, model, mif, features_number)
@@ -232,5 +231,5 @@ idf_object_features_set(set_id)
 learning_rubric_model(set_id, rubric_id)
 
 for doc_id in db.get_set_docs(set_id):
-    spot_doc_rubrics(doc_id, {rubric_id: None})
+    spot_doc_rubrics(doc_id, {rubric_id: set_id})
 
