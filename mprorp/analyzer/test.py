@@ -1,5 +1,5 @@
 import mprorp.analyzer.db as db
-import mprorp.analyzer.rubrucator as rb
+import mprorp.analyzer.rubricator as rb
 
 #set_id = "1dcc4dc5-a706-4e61-8b37-26b5fd554145"    # Свобода слова 10
 rubric_id = '693a9b39-cb8e-4525-9333-1dadcda7c34e' # Свобода собраний
