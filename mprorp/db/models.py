@@ -7,21 +7,27 @@ from sqlalchemy.sql import text,functions
 
 from mprorp.db.dbDriver import Base
 
-#source types, for example: website, vk, yandex...
 class SourceType(Base):
+    """source types, for example: website, vk, yandex..."""
     __tablename__ = 'sourcetype'
 
     source_type_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
+    #human-readable name
     name = Column(String(255), nullable=False)
 
 class Source(Base):
+    """sources for crawler and other"""
     __tablename__ = 'source'
 
     source_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
+    #url of source
     url = Column(String(1023))
+    #reference to source type
     source_type_ref = Column(UUIDType(binary=False), ForeignKey('sourcetype.source_type_id'))#reference to source_type
     sourceType = relationship(SourceType)
+    #human-readable name
     name = Column(String(255), nullable=False)
+    #period in seconds for parsing. -1 if source is off now
     parse_period = Column(Integer())
 
 class User(Base):
@@ -58,6 +64,7 @@ class TrainingSet(Base):
     __tablename__ = 'trainingset'
 
     set_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
+    #human-readable name
     set_name = Column(String(511))
     set_created = Column(TIMESTAMP(), server_default=functions.current_timestamp())
     doc_num = Column(Integer())
@@ -73,6 +80,7 @@ class Rubric(Base):
     __tablename__ = 'rubric'
 
     rubric_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
+    #name jf rubric
     name = Column(String(255), nullable=False)
 
 
