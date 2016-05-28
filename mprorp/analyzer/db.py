@@ -2,6 +2,7 @@ from mprorp.db.dbDriver import *
 import mprorp.db.dbDriver as Driver
 from mprorp.db.models import *
 from datetime import datetime
+from sqlalchemy import desc
 
 session = Driver.DBSession()
 
@@ -64,6 +65,11 @@ def get_answers(set_id, rubric_id):
         result[str(doc_id[0])] = 1
     return result
 
+def get_answer_doc(doc_id, rubric_id):
+
+    doc_rubric = session.query(DocumentRubric.doc_id).filter((DocumentRubric.rubric_id == rubric_id) & (DocumentRubric.doc_id == doc_id)).all()
+    return len(doc_rubric)
+
 def get_doc_index_object_features(set_id):
     result = session.query(TrainingSet).filter(TrainingSet.set_id == set_id).one()
     #result = select(TrainingSet, TrainingSet.set_id == set_id).fetchone()[0]
@@ -85,11 +91,14 @@ def put_model(rubric_id, set_id, model, features, features_number):
 
 def get_set_id_by_rubric_id(rubric_id):
     #...
-    return str(session.query(RubricationModel.set_id).filter(RubricationModel.rubric_id == rubric_id).all()[0].set_id)
+    res = session.query(RubricationModel.set_id, RubricationModel.learning_date).filter(RubricationModel.rubric_id == rubric_id).order_by(desc(RubricationModel.learning_date)).all()[0]
+    # print(res.learning_date)
+    return str(res.set_id)
 
 def get_model(rubric_id, set_id):
-    model = session.query(RubricationModel.model, RubricationModel.features, RubricationModel.features_num, RubricationModel.model_id).filter(
-        (RubricationModel.rubric_id == rubric_id) & (RubricationModel.set_id == set_id)).all()[0]
+    model = session.query(RubricationModel.model, RubricationModel.features, RubricationModel.features_num, RubricationModel.model_id, RubricationModel.learning_date).filter(
+        (RubricationModel.rubric_id == rubric_id) & (RubricationModel.set_id == set_id)).order_by(desc(RubricationModel.learning_date)).all()[0]
+    # print(model[4])
     return {'model': model[0], 'features': model[1], 'features_num': model[2], 'model_id': str(model[3])}
 
 # get dict with idf and lemma_index for each set_id
