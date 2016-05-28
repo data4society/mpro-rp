@@ -3,6 +3,7 @@ from mprorp.analyzer.pymystem3_w import Mystem
 import numpy as np
 import math
 import tensorflow as tf
+import random
 
 
 doc_id_1 = "7a721274-151a-4250-bb01-4a4772557d09"
@@ -39,11 +40,11 @@ def idf_object_features_set(set_id):
 
     # document frequency - number of documents with lemma
     doc_freq = {}
-    #number of lemmas in document
+    # number (sum of weights) of lemmas in document
     doc_size = {}
-    #index of lemma in overall list
+    # index of lemma in overall list
     lemma_index = {}
-    #lemma counter in overall list
+    # lemma counter in overall list
     lemma_counter = 0
     # document index
     doc_index = {}
@@ -145,8 +146,15 @@ def learning_rubric_model(set_id, rubric_id):
     sess = tf.Session()
     sess.run(init)
 
+    indexes = [i for i in range(doc_number)]
+
     for i in range(100):
-        sess.run(train_step, feed_dict={x: object_features, y_: answers_array})
+        if doc_number > 50:
+            sess.run(train_step, feed_dict={x: object_features[indexes[0:50], :], y_: answers_array[indexes[0:50],1]})
+            random.shuffle(indexes)
+            print(indexes[0:5])
+        else:
+            sess.run(train_step, feed_dict={x: object_features, y_: answers_array})
         #my_cea = cross_entropy_array.eval(sess)
         #print(my_cea)
         #my_W = W.eval(sess)

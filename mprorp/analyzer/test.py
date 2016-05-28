@@ -8,15 +8,14 @@ set_id = "7fc5e799-2fa4-40ce-82cd-2793b6889002" # Свобода слова 100
 
 set_id = 'a28852e0-1a06-43f3-adda-30984c992e0f' # Все новости
 
-counter = 0
-for doc_id in db.get_set_docs(set_id):
-   print(counter, doc_id)
-   counter += 1
-   rb.morpho_doc(doc_id)
-   rb.lemmas_freq_doc(doc_id)
-
+# counter = 0
+# for doc_id in db.get_set_docs(set_id):
+#    print(counter, doc_id)
+#    counter += 1
+#    rb.morpho_doc(doc_id)
+#    rb.lemmas_freq_doc(doc_id)
+#
 rb.idf_object_features_set(set_id)
-
 
 rb.learning_rubric_model(set_id, rubric_id)
 

@@ -41,7 +41,9 @@ def put_training_set_params(set_id, idf,  doc_index, lemma_index, object_feature
     some_set.doc_index = doc_index
     some_set.lemma_index = lemma_index
     some_set.object_features = object_features
+    print('commit now')
     session.commit()
+    print('commit ok')
 
 def put_training_set(doc_id_array):
     new_set = TrainingSet()
