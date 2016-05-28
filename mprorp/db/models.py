@@ -1,4 +1,4 @@
-#models which describing database structure
+"""models which describing database structure"""
 from sqlalchemy_utils import UUIDType
 from sqlalchemy import Column, ForeignKey, String,Text,Integer, TIMESTAMP, Float, PrimaryKeyConstraint
 from sqlalchemy.dialects.postgresql import JSON, TSVECTOR, ARRAY
