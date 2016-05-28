@@ -13,18 +13,23 @@ if "maindb" in sys.argv:
     connection_string = maindb_connection
 else:
     connection_string = testdb_connection
+
+# main object which SQLA uses to connect to database
 engine = create_engine(connection_string)
+# full meta information about structure of tables
 meta = MetaData(bind=engine, reflect=True)
+# session class
 DBSession = sessionmaker(bind=engine)
 Base = declarative_base()
 
 if "maindb" in sys.argv:
     import mprorp.db.models
-
+    # if any table doesn't exist it will create at this step
     Base.metadata.create_all(engine)
 
 
 def insert(new_object):
+    """insert to database with ORM"""
     session = DBSession()
     session.add(new_object)
     session.commit()
@@ -32,6 +37,7 @@ def insert(new_object):
 
 
 def select(columns, where_clause):
+    """select with query api"""
     if type(columns) is list:
         return engine.execute(sqlalchemy.select(columns).where(where_clause))
     else:
@@ -39,6 +45,7 @@ def select(columns, where_clause):
 
 
 def update(obj):
+    """update with ORM"""
     session = DBSession()
     session.merge(obj)
     session.commit()
@@ -48,10 +55,14 @@ def update(obj):
     #return DBDriver.engine.execute(obj.update().values(values).where(where_clause))#obj.c.doc_id == '7a074073-7747-47b9-aba0-1f5990ddbaf9'))
 
 
-
 def dropall_and_create():
+    """drop all tables and create all them again"""
+    # close sessions
     DBSession.close_all()
+    #drop all which exist
     for tbl in reversed(meta.sorted_tables):
         tbl.drop(engine);
+    # load models
     import mprorp.db.models
+    # create tables by models
     Base.metadata.create_all(engine)
