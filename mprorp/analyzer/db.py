@@ -3,6 +3,7 @@ import mprorp.db.dbDriver as Driver
 from mprorp.db.models import *
 from datetime import datetime
 from sqlalchemy import desc
+import numpy as np
 
 session = Driver.DBSession()
 
@@ -35,15 +36,34 @@ def get_lemmas_freq ( set_id ):
     return result
     #return {'id1': {'тип': 1, 'становиться': 3}, 'id2': {'тип': 1, 'есть': 2}}
 
+def compress(array):
+    indexes = []
+    result = []
+    size = len(array)
+    for i in range(size):
+        if array[i] != 0:
+            indexes.append(i)
+            result.append(array[i])
+    return result, indexes
+
+def uncompress(array, indexes, size):
+    #print(array, indexes, size)
+    result = np.zeros(size, dtype=float)
+    size_small = len(indexes)
+    for i in range(size_small):
+        result[indexes[i]] = array[i]
+    return result
+
 def put_training_set_params(set_id, idf,  doc_index, lemma_index, object_features):
     some_set = session.query(TrainingSet).filter(TrainingSet.set_id == set_id).one()
     some_set.idf = idf
     some_set.doc_index = doc_index
     some_set.lemma_index = lemma_index
-    some_set.object_features = object_features
-    print('commit now')
+    #some_set.object_features = object_features
+    for doc_id in doc_index:
+        features, indexes = compress(object_features[doc_index[doc_id],:])
+        session.add(ObjectFeatures(doc_id = doc_id, set_id = set_id, compressed = True, features = features, indexes = indexes ))
     session.commit()
-    print('commit ok')
 
 def put_training_set(doc_id_array):
     new_set = TrainingSet()
@@ -54,10 +74,8 @@ def put_training_set(doc_id_array):
 
 def get_answers(set_id, rubric_id):
     docs = Driver.select(TrainingSet.doc_refs,TrainingSet.set_id == set_id).fetchone()[0]
-    #docs_rubric = Driver.select(DocumentRubric.doc_id, (DocumentRubric.doc_id in (docs)) and (DocumentRubric.rubric_id == rubric_id)).fetchall()
-    #docs_rubric = Driver.select(DocumentRubric.doc_id, (DocumentRubric.doc_id in (docs))).fetchall()
 
-    #docs = session.query(TrainingSet).filter(TrainingSet.set_id == set_id).one()
+    # docs = session.query(TrainingSet).filter(TrainingSet.set_id == set_id).one()
     docs_rubric = session.query(DocumentRubric.doc_id).filter((DocumentRubric.rubric_id == rubric_id) & (DocumentRubric.doc_id.in_(docs))).all()
 
     result = {}
@@ -73,10 +91,18 @@ def get_answer_doc(doc_id, rubric_id):
     return len(doc_rubric)
 
 def get_doc_index_object_features(set_id):
-    result = session.query(TrainingSet).filter(TrainingSet.set_id == set_id).one()
-    #result = select(TrainingSet, TrainingSet.set_id == set_id).fetchone()[0]
-    #rint(result)
-    return result.doc_index, result.object_features
+    set = session.query(TrainingSet).filter(TrainingSet.set_id == set_id).one()
+    doc_index = set.doc_index
+    lemma_num = len(set.lemma_index)
+    result = session.query(ObjectFeatures).filter(ObjectFeatures.set_id == set_id).all()
+    docs_num = len(doc_index)
+    object_features = np.zeros((docs_num, lemma_num))
+    for row in result:
+        if row.compressed:
+            object_features[doc_index[str(row.doc_id)], :] = uncompress(row.features, row.indexes, lemma_num)
+        else:
+            object_features[doc_index[str(row.doc_id)], :] = row.features
+    return doc_index, object_features
 
 def get_set_docs(set_id):
     return select(TrainingSet.doc_refs,TrainingSet.set_id == set_id).fetchone()[0]
@@ -114,8 +140,5 @@ def get_idf_lemma_index_by_set_id(sets_id):
 
 def put_rubrics(doc_id, rubrics):
     for rubric_id in rubrics:
-        new_result = RubricationResult()
-        new_result.doc_id = doc_id
-        new_result.rubric_id = rubric_id
-        new_result.model_id = rubrics[rubric_id]['model_id']
-        new_result.result = rubrics[rubric_id]['result']
+        session.add( RubricationResult(doc_id = doc_id, rubric_id = rubric_id, model_id = rubrics[rubric_id]['model_id'], result = rubrics[rubric_id]['result']))
+    session.commit()

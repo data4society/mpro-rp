@@ -150,9 +150,9 @@ def learning_rubric_model(set_id, rubric_id):
 
     for i in range(100):
         if doc_number > 50:
-            sess.run(train_step, feed_dict={x: object_features[indexes[0:50], :], y_: answers_array[indexes[0:50],1]})
+            sess.run(train_step, feed_dict={x: object_features[indexes[0:50], :], y_: answers_array[indexes[0:50], :]})
             random.shuffle(indexes)
-            print(indexes[0:5])
+            print('shuffled indexes: ', indexes[0:5])
         else:
             sess.run(train_step, feed_dict={x: object_features, y_: answers_array})
         #my_cea = cross_entropy_array.eval(sess)
@@ -232,7 +232,7 @@ def spot_doc_rubrics(doc_id, rubrics):
             res = 'correct'
         else:
             res = 'incorrect'
-        print(doc_id, answers[rubric_id]['result'], res)
+        print(doc_id, answers[rubric_id]['result'],  res)
     db.put_rubrics(doc_id, answers)
 
 

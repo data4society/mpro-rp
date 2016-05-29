@@ -15,9 +15,9 @@ set_id = 'a28852e0-1a06-43f3-adda-30984c992e0f' # Все новости
 #    rb.morpho_doc(doc_id)
 #    rb.lemmas_freq_doc(doc_id)
 #
-rb.idf_object_features_set(set_id)
+#rb.idf_object_features_set(set_id)
 
-rb.learning_rubric_model(set_id, rubric_id)
-
+# rb.learning_rubric_model(set_id, rubric_id)
+#
 for doc_id in db.get_set_docs(set_id):
     rb.spot_doc_rubrics(doc_id, {rubric_id: None})
