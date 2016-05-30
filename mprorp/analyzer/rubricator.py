@@ -147,12 +147,17 @@ def learning_rubric_model(set_id, rubric_id):
     sess.run(init)
 
     indexes = [i for i in range(doc_number)]
-
-    for i in range(100):
-        if doc_number > 50:
-            sess.run(train_step, feed_dict={x: object_features[indexes[0:50], :], y_: answers_array[indexes[0:50], :]})
+    bigcounter = 0
+    for i in range(50000):
+        if i == bigcounter * 100:
+            bigcounter = round(i/100) + 1
+            print(i)
+        if doc_number > 150:
+            local_answers = answers_array[indexes[0:100], :]
+            #print(np.sum(local_answers))
+            sess.run(train_step, feed_dict={x: object_features[indexes[0:100], :], y_: local_answers})
             random.shuffle(indexes)
-            print('shuffled indexes: ', indexes[0:5])
+            #print('shuffled indexes: ', indexes[0:5])
         else:
             sess.run(train_step, feed_dict={x: object_features, y_: answers_array})
         #my_cea = cross_entropy_array.eval(sess)

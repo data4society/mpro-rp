@@ -7,26 +7,29 @@ import numpy as np
 
 session = Driver.DBSession()
 
+# reading document plain text from db
 def get_doc(doc_id):
     return select(Document.stripped, Document.doc_id == doc_id).fetchone()[0]
 
+# writing result of morphological analysis of document in db
 def put_morpho(doc_id, morpho):
     update(Document(doc_id = doc_id, morpho = morpho))
-    #some_doc = session.query(Document).filter(Document.doc_id == doc_id).one()
-    #some_doc.morpho = morpho
-    #session.commit()
 
+# reading result of morphological analysis of document from db
 def get_morpho(doc_id):
     return select(Document.morpho, Document.doc_id == doc_id).fetchone()[0]
 
+# writing lemmas frequently of document in db
 def put_lemmas(doc_id,lemmas):
     some_doc = session.query(Document).filter(Document.doc_id == doc_id).one()
     some_doc.lemmas = lemmas
     session.commit()
 
+# reading lemmas frequently of document from db
 def get_lemmas(doc_id):
     return session.query(Document.lemmas).filter(Document.doc_id == doc_id).one().lemmas
 
+# reading lemmas frequently of all documents in training set from db
 def get_lemmas_freq ( set_id ):
     training_set = session.query(TrainingSet).filter(TrainingSet.set_id == set_id).one()
     few_things = session.query(Document.doc_id, Document.lemmas).filter(Document.doc_id.in_(training_set.doc_refs)).all()
@@ -36,6 +39,7 @@ def get_lemmas_freq ( set_id ):
     return result
     #return {'id1': {'тип': 1, 'становиться': 3}, 'id2': {'тип': 1, 'есть': 2}}
 
+# compression big disperse vector in 2 small vectors
 def compress(array):
     indexes = []
     result = []
@@ -46,25 +50,26 @@ def compress(array):
             result.append(array[i])
     return result, indexes
 
+# uncompression from 2 small vectors in big disperse vector with 'size' elements
 def uncompress(array, indexes, size):
-    #print(array, indexes, size)
     result = np.zeros(size, dtype=float)
     size_small = len(indexes)
     for i in range(size_small):
         result[indexes[i]] = array[i]
     return result
 
+# writing training set parameters (idf, object-features matrix and indexes of lemmas and documents in it) db
 def put_training_set_params(set_id, idf,  doc_index, lemma_index, object_features):
     some_set = session.query(TrainingSet).filter(TrainingSet.set_id == set_id).one()
     some_set.idf = idf
     some_set.doc_index = doc_index
     some_set.lemma_index = lemma_index
-    #some_set.object_features = object_features
     for doc_id in doc_index:
         features, indexes = compress(object_features[doc_index[doc_id],:])
         session.add(ObjectFeatures(doc_id = doc_id, set_id = set_id, compressed = True, features = features, indexes = indexes ))
     session.commit()
 
+# writing new training set in db
 def put_training_set(doc_id_array):
     new_set = TrainingSet()
     new_set.doc_refs = doc_id_array
@@ -72,9 +77,9 @@ def put_training_set(doc_id_array):
     session.commit()
     return new_set.set_id
 
+# reading answers for one rubric and all documents in set
 def get_answers(set_id, rubric_id):
     docs = Driver.select(TrainingSet.doc_refs,TrainingSet.set_id == set_id).fetchone()[0]
-
     # docs = session.query(TrainingSet).filter(TrainingSet.set_id == set_id).one()
     docs_rubric = session.query(DocumentRubric.doc_id).filter((DocumentRubric.rubric_id == rubric_id) & (DocumentRubric.doc_id.in_(docs))).all()
 
@@ -85,11 +90,12 @@ def get_answers(set_id, rubric_id):
         result[str(doc_id[0])] = 1
     return result
 
+# reading answer for one document and one rubric
 def get_answer_doc(doc_id, rubric_id):
-
     doc_rubric = session.query(DocumentRubric.doc_id).filter((DocumentRubric.rubric_id == rubric_id) & (DocumentRubric.doc_id == doc_id)).all()
     return len(doc_rubric)
 
+# reading object-features matrix and index of documents in it
 def get_doc_index_object_features(set_id):
     set = session.query(TrainingSet).filter(TrainingSet.set_id == set_id).one()
     doc_index = set.doc_index
@@ -104,9 +110,11 @@ def get_doc_index_object_features(set_id):
             object_features[doc_index[str(row.doc_id)], :] = row.features
     return doc_index, object_features
 
+# reading documents in set
 def get_set_docs(set_id):
     return select(TrainingSet.doc_refs,TrainingSet.set_id == set_id).fetchone()[0]
 
+# writing model compute for one rubric (rubric_id) with training set (set_id) using selected features (features)
 def put_model(rubric_id, set_id, model, features, features_number):
     new_model = RubricationModel()
     new_model.rubric_id = rubric_id
@@ -117,12 +125,14 @@ def put_model(rubric_id, set_id, model, features, features_number):
     new_model.learning_date = datetime.now()
     insert(new_model)
 
+# reading set_id of last computing model for rubric_id
 def get_set_id_by_rubric_id(rubric_id):
     #...
     res = session.query(RubricationModel.set_id, RubricationModel.learning_date).filter(RubricationModel.rubric_id == rubric_id).order_by(desc(RubricationModel.learning_date)).all()[0]
     # print(res.learning_date)
     return str(res.set_id)
 
+# reading last computing model for rubric_id and set_id
 def get_model(rubric_id, set_id):
     model = session.query(RubricationModel.model, RubricationModel.features, RubricationModel.features_num, RubricationModel.model_id, RubricationModel.learning_date).filter(
         (RubricationModel.rubric_id == rubric_id) & (RubricationModel.set_id == set_id)).order_by(desc(RubricationModel.learning_date)).all()[0]
@@ -138,11 +148,13 @@ def get_idf_lemma_index_by_set_id(sets_id):
         result[str(one_thing[0])] = {'idf': one_thing[1], 'lemma_index': one_thing[2]}
     return result
 
+# writing result of rubrication for one document
 def put_rubrics(doc_id, rubrics):
     for rubric_id in rubrics:
         session.add( RubricationResult(doc_id = doc_id, rubric_id = rubric_id, model_id = rubrics[rubric_id]['model_id'], result = rubrics[rubric_id]['result']))
     session.commit()
 
+# reading result of rubrication for model, training set and rubric
 def get_rubrication_result(model_id, set_id, rubric_id):
     docs = Driver.select(TrainingSet.doc_refs, TrainingSet.set_id == set_id).fetchone()[0]
     rubrication_result = session.query(RubricationResult.doc_id, RubricationResult.result).filter(
