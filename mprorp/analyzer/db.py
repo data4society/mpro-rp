@@ -142,3 +142,12 @@ def put_rubrics(doc_id, rubrics):
     for rubric_id in rubrics:
         session.add( RubricationResult(doc_id = doc_id, rubric_id = rubric_id, model_id = rubrics[rubric_id]['model_id'], result = rubrics[rubric_id]['result']))
     session.commit()
+
+def get_rubrication_result(model_id, set_id, rubric_id):
+    docs = Driver.select(TrainingSet.doc_refs, TrainingSet.set_id == set_id).fetchone()[0]
+    rubrication_result = session.query(RubricationResult.doc_id, RubricationResult.result).filter(
+        (RubricationResult.model_id == model_id) & (RubricationResult.rubric_id == rubric_id) & (RubricationResult.doc_id.in_(docs))).all()
+    result = {}
+    for doc_id in rubrication_result:
+        result[str(doc_id[0])] = doc_id[1]
+    return result

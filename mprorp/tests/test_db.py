@@ -109,5 +109,8 @@ class SimpleDBTest(unittest.TestCase):
         for doc_id in set:
             rb.spot_doc_rubrics(doc_id, {rubrics_id: None})
 
+        compareAnswers=rb.compare_answers(db.get_model(rubrics_id, set_id)["model_id"], set_id, rubrics_id)
+        print(compareAnswers)
+
 if __name__ == '__main__':
     unittest.main()

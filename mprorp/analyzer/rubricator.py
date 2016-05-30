@@ -235,7 +235,24 @@ def spot_doc_rubrics(doc_id, rubrics):
         print(doc_id, answers[rubric_id]['result'],  res)
     db.put_rubrics(doc_id, answers)
 
+def compare_answers(model_id, set_id, rubric_id):
+    compareAnswers = {'true_positive': 0, 'false_positive': 0, 'true_negative': 0, 'false_negative': 0}
+    answers = db.get_answers(set_id, rubric_id)
+    rubrication_result = db.get_rubrication_result(model_id, set_id, rubric_id)
 
+    for key in rubrication_result:
+        if rubrication_result[key] == answers[key]:
+            if rubrication_result[key] == 1:
+                compareAnswers['true_positive'] = compareAnswers['true_positive'] + 1
+            else:
+                compareAnswers['true_negative'] = compareAnswers['true_negative'] + 1
+        else:
+            if rubrication_result[key] == 1:
+                compareAnswers['false_negative'] = compareAnswers['false_negative'] + 1
+            else:
+                compareAnswers['false_positive'] = compareAnswers['false_positive'] + 1
+
+    return compareAnswers
 
 mystem_analyzer = Mystem(disambiguation=False)
 
