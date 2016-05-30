@@ -42,5 +42,7 @@ class SimpleDBTest(unittest.TestCase):
         print(sel_timestamp)
         #self.assertEqual(upd_doc_title, sel_doc_title)
 
+
+
 if __name__ == '__main__':
     unittest.main()
