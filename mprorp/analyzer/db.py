@@ -67,7 +67,7 @@ def put_training_set_params(set_id, idf,  doc_index, lemma_index, object_feature
 
 def put_training_set(doc_id_array):
     new_set = TrainingSet()
-    new_set.doc_ref = doc_id_array
+    new_set.doc_refs = doc_id_array
     session.add(new_set)
     session.commit()
     return new_set.set_id

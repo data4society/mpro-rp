@@ -103,8 +103,11 @@ class SimpleDBTest(unittest.TestCase):
             rb.lemmas_freq_doc(doc_id)
 
         set_id = db.put_training_set(set)
-        #rb.idf_object_features_set(set_id)
-        #rb.learning_rubric_model(set_id, rubrics_id)
+        rb.idf_object_features_set(set_id)
+        rb.learning_rubric_model(set_id, rubrics_id)
+
+        for doc_id in set:
+            rb.spot_doc_rubrics(doc_id, {rubrics_id: None})
 
 if __name__ == '__main__':
     unittest.main()
