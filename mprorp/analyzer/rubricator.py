@@ -3,6 +3,7 @@ from mprorp.analyzer.pymystem3_w import Mystem
 import numpy as np
 import math
 import tensorflow as tf
+import random
 
 
 doc_id_1 = "7a721274-151a-4250-bb01-4a4772557d09"
@@ -39,11 +40,11 @@ def idf_object_features_set(set_id):
 
     # document frequency - number of documents with lemma
     doc_freq = {}
-    #number of lemmas in document
+    # number (sum of weights) of lemmas in document
     doc_size = {}
-    #index of lemma in overall list
+    # index of lemma in overall list
     lemma_index = {}
-    #lemma counter in overall list
+    # lemma counter in overall list
     lemma_counter = 0
     # document index
     doc_index = {}
@@ -89,10 +90,10 @@ def idf_object_features_set(set_id):
     # save to db: idf, indexes and object_features
     db.put_training_set_params(set_id, idf,  doc_index, lemma_index, object_features)
 
-    print(idf)
-    print(doc_index)
-    print(lemma_index)
-    print(object_features)
+    # print(idf)
+    # print(doc_index)
+    # print(lemma_index)
+    # print(object_features)
 
 def sigmoid_array(x):
     for l in range(len(x)):
@@ -124,13 +125,20 @@ def learning_rubric_model(set_id, rubric_id):
     for doc_id in doc_index:
         answers_array[doc_index[doc_id], 0] = answers[doc_id] * 2 - 1
 
+    for doc_id in doc_index:
+        #print(db.get_doc(doc_id))
+        index = doc_index[doc_id]
+        #print(answers_array[index,:])
+        #print(object_features[index])
+
     x = tf.placeholder(tf.float32, shape=[None, features_number])
     y_ = tf.placeholder(tf.float32, shape=[None, 1])
-    W = tf.Variable(tf.ones([features_number, 1]))
+    W = tf.Variable(tf.truncated_normal([features_number, 1],stddev=0.1)) #tf.truncated_normal(shape, stddev=0.1)
     b = tf.Variable(0.00001)
 
     y = tf.matmul(x,W) + b
-    cross_entropy = - tf.reduce_mean(tf.sigmoid(y) * y_)
+    cross_entropy_array = tf.sigmoid(y) * y_
+    cross_entropy = - tf.reduce_mean(cross_entropy_array)
 
     train_step = tf.train.GradientDescentOptimizer(0.5).minimize(cross_entropy)
     init = tf.initialize_all_variables()
@@ -138,8 +146,17 @@ def learning_rubric_model(set_id, rubric_id):
     sess = tf.Session()
     sess.run(init)
 
-    for i in range(50):
-        sess.run(train_step, feed_dict={x: object_features, y_: answers_array})
+    indexes = [i for i in range(doc_number)]
+
+    for i in range(100):
+        if doc_number > 50:
+            sess.run(train_step, feed_dict={x: object_features[indexes[0:50], :], y_: answers_array[indexes[0:50], :]})
+            random.shuffle(indexes)
+            print('shuffled indexes: ', indexes[0:5])
+        else:
+            sess.run(train_step, feed_dict={x: object_features, y_: answers_array})
+        #my_cea = cross_entropy_array.eval(sess)
+        #print(my_cea)
         #my_W = W.eval(sess)
         #my_b = b.eval(sess)
         #print(i, (sigmoid(np.dot(np.asarray(object_features), my_W) + my_b) * np.asarray(answers_array)))
@@ -147,6 +164,7 @@ def learning_rubric_model(set_id, rubric_id):
     model = W.eval(sess)[:,0]
     model = model.tolist()
     model.append(float(b.eval(sess)))
+    #print(model)
     #print(type(model[0]), type(myvar))
  #   print(model)
     db.put_model(rubric_id, set_id, model, mif, features_number)
@@ -172,8 +190,11 @@ def spot_doc_rubrics(doc_id, rubrics):
     #models for rubrics
     models = {}
 
+    correct_answers = {}
+
     # fill set_id in rubrics and data in models
     for rubric_id in rubrics:
+        correct_answers[rubric_id] = db.get_answer_doc(doc_id, rubric_id)
         if rubrics[rubric_id] is None:
             rubrics[rubric_id] = db.get_set_id_by_rubric_id(rubric_id)
         models[rubric_id] = db.get_model(rubric_id, rubrics[rubric_id])
@@ -191,7 +212,7 @@ def spot_doc_rubrics(doc_id, rubrics):
     for rubric_id in rubrics:
         set_id = rubrics[rubric_id]
         features_num = models[rubric_id]['features_num']
-        features_array = np.array([0 for i in range(features_num + 1)])
+        features_array = np.array([0 for i in range(features_num + 1)], dtype = float)
         lemma_index = sets[set_id]['lemma_index']
         for lemma in lemmas:
             # lemma index in lemmas of set
@@ -205,31 +226,16 @@ def spot_doc_rubrics(doc_id, rubrics):
                     #print(sets[set_id]['idf_doc'][lemma])
                     features_array[index] = sets[set_id]['idf_doc'][lemma]
         features_array[features_num] = 1
-        #print(models[rubric_id]['model'])
         probability = sigmoid(np.dot(features_array, models[rubric_id]['model']))
         answers[rubric_id] = {'result':round(probability), 'model_id':models[rubric_id]['model_id']}
+        if answers[rubric_id]['result'] == correct_answers[rubric_id]:
+            res = 'correct'
+        else:
+            res = 'incorrect'
+        print(doc_id, answers[rubric_id]['result'],  res)
     db.put_rubrics(doc_id, answers)
-    print(answers)
+
 
 
 mystem_analyzer = Mystem(disambiguation=False)
-#mystem_analyzer.start()
-
-set_id = "1dcc4dc5-a706-4e61-8b37-26b5fd554145"    # Свобода слова 10
-rubric_id = '693a9b39-cb8e-4525-9333-1dadcda7c34e' # Свобода собраний
-
-#set_id = "7fc5e799-2fa4-40ce-82cd-2793b6889002" # Свобода слова 100
-
-for doc_id in db.get_set_docs(set_id):
-    print(doc_id)
-    morpho_doc(doc_id)
-    lemmas_freq_doc(doc_id)
-
-idf_object_features_set(set_id)
-
-
-learning_rubric_model(set_id, rubric_id)
-
-for doc_id in db.get_set_docs(set_id):
-    spot_doc_rubrics(doc_id, {rubric_id: set_id})
 
