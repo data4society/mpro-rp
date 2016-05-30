@@ -148,7 +148,7 @@ def learning_rubric_model(set_id, rubric_id):
 
     indexes = [i for i in range(doc_number)]
     bigcounter = 0
-    for i in range(50000):
+    for i in range(5000):
         if i == bigcounter * 100:
             bigcounter = round(i/100) + 1
             print(i)
