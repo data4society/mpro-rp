@@ -11,6 +11,8 @@ class SimpleVKTest(unittest.TestCase):
         dropall_and_create()
 
         ins_source_url = 'test_docs/vk_response.txt'
+        if sys.argv[0][-10:] == 'nosetests3':
+            ins_source_url = 'mprorp/tests/'+ins_source_url
         ins_source = Source(url=ins_source_url, name='test source')
         insert(ins_source)
         ins_source_id = ins_source.source_id
