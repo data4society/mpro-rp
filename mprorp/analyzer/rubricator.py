@@ -230,6 +230,7 @@ idf_object_features_set(set_id)
 
 learning_rubric_model(set_id, rubric_id)
 
+
 for doc_id in db.get_set_docs(set_id):
     spot_doc_rubrics(doc_id, {rubric_id: set_id})
 
