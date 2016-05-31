@@ -56,11 +56,11 @@ class SimpleDBTest(unittest.TestCase):
         insert(new_rubrics)
         rubrics_id = new_rubrics.rubric_id
 
-        insert(DocumentRubric(doc_id=set[0], rubric_id=rubrics_id))
-        insert(DocumentRubric(doc_id=set[2], rubric_id=rubrics_id))
-        insert(DocumentRubric(doc_id=set[3], rubric_id=rubrics_id))
-        insert(DocumentRubric(doc_id=set[8], rubric_id=rubrics_id))
-        insert(DocumentRubric(doc_id=set[9], rubric_id=rubrics_id))
+        insert(DocumentRubric(doc_id=training_set[0], rubric_id=rubrics_id))
+        insert(DocumentRubric(doc_id=training_set[2], rubric_id=rubrics_id))
+        insert(DocumentRubric(doc_id=training_set[3], rubric_id=rubrics_id))
+        insert(DocumentRubric(doc_id=training_set[8], rubric_id=rubrics_id))
+        insert(DocumentRubric(doc_id=training_set[9], rubric_id=rubrics_id))
 
         for doc_id in training_set:
             rb.morpho_doc(doc_id)
