@@ -17,6 +17,16 @@ class SimpleDBTest(unittest.TestCase):
         morpho = db.get_morpho(doc_id)
         self.assertEqual(morpho[0]['text'], 'Эти')
 
+    def test_lemmas_freq(self):
+        # morpho analysis
+        dropall_and_create()
+        my_doc = Document(stripped='Эти типы стали есть на складе')
+        insert(my_doc)
+        doc_id = str(my_doc.doc_id)
+        rb.morpho_doc(doc_id)
+        rb.lemmas_freq_doc(doc_id)
+        lemmas = db.get_lemmas(doc_id)
+        self.assertEqual(lemmas['склад'], 1)
 
     def test_rubricator(self):
         # insert 10 simple documents in db and form training set
