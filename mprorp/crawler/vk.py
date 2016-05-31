@@ -1,10 +1,10 @@
 """vkontakte list and item parser"""
-from mprorp.db.dbDriver import *
-from mprorp.db.models import *
-
 from requests import Request, Session
 import json
 import datetime
+
+from mprorp.db.dbDriver import *
+from mprorp.db.models import *
 
 
 def send_get_request(url):
@@ -20,15 +20,11 @@ def send_get_request(url):
 def vk_start_parsing(source_id):
     """download vk response and run list parsing function"""
     # get source url
-    [source_url, parse_period] = select([Source.url,Source.parse_period], Source.source_id == source_id).fetchone()
+    source_url = select(Source.url, Source.source_id == source_id).fetchone()[0]
     # download vk response
     req_result = send_get_request(source_url)
     # run list parsing function
     vk_parse_list(req_result, source_id)
-    # change next timestamp crawl start
-    next_crawling_time = datetime.datetime.fromtimestamp(datetime.datetime.now().timestamp() + parse_period)
-    source = Source(source_id = source_id, next_crawling_time = next_crawling_time)
-    update(source)
 
 
 def vk_parse_list(req_result, source_id):
@@ -50,7 +46,7 @@ def vk_parse_list(req_result, source_id):
             # skip all not 'post' items
             if post_type == 'post' and not select(Document.doc_id, Document.guid == url).fetchone():
                 # initial insert with guid start status and reference to source
-                new_doc = Document(guid=url, source_id=source_id, status=0, type='vk')
+                new_doc = Document(guid=url, source_ref=source_id, status=0)
                 insert(new_doc)
                 # further parsing
                 vk_parse_item(item, new_doc.doc_id)
@@ -64,7 +60,7 @@ def vk_parse_item(item, doc_id):
     new_doc.stripped = txt
     # publish date timestamp
     timestamp = item["date"]
-    new_doc.published_date = datetime.datetime.fromtimestamp(timestamp)
+    new_doc.created = datetime.datetime.fromtimestamp(timestamp)
 
     # additional information
     meta_json = dict()
@@ -77,7 +73,7 @@ def vk_parse_item(item, doc_id):
         meta_json['vk_attachments'] = attachments
     # owner info
     meta_json['vk_owner'] = vk_get_user(item["owner_id"])
-    new_doc.meta = meta_json # json.dumps(meta_json)
+    new_doc.meta = json.dumps(meta_json)
 
     new_doc.status = 1  # this status mean complete crawler work with this item
     # update row in database
@@ -101,8 +97,9 @@ def vk_get_user(owner_id):
     return json_obj
 
 
+
 if __name__ == '__main__':
-    # delete("documents",Document.source_id == '2c00848d-dc19-4de0-a076-8d89c414a4fd')
-    vk_start_parsing('2c00848d-dc19-4de0-a076-8d89c414a4fd')
-    # print(len(select(Document.created, Document.source_id == '2c00848d-dc19-4de0-a076-8d89c414a4fd').fetchall()))
+    #delete("document",Document.source_ref == 'd1fb37ef-1808-45f6-9234-5ed2969e920a')
+    vk_start_parsing('d1fb37ef-1808-45f6-9234-5ed2969e920a')
+    # print(len(select(Document.issue_date, Document.source_ref == 'd1fb37ef-1808-45f6-9234-5ed2969e920a').fetchall()))
 
