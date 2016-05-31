@@ -185,11 +185,13 @@ def get_idf_lemma_index_by_set_id(sets_id):
 # writing result of rubrication for one document
 def put_rubrics(doc_id, rubrics):
     for rubric_id in rubrics:
-        session.query(RubricationResult).filter(
-            (RubricationResult.doc_id == doc_id)&(RubricationResult.rubric_id == rubric_id)&
-            (RubricationResult.model_id == rubrics[rubric_id]['model_id'])).update(
-            {"result": rubrics[rubric_id]['result']}
-        )
+        # session.query(RubricationResult).filter(
+        #     (RubricationResult.doc_id == doc_id)&(RubricationResult.rubric_id == rubric_id)&
+        #     (RubricationResult.model_id == rubrics[rubric_id]['model_id'])).update(
+        #     {"result": rubrics[rubric_id]['result']}
+        # )
+        session.add(RubricationResult(doc_id=doc_id, rubric_id=rubric_id, model_id=rubrics[rubric_id]['model_id'],
+                                      result=rubrics[rubric_id]['result']))
     session.commit()
 
 
