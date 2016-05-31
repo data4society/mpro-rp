@@ -143,11 +143,11 @@ def learning_rubric_model(set_id, rubric_id):
     sess.run(init)
 
     indexes = [i for i in range(doc_number)]
-    big_counter = 0
+    # big_counter = 0
     for i in range(5000):
-        if i == big_counter * 100:
-            big_counter = round(i/100) + 1
-            print(i)
+        # if i == big_counter * 100:
+        #     big_counter = round(i/100) + 1
+        #     print(i)
         if doc_number > 150:
             local_answers = answers_array[indexes[0:100], :]
             sess.run(train_step, feed_dict={x: object_features[indexes[0:100], :], y_: local_answers})
