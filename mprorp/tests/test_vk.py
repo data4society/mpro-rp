@@ -51,3 +51,8 @@ class SimpleVKTest(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+"""
+TODO: check owner info
+"""
