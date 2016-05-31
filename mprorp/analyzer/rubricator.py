@@ -6,28 +6,28 @@ import tensorflow as tf
 import random
 
 
-doc_id_1 = "7a721274-151a-4250-bb01-4a4772557d09"
-doc_id_2 = "672f361d-1632-41b0-82de-dd8c85745063"
+mystem_analyzer = Mystem(disambiguation=False)
+
 
 # one document morphological analysis
 def morpho_doc(doc_id):
-    #mystem_analyzer = Mystem(disambiguation=False)
     text = db.get_doc(doc_id)
-    #print(text)
     mystem_analyzer.start()
     new_morpho = mystem_analyzer.analyze(text)
     db.put_morpho(doc_id, new_morpho)
     mystem_analyzer.close()
+
 
 # counting lemmas frequency for one document
 def lemmas_freq_doc(doc_id):
     lemmas = {}
     morpho = db.get_morpho(doc_id)
     for i in morpho:
-        for l in i.get('analysis',[]):
-            if l.get('lex',False):
+        for l in i.get('analysis', []):
+            if l.get('lex', False):
                 lemmas[l['lex']] = lemmas.get(l['lex'], 0) + l.get('wt', 1)
     db.put_lemmas(doc_id, lemmas)
+
 
 # compute idf and object-features matrix for training set
 # idf for calc features of new docs
@@ -50,7 +50,6 @@ def idf_object_features_set(set_id):
     doc_index = {}
     # document counter in overall list
     doc_counter = 0
-
 
     for doc_id in docs:
         # initialize doc_size
@@ -85,7 +84,8 @@ def idf_object_features_set(set_id):
         doc_lemmas = docs[doc_id]
         for lemma in doc_lemmas:
             if lemma_index.get(lemma, -1) != -1:
-                object_features[doc_index[doc_id],lemma_index[lemma]] = doc_lemmas[lemma] / doc_size[doc_id] * idf[lemma]
+                object_features[doc_index[doc_id], lemma_index[lemma]] = \
+                    doc_lemmas[lemma] / doc_size[doc_id] * idf[lemma]
 
     # save to db: idf, indexes and object_features
     db.put_training_set_params(set_id, idf,  doc_index, lemma_index, object_features)
@@ -95,13 +95,16 @@ def idf_object_features_set(set_id):
     # print(lemma_index)
     # print(object_features)
 
+
 def sigmoid_array(x):
     for l in range(len(x)):
         x[l] = 1/(1 + math.exp(-x[l]))
     return x
 
+
 def sigmoid(x):
     return 1/(1 + math.exp(-x))
+
 
 def learning_rubric_model(set_id, rubric_id):
 
@@ -120,23 +123,17 @@ def learning_rubric_model(set_id, rubric_id):
     for i in range(features_number):
         mif[i] = i
 
-    #take probability (sigmoid) when answer is true and -sigmoid (instead 1-sigmoid) otherwise
+    # take probability (sigmoid) when answer is true and -sigmoid (instead 1-sigmoid) otherwise
     answers_array = np.zeros((doc_number, 1))
     for doc_id in doc_index:
         answers_array[doc_index[doc_id], 0] = answers[doc_id] * 2 - 1
 
-    for doc_id in doc_index:
-        #print(db.get_doc(doc_id))
-        index = doc_index[doc_id]
-        #print(answers_array[index,:])
-        #print(object_features[index])
-
     x = tf.placeholder(tf.float32, shape=[None, features_number])
     y_ = tf.placeholder(tf.float32, shape=[None, 1])
-    W = tf.Variable(tf.truncated_normal([features_number, 1],stddev=0.1)) #tf.truncated_normal(shape, stddev=0.1)
+    w = tf.Variable(tf.truncated_normal([features_number, 1], stddev=0.1))
     b = tf.Variable(0.00001)
 
-    y = tf.matmul(x,W) + b
+    y = tf.matmul(x, w) + b
     cross_entropy_array = tf.sigmoid(y) * y_
     cross_entropy = - tf.reduce_mean(cross_entropy_array)
 
@@ -147,39 +144,31 @@ def learning_rubric_model(set_id, rubric_id):
     sess.run(init)
 
     indexes = [i for i in range(doc_number)]
-    bigcounter = 0
+    # big_counter = 0
     for i in range(5000):
-        if i == bigcounter * 100:
-            bigcounter = round(i/100) + 1
-            print(i)
+        # if i == big_counter * 100:
+        #     big_counter = round(i/100) + 1
+        #     print(i)
         if doc_number > 150:
             local_answers = answers_array[indexes[0:100], :]
-            #print(np.sum(local_answers))
             sess.run(train_step, feed_dict={x: object_features[indexes[0:100], :], y_: local_answers})
             random.shuffle(indexes)
-            #print('shuffled indexes: ', indexes[0:5])
         else:
             sess.run(train_step, feed_dict={x: object_features, y_: answers_array})
-        #my_cea = cross_entropy_array.eval(sess)
-        #print(my_cea)
-        #my_W = W.eval(sess)
-        #my_b = b.eval(sess)
-        #print(i, (sigmoid(np.dot(np.asarray(object_features), my_W) + my_b) * np.asarray(answers_array)))
+        # my_cea = cross_entropy_array.eval(sess)
+        # print(my_cea)
+        # my_w = w.eval(sess)
+        # my_b = b.eval(sess)
+        # print(i, (sigmoid(np.dot(np.asarray(object_features), my_W) + my_b) * np.asarray(answers_array)))
 
-    model = W.eval(sess)[:,0]
+    model = w.eval(sess)[:, 0]
     model = model.tolist()
     model.append(float(b.eval(sess)))
-    #print(model)
-    #print(type(model[0]), type(myvar))
- #   print(model)
     db.put_model(rubric_id, set_id, model, mif, features_number)
 
-    #print(W.eval(sess))
-    #print(b.eval(sess))
-    #print(answers_array)
-    #print(type(my_W))
-    # print(np.dot(np.asarray(object_features),my_W) + my_b)
-    #print(sess.run(accuracy, feed_dict={x: object_features, y_:answers_array}))
+    # print(W.eval(sess))
+    # print(b.eval(sess))
+
 
 # take 1 doc and few rubrics
 # save in DB doc_id, rubric_id and YES or NO
@@ -192,7 +181,7 @@ def spot_doc_rubrics(doc_id, rubrics):
     doc_size = 0
     for lemma in lemmas:
         doc_size += lemmas[lemma]
-    #models for rubrics
+    # models for rubrics
     models = {}
 
     correct_answers = {}
@@ -217,7 +206,7 @@ def spot_doc_rubrics(doc_id, rubrics):
     for rubric_id in rubrics:
         set_id = rubrics[rubric_id]
         features_num = models[rubric_id]['features_num']
-        features_array = np.array([0 for i in range(features_num + 1)], dtype = float)
+        features_array = np.zeros(features_num + 1, dtype=float)
         lemma_index = sets[set_id]['lemma_index']
         for lemma in lemmas:
             # lemma index in lemmas of set
@@ -226,13 +215,10 @@ def spot_doc_rubrics(doc_id, rubrics):
             if ind_lemma > -1:
                 index = models[rubric_id]['features'][ind_lemma]
                 if index > -1:
-                    #print(index, len(features_array))
-                    #print(features_array[index] )
-                    #print(sets[set_id]['idf_doc'][lemma])
                     features_array[index] = sets[set_id]['idf_doc'][lemma]
         features_array[features_num] = 1
         probability = sigmoid(np.dot(features_array, models[rubric_id]['model']))
-        answers[rubric_id] = {'result':round(probability), 'model_id':models[rubric_id]['model_id']}
+        answers[rubric_id] = {'result': round(probability), 'model_id': models[rubric_id]['model_id']}
         if answers[rubric_id]['result'] == correct_answers[rubric_id]:
             res = 'correct'
         else:
@@ -240,24 +226,22 @@ def spot_doc_rubrics(doc_id, rubrics):
         print(doc_id, answers[rubric_id]['result'],  res)
     db.put_rubrics(doc_id, answers)
 
+
 def compare_answers(model_id, set_id, rubric_id):
-    compareAnswers = {'true_positive': 0, 'false_positive': 0, 'true_negative': 0, 'false_negative': 0}
+    answers_for_compare = {'true_positive': 0, 'false_positive': 0, 'true_negative': 0, 'false_negative': 0}
     answers = db.get_answers(set_id, rubric_id)
     rubrication_result = db.get_rubrication_result(model_id, set_id, rubric_id)
 
     for key in rubrication_result:
         if rubrication_result[key] == answers[key]:
             if rubrication_result[key] == 1:
-                compareAnswers['true_positive'] = compareAnswers['true_positive'] + 1
+                answers_for_compare['true_positive'] += 1
             else:
-                compareAnswers['true_negative'] = compareAnswers['true_negative'] + 1
+                answers_for_compare['true_negative'] += 1
         else:
             if rubrication_result[key] == 1:
-                compareAnswers['false_negative'] = compareAnswers['false_negative'] + 1
+                answers_for_compare['false_negative'] += 1
             else:
-                compareAnswers['false_positive'] = compareAnswers['false_positive'] + 1
+                answers_for_compare['false_positive'] += 1
 
-    return compareAnswers
-
-mystem_analyzer = Mystem(disambiguation=False)
-
+    return answers_for_compare
