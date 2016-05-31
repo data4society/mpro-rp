@@ -7,6 +7,17 @@ import mprorp.analyzer.db as db
 
 class SimpleDBTest(unittest.TestCase):
 
+    def test_morpho(self):
+        # morpho analysis
+        dropall_and_create()
+        my_doc = Document(stripped='Эти типы стали есть на складе')
+        insert(my_doc)
+        doc_id = str(my_doc.doc_id)
+        rb.morpho_doc(doc_id)
+        morpho = db.get_morpho(doc_id)
+        self.assertEqual(morpho[0]['text'], 'Эти')
+
+
     def test_rubricator(self):
         # insert 10 simple documents in db and form training set
         # learn model for 1 rubric
