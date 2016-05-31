@@ -71,6 +71,8 @@ def vk_parse_item(item, doc_id):
     if "attachments" in item:
         attachments = item["attachments"]
         meta_json['vk_attachments'] = attachments
+    # owner info
+    meta_json['vk_owner'] = vk_get_user(item["owner_id"])
     new_doc.meta = json.dumps(meta_json)
 
     new_doc.status = 1  # this status mean complete crawler work with this item
@@ -78,7 +80,26 @@ def vk_parse_item(item, doc_id):
     update(new_doc)
 
 
+def vk_get_user(owner_id):
+    """get user or page that owns post"""
+    if owner_id > 0:
+        req_result = send_get_request('https://api.vk.com/method/users.get?user_ids='+str(owner_id))
+        json_obj = json.loads(req_result)
+        json_obj = json_obj["response"][0]
+        json_obj["owner_type"] = "user"
+        json_obj["owner_url"] = "https://vk.com/id"+str(owner_id)
+    else:
+        req_result = send_get_request('https://api.vk.com/method/groups.getById?group_ids=' + str(-owner_id))
+        json_obj = json.loads(req_result)
+        json_obj = json_obj["response"][0]
+        json_obj["owner_type"] = "group"
+        json_obj["owner_url"] = "https://vk.com/club"+str(-owner_id)
+    return json_obj
+
+
+
 if __name__ == '__main__':
+    #delete("document",Document.source_ref == 'd1fb37ef-1808-45f6-9234-5ed2969e920a')
     vk_start_parsing('d1fb37ef-1808-45f6-9234-5ed2969e920a')
-# print(select(Document.issue_date, Document.source_ref == 'd1fb37ef-1808-45f6-9234-5ed2969e920a').fetchall())
+    # print(len(select(Document.issue_date, Document.source_ref == 'd1fb37ef-1808-45f6-9234-5ed2969e920a').fetchall()))
 

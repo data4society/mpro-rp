@@ -55,6 +55,11 @@ def update(obj):
     #return DBDriver.engine.execute(obj.update().values(values).where(where_clause))#obj.c.doc_id == '7a074073-7747-47b9-aba0-1f5990ddbaf9'))
 
 
+def delete(table_name, where_clause):
+    """delete with query api"""
+    engine.execute(sqlalchemy.delete(meta.tables[table_name]).where(where_clause))
+
+
 def dropall_and_create():
     """drop all tables and create all them again"""
     # close sessions
