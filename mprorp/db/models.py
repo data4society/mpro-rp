@@ -1,9 +1,9 @@
 """models which describing database structure"""
 from sqlalchemy_utils import UUIDType
-from sqlalchemy import Column, ForeignKey, String,Text,Integer, TIMESTAMP, Float, PrimaryKeyConstraint, Boolean
+from sqlalchemy import Column, ForeignKey, String, Text, Integer, TIMESTAMP, Float, PrimaryKeyConstraint, Boolean
 from sqlalchemy.dialects.postgresql import JSON, TSVECTOR, ARRAY
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql import text,functions
+from sqlalchemy.sql import text, functions
 
 from mprorp.db.dbDriver import Base
 
@@ -100,7 +100,7 @@ class TrainingSet(Base):
     # index of lemmas in object_features: key - lemma, value - column number
     lemma_index = Column(JSON())
     # object-features matrix
-    object_features = Column(ARRAY(item_type= Float, dimensions=2))
+    object_features = Column(ARRAY(item_type=Float, dimensions=2))
 
     # docs = relationship(Document)
 
@@ -131,10 +131,10 @@ class RubricationModel(Base):
     # Training set used for model
     set_id = Column(UUIDType(binary=False), ForeignKey('trainingset.set_id'))
     # model = vector
-    model = Column(ARRAY(item_type= Float, dimensions=1))
+    model = Column(ARRAY(item_type=Float, dimensions=1))
     # Array with length equal number features in training set.
     # Values: -1 - not used, otherwise - feature index in the model
-    features = Column(ARRAY(item_type= Integer, dimensions=1))
+    features = Column(ARRAY(item_type=Integer, dimensions=1))
     # Number of features in the model oppose number of features in training set, which is bidder (or equal)
     features_num = Column(Integer())
     # Date of model learning
@@ -154,6 +154,7 @@ class RubricationResult(Base):
     learning_date = Column(TIMESTAMP(), server_default=functions.current_timestamp())
     __table_args__ = (PrimaryKeyConstraint(model_id, rubric_id, doc_id),)
 
+
 class ObjectFeatures(Base):
     __tablename__ = 'objectfeatures'
 
@@ -162,10 +163,10 @@ class ObjectFeatures(Base):
     # Document id
     doc_id = Column(UUIDType(binary=False), ForeignKey('document.doc_id'))
     # Features vector - compressed or no
-    features = Column(ARRAY(item_type= Float, dimensions=1))
+    features = Column(ARRAY(item_type=Float, dimensions=1))
     # Is features compressed
     compressed = Column(Boolean())
     # Idexes of non-zero values (filled if compressed)
-    indexes = Column(ARRAY(item_type = Integer, dimensions=1))
+    indexes = Column(ARRAY(item_type=Integer, dimensions=1))
 
     __table_args__ = (PrimaryKeyConstraint(set_id, doc_id),)
