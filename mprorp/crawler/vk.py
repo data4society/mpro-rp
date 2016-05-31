@@ -1,3 +1,4 @@
+"""vkontakte list and item parser"""
 from requests import Request, Session
 import json
 import datetime
