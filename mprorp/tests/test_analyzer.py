@@ -62,6 +62,7 @@ class SimpleDBTest(unittest.TestCase):
         # self.assertEqual(result['true_positive'], 5)
         self.assertEqual(result['f1'], 1)
 
+
 def fill_db():
 
     docs = ["Письмо Маши Васе",

@@ -219,17 +219,20 @@ def spot_doc_rubrics(doc_id, rubrics):
         features_array[features_num] = 1
         probability = sigmoid(np.dot(features_array, models[rubric_id]['model']))
         answers[rubric_id] = {'result': round(probability), 'model_id': models[rubric_id]['model_id']}
-        if answers[rubric_id]['result'] == correct_answers[rubric_id]:
-            res = 'correct'
-        else:
-            res = 'incorrect'
+        # if answers[rubric_id]['result'] == correct_answers[rubric_id]:
+        #     res = 'correct'
+        # else:
+        #     res = 'incorrect'
         # print(doc_id, answers[rubric_id]['result'],  res)
     db.put_rubrics(doc_id, answers)
 
 
+# compute TP, FP, TN, FN, Precision, Recall and F-score on data from db
 def f1_score(model_id, test_set_id, rubric_id):
     result = {'true_positive': 0, 'false_positive': 0, 'true_negative': 0, 'false_negative': 0}
+    # right answers
     answers = db.get_answers(test_set_id, rubric_id)
+    # rubrication results
     rubrication_result = db.get_rubrication_result(model_id, test_set_id, rubric_id)
 
     for key in rubrication_result:
