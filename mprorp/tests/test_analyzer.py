@@ -32,6 +32,8 @@ class SimpleDBTest(unittest.TestCase):
 
         set_id, rubric_id = fill_db()
         rb.idf_object_features_set(set_id)
+        # check we can overwrite idf:
+        rb.idf_object_features_set(set_id)
         result = select(ObjectFeatures.doc_id, ObjectFeatures.set_id == set_id).fetchall()
         self.assertEqual(len(result), 10)
 
@@ -52,10 +54,13 @@ class SimpleDBTest(unittest.TestCase):
 
         for doc_id in db.get_set_docs(set_id):
             rb.spot_doc_rubrics(doc_id, {rubrics_id: None})
+            # check we can overwrite rubricationresults:
+            rb.spot_doc_rubrics(doc_id, {rubrics_id: None})
 
-        result = rb.compare_answers(db.get_model(rubrics_id, set_id)["model_id"], set_id, rubrics_id)
-        print(result)
-
+        result = rb.f1_score(db.get_model(rubrics_id, set_id)["model_id"], set_id, rubrics_id)
+        # self.assertEqual(result['true_negative'], 5)
+        # self.assertEqual(result['true_positive'], 5)
+        self.assertEqual(result['f1'], 1)
 
 def fill_db():
 
@@ -69,7 +74,7 @@ def fill_db():
             "Первое письмо Васи",
             "Первый документ Маши",
             "Письмо Маши Пете"]
-    answers = [1,0,1,0,0,0,1,1,0,1]
+    answers = [1, 0, 1, 0, 0, 0, 1, 1, 0, 1]
 
     tr_set = []
 

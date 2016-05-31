@@ -223,25 +223,27 @@ def spot_doc_rubrics(doc_id, rubrics):
             res = 'correct'
         else:
             res = 'incorrect'
-        print(doc_id, answers[rubric_id]['result'],  res)
+        # print(doc_id, answers[rubric_id]['result'],  res)
     db.put_rubrics(doc_id, answers)
 
 
-def compare_answers(model_id, set_id, rubric_id):
-    answers_for_compare = {'true_positive': 0, 'false_positive': 0, 'true_negative': 0, 'false_negative': 0}
-    answers = db.get_answers(set_id, rubric_id)
-    rubrication_result = db.get_rubrication_result(model_id, set_id, rubric_id)
+def f1_score(model_id, test_set_id, rubric_id):
+    result = {'true_positive': 0, 'false_positive': 0, 'true_negative': 0, 'false_negative': 0}
+    answers = db.get_answers(test_set_id, rubric_id)
+    rubrication_result = db.get_rubrication_result(model_id, test_set_id, rubric_id)
 
     for key in rubrication_result:
         if rubrication_result[key] == answers[key]:
             if rubrication_result[key] == 1:
-                answers_for_compare['true_positive'] += 1
+                result['true_positive'] += 1
             else:
-                answers_for_compare['true_negative'] += 1
+                result['true_negative'] += 1
         else:
             if rubrication_result[key] == 1:
-                answers_for_compare['false_negative'] += 1
+                result['false_positive'] += 1
             else:
-                answers_for_compare['false_positive'] += 1
-
-    return answers_for_compare
+                result['false_negative'] += 1
+    result['precision'] = result['true_positive'] / (result['true_positive'] + result['false_positive'])
+    result['recall'] = result['true_positive'] / (result['true_positive'] + result['false_negative'])
+    result['f1'] = 2 * result['precision'] * result['recall'] / (result['precision'] + result['recall'])
+    return result
