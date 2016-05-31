@@ -84,7 +84,8 @@ def idf_object_features_set(set_id):
         doc_lemmas = docs[doc_id]
         for lemma in doc_lemmas:
             if lemma_index.get(lemma, -1) != -1:
-                object_features[doc_index[doc_id], lemma_index[lemma]] = doc_lemmas[lemma] / doc_size[doc_id] * idf[lemma]
+                object_features[doc_index[doc_id], lemma_index[lemma]] = \
+                    doc_lemmas[lemma] / doc_size[doc_id] * idf[lemma]
 
     # save to db: idf, indexes and object_features
     db.put_training_set_params(set_id, idf,  doc_index, lemma_index, object_features)
