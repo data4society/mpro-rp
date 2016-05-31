@@ -25,7 +25,7 @@ class Source(Base):
     # url of source
     url = Column(String(1023))
     # reference to source type
-    source_type_ref = Column(UUIDType(binary=False), ForeignKey('sourcetype.source_type_id'))#reference to source_type
+    source_type_ref = Column(UUIDType(binary=False), ForeignKey('sourcetype.source_type_id'))
     sourceType = relationship(SourceType)
     # human-readable name
     name = Column(String(255), nullable=False)
@@ -65,7 +65,7 @@ class Document(Base):
     title = Column(String(511))
     # type?
     # timestamp for adding to database
-    issue_date = Column(TIMESTAMP(),server_default=functions.current_timestamp())
+    issue_date = Column(TIMESTAMP(), server_default=functions.current_timestamp())
     # timestamp for material publishing date
     created = Column(TIMESTAMP())
     # timestamp for validating date
@@ -100,7 +100,7 @@ class TrainingSet(Base):
     # index of lemmas in object_features: key - lemma, value - column number
     lemma_index = Column(JSON())
     # object-features matrix
-    object_features = Column(ARRAY(item_type= Float ,dimensions=2))
+    object_features = Column(ARRAY(item_type= Float, dimensions=2))
 
     # docs = relationship(Document)
 

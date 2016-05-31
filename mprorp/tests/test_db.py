@@ -2,8 +2,6 @@ import unittest
 from mprorp.db.dbDriver import *
 from mprorp.db.models import *
 import random
-import mprorp.analyzer.rubricator as rb
-import mprorp.analyzer.db as db
 
 class SimpleDBTest(unittest.TestCase):
     def test_db_init(self):

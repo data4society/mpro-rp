@@ -16,13 +16,19 @@ def send_get_request(url):
     return r.text
 
 
-def vk_parse_list(source_id):
-    """parses one source, get list and do initial insert"""
-
+def vk_start_parsing(source_id):
+    """download vk response and run list parsing function"""
     # get source url
     source_url = select(Source.url, Source.source_id == source_id).fetchone()[0]
-    # get request answer
+    # download vk response
     req_result = send_get_request(source_url)
+    # run list parsing function
+    vk_parse_list(req_result, source_id)
+
+
+def vk_parse_list(req_result, source_id):
+    """parses one source, get list and do initial insert"""
+
     # convert to json object
     json_obj = json.loads(req_result)
     for item in json_obj["response"]:
@@ -59,15 +65,15 @@ def vk_parse_item(item, doc_id):
     # post type ('post', 'copy' or 'reply')
     post_type = item["post_type"]
     meta_json['vk_post_type'] = post_type
-    new_doc.meta = json.dumps(meta_json)
     # full attachments info
     if "attachments" in item:
         attachments = item["attachments"]
         meta_json['vk_attachments'] = attachments
+    new_doc.meta = json.dumps(meta_json)
 
     new_doc.status = 1  # this status mean complete crawler work with this item
     # update row in database
     update(new_doc)
 
-print(select(Document.issue_date, Document.source_ref == 'd1fb37ef-1808-45f6-9234-5ed2969e920a').fetchall())
-vk_parse_list('d1fb37ef-1808-45f6-9234-5ed2969e920a')
+# print(select(Document.issue_date, Document.source_ref == 'd1fb37ef-1808-45f6-9234-5ed2969e920a').fetchall())
+# vk_parse_list('d1fb37ef-1808-45f6-9234-5ed2969e920a')
