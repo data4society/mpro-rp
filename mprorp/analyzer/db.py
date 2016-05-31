@@ -76,10 +76,11 @@ def put_training_set_params(set_id, idf,  doc_index, lemma_index, object_feature
     some_set.lemma_index = lemma_index
     for doc_id in doc_index:
         features, indexes = compress(object_features[doc_index[doc_id], :])
-        session.query(ObjectFeatures).filter(
-            (ObjectFeatures.doc_id == doc_id) & (ObjectFeatures.set_id == set_id)).update(
-            {"compressed": True, "features": features, "indexes": indexes}
-        )
+        # session.query(ObjectFeatures).filter(
+        #     (ObjectFeatures.doc_id == doc_id) & (ObjectFeatures.set_id == set_id)).update(
+        #     {"compressed": True, "features": features, "indexes": indexes}
+        # )
+        session.add(ObjectFeatures(doc_id=doc_id, set_id=set_id, compressed=True, features=features, indexes=indexes))
     session.commit()
 
 

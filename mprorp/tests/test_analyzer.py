@@ -41,7 +41,7 @@ class SimpleDBTest(unittest.TestCase):
         rb.idf_object_features_set(set_id)
         rb.learning_rubric_model(set_id, rubric_id)
         model = db.get_model(rubric_id, set_id)
-        self.assertEqual(model['features_num'], 10)
+        self.assertEqual(model['features_num'], 11)
 
     def test_rubricator(self):
 
