@@ -43,7 +43,8 @@ def vk_parse_list(req_result, source_id):
                 raise ValueError('Unknown post type: '+post_type)
 
             # Skip item if we have any row in Document table with same guid (url)
-            if not select(Document.doc_id, Document.guid == url).fetchone():
+            # skip all not 'post' items
+            if post_type == 'post' and not select(Document.doc_id, Document.guid == url).fetchone():
                 # initial insert with guid start status and reference to source
                 new_doc = Document(guid=url, source_ref=source_id, status=0)
                 insert(new_doc)
@@ -76,5 +77,8 @@ def vk_parse_item(item, doc_id):
     # update row in database
     update(new_doc)
 
+
+if __name__ == '__main__':
+    vk_start_parsing('d1fb37ef-1808-45f6-9234-5ed2969e920a')
 # print(select(Document.issue_date, Document.source_ref == 'd1fb37ef-1808-45f6-9234-5ed2969e920a').fetchall())
-# vk_parse_list('d1fb37ef-1808-45f6-9234-5ed2969e920a')
+
