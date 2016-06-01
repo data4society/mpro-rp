@@ -18,7 +18,7 @@ class SimpleDBTest(unittest.TestCase):
         dropall_and_create()
 
         ins_doc_title = str(random.random())
-        ins_doc = Document(title=ins_doc_title)
+        ins_doc = Document(title=ins_doc_title, type='article')
         insert(ins_doc)
         ins_doc_id = ins_doc.doc_id
 
@@ -28,7 +28,7 @@ class SimpleDBTest(unittest.TestCase):
     def test_update_select(self):
         """update and check update result"""
         dropall_and_create()
-        ins_doc = Document(title="title")
+        ins_doc = Document(title="title", type='article')
         insert(ins_doc)
         ins_doc_id = ins_doc.doc_id
 
@@ -42,11 +42,11 @@ class SimpleDBTest(unittest.TestCase):
     def test_cur_timestamp(self):
         """working with timestamp"""
         dropall_and_create()
-        ins_doc = Document()
+        ins_doc = Document(type='article')
         insert(ins_doc)
         ins_doc_id = ins_doc.doc_id
 
-        sel_timestamp = select(Document.issue_date, Document.doc_id == ins_doc_id).fetchone()[0]
+        sel_timestamp = select(Document.created, Document.doc_id == ins_doc_id).fetchone()[0]
 
         self.assertLess(math.fabs(datetime.datetime.now().timestamp() - sel_timestamp.timestamp()),10)
 
