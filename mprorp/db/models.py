@@ -69,16 +69,16 @@ class Document(Base):
     # timestamp for material publishing date
     created = Column(TIMESTAMP())
     # timestamp for validating date
-    validated = Column(TIMESTAMP())
+    validated = Column(TIMESTAMP())  # to kill
     # whom validated
-    validated_by_ref = Column(UUIDType(binary=False), ForeignKey('user.user_id'))
+    validated_by_ref = Column(UUIDType(binary=False), ForeignKey('user.user_id'))  # to kill
     validated_by = relationship(User)
     # ???
-    user = relationship(User)
+    user = relationship(User)  # to kill
     # additional meta information
     meta = Column(JSON())
     # tsv vector for indexing
-    tsv = Column(TSVECTOR())
+    tsv = Column(TSVECTOR())  # to kill
 
 
 class TrainingSet(Base):
