@@ -40,8 +40,9 @@ class User(Base):
     email = Column(String(255), unique=True)
     name = Column(String(255))
     created = Column(TIMESTAMP(), server_default=functions.current_timestamp())
-    login_key = Column(String(40), unique=True))
+    login_key = Column(String(40), unique=True)
     password = Column(String(255))
+
 
 class Document(Base):
     """main document object"""
@@ -82,7 +83,8 @@ class Document(Base):
 class Record(Base):
     __tablename__ = 'records'
 
-    document_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True, unique=True)
+    document_id = Column(UUIDType(binary=False),
+                         server_default=text("uuid_generate_v4()"), primary_key=True, unique=True)
     # unic identificator
     guid = Column(String(255), unique=True)
     title = Column(String(255))
@@ -92,7 +94,7 @@ class Record(Base):
     published_date = Column(TIMESTAMP())
     created = Column(TIMESTAMP(), server_default=functions.current_timestamp())
     edited = Column(TIMESTAMP())
-    edited_by Column(UUIDType(binary=False), ForeignKey('users.user_id'))
+    edited_by = Column(UUIDType(binary=False), ForeignKey('users.user_id'))
     training = Column(Boolean())
     rubrics = Column(ARRAY(UUIDType(binary=False), ForeignKey('rubrics.rubric_id')))
     source = Column(UUIDType(binary=False), ForeignKey('documents.doc_id'))
@@ -204,7 +206,7 @@ class Entity(Base):
     created = Column(TIMESTAMP(), server_default=functions.current_timestamp())
     edited = Column(TIMESTAMP())
     author = Column(UUIDType(binary=False), ForeignKey('users.user_id'))
-    class = Column(String(255))
+    entity_class = Column(String(255))
     data = Column(JSON())
     # tsv vector for indexing
     tsv = Column(TSVECTOR())
@@ -221,9 +223,11 @@ class Change(Base):
 
     __table_args__ = (PrimaryKeyConstraint(document_id, version))
 
+
 class Session(Base):
     __tablename__ = 'sessions'
 
-    session_token = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True, unique=True)
+    session_token = Column(UUIDType(binary=False),
+                           server_default=text("uuid_generate_v4()"), primary_key=True, unique=True)
     owner = Column(UUIDType(binary=False), ForeignKey('users.user_id'))
     created = Column(TIMESTAMP(), server_default=functions.current_timestamp())
