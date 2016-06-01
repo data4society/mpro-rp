@@ -73,7 +73,7 @@ def vk_parse_item(item, doc_id):
         meta_json['vk_attachments'] = attachments
     # owner info
     meta_json['vk_owner'] = vk_get_user(item["owner_id"])
-    new_doc.meta = json.dumps(meta_json)
+    new_doc.meta = meta_json # json.dumps(meta_json)
 
     new_doc.status = 1  # this status mean complete crawler work with this item
     # update row in database
@@ -99,7 +99,7 @@ def vk_get_user(owner_id):
 
 
 if __name__ == '__main__':
-    #delete("document",Document.source_ref == 'd1fb37ef-1808-45f6-9234-5ed2969e920a')
+    delete("document",Document.source_ref == 'd1fb37ef-1808-45f6-9234-5ed2969e920a')
     vk_start_parsing('d1fb37ef-1808-45f6-9234-5ed2969e920a')
     # print(len(select(Document.issue_date, Document.source_ref == 'd1fb37ef-1808-45f6-9234-5ed2969e920a').fetchall()))
 

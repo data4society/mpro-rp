@@ -15,7 +15,7 @@ else:
     connection_string = testdb_connection
 
 # main object which SQLA uses to connect to database
-engine = create_engine(connection_string)
+engine = create_engine(connection_string, client_encoding='utf8')
 # full meta information about structure of tables
 meta = MetaData(bind=engine, reflect=True)
 # session class
