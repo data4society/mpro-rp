@@ -10,7 +10,7 @@ from mprorp.db.dbDriver import Base
 
 class SourceType(Base):
     """source types, for example: website, vk, yandex..."""
-    __tablename__ = 'sourcetype'
+    __tablename__ = 'sourcetypes'
 
     source_type_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
     # human-readable name
@@ -19,13 +19,13 @@ class SourceType(Base):
 
 class Source(Base):
     """sources for crawler and other"""
-    __tablename__ = 'source'
+    __tablename__ = 'sources'
 
     source_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
     # url of source
     url = Column(String(1023))
     # reference to source type
-    source_type_ref = Column(UUIDType(binary=False), ForeignKey('sourcetype.source_type_id'))
+    source_type_ref = Column(UUIDType(binary=False), ForeignKey('sourcetypes.source_type_id'))
     sourceType = relationship(SourceType)
     # human-readable name
     name = Column(String(255), nullable=False)
@@ -34,20 +34,24 @@ class Source(Base):
 
 
 class User(Base):
-    __tablename__ = 'user'
+    __tablename__ = 'users'
 
     user_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
-
+    email = Column(String(255), unique=True)
+    name = Column(String(255))
+    created = Column(TIMESTAMP(), server_default=functions.current_timestamp())
+    login_key = Column(String(40), unique=True))
+    password = Column(String(255))
 
 class Document(Base):
     """main document object"""
-    __tablename__ = 'document'
+    __tablename__ = 'documents'
 
     doc_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
     # unic identificator
-    guid = Column(String(1023))
+    guid = Column(String(1023), unique=True)
     # reference to source
-    source_ref = Column(UUIDType(binary=False), ForeignKey('source.source_id'))
+    source_ref = Column(UUIDType(binary=False), ForeignKey('sources.source_id'))
     source = relationship(Source)
     # document source (for example HTML of full text for site pages)
     doc_source = Column(Text())
@@ -64,19 +68,42 @@ class Document(Base):
     # title of document
     title = Column(String(511))
     # type?
-    # timestamp for adding to database
-    issue_date = Column(TIMESTAMP(), server_default=functions.current_timestamp())
     # timestamp for material publishing date
-    created = Column(TIMESTAMP())
+    published_date = Column(TIMESTAMP())
+    # timestamp for adding to database
+    created = Column(TIMESTAMP(), server_default=functions.current_timestamp())
     meta = Column(JSON())
     # ids of referenced
-    rubrics_ref = Column(ARRAY(UUIDType(binary=False), ForeignKey('rubric.rubric_id')))
+    rubrics_ref = Column(ARRAY(UUIDType(binary=False), ForeignKey('rubrics.rubric_id')))
     # model type
     type = Column(String(255), nullable=False)
 
 
+class Record(Base):
+    __tablename__ = 'records'
+
+    document_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True, unique=True)
+    # unic identificator
+    guid = Column(String(255), unique=True)
+    title = Column(String(255))
+    schema_name = Column(String(40))
+    schema_version = Column(String(40))
+    version = Column(Integer())
+    published_date = Column(TIMESTAMP())
+    created = Column(TIMESTAMP(), server_default=functions.current_timestamp())
+    edited = Column(TIMESTAMP())
+    edited_by Column(UUIDType(binary=False), ForeignKey('users.user_id'))
+    training = Column(Boolean())
+    rubrics = Column(ARRAY(UUIDType(binary=False), ForeignKey('rubrics.rubric_id')))
+    source = Column(UUIDType(binary=False), ForeignKey('documents.doc_id'))
+    content = Column(JSON())
+    meta = Column(JSON())
+    info = Column(JSON())
+    tsv = Column(TSVECTOR())
+
+
 class TrainingSet(Base):
-    __tablename__ = 'trainingset'
+    __tablename__ = 'trainingsets'
 
     set_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
     # human-readable name
@@ -86,7 +113,7 @@ class TrainingSet(Base):
     # number of documents in set
     doc_num = Column(Integer())
     # id of all documents in set
-    doc_refs = Column(ARRAY(UUIDType(binary=False), ForeignKey('document.doc_id')))
+    doc_refs = Column(ARRAY(UUIDType(binary=False), ForeignKey('documents.doc_id')))
     # inverse doument frequency for all lemmas of set
     idf = Column(JSON())
     # index of documents in object_features: key - doc_id, value - row number
@@ -98,30 +125,34 @@ class TrainingSet(Base):
 
 
 class Rubric(Base):
-    __tablename__ = 'rubric'
+    __tablename__ = 'rubrics'
 
     rubric_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
     # name jf rubric
     name = Column(String(255), nullable=False)
+    # creation date
+    created = Column(TIMESTAMP(), server_default=functions.current_timestamp())
+    # parent reference
+    parent_id = Column(UUIDType(binary=False), ForeignKey('rubrics.rubric_id'))
 
 
 class DocumentRubric(Base):
     # Row in table means document associated with rubric by user
-    __tablename__ = 'documentrubric'
+    __tablename__ = 'documentrubrics'
 
-    doc_id = Column(UUIDType(binary=False), ForeignKey('document.doc_id'))
-    rubric_id = Column(UUIDType(binary=False), ForeignKey('rubric.rubric_id'))
+    doc_id = Column(UUIDType(binary=False), ForeignKey('documents.doc_id'))
+    rubric_id = Column(UUIDType(binary=False), ForeignKey('rubrics.rubric_id'))
     __table_args__ = (PrimaryKeyConstraint(doc_id, rubric_id),)
 
 
 class RubricationModel(Base):
-    __tablename__ = 'rubricationmodel'
+    __tablename__ = 'rubricationmodels'
 
     model_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
     # Model was used for rubric
-    rubric_id = Column(UUIDType(binary=False), ForeignKey('rubric.rubric_id'))
+    rubric_id = Column(UUIDType(binary=False), ForeignKey('rubrics.rubric_id'))
     # Training set used for model
-    set_id = Column(UUIDType(binary=False), ForeignKey('trainingset.set_id'))
+    set_id = Column(UUIDType(binary=False), ForeignKey('trainingsets.set_id'))
     # model = vector
     model = Column(ARRAY(item_type=Float, dimensions=1))
     # Array with length equal number features in training set.
@@ -135,11 +166,11 @@ class RubricationModel(Base):
 
 class RubricationResult(Base):
     # Row in table means rubric (rubric_id) for document (doc_id) was compute with model (model_id)
-    __tablename__ = 'rubricationresult'
+    __tablename__ = 'rubricationresults'
 
     model_id = Column(UUIDType(binary=False), ForeignKey('rubricationmodel.model_id'))
-    rubric_id = Column(UUIDType(binary=False), ForeignKey('rubric.rubric_id'))
-    doc_id = Column(UUIDType(binary=False), ForeignKey('document.doc_id'))
+    rubric_id = Column(UUIDType(binary=False), ForeignKey('rubrics.rubric_id'))
+    doc_id = Column(UUIDType(binary=False), ForeignKey('documents.doc_id'))
     # 1 - document associated with rubric, 0 - document not associated with rubric
     result = Column(Integer())
     # date of compute
@@ -151,9 +182,9 @@ class ObjectFeatures(Base):
     __tablename__ = 'objectfeatures'
 
     # Training set id
-    set_id = Column(UUIDType(binary=False), ForeignKey('trainingset.set_id'))
+    set_id = Column(UUIDType(binary=False), ForeignKey('trainingsets.set_id'))
     # Document id
-    doc_id = Column(UUIDType(binary=False), ForeignKey('document.doc_id'))
+    doc_id = Column(UUIDType(binary=False), ForeignKey('documents.doc_id'))
     # Features vector - compressed or no
     features = Column(ARRAY(item_type=Float, dimensions=1))
     # Is features compressed
@@ -162,3 +193,37 @@ class ObjectFeatures(Base):
     indexes = Column(ARRAY(item_type=Integer, dimensions=1))
 
     __table_args__ = (PrimaryKeyConstraint(set_id, doc_id),)
+
+
+class Entity(Base):
+    __tablename__ = 'entities'
+
+    entity_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
+    name = Column(String(255))
+    # timestamp for adding to database
+    created = Column(TIMESTAMP(), server_default=functions.current_timestamp())
+    edited = Column(TIMESTAMP())
+    author = Column(UUIDType(binary=False), ForeignKey('users.user_id'))
+    class = Column(String(255))
+    data = Column(JSON())
+    # tsv vector for indexing
+    tsv = Column(TSVECTOR())
+
+
+class Change(Base):
+    __tablename__ = 'changes'
+
+    document_id = Column(UUIDType(binary=False), ForeignKey('records.document_id'))
+    version = Column(Integer())
+    data = Column(JSON())
+    created = Column(TIMESTAMP(), server_default=functions.current_timestamp())
+    owner = Column(UUIDType(binary=False), ForeignKey('users.user_id'))
+
+    __table_args__ = (PrimaryKeyConstraint(document_id, version))
+
+class Session(Base):
+    __tablename__ = 'sessions'
+
+    session_token = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True, unique=True)
+    owner = Column(UUIDType(binary=False), ForeignKey('users.user_id'))
+    created = Column(TIMESTAMP(), server_default=functions.current_timestamp())
