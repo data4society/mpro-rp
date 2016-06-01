@@ -68,17 +68,11 @@ class Document(Base):
     issue_date = Column(TIMESTAMP(), server_default=functions.current_timestamp())
     # timestamp for material publishing date
     created = Column(TIMESTAMP())
-    # timestamp for validating date
-    validated = Column(TIMESTAMP())  # to kill
-    # whom validated
-    validated_by_ref = Column(UUIDType(binary=False), ForeignKey('user.user_id'))  # to kill
-    validated_by = relationship(User)
-    # ???
-    user = relationship(User)  # to kill
-    # additional meta information
     meta = Column(JSON())
-    # tsv vector for indexing
-    tsv = Column(TSVECTOR())  # to kill
+    # ids of referenced
+    rubrics_ref = Column(ARRAY(UUIDType(binary=False), ForeignKey('rubric.rubric_id')))
+    # model type
+    type = Column(String(255), nullable=False)
 
 
 class TrainingSet(Base):
@@ -86,7 +80,7 @@ class TrainingSet(Base):
 
     set_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
     # human-readable name
-    set_name = Column(String(511))
+    name = Column(String(511))
     # creating date
     set_created = Column(TIMESTAMP(), server_default=functions.current_timestamp())
     # number of documents in set
@@ -101,8 +95,6 @@ class TrainingSet(Base):
     lemma_index = Column(JSON())
     # object-features matrix
     object_features = Column(ARRAY(item_type=Float, dimensions=2))
-
-    # docs = relationship(Document)
 
 
 class Rubric(Base):
