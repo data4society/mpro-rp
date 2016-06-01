@@ -76,7 +76,7 @@ class Document(Base):
     meta = Column(JSON())
     # ids of referenced
     rubrics_ref = Column(ARRAY(UUIDType(binary=False), ForeignKey('rubrics.rubric_id')))
-    # model type
+    # model type: vk/article
     type = Column(String(255), nullable=False)
 
 
@@ -170,7 +170,7 @@ class RubricationResult(Base):
     # Row in table means rubric (rubric_id) for document (doc_id) was compute with model (model_id)
     __tablename__ = 'rubricationresults'
 
-    model_id = Column(UUIDType(binary=False), ForeignKey('rubricationmodel.model_id'))
+    model_id = Column(UUIDType(binary=False), ForeignKey('rubricationmodels.model_id'))
     rubric_id = Column(UUIDType(binary=False), ForeignKey('rubrics.rubric_id'))
     doc_id = Column(UUIDType(binary=False), ForeignKey('documents.doc_id'))
     # 1 - document associated with rubric, 0 - document not associated with rubric
@@ -221,7 +221,7 @@ class Change(Base):
     created = Column(TIMESTAMP(), server_default=functions.current_timestamp())
     owner = Column(UUIDType(binary=False), ForeignKey('users.user_id'))
 
-    __table_args__ = (PrimaryKeyConstraint(document_id, version))
+    __table_args__ = (PrimaryKeyConstraint(document_id, version),)
 
 
 class Session(Base):
