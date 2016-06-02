@@ -39,10 +39,15 @@ class User(Base):
     __tablename__ = 'users'
 
     user_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
+    # user email
     email = Column(String(255), unique=True)
+    # user name
     name = Column(String(255))
+    # when user was created
     created = Column(TIMESTAMP(), server_default=functions.current_timestamp())
+    # key to login
     login_key = Column(String(40), unique=True)
+    # encrypted password
     password = Column(String(255))
 
 
@@ -70,11 +75,11 @@ class Document(Base):
     status = Column(Integer())
     # title of document
     title = Column(String(511))
-    # type?
     # timestamp for material publishing date
     published_date = Column(TIMESTAMP())
     # timestamp for adding to database
     created = Column(TIMESTAMP(), server_default=functions.current_timestamp())
+    # document metadata
     meta = Column(JSONB())
     # ids of referenced
     rubric_ids = Column(ARRAY(UUIDType(binary=False), ForeignKey('rubrics.rubric_id')))
@@ -85,24 +90,40 @@ class Document(Base):
 class Record(Base):
     __tablename__ = 'records'
 
+    # document id
     document_id = Column(UUIDType(binary=False),
                          server_default=text("uuid_generate_v4()"), primary_key=True, unique=True)
     # unic identificator
     guid = Column(String(255), unique=True)
+    # document title
     title = Column(String(255))
+    # document schema
     schema_name = Column(String(40))
+    # schema version
     schema_version = Column(String(40))
+    # document version
     version = Column(Integer())
+    # date of original document publishing 
     published_date = Column(TIMESTAMP())
+    # date of document creation
     created = Column(TIMESTAMP(), server_default=functions.current_timestamp())
+    # date of last edition
     edited = Column(TIMESTAMP())
+    # last editor, e.g. user who made latest change
     edited_by = Column(UUIDType(binary=False), ForeignKey('users.user_id'))
+    # whatever this document training set
     training = Column(Boolean())
+    # document rubrics
     rubrics = Column(ARRAY(UUIDType(binary=False), ForeignKey('rubrics.rubric_id')))
+    # refrence to source document table record
     source = Column(UUIDType(binary=False), ForeignKey('documents.doc_id'))
+    # substnace document
     content = Column(JSONB())
+    # node with metadata
     meta = Column(JSONB())
+    # some data coming from every change (WIP)
     info = Column(JSONB())
+    # vector with the lexemes for fulltext searching
     tsv = Column(TSVECTOR())
 
 
@@ -203,12 +224,17 @@ class Entity(Base):
     __tablename__ = 'entities'
 
     entity_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
+    # name of entity
     name = Column(String(255))
-    # timestamp for adding to database
+    # date of entity creation
     created = Column(TIMESTAMP(), server_default=functions.current_timestamp())
+    # date of last edition
     edited = Column(TIMESTAMP())
+    # user, creator of entity record
     author = Column(UUIDType(binary=False), ForeignKey('users.user_id'))
+    # class of entity
     entity_class = Column(String(255))
+    # entity data
     data = Column(JSONB())
     # tsv vector for indexing
     tsv = Column(TSVECTOR())
@@ -217,10 +243,15 @@ class Entity(Base):
 class Change(Base):
     __tablename__ = 'changes'
 
+    # id of document
     document_id = Column(UUIDType(binary=False), ForeignKey('records.document_id'))
+    # version of document
     version = Column(Integer())
+    # change data
     data = Column(JSONB())
+    # date of change creation
     created = Column(TIMESTAMP(), server_default=functions.current_timestamp())
+    # user who made a change
     owner = Column(UUIDType(binary=False), ForeignKey('users.user_id'))
 
     __table_args__ = (PrimaryKeyConstraint(document_id, version),)
@@ -229,7 +260,10 @@ class Change(Base):
 class SessionData(Base):
     __tablename__ = 'sessions'
 
+    # session token
     session_token = Column(UUIDType(binary=False),
                            server_default=text("uuid_generate_v4()"), primary_key=True, unique=True)
+    # user who owns a session
     owner = Column(UUIDType(binary=False), ForeignKey('users.user_id'))
+    # date of session creation
     created = Column(TIMESTAMP(), server_default=functions.current_timestamp())
