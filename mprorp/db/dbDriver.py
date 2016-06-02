@@ -15,7 +15,7 @@ else:
     connection_string = testdb_connection
 
 # main object which SQLA uses to connect to database
-engine = create_engine(connection_string, client_encoding='utf8')
+engine = create_engine(connection_string)
 # full meta information about structure of tables
 meta = MetaData(bind=engine, reflect=True)
 # session class
@@ -66,7 +66,10 @@ def dropall_and_create():
     DBSession.close_all()
     #drop all which exist
     for tbl in reversed(meta.sorted_tables):
-        tbl.drop(engine);
+        try:
+            tbl.drop(engine);
+        except Exception:
+            pass;
     # load models
     import mprorp.db.models
     # create tables by models
