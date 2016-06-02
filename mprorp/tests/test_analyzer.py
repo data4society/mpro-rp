@@ -10,7 +10,7 @@ class SimpleDBTest(unittest.TestCase):
     def test_morpho(self):
         # morpho analysis
         dropall_and_create()
-        my_doc = Document(stripped='Эти типы стали есть на складе')
+        my_doc = Document(stripped='Эти типы стали есть на складе', type='article')
         insert(my_doc)
         doc_id = str(my_doc.doc_id)
         rb.morpho_doc(doc_id)
@@ -20,7 +20,7 @@ class SimpleDBTest(unittest.TestCase):
     def test_lemmas_freq(self):
         # morpho analysis
         dropall_and_create()
-        my_doc = Document(stripped='Эти типы стали есть на складе')
+        my_doc = Document(stripped='Эти типы стали есть на складе', type='article')
         insert(my_doc)
         doc_id = str(my_doc.doc_id)
         rb.morpho_doc(doc_id)
@@ -74,7 +74,7 @@ def fill_db():
     tr_set = []
 
     for doc in docs:
-        doc_db = Document(stripped=doc)
+        doc_db = Document(stripped=doc, type='article')
         insert(doc_db)
         tr_set.append(doc_db.doc_id)
 

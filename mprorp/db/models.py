@@ -1,7 +1,7 @@
 """models which describing database structure"""
 from sqlalchemy_utils import UUIDType
 from sqlalchemy import Column, ForeignKey, String, Text, Integer, TIMESTAMP, Float, PrimaryKeyConstraint, Boolean
-from sqlalchemy.dialects.postgresql import JSON, TSVECTOR, ARRAY
+from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR, ARRAY
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import text, functions
 
@@ -25,7 +25,7 @@ class Source(Base):
     # url of source
     url = Column(String(1023))
     # reference to source type
-    source_type_ref = Column(UUIDType(binary=False), ForeignKey('sourcetypes.source_type_id'))
+    source_type_id = Column(UUIDType(binary=False), ForeignKey('sourcetypes.source_type_id'))
     sourceType = relationship(SourceType)
     # human-readable name
     name = Column(String(255), nullable=False)
@@ -52,16 +52,16 @@ class Document(Base):
     # unic identificator
     guid = Column(String(1023), unique=True)
     # reference to source
-    source_ref = Column(UUIDType(binary=False), ForeignKey('sources.source_id'))
+    source_id = Column(UUIDType(binary=False), ForeignKey('sources.source_id'))
     source = relationship(Source)
     # document source (for example HTML of full text for site pages)
     doc_source = Column(Text())
     # text for analyzator - without HTML tags
     stripped = Column(Text())
     # result of morphologia
-    morpho = Column(JSON())
+    morpho = Column(JSONB())
     # result of lemmification
-    lemmas = Column(JSON())
+    lemmas = Column(JSONB())
     # number of lemmas
     lemma_count = Column(Integer())
     # status of this doc: 0 - initial isert, 1 - complete crawler work, 2...
@@ -73,9 +73,9 @@ class Document(Base):
     published_date = Column(TIMESTAMP())
     # timestamp for adding to database
     created = Column(TIMESTAMP(), server_default=functions.current_timestamp())
-    meta = Column(JSON())
+    meta = Column(JSONB())
     # ids of referenced
-    rubrics_ref = Column(ARRAY(UUIDType(binary=False), ForeignKey('rubrics.rubric_id')))
+    rubric_ids = Column(ARRAY(UUIDType(binary=False), ForeignKey('rubrics.rubric_id')))
     # model type: vk/article
     type = Column(String(255), nullable=False)
 
@@ -98,9 +98,9 @@ class Record(Base):
     training = Column(Boolean())
     rubrics = Column(ARRAY(UUIDType(binary=False), ForeignKey('rubrics.rubric_id')))
     source = Column(UUIDType(binary=False), ForeignKey('documents.doc_id'))
-    content = Column(JSON())
-    meta = Column(JSON())
-    info = Column(JSON())
+    content = Column(JSONB())
+    meta = Column(JSONB())
+    info = Column(JSONB())
     tsv = Column(TSVECTOR())
 
 
@@ -115,13 +115,13 @@ class TrainingSet(Base):
     # number of documents in set
     doc_num = Column(Integer())
     # id of all documents in set
-    doc_refs = Column(ARRAY(UUIDType(binary=False), ForeignKey('documents.doc_id')))
+    doc_ids = Column(ARRAY(UUIDType(binary=False), ForeignKey('documents.doc_id')))
     # inverse doument frequency for all lemmas of set
-    idf = Column(JSON())
+    idf = Column(JSONB())
     # index of documents in object_features: key - doc_id, value - row number
-    doc_index = Column(JSON())
+    doc_index = Column(JSONB())
     # index of lemmas in object_features: key - lemma, value - column number
-    lemma_index = Column(JSON())
+    lemma_index = Column(JSONB())
     # object-features matrix
     object_features = Column(ARRAY(item_type=Float, dimensions=2))
 
@@ -207,7 +207,7 @@ class Entity(Base):
     edited = Column(TIMESTAMP())
     author = Column(UUIDType(binary=False), ForeignKey('users.user_id'))
     entity_class = Column(String(255))
-    data = Column(JSON())
+    data = Column(JSONB())
     # tsv vector for indexing
     tsv = Column(TSVECTOR())
 
@@ -217,14 +217,14 @@ class Change(Base):
 
     document_id = Column(UUIDType(binary=False), ForeignKey('records.document_id'))
     version = Column(Integer())
-    data = Column(JSON())
+    data = Column(JSONB())
     created = Column(TIMESTAMP(), server_default=functions.current_timestamp())
     owner = Column(UUIDType(binary=False), ForeignKey('users.user_id'))
 
     __table_args__ = (PrimaryKeyConstraint(document_id, version),)
 
 
-class Session(Base):
+class SessionData(Base):
     __tablename__ = 'sessions'
 
     session_token = Column(UUIDType(binary=False),

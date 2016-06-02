@@ -39,7 +39,7 @@ def get_lemmas(doc_id):
 def get_lemmas_freq(set_id):
     training_set = session.query(TrainingSet).filter(TrainingSet.set_id == set_id).one()
     few_things = session.query(Document.doc_id, Document.lemmas).filter(
-        Document.doc_id.in_(training_set.doc_refs)).all()
+        Document.doc_id.in_(training_set.doc_ids)).all()
     result = {}
     for one_thing in few_things:
         result[str(one_thing[0])] = one_thing[1]
@@ -87,7 +87,7 @@ def put_training_set_params(set_id, idf,  doc_index, lemma_index, object_feature
 # writing new training set in db
 def put_training_set(doc_id_array):
     new_set = TrainingSet()
-    new_set.doc_refs = doc_id_array
+    new_set.doc_ids = doc_id_array
     session.add(new_set)
     session.commit()
     return new_set.set_id
@@ -95,7 +95,7 @@ def put_training_set(doc_id_array):
 
 # reading answers for one rubric and all documents in set
 def get_answers(set_id, rubric_id):
-    docs = Driver.select(TrainingSet.doc_refs, TrainingSet.set_id == set_id).fetchone()[0]
+    docs = Driver.select(TrainingSet.doc_ids, TrainingSet.set_id == set_id).fetchone()[0]
     # docs = session.query(TrainingSet).filter(TrainingSet.set_id == set_id).one()
     docs_rubric = session.query(DocumentRubric.doc_id).filter(
         (DocumentRubric.rubric_id == rubric_id) & (DocumentRubric.doc_id.in_(docs))).all()
@@ -133,7 +133,7 @@ def get_doc_index_object_features(set_id):
 
 # reading documents in set
 def get_set_docs(set_id):
-    return select(TrainingSet.doc_refs, TrainingSet.set_id == set_id).fetchone()[0]
+    return select(TrainingSet.doc_ids, TrainingSet.set_id == set_id).fetchone()[0]
 
 
 # writing model compute for one rubric (rubric_id) with training set (set_id) using selected features (features)
@@ -195,7 +195,7 @@ def put_rubrics(doc_id, rubrics):
 
 # reading result of rubrication for model, training set and rubric
 def get_rubrication_result(model_id, set_id, rubric_id):
-    docs = Driver.select(TrainingSet.doc_refs, TrainingSet.set_id == set_id).fetchone()[0]
+    docs = Driver.select(TrainingSet.doc_ids, TrainingSet.set_id == set_id).fetchone()[0]
     rubrication_result = session.query(RubricationResult.doc_id, RubricationResult.result).filter(
         (RubricationResult.model_id == model_id) &
         (RubricationResult.rubric_id == rubric_id) &

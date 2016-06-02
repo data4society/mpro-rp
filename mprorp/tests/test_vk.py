@@ -21,12 +21,12 @@ class SimpleVKTest(unittest.TestCase):
 
         # Do we have all docs?
         vk_parse_list(s, ins_source_id)
-        docs = select(Document.doc_id, Document.source_ref == ins_source_id).fetchall()
+        docs = select(Document.doc_id, Document.source_id == ins_source_id).fetchall()
         self.assertEqual(len(docs), 2)
 
         # Do we have repeated docs?
         vk_parse_list(s, ins_source_id)
-        docs = select(Document.doc_id, Document.source_ref == ins_source_id).fetchall()
+        docs = select(Document.doc_id, Document.source_id == ins_source_id).fetchall()
         self.assertEqual(len(docs), 2)
 
         docs = select(Document.doc_id, Document.guid == 'https://vk.com/wall-114326084_4472').fetchall()
@@ -38,11 +38,10 @@ class SimpleVKTest(unittest.TestCase):
         stripped = select(Document.stripped, Document.guid == 'https://vk.com/wall-114326084_4472').fetchone()[0]
         self.assertEqual(stripped, 'тест fulltext 4472')
 
-        created_time = select(Document.created, Document.guid == 'https://vk.com/wall-114326084_4472').fetchone()[0]
-        self.assertEqual(str(created_time), '2016-05-30 13:42:22')
+        published_date = select(Document.published_date, Document.guid == 'https://vk.com/wall-114326084_4472').fetchone()[0]
+        self.assertEqual(str(published_date), '2016-05-30 13:42:22')
 
         doc_meta = select(Document.meta, Document.guid == 'https://vk.com/wall-114326084_4472').fetchone()[0]
-        doc_meta = json.loads(doc_meta)
         post_type = doc_meta["vk_post_type"]
         vk_first_attachment_type = doc_meta["vk_attachments"][0]["type"]
         self.assertEqual(post_type, 'post')
