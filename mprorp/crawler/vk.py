@@ -1,10 +1,10 @@
 """vkontakte list and item parser"""
+from mprorp.db.dbDriver import *
+from mprorp.db.models import *
+
 from requests import Request, Session
 import json
 import datetime
-
-from mprorp.db.dbDriver import *
-from mprorp.db.models import *
 
 
 def send_get_request(url):
@@ -46,7 +46,7 @@ def vk_parse_list(req_result, source_id):
             # skip all not 'post' items
             if post_type == 'post' and not select(Document.doc_id, Document.guid == url).fetchone():
                 # initial insert with guid start status and reference to source
-                new_doc = Document(guid=url, source_ref=source_id, status=0)
+                new_doc = Document(guid=url, source_id=source_id, status=0, type='vk')
                 insert(new_doc)
                 # further parsing
                 vk_parse_item(item, new_doc.doc_id)
@@ -60,7 +60,7 @@ def vk_parse_item(item, doc_id):
     new_doc.stripped = txt
     # publish date timestamp
     timestamp = item["date"]
-    new_doc.created = datetime.datetime.fromtimestamp(timestamp)
+    new_doc.published_date = datetime.datetime.fromtimestamp(timestamp)
 
     # additional information
     meta_json = dict()
@@ -97,9 +97,8 @@ def vk_get_user(owner_id):
     return json_obj
 
 
-
 if __name__ == '__main__':
-    delete("document",Document.source_ref == 'd1fb37ef-1808-45f6-9234-5ed2969e920a')
-    vk_start_parsing('d1fb37ef-1808-45f6-9234-5ed2969e920a')
-    # print(len(select(Document.issue_date, Document.source_ref == 'd1fb37ef-1808-45f6-9234-5ed2969e920a').fetchall()))
+    # delete("documents",Document.source_id == '2c00848d-dc19-4de0-a076-8d89c414a4fd')
+    vk_start_parsing('2c00848d-dc19-4de0-a076-8d89c414a4fd')
+    # print(len(select(Document.created, Document.source_id == '2c00848d-dc19-4de0-a076-8d89c414a4fd').fetchall()))
 
