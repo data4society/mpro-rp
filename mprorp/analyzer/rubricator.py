@@ -106,6 +106,24 @@ def sigmoid(x):
     return 1/(1 + math.exp(-x))
 
 
+# bigger value is worse
+def entropy_difference(feature, answers):
+    max = np.max(feature)
+    min = np.min(feature)
+    step = (max - min) / 1000
+    p = [[0, 0] for i in range(1000)]
+    for j in range(len(feature)):
+        index = int(feature[j]/step)
+        if index == 1000:
+            index = 999
+        p[index][answers[j]] += 1
+    result = 0
+    for i in range(1000):
+        if (p[i][0] != 0) & (p[i][1] != 0):
+            result += math.log2(p[i][0] + p[i][1]) * (p[i][0] + p[i][1]) - math.log2(p[i][0]) * (p[i][0]) - math.log2(p[i][1]) * (p[i][1])
+    return result
+
+
 def learning_rubric_model(set_id, rubric_id):
 
     # get answers for rubric
@@ -119,9 +137,19 @@ def learning_rubric_model(set_id, rubric_id):
     # feature k from object_features is used in position l, if l >= 0
     # if feature k ins not most important, l = -1
     features_number = len(object_features[0])
-    mif = np.zeros(features_number)
-    for i in range(features_number):
-        mif[i] = i
+    mif = np.empty(features_number)
+    mif.fill(-1)
+    if features_number > 300:
+        feature_entropy = np.zeros(features_number)
+        for i in range(features_number):
+            # compute Entropic Criterion for feature i
+            feature_entropy[i] = entropy_difference(object_features[:, i], answers)
+        good_numbers = np.argsort(feature_entropy)
+        for i in range(300):
+            mif[good_numbers[i]] = i
+    else:
+        for i in range(features_number):
+            mif[i] = i
 
     # take probability (sigmoid) when answer is true and -sigmoid (instead 1-sigmoid) otherwise
     answers_array = np.zeros((doc_number, 1))
