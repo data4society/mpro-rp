@@ -9,9 +9,11 @@ import random
 mystem_analyzer = Mystem(disambiguation=False)
 status = {'morpho': 2, 'lemmas': 3, 'rubrics': 4}
 rubrics_for_regular = {u'd2cf7a5f-f2a7-4e2b-9d3f-fc20ea6504da': None}
+optimal_features_number = 300
 stop_lemmas = ['в', 'на', 'из', 'он', 'что', 'и', 'это', 'по', 'быть', 'этот', 'она', 'они', 'так', 'как', 'тогда',
                'те', 'также', 'же', 'то', 'за', 'который', 'после', 'оно', 'с', 'к', 'у', 'о', 'об', 'его', 'а',
                'не', 'год', 'во', 'весь', 'было', 'свой', 'тот', 'все']
+                # 'под', 'со', '', '', '', '', '', '', '', '', ''
 
 
 # one document morphological analysis regular
@@ -186,25 +188,30 @@ def learning_rubric_model(set_id, rubric_id):
     # feature k from object_features is used in position l, if l >= 0
     # if feature k ins not most important, l = -1
     features_number = len(object_features[0])
-    mif = np.empty(features_number)
-    mif.fill(-1)
-    if features_number > 300:
+    # mif = np.empty(features_number)
+    # mif.fill(-1)
+    mif_number = features_number
+    mif_indexes = []
+    use_mif = features_number > optimal_features_number
+    if use_mif:
+        mif_number = optimal_features_number
         feature_entropy = np.zeros(features_number)
         for i in range(features_number):
             # compute Entropic Criterion for feature i
             feature_entropy[i] = entropy_difference(object_features[:, i], answers_index, i)
         good_numbers = np.argsort(feature_entropy)
-        for i in range(300):
-            mif[good_numbers[i]] = i
+        for i in range(optimal_features_number):
+            # mif[good_numbers[i]] = i
+            mif_indexes.append(int(good_numbers[i]))
         print_lemmas(set_id, good_numbers[0:30])
         print(feature_entropy[good_numbers[0:30]])
     else:
         for i in range(features_number):
-            mif[i] = i
+            mif_indexes.append(i)
 
-    x = tf.placeholder(tf.float32, shape=[None, features_number])
+    x = tf.placeholder(tf.float32, shape=[None, mif_number])
     y_ = tf.placeholder(tf.float32, shape=[None, 1])
-    w = tf.Variable(tf.truncated_normal([features_number, 1], stddev=0.1))
+    w = tf.Variable(tf.truncated_normal([mif_number, 1], stddev=0.1))
     b = tf.Variable(0.00001)
 
     y = tf.matmul(x, w) + b
@@ -226,10 +233,16 @@ def learning_rubric_model(set_id, rubric_id):
         #     print(i)
         if doc_number > 150:
             local_answers = answers_array[indexes[0:100], :]
-            sess.run(train_step, feed_dict={x: object_features[indexes[0:100], :], y_: local_answers})
+            if use_mif:
+                sess.run(train_step, feed_dict={x: object_features[indexes[0:100], :][:,mif_indexes], y_: local_answers})
+            else:
+                sess.run(train_step, feed_dict={x: object_features[indexes[0:100], :], y_: local_answers})
             random.shuffle(indexes)
         else:
-            sess.run(train_step, feed_dict={x: object_features, y_: answers_array})
+            if use_mif:
+                sess.run(train_step, feed_dict={x: object_features[:, mif_indexes], y_: answers_array})
+            else:
+                sess.run(train_step, feed_dict={x: object_features, y_: answers_array})
         # my_cea = cross_entropy_array.eval(sess)
         # print(my_cea)
         # my_w = w.eval(sess)
@@ -239,7 +252,7 @@ def learning_rubric_model(set_id, rubric_id):
     model = w.eval(sess)[:, 0]
     model = model.tolist()
     model.append(float(b.eval(sess)))
-    db.put_model(rubric_id, set_id, model, mif, features_number)
+    db.put_model(rubric_id, set_id, model, mif_indexes, mif_number)
 
     # print(W.eval(sess))
     # print(b.eval(sess))
@@ -285,19 +298,23 @@ def spot_doc_rubrics(doc_id, rubrics, new_status=0):
     answers = {}
     for rubric_id in rubrics:
         set_id = rubrics[rubric_id]
-        features_num = models[rubric_id]['features_num']
-        features_array = np.zeros(features_num + 1, dtype=float)
+        mif_number = models[rubric_id]['features_num']
         lemma_index = sets[set_id]['lemma_index']
+        features_array = np.zeros(len(lemma_index), dtype=float)
+        # form features row with size and order like in object_features of training set
         for lemma in lemmas:
             # lemma index in lemmas of set
             ind_lemma = lemma_index.get(lemma, -1)
             # if lemma from doc is in lemmas for training set
             if ind_lemma > -1:
-                index = models[rubric_id]['features'][ind_lemma]
-                if index > -1:
-                    features_array[index] = sets[set_id]['idf_doc'][lemma]
-        features_array[features_num] = 1
-        probability = sigmoid(np.dot(features_array, models[rubric_id]['model']))
+                features_array[ind_lemma] = sets[set_id]['idf_doc'][lemma]
+        # take most important features of model
+        mif = features_array[models[rubric_id]['features']]
+        # add 1 for coefficient b in model
+        # mif[mif_number] = 1
+        mif.resize(mif_number + 1)
+        mif[mif_number] = 1
+        probability = sigmoid(np.dot(mif, models[rubric_id]['model']))
         answers[rubric_id] = {'result': round(probability), 'model_id': models[rubric_id]['model_id']}
         # if answers[rubric_id]['result'] == correct_answers[rubric_id]:
         #     res = 'correct'
