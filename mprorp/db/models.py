@@ -69,7 +69,8 @@ class Document(Base):
     lemmas = Column(JSONB())
     # number of lemmas
     lemma_count = Column(Integer())
-    # status of this doc: 0 - initial isert, 1 - complete crawler work, 2...
+    # status of this doc: 0 - initial isert, 1 - complete crawler work, 2 - morho analysis is done,
+    #                     3 - lemmas frequency is computed, 4 - rubrics is marked...
     status = Column(Integer())
     # title of document
     title = Column(String(511))
