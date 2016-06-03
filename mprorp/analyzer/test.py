@@ -1,7 +1,7 @@
 import mprorp.analyzer.db as db
 import mprorp.analyzer.rubricator as rb
 
-set_id = u'293035dc-9db0-46b2-9247-f88423bbaef3'    # Свобода слова 100
+# set_id = u'293035dc-9db0-46b2-9247-f88423bbaef3'    # Свобода слова 100
 rubric_id = u'd2cf7a5f-f2a7-4e2b-9d3f-fc20ea6504da' # Свобода собраний
 
 # set_id = u'dc10f916-7f33-4d19-9ba9-0d2e6f24c947' # Свобода слова 10

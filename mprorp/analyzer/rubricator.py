@@ -40,7 +40,7 @@ def lemmas_freq_doc(doc_id, new_status=0):
     for i in morpho:
         for l in i.get('analysis', []):
             if l.get('lex', False):
-                if not l['lex'] in stop_lemmas:
+                if (not l['lex'] in stop_lemmas) & (l.get('wt', 0) > 0):
                     lemmas[l['lex']] = lemmas.get(l['lex'], 0) + l.get('wt', 1)
     db.put_lemmas(doc_id, lemmas, new_status)
 
