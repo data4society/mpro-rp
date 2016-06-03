@@ -1,4 +1,7 @@
 """vkontakte list and item parser"""
+from mprorp.celery_app import app
+from mprorp.controller.logic import *
+
 from mprorp.db.dbDriver import *
 from mprorp.db.models import *
 
@@ -16,7 +19,7 @@ def send_get_request(url):
     r.encoding = 'utf-8'
     return r.text
 
-
+@app.task
 def vk_start_parsing(source_id):
     """download vk response and run list parsing function"""
     # get source url
@@ -27,8 +30,9 @@ def vk_start_parsing(source_id):
     vk_parse_list(req_result, source_id)
     # change next timestamp crawl start
     next_crawling_time = datetime.datetime.fromtimestamp(datetime.datetime.now().timestamp() + parse_period)
-    source = Source(source_id = source_id, next_crawling_time = next_crawling_time)
+    source = Source(source_id = source_id, next_crawling_time = next_crawling_time, wait = True)
     update(source)
+    print("VK CRAWL COMPLETE")
 
 
 def vk_parse_list(req_result, source_id):
@@ -53,7 +57,9 @@ def vk_parse_list(req_result, source_id):
                 new_doc = Document(guid=url, source_id=source_id, status=0, type='vk')
                 insert(new_doc)
                 # further parsing
-                vk_parse_item(item, new_doc.doc_id)
+                new_doc_id = new_doc.doc_id
+                vk_parse_item(item, new_doc_id)
+                router_func(new_doc_id, 1)
 
 
 def vk_parse_item(item, doc_id):
