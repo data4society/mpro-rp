@@ -9,7 +9,9 @@ import random
 mystem_analyzer = Mystem(disambiguation=False)
 status = {'morpho': 2, 'lemmas': 3, 'rubrics': 4}
 rubrics_for_regular = {u'd2cf7a5f-f2a7-4e2b-9d3f-fc20ea6504da': None}
-stop_lemmas = ['в', 'на', 'из', 'он', 'что', 'и', 'это', 'по', 'быть', 'этот', 'она', 'они', 'так', 'как', 'тогда', 'те']
+stop_lemmas = ['в', 'на', 'из', 'он', 'что', 'и', 'это', 'по', 'быть', 'этот', 'она', 'они', 'так', 'как', 'тогда',
+               'те', 'также', 'же', 'то', 'за', 'который', 'после', 'оно', 'с', 'к', 'у', 'о', 'об', 'его', 'а',
+               'не', 'год', 'во', 'весь', 'было', 'свой', 'тот', 'все']
 
 
 # one document morphological analysis regular
@@ -102,7 +104,7 @@ def idf_object_features_set(set_id):
                     doc_lemmas[lemma] / doc_size[doc_id] * idf[lemma]
 
     feat_max = np.sum(object_features, axis=0)
-    print_lemmas(set_id, [k for k, v in enumerate(feat_max) if v == 0], idf)
+    print_lemmas(set_id, [k for k, v in enumerate(feat_max) if v == 0], lemma_index, idf)
     print(np.min(np.sum(object_features, axis=1)))
     # save to db: idf, indexes and object_features
     db.put_training_set_params(set_id, idf,  doc_index, lemma_index, object_features)
@@ -147,10 +149,11 @@ def entropy_difference(feature, answers, num_lemma):
     return result
 
 
-def print_lemmas(set_id, numbers, idf=None):
+def print_lemmas(set_id, numbers, lemmas=None, idf=None):
     if idf is None:
         idf = {}
-    lemmas = db.get_lemma_index(set_id)
+    if lemmas is None:
+        lemmas = db.get_lemma_index(set_id)
     my_lemmas = [k for k in lemmas if lemmas[k] in numbers]
     print(numbers)
     print(my_lemmas)
