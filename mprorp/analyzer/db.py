@@ -14,8 +14,11 @@ def get_doc(doc_id):
 
 
 # writing result of morphological analysis of document in db
-def put_morpho(doc_id, morpho):
-    update(Document(doc_id=doc_id, morpho=morpho))
+def put_morpho(doc_id, morpho, new_status):
+    new_document = Document(doc_id=doc_id, morpho=morpho)
+    if new_status > 0:
+        new_document.status = new_status
+    update(new_document)
 
 
 # reading result of morphological analysis of document from db
@@ -24,9 +27,11 @@ def get_morpho(doc_id):
 
 
 # writing lemmas frequently of document in db
-def put_lemmas(doc_id, lemmas):
+def put_lemmas(doc_id, lemmas, new_status):
     some_doc = session.query(Document).filter(Document.doc_id == doc_id).one()
     some_doc.lemmas = lemmas
+    if new_status > 0:
+        some_doc.status = new_status
     session.commit()
 
 
@@ -134,6 +139,7 @@ def get_set_docs(set_id):
     return select(TrainingSet.doc_ids, TrainingSet.set_id == set_id).fetchone()[0]
 
 
+
 # writing model compute for one rubric (rubric_id) with training set (set_id) using selected features (features)
 def put_model(rubric_id, set_id, model, features, features_number):
     new_model = RubricationModel()
@@ -179,15 +185,23 @@ def get_idf_lemma_index_by_set_id(sets_id):
         result[str(one_thing[0])] = {'idf': one_thing[1], 'lemma_index': one_thing[2]}
     return result
 
+# get lemma_index for one set_id
+def get_lemma_index(set_id):
+    return session.query(TrainingSet.lemma_index).filter(TrainingSet.set_id == set_id).one()[0]
+
 
 # writing result of rubrication for one document
-def put_rubrics(doc_id, rubrics):
+def put_rubrics(doc_id, rubrics, new_status):
     for rubric_id in rubrics:
         session.query(RubricationResult).filter(
             (RubricationResult.doc_id == doc_id) & (RubricationResult.rubric_id == rubric_id) &
             (RubricationResult.model_id == rubrics[rubric_id]['model_id'])).delete()
         session.add(RubricationResult(doc_id=doc_id, rubric_id=rubric_id, model_id=rubrics[rubric_id]['model_id'],
                                       result=rubrics[rubric_id]['result']))
+    if new_status > 0:
+        doc = session.query(Document).filter(Document.doc_id == doc_id).one()
+        doc.rubric_ids = [k for k in rubrics if rubrics[k].result]
+        doc.status = new_status
     session.commit()
 
 

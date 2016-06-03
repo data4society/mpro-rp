@@ -7,26 +7,38 @@ import random
 
 
 mystem_analyzer = Mystem(disambiguation=False)
+status = {'morpho': 2, 'lemmas': 3, 'rubrics': 4}
+rubrics_for_regular = {u'd2cf7a5f-f2a7-4e2b-9d3f-fc20ea6504da': None}
+
+
+# one document morphological analysis regular
+def regular_morpho(doc_id):
+    morpho_doc(doc_id, status['morpho'])
 
 
 # one document morphological analysis
-def morpho_doc(doc_id):
+def morpho_doc(doc_id, change_status=0):
     text = db.get_doc(doc_id)
     mystem_analyzer.start()
     new_morpho = mystem_analyzer.analyze(text)
-    db.put_morpho(doc_id, new_morpho)
+    db.put_morpho(doc_id, new_morpho, change_status)
     mystem_analyzer.close()
 
 
 # counting lemmas frequency for one document
-def lemmas_freq_doc(doc_id):
+def regular_lemmas(doc_id):
+    lemmas_freq_doc(doc_id, status['lemmas'])
+
+
+# counting lemmas frequency for one document
+def lemmas_freq_doc(doc_id, new_status=0):
     lemmas = {}
     morpho = db.get_morpho(doc_id)
     for i in morpho:
         for l in i.get('analysis', []):
             if l.get('lex', False):
                 lemmas[l['lex']] = lemmas.get(l['lex'], 0) + l.get('wt', 1)
-    db.put_lemmas(doc_id, lemmas)
+    db.put_lemmas(doc_id, lemmas, new_status)
 
 
 # compute idf and object-features matrix for training set
@@ -87,6 +99,9 @@ def idf_object_features_set(set_id):
                 object_features[doc_index[doc_id], lemma_index[lemma]] = \
                     doc_lemmas[lemma] / doc_size[doc_id] * idf[lemma]
 
+    feat_max = np.sum(object_features, axis=0)
+    print_lemmas(set_id, [k for k, v in enumerate(feat_max) if v == 0], idf)
+    print(np.min(np.sum(object_features, axis=1)))
     # save to db: idf, indexes and object_features
     db.put_training_set_params(set_id, idf,  doc_index, lemma_index, object_features)
 
@@ -107,21 +122,40 @@ def sigmoid(x):
 
 
 # bigger value is worse
-def entropy_difference(feature, answers):
-    max = np.max(feature)
-    min = np.min(feature)
-    step = (max - min) / 1000
-    p = [[0, 0] for i in range(1000)]
+def entropy_difference(feature, answers, num_lemma):
+    f_max = np.max(feature)
+    f_min = np.min(feature)
+    if f_max == f_min:
+        print('lemma 0: ', num_lemma)
+        return 10000
+    step = (f_max - f_min) / 1000
+    p = [[0, 0] for _ in range(1000)]
+    sum_p = len(feature)
     for j in range(len(feature)):
-        index = int(feature[j]/step)
+        index = math.trunc((feature[j] - f_min)/step)
         if index == 1000:
             index = 999
         p[index][answers[j]] += 1
     result = 0
     for i in range(1000):
         if (p[i][0] != 0) & (p[i][1] != 0):
-            result += math.log2(p[i][0] + p[i][1]) * (p[i][0] + p[i][1]) - math.log2(p[i][0]) * (p[i][0]) - math.log2(p[i][1]) * (p[i][1])
+            result += math.log2((p[i][0] + p[i][1]) / sum_p) * (p[i][0] + p[i][1]) / sum_p - \
+                      math.log2(p[i][0] / sum_p) * (p[i][0]) / sum_p - \
+                      math.log2(p[i][1] / sum_p) * (p[i][1]) / sum_p
     return result
+
+
+def print_lemmas(set_id, numbers, idf=None):
+    if idf is None:
+        idf = {}
+    lemmas = db.get_lemma_index(set_id)
+    my_lemmas = [k for k in lemmas if lemmas[k] in numbers]
+    print(numbers)
+    print(my_lemmas)
+    print([idf.get(k, '') for k in my_lemmas])
+    # for i in numbers:
+    #     m
+    #     print(i, [k for k in lemmas if lemmas[k] == i])
 
 
 def learning_rubric_model(set_id, rubric_id):
@@ -131,7 +165,17 @@ def learning_rubric_model(set_id, rubric_id):
     # get object_features, lemma_index, doc_index
     doc_index, object_features = db.get_doc_index_object_features(set_id)
 
+    print(np.min(np.sum(object_features, axis=0)))
+    print(np.min(np.sum(object_features, axis=1)))
+
     doc_number = len(doc_index)
+    # answers_index - answers by indexes, answers_array - array for compute cross_entropy in tensorflow
+    answers_array = np.zeros((doc_number, 1))
+    answers_index = np.zeros(doc_number, dtype=int)
+    for doc_id in doc_index:
+        answers_index[doc_index[doc_id]] = answers[doc_id]
+        answers_array[doc_index[doc_id], 0] = answers[doc_id] * 2 - 1
+
     # if we know answers, we can select most important features (mif):
     # mif[k] = l:
     # feature k from object_features is used in position l, if l >= 0
@@ -143,18 +187,15 @@ def learning_rubric_model(set_id, rubric_id):
         feature_entropy = np.zeros(features_number)
         for i in range(features_number):
             # compute Entropic Criterion for feature i
-            feature_entropy[i] = entropy_difference(object_features[:, i], answers)
+            feature_entropy[i] = entropy_difference(object_features[:, i], answers_index, i)
         good_numbers = np.argsort(feature_entropy)
         for i in range(300):
             mif[good_numbers[i]] = i
+        print_lemmas(set_id, good_numbers[0:10])
+        print(feature_entropy[good_numbers[0:10]])
     else:
         for i in range(features_number):
             mif[i] = i
-
-    # take probability (sigmoid) when answer is true and -sigmoid (instead 1-sigmoid) otherwise
-    answers_array = np.zeros((doc_number, 1))
-    for doc_id in doc_index:
-        answers_array[doc_index[doc_id], 0] = answers[doc_id] * 2 - 1
 
     x = tf.placeholder(tf.float32, shape=[None, features_number])
     y_ = tf.placeholder(tf.float32, shape=[None, 1])
@@ -162,6 +203,7 @@ def learning_rubric_model(set_id, rubric_id):
     b = tf.Variable(0.00001)
 
     y = tf.matmul(x, w) + b
+    # take probability (sigmoid) when answer is true and -sigmoid (instead 1-sigmoid) otherwise
     cross_entropy_array = tf.sigmoid(y) * y_
     cross_entropy = - tf.reduce_mean(cross_entropy_array)
 
@@ -198,11 +240,16 @@ def learning_rubric_model(set_id, rubric_id):
     # print(b.eval(sess))
 
 
+# regular ribrication
+def regular_rubrication(doc_id):
+    spot_doc_rubrics(doc_id, rubrics_for_regular, status['rubrics'])
+
+
 # take 1 doc and few rubrics
 # save in DB doc_id, rubric_id and YES or NO
 # rubrics is a dict. key = rubric_id, value = None or set_id
 # value = set_id: use model, learned with this trainingSet
-def spot_doc_rubrics(doc_id, rubrics):
+def spot_doc_rubrics(doc_id, rubrics, new_status=0):
     # get lemmas by doc_id
     lemmas = db.get_lemmas(doc_id)
     # compute document size
@@ -252,7 +299,7 @@ def spot_doc_rubrics(doc_id, rubrics):
         # else:
         #     res = 'incorrect'
         # print(doc_id, answers[rubric_id]['result'],  res)
-    db.put_rubrics(doc_id, answers)
+    db.put_rubrics(doc_id, answers, new_status)
 
 
 # compute TP, FP, TN, FN, Precision, Recall and F-score on data from db
@@ -274,7 +321,16 @@ def f1_score(model_id, test_set_id, rubric_id):
                 result['false_positive'] += 1
             else:
                 result['false_negative'] += 1
-    result['precision'] = result['true_positive'] / (result['true_positive'] + result['false_positive'])
-    result['recall'] = result['true_positive'] / (result['true_positive'] + result['false_negative'])
-    result['f1'] = 2 * result['precision'] * result['recall'] / (result['precision'] + result['recall'])
+    if (result['true_positive'] + result['false_positive']) > 0:
+        result['precision'] = result['true_positive'] / (result['true_positive'] + result['false_positive'])
+    else:
+        result['precision'] = 0
+    if (result['true_positive'] + result['false_negative']) > 0:
+        result['recall'] = result['true_positive'] / (result['true_positive'] + result['false_negative'])
+    else:
+        result['recall'] = 0
+    if (result['precision'] + result['recall']) > 0:
+        result['f1'] = 2 * result['precision'] * result['recall'] / (result['precision'] + result['recall'])
+    else:
+        result['f1'] = 0
     return result
