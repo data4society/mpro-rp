@@ -9,6 +9,7 @@ import random
 mystem_analyzer = Mystem(disambiguation=False)
 status = {'morpho': 2, 'lemmas': 3, 'rubrics': 4}
 rubrics_for_regular = {u'd2cf7a5f-f2a7-4e2b-9d3f-fc20ea6504da': None}
+stop_lemmas = ['в', 'на', 'из', 'он', 'что', 'и', 'это', 'по', 'быть', 'этот', 'она', 'они', 'так', 'как', 'тогда', 'те']
 
 
 # one document morphological analysis regular
@@ -37,7 +38,8 @@ def lemmas_freq_doc(doc_id, new_status=0):
     for i in morpho:
         for l in i.get('analysis', []):
             if l.get('lex', False):
-                lemmas[l['lex']] = lemmas.get(l['lex'], 0) + l.get('wt', 1)
+                if not l['lex'] in stop_lemmas:
+                    lemmas[l['lex']] = lemmas.get(l['lex'], 0) + l.get('wt', 1)
     db.put_lemmas(doc_id, lemmas, new_status)
 
 
@@ -191,8 +193,8 @@ def learning_rubric_model(set_id, rubric_id):
         good_numbers = np.argsort(feature_entropy)
         for i in range(300):
             mif[good_numbers[i]] = i
-        print_lemmas(set_id, good_numbers[0:10])
-        print(feature_entropy[good_numbers[0:10]])
+        print_lemmas(set_id, good_numbers[0:30])
+        print(feature_entropy[good_numbers[0:30]])
     else:
         for i in range(features_number):
             mif[i] = i
