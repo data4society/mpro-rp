@@ -31,6 +31,8 @@ class Source(Base):
     name = Column(String(255), nullable=False)
     # period in seconds for parsing. -1 if source is off now
     parse_period = Column(Integer())
+    # time for next crawling the source
+    next_crawling_time = Column(TIMESTAMP(), server_default=functions.current_timestamp())
 
 
 class User(Base):

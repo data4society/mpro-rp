@@ -20,11 +20,15 @@ def send_get_request(url):
 def vk_start_parsing(source_id):
     """download vk response and run list parsing function"""
     # get source url
-    source_url = select(Source.url, Source.source_id == source_id).fetchone()[0]
+    [source_url, parse_period] = select([Source.url,Source.parse_period], Source.source_id == source_id).fetchone()
     # download vk response
     req_result = send_get_request(source_url)
     # run list parsing function
     vk_parse_list(req_result, source_id)
+    # change next timestamp crawl start
+    next_crawling_time = datetime.datetime.fromtimestamp(datetime.datetime.now().timestamp() + parse_period)
+    source = Source(source_id = source_id, next_crawling_time = next_crawling_time)
+    update(source)
 
 
 def vk_parse_list(req_result, source_id):

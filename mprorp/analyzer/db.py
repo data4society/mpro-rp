@@ -139,7 +139,6 @@ def get_set_docs(set_id):
     return select(TrainingSet.doc_ids, TrainingSet.set_id == set_id).fetchone()[0]
 
 
-
 # writing model compute for one rubric (rubric_id) with training set (set_id) using selected features (features)
 def put_model(rubric_id, set_id, model, features, features_number):
     new_model = RubricationModel()
