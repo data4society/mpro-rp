@@ -33,6 +33,8 @@ class Source(Base):
     parse_period = Column(Integer())
     # time for next crawling the source
     next_crawling_time = Column(TIMESTAMP(), server_default=functions.current_timestamp())
+    # Is it waits or in work now
+    wait = Column(Boolean(),server_default="False")
 
 
 class User(Base):

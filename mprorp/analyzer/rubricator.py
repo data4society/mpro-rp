@@ -1,9 +1,16 @@
+from mprorp.celery_app import app
+#from mprorp.controller.logic import router_func
+
 import mprorp.analyzer.db as db
 from mprorp.analyzer.pymystem3_w import Mystem
 import numpy as np
 import math
 import tensorflow as tf
 import random
+
+from mprorp.db.dbDriver import *
+from mprorp.db.models import *
+
 
 
 mystem_analyzer = Mystem(disambiguation=False)
@@ -17,9 +24,11 @@ stop_lemmas = ['в', 'на', 'из', 'он', 'что', 'и', 'это', 'по', '
                 # 'время', 'один', 'рассказывать', 'находиться', 'становиться', 'иметь', 'быль', 'может', '', '', '', '', '', '', '', '', '',
 
 # one document morphological analysis regular
+@app.task
 def regular_morpho(doc_id):
     morpho_doc(doc_id, status['morpho'])
-
+    #router_func(doc_id, 2)
+    regular_lemmas.delay(doc_id)
 
 # one document morphological analysis
 def morpho_doc(doc_id, change_status=0):
@@ -31,8 +40,11 @@ def morpho_doc(doc_id, change_status=0):
 
 
 # counting lemmas frequency for one document
+@app.task
 def regular_lemmas(doc_id):
     lemmas_freq_doc(doc_id, status['lemmas'])
+    #router_func(doc_id, 3)
+    regular_rubrication.delay(doc_id)
 
 
 # counting lemmas frequency for one document
@@ -273,8 +285,12 @@ def learning_rubric_model(set_id, rubric_id):
 
 
 # regular ribrication
+@app.task
 def regular_rubrication(doc_id):
     spot_doc_rubrics(doc_id, rubrics_for_regular, status['rubrics'])
+    #router_func(doc_id, 4)
+    doc = Document(doc_id = doc_id, status = 10)
+    update(doc)
 
 
 # take 1 doc and few rubrics
