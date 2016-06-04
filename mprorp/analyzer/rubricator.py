@@ -9,12 +9,12 @@ import random
 mystem_analyzer = Mystem(disambiguation=False)
 status = {'morpho': 2, 'lemmas': 3, 'rubrics': 4}
 rubrics_for_regular = {u'd2cf7a5f-f2a7-4e2b-9d3f-fc20ea6504da': None}
-optimal_features_number = 300
+optimal_features_number = 1000
 stop_lemmas = ['в', 'на', 'из', 'он', 'что', 'и', 'это', 'по', 'быть', 'этот', 'она', 'они', 'так', 'как', 'тогда',
                'те', 'также', 'же', 'то', 'за', 'который', 'после', 'оно', 'с', 'к', 'у', 'о', 'об', 'его', 'а',
                'не', 'год', 'во', 'весь', 'было', 'свой', 'тот', 'все']
-                # 'под', 'со', '', '', '', '', '', '', '', '', ''
-
+                # 'под', 'со', 'ее', 'сам', 'ранее', 'для', 'до', 'будет', 'или', 'их', 'я'
+                # 'время', 'один', 'рассказывать', 'находиться', 'становиться', 'иметь', 'быль', 'может', '', '', '', '', '', '', '', '', '',
 
 # one document morphological analysis regular
 def regular_morpho(doc_id):
@@ -131,6 +131,7 @@ def sigmoid(x):
 def entropy_difference(feature, answers, num_lemma):
     f_max = np.max(feature)
     f_min = np.min(feature)
+    # check is it unsound feature
     if f_max == f_min:
         print('lemma 0: ', num_lemma)
         return 10000
@@ -142,13 +143,26 @@ def entropy_difference(feature, answers, num_lemma):
         if index == 1000:
             index = 999
         p[index][answers[j]] += 1
+    # difference between entropy feature+answers and just feature
     result = 0
     for i in range(1000):
         if (p[i][0] != 0) & (p[i][1] != 0):
             result += math.log2((p[i][0] + p[i][1]) / sum_p) * (p[i][0] + p[i][1]) / sum_p - \
                       math.log2(p[i][0] / sum_p) * (p[i][0]) / sum_p - \
                       math.log2(p[i][1] / sum_p) * (p[i][1]) / sum_p
-    return result
+    # entropy answers
+    all_answers = len(answers)
+    positive_answers = sum(answers) / all_answers
+    negative_answers = 1 - positive_answers
+    if (positive_answers == 0) or (negative_answers) == 0:
+        entropy_answers = 0
+    else:
+        entropy_answers = - positive_answers * math.log2(positive_answers) - negative_answers * math.log2(negative_answers)
+
+    # difference between feature entropy + answers entropy and feature + answers entropy
+    if entropy_answers - result < 0:
+        print('negative information', num_lemma, entropy_answers - result)
+    return - (entropy_answers - result)
 
 
 def print_lemmas(set_id, numbers, lemmas=None, idf=None):
@@ -203,8 +217,8 @@ def learning_rubric_model(set_id, rubric_id):
         for i in range(optimal_features_number):
             # mif[good_numbers[i]] = i
             mif_indexes.append(int(good_numbers[i]))
-        print_lemmas(set_id, good_numbers[0:30])
-        print(feature_entropy[good_numbers[0:30]])
+        print_lemmas(set_id, good_numbers[0:100])
+        print(feature_entropy[good_numbers[0:100]])
     else:
         for i in range(features_number):
             mif_indexes.append(i)
@@ -234,7 +248,7 @@ def learning_rubric_model(set_id, rubric_id):
         if doc_number > 150:
             local_answers = answers_array[indexes[0:100], :]
             if use_mif:
-                sess.run(train_step, feed_dict={x: object_features[indexes[0:100], :][:,mif_indexes], y_: local_answers})
+                sess.run(train_step, feed_dict={x: object_features[indexes[0:100], :][:, mif_indexes], y_: local_answers})
             else:
                 sess.run(train_step, feed_dict={x: object_features[indexes[0:100], :], y_: local_answers})
             random.shuffle(indexes)

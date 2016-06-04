@@ -199,7 +199,7 @@ def put_rubrics(doc_id, rubrics, new_status):
                                       result=rubrics[rubric_id]['result']))
     if new_status > 0:
         doc = session.query(Document).filter(Document.doc_id == doc_id).one()
-        doc.rubric_ids = [k for k in rubrics if rubrics[k].result]
+        doc.rubric_ids = [k for k in rubrics if rubrics[k].get('result', False)]
         doc.status = new_status
     session.commit()
 
@@ -214,4 +214,16 @@ def get_rubrication_result(model_id, set_id, rubric_id):
     result = {}
     for doc_id in rubrication_result:
         result[str(doc_id[0])] = doc_id[1]
+    return result
+
+
+# text of all documents in set
+def get_docs_text(set_id):
+    docs_id = session.query(TrainingSet).filter(TrainingSet.set_id == set_id).one().doc_ids
+    docs = session.query(Document.doc_id, Document.stripped, Document.morpho, Document.lemmas).filter(
+        (DocumentRubric.doc_id.in_(docs_id))).all()
+
+    result = {}
+    for doc in docs:
+        result[str(doc.doc_id)] = {'text': doc.stripped, 'morpho': doc.morpho, 'lemmas': doc.lemmas}
     return result

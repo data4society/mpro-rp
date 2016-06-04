@@ -18,9 +18,9 @@ set_id = u'cd63d6af-f0b2-4bbf-bea2-0b0e2294283d' # Все новости
 # rb.idf_object_features_set(set_id)
 # print('start learning')
 # rb.learning_rubric_model(set_id, rubric_id)
-#
+
 for doc_id in db.get_set_docs(set_id):
     rb.spot_doc_rubrics(doc_id, {rubric_id: None})
 #
-# result = rb.f1_score(db.get_model(rubric_id, set_id)["model_id"], set_id, rubric_id)
-# print(result)
+result = rb.f1_score(db.get_model(rubric_id, set_id)["model_id"], set_id, rubric_id)
+print(result)
