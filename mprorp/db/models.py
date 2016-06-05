@@ -201,6 +201,8 @@ class RubricationResult(Base):
     doc_id = Column(UUIDType(binary=False), ForeignKey('documents.doc_id'))
     # 1 - document associated with rubric, 0 - document not associated with rubric
     result = Column(Integer())
+    # Probability
+    probability = Column(Float())
     # date of compute
     learning_date = Column(TIMESTAMP(), server_default=functions.current_timestamp())
     __table_args__ = (PrimaryKeyConstraint(model_id, rubric_id, doc_id),)

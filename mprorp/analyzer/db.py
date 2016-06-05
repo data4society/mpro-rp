@@ -184,36 +184,53 @@ def get_idf_lemma_index_by_set_id(sets_id):
         result[str(one_thing[0])] = {'idf': one_thing[1], 'lemma_index': one_thing[2]}
     return result
 
+
 # get lemma_index for one set_id
 def get_lemma_index(set_id):
     return session.query(TrainingSet.lemma_index).filter(TrainingSet.set_id == set_id).one()[0]
 
 
 # writing result of rubrication for one document
-def put_rubrics(doc_id, rubrics, new_status):
-    for rubric_id in rubrics:
+def put_rubrics(answers, new_status):
+    for ans in answers:
         session.query(RubricationResult).filter(
-            (RubricationResult.doc_id == doc_id) & (RubricationResult.rubric_id == rubric_id) &
-            (RubricationResult.model_id == rubrics[rubric_id]['model_id'])).delete()
-        session.add(RubricationResult(doc_id=doc_id, rubric_id=rubric_id, model_id=rubrics[rubric_id]['model_id'],
-                                      result=rubrics[rubric_id]['result']))
+            (RubricationResult.doc_id == ans['doc_id']) & (RubricationResult.rubric_id == ans['rubric_id']) &
+            (RubricationResult.model_id == ans['model_id'])).delete()
+        session.add(RubricationResult(doc_id=ans['doc_id'], rubric_id=ans['rubric_id'], model_id=ans['model_id'],
+                                      result=ans['result'], probability=ans['probability']))
+
     if new_status > 0:
-        doc = session.query(Document).filter(Document.doc_id == doc_id).one()
-        doc.rubric_ids = [k for k in rubrics if rubrics[k].get('result', False)]
-        doc.status = new_status
+        docs_id = {}
+        for ans in answers:
+            docs_id[ans['doc_id']] = 0
+        for doc_id in docs_id:
+            doc = session.query(Document).filter(Document.doc_id == doc_id).one()
+            doc.rubric_ids = [ans['rubric_id'] for ans in answers if (ans['doc_id'] == doc_id) and ans['result']]
+            doc.status = new_status
     session.commit()
 
 
-# reading result of rubrication for model, training set and rubric
+# reading result of rubrication (probability) for model, training set and rubric
+def get_rubrication_probability(model_id, set_id, rubric_id):
+    return get_rubrication_result_probability(model_id, set_id, rubric_id, 2)
+
+
+# reading result of rubrication (answers) for model, training set and rubric
 def get_rubrication_result(model_id, set_id, rubric_id):
+    return get_rubrication_result_probability(model_id, set_id, rubric_id, 1)
+
+
+# reading result of rubrication (result_type - 1 or 2) for model, training set and rubric
+def get_rubrication_result_probability(model_id, set_id, rubric_id, result_type):
     docs = Driver.select(TrainingSet.doc_ids, TrainingSet.set_id == set_id).fetchone()[0]
-    rubrication_result = session.query(RubricationResult.doc_id, RubricationResult.result).filter(
+    rubrication_result = session.query(RubricationResult.doc_id, RubricationResult.result,
+                                       RubricationResult.probability).filter(
         (RubricationResult.model_id == model_id) &
         (RubricationResult.rubric_id == rubric_id) &
         (RubricationResult.doc_id.in_(docs))).all()
     result = {}
     for doc_id in rubrication_result:
-        result[str(doc_id[0])] = doc_id[1]
+        result[str(doc_id[0])] = doc_id[result_type]
     return result
 
 

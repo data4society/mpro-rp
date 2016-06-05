@@ -19,9 +19,10 @@ optimal_features_number = 1000
 stop_lemmas = ['в', 'на', 'из', 'он', 'что', 'и', 'это', 'по', 'быть', 'этот', 'она', 'они', 'так', 'как', 'тогда',
                'те', 'также', 'же', 'то', 'за', 'который', 'после', 'оно', 'с', 'к', 'у', 'о', 'об', 'его', 'а',
                'не', 'год', 'во', 'весь', 'было', 'свой', 'тот', 'все']
-                # 'под', 'со', 'ее', 'сам', 'ранее', 'для', 'до', 'будет', 'или', 'их', 'я'
+                # 'под', 'со', 'ее', 'сам', 'ранее', 'для', 'до', 'будет', 'или', 'их', 'я', 'но', '', ''
                 # 'время', 'один', 'рассказывать', 'находиться', 'становиться', 'иметь', 'быль', 'может',
-                # '', '', '', '', '', '', '', '', '',
+                # 'один', 'два', '', '', '', '', '', '', '',
+                # 'девать', 'иметь', 'быль', 'рассказывать', 'мочь', 'время', 'ранее', '', '', '', '',
 
 
 # one document morphological analysis regular
@@ -183,7 +184,8 @@ def entropy_difference(feature, answers, num_lemma):
     if (positive_answers == 0) or (negative_answers) == 0:
         entropy_answers = 0
     else:
-        entropy_answers = - positive_answers * math.log2(positive_answers) - negative_answers * math.log2(negative_answers)
+        entropy_answers = - positive_answers * math.log2(positive_answers) - \
+                          negative_answers * math.log2(negative_answers)
 
     # difference between (feature entropy + answers entropy) and (feature + answers) entropy
     if entropy_answers - result < 0:
@@ -276,7 +278,8 @@ def learning_rubric_model(set_id, rubric_id):
         if doc_number > 150:
             local_answers = answers_array[indexes[0:100], :]
             if use_mif:
-                sess.run(train_step, feed_dict={x: object_features[indexes[0:100], :][:, mif_indexes], y_: local_answers})
+                sess.run(train_step,
+                         feed_dict={x: object_features[indexes[0:100], :][:, mif_indexes], y_: local_answers})
             else:
                 sess.run(train_step, feed_dict={x: object_features[indexes[0:100], :], y_: local_answers})
             random.shuffle(indexes)
@@ -304,8 +307,8 @@ def learning_rubric_model(set_id, rubric_id):
 @app.task
 def regular_rubrication(doc_id):
     spot_doc_rubrics(doc_id, rubrics_for_regular, status['rubrics'])
-    #router_func(doc_id, 4)
-    doc = Document(doc_id = doc_id, status = 10)
+    # router_func(doc_id, 4)
+    doc = Document(doc_id=doc_id, status=10)
     update(doc)
 
 
@@ -323,11 +326,11 @@ def spot_doc_rubrics(doc_id, rubrics, new_status=0):
     # models for rubrics
     models = {}
 
-    correct_answers = {}
+    # correct_answers = {}
 
     # fill set_id in rubrics and data in models
     for rubric_id in rubrics:
-        correct_answers[rubric_id] = db.get_answer_doc(doc_id, rubric_id)
+        # correct_answers[rubric_id] = db.get_answer_doc(doc_id, rubric_id)
         if rubrics[rubric_id] is None:
             rubrics[rubric_id] = db.get_set_id_by_rubric_id(rubric_id)
         models[rubric_id] = db.get_model(rubric_id, rubrics[rubric_id])
@@ -341,7 +344,7 @@ def spot_doc_rubrics(doc_id, rubrics, new_status=0):
             idf_doc[lemma] = lemmas[lemma] * sets[set_id]['idf'].get(lemma, 0) / doc_size
         sets[set_id]['idf_doc'] = idf_doc
     # for each rubric
-    answers = {}
+    answers = []
     for rubric_id in rubrics:
         set_id = rubrics[rubric_id]
         mif_number = models[rubric_id]['features_num']
@@ -361,13 +364,60 @@ def spot_doc_rubrics(doc_id, rubrics, new_status=0):
         mif.resize(mif_number + 1)
         mif[mif_number] = 1
         probability = sigmoid(np.dot(mif, models[rubric_id]['model']))
-        answers[rubric_id] = {'result': round(probability), 'model_id': models[rubric_id]['model_id']}
+        answers.append({'rubric_id': rubric_id, 'result': round(probability), 'model_id': models[rubric_id]['model_id'],
+                        'doc_id': doc_id, 'probability': probability})
         # if answers[rubric_id]['result'] == correct_answers[rubric_id]:
         #     res = 'correct'
         # else:
         #     res = 'incorrect'
         # print(doc_id, answers[rubric_id]['result'],  res)
-    db.put_rubrics(doc_id, answers, new_status)
+    db.put_rubrics(answers, new_status)
+
+
+# take 1 rubric and all doc from test_set
+# save in DB doc_id, rubric_id and YES or NO
+def spot_test_set_rubric(test_set_id, rubric_id):
+    # get lemmas
+    docs = db.get_lemmas_freq(test_set_id)
+    docs_size = {}
+
+    # compute document size
+    for doc_id in docs:
+        lemmas = docs[doc_id]
+        docs_size[doc_id] = 0
+        for lemma in lemmas:
+            docs_size[doc_id] += lemmas[lemma]
+
+    # models for rubrics
+    training_set_id = db.get_set_id_by_rubric_id(rubric_id)
+    model = db.get_model(rubric_id, training_set_id)
+    mif_number = model['features_num']
+    idf_lemma_index = db.get_idf_lemma_index_by_set_id([training_set_id])[training_set_id]
+    lemma_index = idf_lemma_index['lemma_index']
+    training_idf = idf_lemma_index['idf']
+
+    answers = []
+    for doc_id in docs:
+        if docs_size[doc_id]:
+            features_array = np.zeros(len(lemma_index), dtype=float)
+            lemmas = docs[doc_id]
+            for lemma in lemmas:
+                # lemma index in lemmas of training set
+                ind_lemma = lemma_index.get(lemma, -1)
+                # if lemma from doc is in lemmas for training set
+                if ind_lemma > -1:
+                    features_array[ind_lemma] = lemmas[lemma] * training_idf[lemma] / docs_size[doc_id]
+            mif = features_array[model['features']]
+            mif.resize(mif_number + 1)
+            mif[mif_number] = 1
+            probability = sigmoid(np.dot(mif, model['model']))
+            answers.append({'result': round(probability), 'model_id': model['model_id'],
+                            'rubric_id': rubric_id, 'doc_id': doc_id, 'probability': probability})
+        else:
+            answers.append({'result': 0, 'model_id': model['model_id'],
+                            'rubric_id': rubric_id, 'doc_id': doc_id, 'probability': 0})
+
+    db.put_rubrics(answers, 0)
 
 
 # compute TP, FP, TN, FN, Precision, Recall and F-score on data from db
@@ -401,4 +451,35 @@ def f1_score(model_id, test_set_id, rubric_id):
         result['f1'] = 2 * result['precision'] * result['recall'] / (result['precision'] + result['recall'])
     else:
         result['f1'] = 0
+    return result
+
+
+# compute TP, FP, TN, FN, Precision, Recall and F-score on data from db
+def probabilities_score(model_id, test_set_id, rubric_id):
+    result = {'true_average_probability': 0, 'false_average_probability': 0}
+    # right answers
+    answers = db.get_answers(test_set_id, rubric_id)
+    # rubrication results
+    rubrication_result = db.get_rubrication_probability(model_id, test_set_id, rubric_id)
+
+    true_number = 0
+    true_probability = 0
+
+    false_number = 0
+    false_probability = 0
+
+    for key in rubrication_result:
+        if answers[key]:
+            true_number +=1
+            true_probability += rubrication_result[key]
+        else:
+            false_number +=1
+            false_probability += rubrication_result[key]
+
+    if true_number:
+        result['true_average_probability'] = true_probability / true_number
+
+    if false_number:
+        result['false_average_probability'] = false_probability / false_number
+
     return result

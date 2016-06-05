@@ -47,19 +47,24 @@ class SimpleDBTest(unittest.TestCase):
 
     def test_rubricator(self):
 
-        set_id, rubrics_id = fill_db()
+        set_id, rubric_id = fill_db()
 
         rb.idf_object_features_set(set_id)
-        rb.learning_rubric_model(set_id, rubrics_id)
+        rb.learning_rubric_model(set_id, rubric_id)
 
         for doc_id in db.get_set_docs(set_id):
-            rb.spot_doc_rubrics(doc_id, {rubrics_id: None})
+            rb.spot_doc_rubrics(doc_id, {rubric_id: None})
             # check we can overwrite rubrication results:
-            rb.spot_doc_rubrics(doc_id, {rubrics_id: None})
+            rb.spot_doc_rubrics(doc_id, {rubric_id: None})
 
-        result = rb.f1_score(db.get_model(rubrics_id, set_id)["model_id"], set_id, rubrics_id)
-        # self.assertEqual(result['true_negative'], 5)
-        # self.assertEqual(result['true_positive'], 5)
+        model_id = db.get_model(rubric_id, set_id)["model_id"]
+
+        result = rb.f1_score(model_id, set_id, rubric_id)
+        self.assertEqual(result['f1'], 1)
+
+        # another way to spot rubrics
+        rb.spot_test_set_rubric(set_id, rubric_id)
+        result = rb.f1_score(model_id, set_id, rubric_id)
         self.assertEqual(result['f1'], 1)
 
 
