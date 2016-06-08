@@ -1,5 +1,5 @@
 from mprorp.celery_app import app
-#from mprorp.controller.logic import router_func
+# from mprorp.controller.logic import router_func
 
 import mprorp.analyzer.db as db
 from mprorp.analyzer.pymystem3_w import Mystem
@@ -12,7 +12,6 @@ from mprorp.db.dbDriver import *
 from mprorp.db.models import *
 
 
-
 mystem_analyzer = Mystem(disambiguation=False)
 status = {'morpho': 2, 'lemmas': 3, 'rubrics': 4}
 rubrics_for_regular = {u'd2cf7a5f-f2a7-4e2b-9d3f-fc20ea6504da': None}
@@ -21,14 +20,17 @@ stop_lemmas = ['в', 'на', 'из', 'он', 'что', 'и', 'это', 'по', '
                'те', 'также', 'же', 'то', 'за', 'который', 'после', 'оно', 'с', 'к', 'у', 'о', 'об', 'его', 'а',
                'не', 'год', 'во', 'весь', 'было', 'свой', 'тот', 'все']
                 # 'под', 'со', 'ее', 'сам', 'ранее', 'для', 'до', 'будет', 'или', 'их', 'я'
-                # 'время', 'один', 'рассказывать', 'находиться', 'становиться', 'иметь', 'быль', 'может', '', '', '', '', '', '', '', '', '',
+                # 'время', 'один', 'рассказывать', 'находиться', 'становиться', 'иметь', 'быль', 'может',
+                # '', '', '', '', '', '', '', '', '',
+
 
 # one document morphological analysis regular
 @app.task
 def regular_morpho(doc_id):
     morpho_doc(doc_id, status['morpho'])
-    #router_func(doc_id, 2)
+    # router_func(doc_id, 2)
     regular_lemmas.delay(doc_id)
+
 
 # one document morphological analysis
 def morpho_doc(doc_id, change_status=0):
@@ -52,10 +54,20 @@ def lemmas_freq_doc(doc_id, new_status=0):
     lemmas = {}
     morpho = db.get_morpho(doc_id)
     for i in morpho:
-        for l in i.get('analysis', []):
-            if l.get('lex', False):
-                if (not l['lex'] in stop_lemmas) & (l.get('wt', 0) > 0):
-                    lemmas[l['lex']] = lemmas.get(l['lex'], 0) + l.get('wt', 1)
+        # if this is a word
+        if 'analysis' in i.keys():
+            # if there is few lex
+            if len(i['analysis']):
+                for l in i.get('analysis', []):
+                    if l.get('lex', False):
+                        if (not l['lex'] in stop_lemmas) & (l.get('wt', 0) > 0):
+                            lemmas[l['lex']] = lemmas.get(l['lex'], 0) + l.get('wt', 1)
+            else:
+                # english word or number or smth like this
+                word = i.get('text', '')
+                # take word, don't take number
+                if (len(word) > 0) and not word.isdigit():
+                    lemmas[word] = lemmas.get(word, 0) + 1
     db.put_lemmas(doc_id, lemmas, new_status)
 
 
@@ -99,8 +111,7 @@ def idf_object_features_set(set_id):
     for lemma in doc_freq:
         idf[lemma] = - math.log(doc_freq[lemma]/doc_counter)
 
-    # choose most important lemmas and add in overall list by giving index
-
+    # and lemmas add in overall list by giving index
     for lemma in idf:
         if idf[lemma] != 0:
             lemma_index[lemma] = lemma_counter
@@ -117,9 +128,12 @@ def idf_object_features_set(set_id):
                 object_features[doc_index[doc_id], lemma_index[lemma]] = \
                     doc_lemmas[lemma] / doc_size[doc_id] * idf[lemma]
 
+    # check features with 0 for all documents
     feat_max = np.sum(object_features, axis=0)
     print_lemmas(set_id, [k for k, v in enumerate(feat_max) if v == 0], lemma_index, idf)
+    # check documents with 0 for all lemmas
     print(np.min(np.sum(object_features, axis=1)))
+
     # save to db: idf, indexes and object_features
     db.put_training_set_params(set_id, idf,  doc_index, lemma_index, object_features)
 
@@ -171,12 +185,13 @@ def entropy_difference(feature, answers, num_lemma):
     else:
         entropy_answers = - positive_answers * math.log2(positive_answers) - negative_answers * math.log2(negative_answers)
 
-    # difference between feature entropy + answers entropy and feature + answers entropy
+    # difference between (feature entropy + answers entropy) and (feature + answers) entropy
     if entropy_answers - result < 0:
         print('negative information', num_lemma, entropy_answers - result)
     return - (entropy_answers - result)
 
 
+# print lemmas with index in numbers, its index and idf
 def print_lemmas(set_id, numbers, lemmas=None, idf=None):
     if idf is None:
         idf = {}
@@ -191,6 +206,7 @@ def print_lemmas(set_id, numbers, lemmas=None, idf=None):
     #     print(i, [k for k in lemmas if lemmas[k] == i])
 
 
+# learn model for rubrication
 def learning_rubric_model(set_id, rubric_id):
 
     # get answers for rubric

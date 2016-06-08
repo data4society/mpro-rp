@@ -43,7 +43,7 @@ class SimpleDBTest(unittest.TestCase):
         rb.idf_object_features_set(set_id)
         rb.learning_rubric_model(set_id, rubric_id)
         model = db.get_model(rubric_id, set_id)
-        self.assertEqual(model['features_num'], 11)
+        self.assertEqual(model['features_num'], 12)
 
     def test_rubricator(self):
 
@@ -54,7 +54,7 @@ class SimpleDBTest(unittest.TestCase):
 
         for doc_id in db.get_set_docs(set_id):
             rb.spot_doc_rubrics(doc_id, {rubrics_id: None})
-            # check we can overwrite rubricationresults:
+            # check we can overwrite rubrication results:
             rb.spot_doc_rubrics(doc_id, {rubrics_id: None})
 
         result = rb.f1_score(db.get_model(rubrics_id, set_id)["model_id"], set_id, rubrics_id)
@@ -66,11 +66,11 @@ class SimpleDBTest(unittest.TestCase):
 def fill_db():
 
     docs = ["Письмо Маши Васе",
-            "Первый документ Пети",
+            "First документ Пети",  # check processing english word
             "Первое письмо Маши",
             "Второй документ Маши",
             "Первый документ Васи",
-            "Второй документ Пети",
+            "222 документ Пети",  # check processing numbers
             "Первое письмо Пети",
             "Первое письмо Васи",
             "Первый документ Маши",
