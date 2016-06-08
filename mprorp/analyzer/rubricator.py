@@ -33,11 +33,40 @@ def regular_morpho(doc_id):
     regular_lemmas.delay(doc_id)
 
 
+def is_word(mystem_element):
+    if 'analysis' in mystem_element.keys():
+        if len(mystem_element['analysis']):
+            return True
+        else:
+            word = mystem_element.get('text', '')
+            if len(word) > 0:
+                return True
+    return False
+
+
+def is_sentence_end(mystem_element):
+    word = mystem_element.get('text', '').strip()
+    if word.find('.') >= 0 or word.find('!') >= 0 or word.find('?') >= 0 or word.find(';') >= 0:
+        return True
+    return False
+
+
 # one document morphological analysis
 def morpho_doc(doc_id, change_status=0):
-    text = db.get_doc(doc_id)
+    doc_text = db.get_doc(doc_id)
     mystem_analyzer.start()
-    new_morpho = mystem_analyzer.analyze(text)
+    new_morpho = mystem_analyzer.analyze(doc_text)
+    word_index = 0
+    sentence_index = 0
+    for element in new_morpho:
+        if is_word(element):
+            element['word_index'] = word_index
+            element['sentence_index'] = sentence_index
+            word_index += 1
+        elif is_sentence_end(element):
+            if word_index != 0:
+                sentence_index += 1
+                word_index = 0
     db.put_morpho(doc_id, new_morpho, change_status)
     mystem_analyzer.close()
 
@@ -46,7 +75,7 @@ def morpho_doc(doc_id, change_status=0):
 @app.task
 def regular_lemmas(doc_id):
     lemmas_freq_doc(doc_id, status['lemmas'])
-    #router_func(doc_id, 3)
+    # router_func(doc_id, 3)
     regular_rubrication.delay(doc_id)
 
 
@@ -181,7 +210,7 @@ def entropy_difference(feature, answers, num_lemma):
     all_answers = len(answers)
     positive_answers = sum(answers) / all_answers
     negative_answers = 1 - positive_answers
-    if (positive_answers == 0) or (negative_answers) == 0:
+    if (positive_answers == 0) or negative_answers == 0:
         entropy_answers = 0
     else:
         entropy_answers = - positive_answers * math.log2(positive_answers) - \
@@ -470,7 +499,7 @@ def probabilities_score(model_id, test_set_id, rubric_id):
 
     for key in rubrication_result:
         if answers[key]:
-            true_number +=1
+            true_number += 1
             true_probability += rubrication_result[key]
         else:
             false_number +=1

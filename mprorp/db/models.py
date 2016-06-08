@@ -34,7 +34,7 @@ class Source(Base):
     # time for next crawling the source
     next_crawling_time = Column(TIMESTAMP(), server_default=functions.current_timestamp())
     # Is it waits or in work now
-    wait = Column(Boolean(),server_default="False")
+    wait = Column(Boolean(), server_default="False")
 
 
 class User(Base):
@@ -238,7 +238,7 @@ class Entity(Base):
     # user, creator of entity record
     author = Column(UUIDType(binary=False), ForeignKey('users.user_id'))
     # class of entity
-    entity_class = Column(String(255))
+    entity_class = Column(UUIDType(binary=False), ForeignKey('entityclasses.class_id'))
     # entity data
     data = Column(JSONB())
     # tsv vector for indexing
@@ -272,3 +272,82 @@ class SessionData(Base):
     owner = Column(UUIDType(binary=False), ForeignKey('users.user_id'))
     # date of session creation
     created = Column(TIMESTAMP(), server_default=functions.current_timestamp())
+
+
+class Embeddig(Base):
+    __tablename__ = 'embeddings'
+
+    emb_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
+    # name of Embeddigs: russian news, russian wikipedia
+    name = Column(String(255))
+
+
+class WordEmbeddig(Base):
+    __tablename__ = 'wordembeddings'
+
+    lemma = Column(String(100))
+    # Embedding:
+    embedding_id = Column(UUIDType(binary=False), ForeignKey('embeddings.emb_id'))
+    # vector for lemma
+    vector = Column(ARRAY(item_type=Float, dimensions=1))
+    __table_args__ = (PrimaryKeyConstraint(lemma, embedding_id),)
+
+
+class Gazetteer(Base):
+    __tablename__ = 'gazetteers'
+
+    gaz_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
+    # name of gazetteer
+    name = Column(String(255))
+    # words in gazetteer
+    lemmas = Column(ARRAY(item_type=String, dimensions=1))
+
+
+class TomitaGrammar(Base):
+    __tablename__ = 'tomitagrammars'
+
+    gram_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
+    # name of gazetteer
+    name = Column(String(255))
+    # files for tomita
+    file_text = Column(String())
+
+
+class TomitaFact(Base):
+    __tablename__ = 'tomitafacts'
+
+    fact_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
+    # name of fact
+    name = Column(String(255))
+    # grammar
+    gram_id = Column(UUIDType(binary=False), ForeignKey('tomitagrammars.gram_id'))
+
+
+class NERModel(Base):
+    __tablename__ = 'nermodels'
+
+    ner_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
+    embedding = Column(UUIDType(binary=False), ForeignKey('embeddings.emb_id'))
+    gazetteers = Column(ARRAY(UUIDType(binary=False), ForeignKey('gazetteers.gaz_id')))
+    tomita_facts = Column(ARRAY(UUIDType(binary=False), ForeignKey('tomitafacts.fact_id')))
+
+
+class NERFeature(Base):
+    __tablename__ = 'nerfeatures'
+
+    doc_id = Column(UUIDType(binary=False), ForeignKey('documents.doc_id'))
+    # 1 - embedding, 2 - gazetteer, 3 - tomita fact, 4 - syntactic feature: case, 5 - syntactic feature: plural/singular
+    feature_type = Column(Integer())
+    feature_id = Column(UUIDType(binary=False))
+    word_index = Column(Integer)
+    sentence_index = Column(Integer)
+    value = Column(ARRAY(item_type=Float, dimensions=1))
+
+    __table_args__ = (PrimaryKeyConstraint(doc_id, feature_type, feature_id, word_index, sentence_index),)
+
+
+class EntityClass(Base):
+    __tablename__ = 'entityclasses'
+
+    class_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
+    name = Column(String(255))

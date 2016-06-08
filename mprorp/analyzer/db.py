@@ -244,3 +244,26 @@ def get_docs_text(set_id):
     for doc in docs:
         result[str(doc.doc_id)] = {'text': doc.stripped, 'morpho': doc.morpho, 'lemmas': doc.lemmas}
     return result
+
+
+def put_gazetteer(name, lemmas):
+    new_gaz = Gazetteer(name=name)
+    new_gaz.lemmas = lemmas
+    session.add(new_gaz)
+    session.commit()
+    return new_gaz.gaz_id
+
+
+def get_gazetteer(gaz_id):
+    return session.query(Gazetteer.lemmas).filter(Gazetteer.gaz_id == gaz_id).one().lemmas
+
+
+def put_ner_feature(doc_id, gaz_id, records, feature_type):
+    session.query(NERFeature).filter((NERFeature.doc_id == doc_id) &
+                                     (NERFeature.feature_type == feature_type) &
+                                     (NERFeature.feature_id == gaz_id)).delete()
+    for record in records:
+        session.add(NERFeature(doc_id=doc_id, feature_type=feature_type, feature_id=gaz_id,
+                               word_index=record['word_index'], sentence_index=record['sentence_index'],
+                               value=record['value']))
+    session.commit()
