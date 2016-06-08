@@ -237,7 +237,7 @@ class Entity(Base):
     edited = Column(TIMESTAMP())
     # user, creator of entity record
     author = Column(UUIDType(binary=False), ForeignKey('users.user_id'))
-    # class of entity
+    # class of entity - entityclasses
     entity_class = Column(UUIDType(binary=False), ForeignKey('entityclasses.class_id'))
     # entity data
     data = Column(JSONB())
