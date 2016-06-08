@@ -180,7 +180,7 @@ class Mystem(object):
             self._mystem_bin = MYSTEM_BIN
 
         self._mystemargs = ["--format", "json"]
-
+        # monitoring pro: weights
         self._mystemargs.append('--weight')
 
         if self._grammar_info is True:
@@ -191,6 +191,10 @@ class Mystem(object):
 
         if self._entire_input is True:
             self._mystemargs.append('-c')
+
+        # monitoring pro: sentence end
+        self._mystemargs.append('-s')
+
 
     def start(self):
         """

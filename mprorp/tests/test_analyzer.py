@@ -7,14 +7,20 @@ import mprorp.analyzer.db as db
 
 class SimpleDBTest(unittest.TestCase):
 
+
+    def test_stop_lemmas(self):
+        self.assertEqual(len(rb.stop_lemmas) > 100, True)
+        self.assertEqual('ранее' in rb.stop_lemmas, True)
+
     def test_morpho(self):
         # morpho analysis
         dropall_and_create()
-        my_doc = Document(stripped='Эти типы стали есть на складе', type='article')
+        my_doc = Document(stripped='Эти типы стали есть на складе. Проголодались! Вот так.', type='article')
         insert(my_doc)
         doc_id = str(my_doc.doc_id)
         rb.morpho_doc(doc_id)
         morpho = db.get_morpho(doc_id)
+        self.assertEqual(morpho[0]['text'], 'Эти')
         self.assertEqual(morpho[0]['text'], 'Эти')
 
     def test_lemmas_freq(self):
@@ -29,7 +35,6 @@ class SimpleDBTest(unittest.TestCase):
         self.assertEqual(lemmas['склад'], 1)
 
     def test_training_set_idf(self):
-
         set_id, rubric_id = fill_db()
         rb.idf_object_features_set(set_id)
         # check we can overwrite idf:
@@ -38,15 +43,13 @@ class SimpleDBTest(unittest.TestCase):
         self.assertEqual(len(result), 10)
 
     def test_model(self):
-
         set_id, rubric_id = fill_db()
         rb.idf_object_features_set(set_id)
         rb.learning_rubric_model(set_id, rubric_id)
         model = db.get_model(rubric_id, set_id)
-        self.assertEqual(model['features_num'], 12)
+        self.assertEqual(model['features_num'], 11)
 
     def test_rubricator(self):
-
         set_id, rubric_id = fill_db()
 
         rb.idf_object_features_set(set_id)

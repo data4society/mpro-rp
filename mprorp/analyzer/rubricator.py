@@ -18,11 +18,14 @@ rubrics_for_regular = {u'd2cf7a5f-f2a7-4e2b-9d3f-fc20ea6504da': None}
 optimal_features_number = 1000
 stop_lemmas = ['в', 'на', 'из', 'он', 'что', 'и', 'это', 'по', 'быть', 'этот', 'она', 'они', 'так', 'как', 'тогда',
                'те', 'также', 'же', 'то', 'за', 'который', 'после', 'оно', 'с', 'к', 'у', 'о', 'об', 'его', 'а',
-               'не', 'год', 'во', 'весь', 'было', 'свой', 'тот', 'все']
-                # 'под', 'со', 'ее', 'сам', 'ранее', 'для', 'до', 'будет', 'или', 'их', 'я', 'но', '', ''
-                # 'время', 'один', 'рассказывать', 'находиться', 'становиться', 'иметь', 'быль', 'может',
-                # 'один', 'два', '', '', '', '', '', '', '',
-                # 'девать', 'иметь', 'быль', 'рассказывать', 'мочь', 'время', 'ранее', '', '', '', '',
+               'не', 'год', 'во', 'весь', 'было', 'свой', 'тот', 'все', 'если', 'тогда', 'от', 'уже', 'д', 'м', 'при',
+               'под', 'со', 'ее', 'сам', 'ранее', 'для', 'до', 'будет', 'или', 'их', 'я', 'но', 'нужный', 'ул',
+               'время', 'наш', 'самый', 'вы', 'мы', 'любой', 'еще', 'нужно', 'до', 'любая', 'нами', 'такой', 'где',
+               'один', 'рассказывать', 'находиться', 'становиться', 'иметь', 'быль', 'может', 'можно', 'очень', 'чтобы',
+               'раз', 'каждый', 'новый', 'хороший', 'только', 'мочь', 'даже', 'себя', 'приходить', 'два', 'когда',
+               'того', 'кто', 'многий', 'большой', 'маленький', 'первый', 'эта', 'другой',
+               'девать', 'иметь', 'быль', 'рассказывать', 'мочь', 'смочь', 'время', 'ранее']
+                  # , '', '', '', '',
 
 
 # one document morphological analysis regular
@@ -45,10 +48,8 @@ def is_word(mystem_element):
 
 
 def is_sentence_end(mystem_element):
-    word = mystem_element.get('text', '').strip()
-    if word.find('.') >= 0 or word.find('!') >= 0 or word.find('?') >= 0 or word.find(';') >= 0:
-        return True
-    return False
+    word = mystem_element.get('text', '')
+    return word == '\\s'
 
 
 # one document morphological analysis
@@ -160,9 +161,9 @@ def idf_object_features_set(set_id):
 
     # check features with 0 for all documents
     feat_max = np.sum(object_features, axis=0)
-    print_lemmas(set_id, [k for k, v in enumerate(feat_max) if v == 0], lemma_index, idf)
+    # print_lemmas(set_id, [k for k, v in enumerate(feat_max) if v == 0], lemma_index, idf)
     # check documents with 0 for all lemmas
-    print(np.min(np.sum(object_features, axis=1)))
+    # print(np.min(np.sum(object_features, axis=1)))
 
     # save to db: idf, indexes and object_features
     db.put_training_set_params(set_id, idf,  doc_index, lemma_index, object_features)
@@ -229,9 +230,9 @@ def print_lemmas(set_id, numbers, lemmas=None, idf=None):
     if lemmas is None:
         lemmas = db.get_lemma_index(set_id)
     my_lemmas = [k for k in lemmas if lemmas[k] in numbers]
-    print(numbers)
+    # print(numbers)
     print(my_lemmas)
-    print([idf.get(k, '') for k in my_lemmas])
+    # print([idf.get(k, '') for k in my_lemmas])
     # for i in numbers:
     #     m
     #     print(i, [k for k in lemmas if lemmas[k] == i])
@@ -245,8 +246,8 @@ def learning_rubric_model(set_id, rubric_id):
     # get object_features, lemma_index, doc_index
     doc_index, object_features = db.get_doc_index_object_features(set_id)
 
-    print(np.min(np.sum(object_features, axis=0)))
-    print(np.min(np.sum(object_features, axis=1)))
+    # print(np.min(np.sum(object_features, axis=0)))
+    # print(np.min(np.sum(object_features, axis=1)))
 
     doc_number = len(doc_index)
     # answers_index - answers by indexes, answers_array - array for compute cross_entropy in tensorflow
@@ -277,7 +278,7 @@ def learning_rubric_model(set_id, rubric_id):
             # mif[good_numbers[i]] = i
             mif_indexes.append(int(good_numbers[i]))
         print_lemmas(set_id, good_numbers[0:100])
-        print(feature_entropy[good_numbers[0:100]])
+        # print(feature_entropy[good_numbers[0:100]])
     else:
         for i in range(features_number):
             mif_indexes.append(i)

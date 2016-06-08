@@ -11,6 +11,8 @@ class SimpleDBTest(unittest.TestCase):
         dropall_and_create()
         doc_id, gaz_id = fill_db()
         rb.morpho_doc(doc_id)
+        morpho = db.get_morpho(doc_id)
+        print(morpho)
         feature.create_gazetteer_feature(doc_id, gaz_id)
         feature.create_gazetteer_feature(doc_id, gaz_id)
 
