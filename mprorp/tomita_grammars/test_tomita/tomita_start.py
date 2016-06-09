@@ -97,7 +97,7 @@ def start_tomita(grammar):
     tomita = path.join(tomita_path, 'tomitaparser.exe')
     sp.call([tomita, config])
     
-
+# необходимо доделать скачивание и отдачу файла
 
     
     
