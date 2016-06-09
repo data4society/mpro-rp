@@ -16,13 +16,10 @@ if p2 == '':
     print('Not found')
 else:
     gram_path = path.join(p1, p2, 'tomita_grammars', 'test_tomita', 'config.proto')
-    # files = os.listdir(gram_path)
-    # print(files)
-    print(os.path.abspath(gram_path))
+    # print(os.path.abspath(gram_path))
     tomita_path = '/home/tomita/tomita-parser-master/build/bin/'
+    # print(os.listdir(tomita_path))
     sp.call([tomita_path + 'tomita-parser', gram_path])
-    # sp.call(tomita_path + 'tomita-parser')
-    # os.listdir(gram_path)
 
 class SimpleDBTest(unittest.TestCase):
 
