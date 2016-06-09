@@ -97,9 +97,7 @@ def start_tomita(grammar):
     tomita = path.join(tomita_path, 'tomitaparser.exe')
     sp.call([tomita, config])
     
-    
-for grammar in grammars:
-    start_tomita(grammar)
+
 
     
     
