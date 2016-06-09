@@ -1,0 +1,19 @@
+encoding "utf8";
+
+TTextMinerConfig {
+  Dictionary = "dic.gzt";       
+  PrettyOutput = "debug.html";  
+  Input = {
+	File = "Full_text.txt";
+  }
+  Articles = [
+    {Name = "FIO"}, {Name = "DATE"}, {Name = "Дата"}, {Name = "Персона"}
+  ]
+  Facts = [
+    { Name = "DateFact_TOMITA" }, { Name = "PersonFact_TOMITA" }
+  ]
+  Output = {
+    File = "facts.txt";        
+    Format = text;             
+  }
+}

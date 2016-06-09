@@ -1,0 +1,36 @@
+encoding "utf8";
+import "base.proto";     
+import "articles_base.proto";
+import "keywords.proto";
+import "facttypes.proto";
+
+
+TAuxDicArticle "Дата"
+{
+    key = { "tomita:date.cxx" type=CUSTOM }
+}
+
+TAuxDicArticle "Персона"
+{
+    key = { "tomita:person.cxx" type=CUSTOM }
+}
+
+TAuxDicArticle "FIO"
+{
+ key = {"alg:fio" type = CUSTOM}
+}
+
+TAuxDicArticle "DATE"
+{
+ key = {"alg:date" type = CUSTOM}
+}
+
+month "Месяц"
+{
+ key = "Январь"|"Февраль"|"Март"|"Апрель"|"Май"|"Июнь"|"Июль"|"Август"|"Сентябрь"|"Октябрь"|"Ноябрь"|"Декабрь"
+}
+
+week "День недели"
+{
+ key = "Понедельник"|"Вторник"|"Среда"|"Четверг"|"Пятница"|"Суббота"|"Воскресенье"
+}
