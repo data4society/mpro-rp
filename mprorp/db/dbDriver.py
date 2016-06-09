@@ -57,9 +57,9 @@ def update(obj):
     session.merge(obj)
     session.commit()
     return obj;
-    #obj = meta.tables[table_name]
-    #return engine.execute(sqlalchemy.update().where(where_clause).values(values))
-    #return DBDriver.engine.execute(obj.update().values(values).where(where_clause))#obj.c.doc_id == '7a074073-7747-47b9-aba0-1f5990ddbaf9'))
+    #o bj = meta.tables[table_name]
+    # return engine.execute(sqlalchemy.update().where(where_clause).values(values))
+    # return DBDriver.engine.execute(obj.update().values(values).where(where_clause))#obj.c.doc_id == '7a074073-7747-47b9-aba0-1f5990ddbaf9'))
 
 
 def delete(table_name, where_clause):

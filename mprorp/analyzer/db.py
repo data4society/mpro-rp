@@ -267,3 +267,9 @@ def put_ner_feature(doc_id, gaz_id, records, feature_type):
                                word_index=record['word_index'], sentence_index=record['sentence_index'],
                                value=record['value']))
     session.commit()
+
+
+def put_tomita_grammar(name, files, config_file):
+    new_grammar = TomitaGrammar(name=name, files=files, config_file=config_file)
+    session.add(new_grammar)
+    session.commit()

@@ -310,7 +310,8 @@ class TomitaGrammar(Base):
     # name of gazetteer
     name = Column(String(255))
     # files for tomita
-    file_text = Column(String())
+    files = Column(JSONB())
+    config_file = Column(String())
 
 
 class TomitaFact(Base):
