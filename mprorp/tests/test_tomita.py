@@ -12,15 +12,14 @@ p1 = getcwd()
 p2 = 'aaa'
 while (p2 != 'mprorp') and (p2 != ''):
     p1, p2 = path.split(p1)
-if p2 =='':
+if p2 == '':
     print('Not found')
 else:
     gram_path = path.join(p1, p2, 'tomita_grammars')
     files = os.listdir(gram_path)
     print(files)
-
-# tomita_path = '/home/tomita/tomita-parser-master/build/bin/'
-# sp.call(tomita_path + 'tomita-parser')
+    tomita_path = '/home/tomita/tomita-parser-master/build/bin/'
+    sp.call(tomita_path + 'tomita-parser' + ' ' + path.join(gram_path,'config.proto'))
 
 
 class SimpleDBTest(unittest.TestCase):
