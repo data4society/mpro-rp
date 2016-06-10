@@ -29,6 +29,8 @@ def list_make(text):
             len_of_line += len(text[n])
     return out
 
-
+def tomita_out(file_name):
+    out = list_make(text_make(file_name))
+    return out
 
 
