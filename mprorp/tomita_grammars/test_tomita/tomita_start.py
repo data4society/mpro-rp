@@ -112,7 +112,7 @@ def start_tomita(grammar, doc_id):
     output_name = 'facts_' + grammar_name + '.txt'
     return output_name
 
-# необходимо доделать скачивание и отдачу файла
+
 
 
 
