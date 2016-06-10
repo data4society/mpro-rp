@@ -73,7 +73,7 @@ TTextMinerConfig {
     ''' + fact[grammar] + '''    
   ]
   Output = {
-    File = "facts.txt";        
+    File =''' + ''' "facts_''' + grammar_name + ''' .txt";
     Format = text;             
   }
 }'''
