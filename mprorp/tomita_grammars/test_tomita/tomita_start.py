@@ -1,4 +1,3 @@
-from os import getcwd
 from os import chdir
 import os.path as path
 import subprocess as sp
@@ -94,8 +93,7 @@ def create_file(doc_id):
     return file_name
 
 def start_tomita(grammar, doc_id):
-    tomita_path_now = getcwd()
-    home_path = re.findall('^(.*)\\\\', tomita_path_now)[0]
+    home_path = '/home/tomita/tomita-parser-master/build'
     tomita_path = path.join(home_path, grammars[grammar])
     grammar_name = re.findall('(.*)\\.cxx', grammar)[0]
     chdir(tomita_path)
