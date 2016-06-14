@@ -1,14 +1,11 @@
-import getpass
-from os import listdir
-from os import getcwd
 from os import chdir
 import os.path as path
 import subprocess as sp
 import re
 from mprorp.analyzer.db import get_doc
 
-grammars = {'person.cxx': 'bin',
-            'date.cxx': 'bin2'}
+grammars = {'person.cxx': 'bin2',
+            'date.cxx': 'bin'}
 
 dic = {'person.cxx': '{Name = "FIO"}, {Name = "Персона"}',
        'date.cxx': '{Name = "DATE"}, {Name = "Дата"}'}
@@ -91,7 +88,6 @@ TTextMinerConfig {
 
 def create_file(doc_id):
     file_name = str(doc_id) + '.txt'
-    file_name = 'aaa.txt'
     file = open(file_name, 'w', encoding='utf-8')
     text = get_doc(doc_id)
     file.write(text)

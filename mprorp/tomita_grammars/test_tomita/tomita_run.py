@@ -6,4 +6,5 @@ def run_tomita(grammar, doc_id):
     out = tomita_out(output)
     return out
 
-run_tomita('date.cxx', '000e82b8-6ea7-41f4-adc6-bc688fbbeeb6')
+#print(run_tomita('date.cxx', '000e82b8-6ea7-41f4-adc6-bc688fbbeeb6'))
+#print(run_tomita('person.cxx', '000e82b8-6ea7-41f4-adc6-bc688fbbeeb6'))
