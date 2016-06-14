@@ -6,7 +6,7 @@ class SimpleTomitaTest(unittest.TestCase):
 
     def test_tomita_person(self):
         dropall_and_create()
-        key1 = '190:198'
+        key1 = '180:188'
         key2 = '440:449'
         key3 = '0:16'
         value = 'Person'
