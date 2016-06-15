@@ -1,4 +1,5 @@
 from os import chdir
+from os.path import expanduser
 import os.path as path
 import subprocess as sp
 import re
@@ -49,7 +50,8 @@ def create_file(doc_id):
     return file_name
 
 def start_tomita(grammar, doc_id):
-    home_path = '/home/vagrant/tomita/tomita-parser-master/build'
+    home = expanduser("~")
+    home_path = home + '/tomita/tomita-parser-master/build'
     tomita_path = path.join(home_path, grammars[grammar])
     grammar_name = re.findall('(.*)\\.cxx', grammar)[0]
     chdir(tomita_path)
