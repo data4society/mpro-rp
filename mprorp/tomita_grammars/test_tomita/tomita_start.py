@@ -1,12 +1,11 @@
-from os import getcwd
 from os import chdir
 import os.path as path
 import subprocess as sp
 import re
 from mprorp.analyzer.db import get_doc
 
-grammars = {'person.cxx': 'bin',
-            'date.cxx': 'bin2'}
+grammars = {'person.cxx': 'bin2',
+            'date.cxx': 'bin'}
 
 dic = {'person.cxx': '{Name = "FIO"}, {Name = "Персона"}',
        'date.cxx': '{Name = "DATE"}, {Name = "Дата"}'}
@@ -35,6 +34,7 @@ TAuxDicArticle "DATE"
 
 
 def create_dic(grammar_name):
+    grammar = grammar_name + '.cxx'
     dic_name = 'dic_' + grammar_name + '.gzt'
     dic_file = '''encoding "utf8";
 import "base.proto";
@@ -60,6 +60,7 @@ week "День недели"
 
 
 def create_config(grammar_name, file_name):
+    grammar = grammar_name + '.cxx'
     config_name = 'config_' + grammar_name + '.proto'
     config_file = '''encoding "utf8";
 
@@ -94,8 +95,7 @@ def create_file(doc_id):
     return file_name
 
 def start_tomita(grammar, doc_id):
-    tomita_path_now = getcwd()
-    home_path = re.findall('^(.*)\\\\', tomita_path_now)[0]
+    home_path = '/home/vagrant/tomita/tomita-parser-master/build'
     tomita_path = path.join(home_path, grammars[grammar])
     grammar_name = re.findall('(.*)\\.cxx', grammar)[0]
     chdir(tomita_path)
@@ -107,12 +107,7 @@ def start_tomita(grammar, doc_id):
     create_dic(grammar_name)
     # запускаем tomitaparser.exe
     config = path.join(tomita_path, 'config_' + grammar_name + '.proto')
-    tomita = path.join(tomita_path, 'tomitaparser.exe')
+    tomita = path.join(tomita_path, 'tomita-parser')
     sp.call([tomita, config])
     output_name = 'facts_' + grammar_name + '.txt'
     return output_name
-
-
-
-
-
