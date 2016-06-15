@@ -6,3 +6,5 @@ sqlalchemy >= 1.0.0
 datetime
 celery
 lxml
+numpy
+readability-lxml
