@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 cd /home/vagrant
 mkdir tomita
 cd tomita
@@ -9,6 +10,7 @@ mkdir build
 cd build
 sudo cmake ../src/ -DCMAKE_BUILD_TYPE=Release
 sudo make
+cd bin
 wget https://github.com/yandex/tomita-parser/releases/download/v1.0/libmystem_c_binding.so.linux_x64.zip
 unzip libmystem_c_binding.so.linux_x64.zip
 chown -R vagrant:vagrant /home/vagrant

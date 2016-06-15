@@ -3,7 +3,7 @@ from mprorp.db.models import *
 
 from readability.readability import Document as Doc
 import urllib.request
-from mprorp.crawler.utils import send_get_request
+from mprorp.crawler.utils import send_get_request, strip_tags
 import json
 import html
 
@@ -34,7 +34,12 @@ def findFullText(doc_id):
             print(json_obj["title"])
         content = json_obj["content"]
         content = html.unescape(content)
-        print(content)
+        #print(content)
+
+
+        stripped = strip_tags(content)
+        print(stripped)
+
 
         document = Document(doc_id=doc_id, doc_source=content)
         update(document)
@@ -47,8 +52,8 @@ def findFullText(doc_id):
 if __name__ == '__main__':
     #print('"Hello,\\nworld!"'.decode('string_escape'))
     #exit()
-    articles = select(Document.doc_id, Document.source_id == 'f4cb43e4-31bb-4d34-9367-66152e63daa8').fetchall()
-    #articles = select(Document.doc_id, Document.guid == 'http://u-news24.com/archives/18306').fetchall()
+    #articles = select(Document.doc_id, Document.source_id == 'f4cb43e4-31bb-4d34-9367-66152e63daa8').fetchall()
+    articles = select(Document.doc_id, Document.guid == 'http://u-news24.com/archives/18306').fetchall()
     for article_id in articles:
         findFullText(article_id[0])
     #print(articles)

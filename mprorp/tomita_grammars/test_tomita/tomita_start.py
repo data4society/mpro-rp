@@ -5,7 +5,7 @@ import subprocess as sp
 import re
 from mprorp.analyzer.db import get_doc
 
-grammars = {'person.cxx': 'bin2',
+grammars = {'person.cxx': 'bin', # 'bin2',
             'date.cxx': 'bin'}
 
 dic = {'person.cxx': '{Name = "FIO"}, {Name = "Персона"}',
