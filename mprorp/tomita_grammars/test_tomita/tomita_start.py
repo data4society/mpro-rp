@@ -16,12 +16,11 @@ fact = {'person.cxx': '{ Name = "PersonFact_TOMITA" }',
 
 def create_config(grammar_name, file_name):
     grammar = grammar_name + '.cxx'
-    config_name = 'config_' + file_name + '.proto'
+    config_name = 'config_' + file_name[:-4] + '.proto'
     config_file = '''encoding "utf8";
 
 TTextMinerConfig {
   Dictionary = ''' + '''"/vagrant/mprorp/tomita_grammars/test_tomita/dic_''' + grammar_name + '''.gzt"''' + ''';
-  PrettyOutput = "debug.html";
   Input = {
     File = "''' + file_name + '''";
   }
@@ -32,7 +31,7 @@ TTextMinerConfig {
     ''' + fact[grammar] + '''
   ]
   Output = {
-    File =''' + ''' "facts_''' + file_name + '''.txt";
+    File =''' + ''' "facts_''' + file_name[:-4] + '''.txt";
     Format = text;
   }
 }'''
@@ -59,8 +58,8 @@ def start_tomita(grammar, doc_id):
     # создаем config.proto
     create_config(grammar_name, file_name)
     # запускаем tomitaparser.exe
-    config = path.join(tomita_path, 'config_' + grammar_name + '.proto')
+    config = path.join(tomita_path, 'config_' + file_name[:-4] + '.proto')
     tomita = path.join(tomita_path, 'tomita-parser')
     sp.call([tomita, config])
-    output_name = 'facts_' + grammar_name + '.txt'
+    output_name = 'facts_' + file_name[:-4] + '.txt'
     return output_name
