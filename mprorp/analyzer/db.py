@@ -269,6 +269,17 @@ def put_ner_feature(doc_id, gaz_id, records, feature_type):
     session.commit()
 
 
+def put_tomita_result(doc_id, grammar, result):
+    session.query(TomitaResult).filter((TomitaResult.doc_id == doc_id) & (TomitaResult.grammar == grammar)).delete()
+    session.add(TomitaResult(doc_id=doc_id, grammar=grammar, result=result))
+    session.commit()
+
+
+def get_tomita_result(doc_id, grammar, result):
+    return session.query(TomitaResult.result).filter(
+        (TomitaResult.doc_id == doc_id) & (TomitaResult.grammar == grammar)).one()[0]
+
+
 def put_tomita_grammar(name, files, config_file):
     new_grammar = TomitaGrammar(name=name, files=files, config_file=config_file)
     session.add(new_grammar)

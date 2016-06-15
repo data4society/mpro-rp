@@ -353,6 +353,16 @@ class TomitaFact(Base):
     gram_id = Column(UUIDType(binary=False), ForeignKey('tomitagrammars.gram_id'))
 
 
+class TomitaResult(Base):
+    __tablename__ = 'tomita_results'
+
+    doc_id = Column(UUIDType(binary=False),  ForeignKey('documents.doc_id'))
+    grammar = Column(String(40))
+    result = Column(JSONB())
+
+    __table_args__ = (PrimaryKeyConstraint(doc_id, grammar),)
+
+
 class NERModel(Base):
     __tablename__ = 'nermodels'
 
