@@ -16,7 +16,7 @@ fact = {'person.cxx': '{ Name = "PersonFact_TOMITA" }',
 
 def create_config(grammar_name, file_name):
     grammar = grammar_name + '.cxx'
-    config_name = 'config_' + grammar_name + '.proto'
+    config_name = 'config_' + file_name + '.proto'
     config_file = '''encoding "utf8";
 
 TTextMinerConfig {
@@ -32,7 +32,7 @@ TTextMinerConfig {
     ''' + fact[grammar] + '''
   ]
   Output = {
-    File =''' + ''' "facts_''' + grammar_name + '''.txt";
+    File =''' + ''' "facts_''' + file_name + '''.txt";
     Format = text;
   }
 }'''
