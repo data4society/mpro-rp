@@ -13,51 +13,6 @@ dic = {'person.cxx': '{Name = "FIO"}, {Name = "Персона"}',
 fact = {'person.cxx': '{ Name = "PersonFact_TOMITA" }',
         'date.cxx': '{ Name = "DateFact_TOMITA" }'}
 
-dic_grammar = {'person.cxx': '''TAuxDicArticle "Персона"
-{
-    key = { "tomita:person.cxx" type=CUSTOM }
-}
-
-TAuxDicArticle "FIO"
-{
- key = {"alg:fio" type = CUSTOM}
-}''',
-               'date.cxx': '''TAuxDicArticle "Дата"
-{
-    key = { "tomita:date.cxx" type=CUSTOM }
-}
-
-TAuxDicArticle "DATE"
-{
- key = {"alg:date" type = CUSTOM}
-}'''}
-
-
-def create_dic(grammar_name):
-    grammar = grammar_name + '.cxx'
-    dic_name = 'dic_' + grammar_name + '.gzt'
-    dic_file = '''encoding "utf8";
-import "base.proto";
-import "articles_base.proto";
-import "keywords.proto";
-import "facttypes.proto";
-
-''' + dic_grammar[grammar] + '''
-
-month "Месяц"
-{
- key = "Январь"|"Февраль"|"Март"|"Апрель"|"Май"|"Июнь"|"Июль"|"Август"|"Сентябрь"|"Октябрь"|"Ноябрь"|"Декабрь"
-}
-
-week "День недели"
-{
- key = "Понедельник"|"Вторник"|"Среда"|"Четверг"|"Пятница"|"Суббота"|"Воскресенье"
-}'''
-
-    dictionary = open(dic_name, 'w', encoding='utf-8')
-    dictionary.write(dic_file)
-    dictionary.close()
-
 
 def create_config(grammar_name, file_name):
     grammar = grammar_name + '.cxx'
@@ -65,7 +20,7 @@ def create_config(grammar_name, file_name):
     config_file = '''encoding "utf8";
 
 TTextMinerConfig {
-  Dictionary = ''' + '''"dic_''' + grammar_name + '''.gzt"''' + ''';
+  Dictionary = ''' + '''"/vagrant/mprorp/tomita_grammars/test_tomita/dic_''' + grammar_name + '''.gzt"''' + ''';
   PrettyOutput = "debug.html";
   Input = {
     File = "''' + file_name + '''";
@@ -103,8 +58,6 @@ def start_tomita(grammar, doc_id):
     file_name = create_file(doc_id)
     # создаем config.proto
     create_config(grammar_name, file_name)
-    # создаем dic.gzt
-    create_dic(grammar_name)
     # запускаем tomitaparser.exe
     config = path.join(tomita_path, 'config_' + grammar_name + '.proto')
     tomita = path.join(tomita_path, 'tomita-parser')

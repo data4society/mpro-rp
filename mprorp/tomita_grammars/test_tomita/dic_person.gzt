@@ -4,12 +4,6 @@ import "articles_base.proto";
 import "keywords.proto";
 import "facttypes.proto";
 
-
-TAuxDicArticle "Дата"
-{
-    key = { "tomita:date.cxx" type=CUSTOM }
-}
-
 TAuxDicArticle "Персона"
 {
     key = { "tomita:person.cxx" type=CUSTOM }
@@ -18,11 +12,6 @@ TAuxDicArticle "Персона"
 TAuxDicArticle "FIO"
 {
  key = {"alg:fio" type = CUSTOM}
-}
-
-TAuxDicArticle "DATE"
-{
- key = {"alg:date" type = CUSTOM}
 }
 
 month "Месяц"
