@@ -4,10 +4,15 @@ ner_feature_types = {'embedding': 1, 'gazetteer': 2, 'tomita': 3, 'syntactic_fea
 
 
 def create_gazetteer_feature(doc_id, gaz_id):
+    # create in db gazetteer feature
+    # read morpho
     morpho = db.get_morpho(doc_id)
+    # read gazetteer
     gazetteer = db.get_gazetteer(gaz_id)
+    # for each lemma of each word of doc look for lemma in gazetteer
     values = []
     for element in morpho:
+        # if element is word
         if element.get('word_index', -1) != -1:
             analysis = element.get('analysis', [])
             amount = 0

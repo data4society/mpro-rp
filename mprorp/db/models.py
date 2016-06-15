@@ -225,6 +225,13 @@ class ObjectFeatures(Base):
     __table_args__ = (PrimaryKeyConstraint(set_id, doc_id),)
 
 
+class EntityClass(Base):
+    __tablename__ = 'entity_classes'
+
+    class_id = Column(String(40), primary_key=True)
+    name = Column(String(255))
+
+
 class Entity(Base):
     __tablename__ = 'entities'
 
@@ -238,11 +245,33 @@ class Entity(Base):
     # user, creator of entity record
     author = Column(UUIDType(binary=False), ForeignKey('users.user_id'))
     # class of entity - entityclasses
-    entity_class = Column(UUIDType(binary=False), ForeignKey('entityclasses.class_id'))
+    entity_class = Column(String(40))
     # entity data
     data = Column(JSONB())
     # tsv vector for indexing
     tsv = Column(TSVECTOR())
+
+
+class Markup(Base):
+    __tablename__ = 'markups'
+
+    markup_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
+    document = Column(UUIDType(binary=False), ForeignKey('documents.doc_id'))
+    name = Column(String(255))
+    data = Column(JSONB())
+    entity_classes = Column(ARRAY(String(40), dimensions=1))
+    type = Column(String(255))
+
+
+class Reference(Base):
+    __tablename__ = 'references'
+
+    reference_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
+    markup = Column(UUIDType(binary=False), ForeignKey('markups.markup_id'))
+    entity_class = Column(String(40))
+    entity = Column(UUIDType(binary=False), ForeignKey('entities.entity_id'))
+    start_offset = Column(Integer())
+    end_offset = Column(Integer())
 
 
 class Change(Base):
@@ -324,6 +353,16 @@ class TomitaFact(Base):
     gram_id = Column(UUIDType(binary=False), ForeignKey('tomitagrammars.gram_id'))
 
 
+class TomitaResult(Base):
+    __tablename__ = 'tomita_results'
+
+    doc_id = Column(UUIDType(binary=False),  ForeignKey('documents.doc_id'))
+    grammar = Column(String(40))
+    result = Column(JSONB())
+
+    __table_args__ = (PrimaryKeyConstraint(doc_id, grammar),)
+
+
 class NERModel(Base):
     __tablename__ = 'nermodels'
 
@@ -347,8 +386,3 @@ class NERFeature(Base):
     __table_args__ = (PrimaryKeyConstraint(doc_id, feature_type, feature_id, word_index, sentence_index),)
 
 
-class EntityClass(Base):
-    __tablename__ = 'entityclasses'
-
-    class_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
-    name = Column(String(255))
