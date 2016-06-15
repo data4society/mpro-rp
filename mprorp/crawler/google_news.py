@@ -1,7 +1,7 @@
 """google news list and story parser"""
 from lxml import etree
 from mprorp.celery_app import app
-#from mprorp.controller.logic import *
+from mprorp.controller.logic import *
 import re
 import datetime
 import urllib.parse as urlparse

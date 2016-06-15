@@ -5,6 +5,7 @@ python:
     - 3.4
 before_install:
     - sh scripts/setup.sh;
+    - sh scripts/tomita.sh;
 addons:
     postgresql: "9.4"
 before_script:
