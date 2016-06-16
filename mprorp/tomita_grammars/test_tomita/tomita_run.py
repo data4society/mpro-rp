@@ -1,5 +1,6 @@
 from mprorp.tomita_grammars.test_tomita.tomita_start import start_tomita
 from mprorp.tomita_grammars.test_tomita.tomita_out import tomita_out
+from mprorp.analyzer.db import put_tomita_result
 import os
 
 def del_files(doc_id):
@@ -13,6 +14,7 @@ def del_files(doc_id):
 def run_tomita(grammar, doc_id):
     output = start_tomita(grammar, doc_id)
     out = tomita_out(output)
+    put_tomita_result(doc_id, grammar, out)
     del_files(doc_id)
     return out
 
