@@ -6,11 +6,12 @@ import mprorp.analyzer.rubricator as rb
 rubric_id = u'76819d19-d3f7-43f1-bc7f-b10ec5a2e2cc' # ОВД-Инфо
 # rubric_id = u'6b11126a-5025-454a-bc27-f87f41cb1f09' # Политпрессинг
 
-# set_id = u'f23449f6-08cd-463b-8c90-95480735c4f7' # Свобода слова 10
+set_id = u'f23449f6-08cd-463b-8c90-95480735c4f7' # Свобода слова 10
+test_set_id = u'f23449f6-08cd-463b-8c90-95480735c4f7' # Свобода слова 10
 # set_id = u'eb082527-ac1a-4757-a6ea-087d3b277fbc'    # Свобода слова 100#
 # set_id = u'0c2bfd6b-2e02-4ca2-9e57-f7506c025dbc' # Все новости
-set_id = u'404f1c89-53bd-4313-842d-d4a417c88d67'   # ОИ 1000 (500:500)
-test_set_id = u'a18bc334-0332-4897-a00e-0bd916290f95'  # ОИ 8000 (4000:4000)
+# set_id = u'404f1c89-53bd-4313-842d-d4a417c88d67'   # ОИ 1000 (500:500)
+# test_set_id = u'a18bc334-0332-4897-a00e-0bd916290f95'  # ОИ 8000 (4000:4000)
 
 
 counter = 0

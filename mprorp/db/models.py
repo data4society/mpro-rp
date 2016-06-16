@@ -303,23 +303,23 @@ class SessionData(Base):
     created = Column(TIMESTAMP(), server_default=functions.current_timestamp())
 
 
-class Embeddig(Base):
+class Embedding(Base):
     __tablename__ = 'embeddings'
 
-    emb_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
-    # name of Embeddigs: russian news, russian wikipedia
+    emb_id = Column(String(40), primary_key=True)
+    # name of Embeddings: russian news, russian wikipedia
     name = Column(String(255))
 
 
-class WordEmbeddig(Base):
-    __tablename__ = 'wordembeddings'
+class WordEmbedding(Base):
+    __tablename__ = 'word_embeddings'
 
     lemma = Column(String(100))
     # Embedding:
-    embedding_id = Column(UUIDType(binary=False), ForeignKey('embeddings.emb_id'))
+    embedding = Column(String(40))
     # vector for lemma
     vector = Column(ARRAY(item_type=Float, dimensions=1))
-    __table_args__ = (PrimaryKeyConstraint(lemma, embedding_id),)
+    __table_args__ = (PrimaryKeyConstraint(lemma, embedding),)
 
 
 class Gazetteer(Base):
@@ -367,7 +367,7 @@ class NERModel(Base):
     __tablename__ = 'nermodels'
 
     ner_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
-    embedding = Column(UUIDType(binary=False), ForeignKey('embeddings.emb_id'))
+    embedding = Column(String(40))
     gazetteers = Column(ARRAY(UUIDType(binary=False), ForeignKey('gazetteers.gaz_id')))
     tomita_facts = Column(ARRAY(UUIDType(binary=False), ForeignKey('tomitafacts.fact_id')))
 

@@ -275,9 +275,24 @@ def put_tomita_result(doc_id, grammar, result):
     session.commit()
 
 
-def get_tomita_result(doc_id, grammar, result):
+def get_tomita_results(doc_id, grammars):
+    # grammars - list of grammar
     return session.query(TomitaResult.result).filter(
-        (TomitaResult.doc_id == doc_id) & (TomitaResult.grammar == grammar)).one()[0]
+        (TomitaResult.doc_id == doc_id) & (TomitaResult.grammar in grammars)).all()
+
+
+def put_markup(doc_id, name, classes, markup_type):
+    new_markup = Markup(document=doc_id, name=name, entity_classes=classes, type=markup_type)
+    session.add(new_markup)
+    session.commit()
+    return new_markup.markup_id
+
+
+def put_references(markup, refs):
+    for ref in refs:
+        session.add(Reference(markup=markup, entity_class=ref['entity_class'], entity=ref['entity'],
+                              start_offset=ref['start_offset'], end_offset=ref['end_offset']))
+    session.commit()
 
 
 def put_tomita_grammar(name, files, config_file):
