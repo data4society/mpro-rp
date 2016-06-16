@@ -1,5 +1,6 @@
 import re
 
+
 def text_make(file_name):
     text = []
     f = open(file_name, 'r', encoding='utf-8')
@@ -33,6 +34,7 @@ def list_make(text):
                 line = line[last_symbol:]
             len_of_line += last_symbol
     return out
+
 
 def tomita_out(file_name):
     out = list_make(text_make(file_name))

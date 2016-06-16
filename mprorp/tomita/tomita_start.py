@@ -21,7 +21,7 @@ def create_config(grammar_name, file_name):
     config_file = '''encoding "utf8";
 
 TTextMinerConfig {
-  Dictionary = ''' + '''"/vagrant/mprorp/tomita_grammars/test_tomita/dic_''' + grammar_name + '''.gzt"''' + ''';
+  Dictionary = ''' + '''"/vagrant/mprorp/tomita/grammars/dic_''' + grammar_name + '''.gzt"''' + ''';
   Input = {
     File = "''' + file_name + '''";
   }
@@ -41,6 +41,7 @@ TTextMinerConfig {
     config.write(config_file)
     config.close()
 
+
 def create_file(doc_id):
     file_name = str(doc_id) + '.txt'
     file = open(file_name, 'w', encoding='utf-8')
@@ -48,6 +49,7 @@ def create_file(doc_id):
     file.write(text)
     file.close()
     return file_name
+
 
 def start_tomita(grammar, doc_id):
     home = expanduser("~")

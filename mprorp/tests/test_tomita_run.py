@@ -1,7 +1,9 @@
 import unittest
+
 from mprorp.db.dbDriver import *
 from mprorp.db.models import *
-from mprorp.tomita_grammars.test_tomita.tomita_run import run_tomita
+from mprorp.tomita.tomita_run import run_tomita
+
 
 class SimpleTomitaTest(unittest.TestCase):
 

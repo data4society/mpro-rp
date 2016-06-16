@@ -269,21 +269,28 @@ def put_ner_feature(doc_id, gaz_id, records, feature_type):
     session.commit()
 
 
-def put_tomita_result(doc_id, grammar, result):
+def put_tomita_result(doc_id, grammar, result, new_status):
     session.query(TomitaResult).filter((TomitaResult.doc_id == doc_id) & (TomitaResult.grammar == grammar)).delete()
     session.add(TomitaResult(doc_id=doc_id, grammar=grammar, result=result))
+    if new_status > 0:
+        doc = session.query(Document).filter(Document.doc_id == doc_id).one()
+        doc.status = new_status
     session.commit()
 
 
 def get_tomita_results(doc_id, grammars):
     # grammars - list of grammar
-    return session.query(TomitaResult.result).filter(
-        (TomitaResult.doc_id == doc_id) & (TomitaResult.grammar in grammars)).all()
+    res = session.query(TomitaResult.result).filter(
+        (TomitaResult.doc_id == doc_id) & (TomitaResult.grammar.in_(grammars))).all()
+    return [i[0] for i in res]
 
 
-def put_markup(doc_id, name, classes, markup_type):
+def put_markup(doc_id, name, classes, markup_type, new_status):
     new_markup = Markup(document=doc_id, name=name, entity_classes=classes, type=markup_type)
     session.add(new_markup)
+    if new_status > 0:
+        doc = session.query(Document).filter(Document.doc_id == doc_id).one()
+        doc.status = new_status
     session.commit()
     return new_markup.markup_id
 
