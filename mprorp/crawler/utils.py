@@ -18,6 +18,14 @@ def strip_tags(html):
     s.feed(html)
     return s.get_data()
 
+
+def to_plain_text(txt):
+    lines = txt.split("\n")
+    lines = [line.strip() for line in lines]
+    lines = [line for line in lines if line]
+
+    return "\n".join(lines)
+
 class MLStripper(HTMLParser):
     def __init__(self):
         self.reset()
