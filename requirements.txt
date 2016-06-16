@@ -8,3 +8,5 @@ celery
 lxml
 numpy
 readability-lxml
+gspread
+oauth2client
