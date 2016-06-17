@@ -20,5 +20,5 @@ def router_func(doc_id, status):
     if status == 3:
         regular_rubrication.delay(doc_id)
     if status == 4:
-        doc = Document(doc_id = doc_id, status = 10)
+        doc = Document(doc_id = doc_id, status = 1000)
         update(doc)

@@ -21,6 +21,7 @@ def send_get_request(url):
 
 @app.task
 def vk_start_parsing(source_id):
+    print('vk_start_parsing')
     """download vk response and run list parsing function"""
     # get source url
     [source_url, parse_period] = select([Source.url,Source.parse_period], Source.source_id == source_id).fetchone()

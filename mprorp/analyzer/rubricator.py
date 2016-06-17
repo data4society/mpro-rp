@@ -11,6 +11,8 @@ import random
 from mprorp.db.dbDriver import *
 from mprorp.db.models import *
 
+from mprorp.tomita.regular import regular_tomita
+
 
 mystem_analyzer = Mystem(disambiguation=False)
 status = {'morpho': 2, 'lemmas': 3, 'rubrics': 4}
@@ -77,7 +79,8 @@ def morpho_doc(doc_id, change_status=0):
 def regular_lemmas(doc_id):
     lemmas_freq_doc(doc_id, status['lemmas'])
     # router_func(doc_id, 3)
-    regular_rubrication.delay(doc_id)
+    regular_tomita(0, doc_id)
+    #regular_rubrication.delay(doc_id)
 
 
 # counting lemmas frequency for one document
@@ -338,8 +341,7 @@ def learning_rubric_model(set_id, rubric_id):
 def regular_rubrication(doc_id):
     spot_doc_rubrics(doc_id, rubrics_for_regular, status['rubrics'])
     # router_func(doc_id, 4)
-    doc = Document(doc_id=doc_id, status=10)
-    update(doc)
+    regular_tomita(0, doc_id)
 
 
 # take 1 doc and few rubrics

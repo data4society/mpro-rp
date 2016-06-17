@@ -9,13 +9,17 @@ import html
 
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
+from mprorp.celery_app import app
+from mprorp.controller.logic import *
 
+@app.task
+def findFullText(doc_id): #, wks):
+    [url,meta] = select([Document.guid,Document.meta], Document.doc_id == doc_id).fetchone()
+    print(url)
 
-def findFullText(doc_id, wks):
-    #try:
-        [url,meta] = select([Document.guid,Document.meta], Document.doc_id == doc_id).fetchone()
-        print(url)
-
+    try:
+        """
+        urllib.request.urlopen(url)
         html_source = urllib.request.urlopen(url).read() #send_get_request(url)
         #print(html)
         doc = Doc(html_source)
@@ -26,6 +30,7 @@ def findFullText(doc_id, wks):
         readable_stripped = strip_tags(readable_content)
         readable_stripped = to_plain_text(readable_stripped)
         print(readable_stripped)
+        """
 
         req_url = 'https://www.readability.com/api/content/v1/parser?token=08e612cb0d3f95db2090b87d3d758efc75fb314b&url='+url
         print(req_url)
@@ -55,12 +60,13 @@ def findFullText(doc_id, wks):
 
         document = Document(doc_id=doc_id, doc_source=content, stripped=stripped, meta=meta, status=1)
         update(document)
+        router_func(doc_id, 1)
 
 
-        wks.insert_row([url,json_obj["title"],readable_title,readable_stripped,stripped], 1)
+        # wks.insert_row([url,json_obj["title"],readable_title,readable_stripped,stripped], 1)
         #exit()
-    #except BaseException:
-        #print('connetcion error');
+    except BaseException:
+        print('error with url: '+url);
 
 
 if __name__ == '__main__':

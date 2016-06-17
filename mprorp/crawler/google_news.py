@@ -12,8 +12,10 @@ from mprorp.db.models import *
 from mprorp.crawler.utils import send_get_request
 import datetime
 
+from mprorp.crawler.site_page import findFullText
 
-#@app.task
+
+@app.task
 def gn_start_parsing(source_id):
     """download google news start feed and feeds for every story"""
     # get source url
@@ -81,7 +83,7 @@ def parseItem(item, source_id):
         insert(new_doc)
         # further parsing
         new_doc_id = new_doc.doc_id
-        #findFullText(new_doc_id)
+        findFullText.delay(new_doc_id)
         #router_func(new_doc_id, 1)
 
 
