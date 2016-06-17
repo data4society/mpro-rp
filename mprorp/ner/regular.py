@@ -1,6 +1,12 @@
 from mprorp.ner.tomita_to_markup import convert_tomita_result_to_markup
+from mprorp.celery_app import app
+
+from mprorp.db.dbDriver import *
+from mprorp.db.models import *
 
 
-
+@app.task
 def regular_entities(doc_id):
     convert_tomita_result_to_markup(doc_id, ['person.cxx'])
+    doc = Document(doc_id=doc_id, status=1000)
+    update(doc)
