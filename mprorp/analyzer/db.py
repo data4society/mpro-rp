@@ -302,6 +302,27 @@ def put_references(markup, refs):
     session.commit()
 
 
+def del_markup(markup_id=None, markup_type=None):
+    if markup_id is None:
+        markups = session.query(Markup.markup_id).filter(Markup.type == markup_type).all()
+        markup_ids = [i[0] for i in markups]
+    else:
+        markup_ids = [markup_id]
+    for m_id in markup_ids:
+        session.query(Reference).filter(Reference.markup == m_id).delete()
+        session.query(Markup).filter(Markup.markup_id == m_id).delete()
+    session.commit()
+
+
+def get_word_embedding(embedding, lemma):
+    res = session.query(WordEmbedding.vector).filter(
+        (WordEmbedding.embedding == embedding) & (WordEmbedding.lemma == lemma)).first()
+    if res is None:
+        return None
+    else:
+        return res[0]
+
+
 def put_tomita_grammar(name, files, config_file):
     new_grammar = TomitaGrammar(name=name, files=files, config_file=config_file)
     session.add(new_grammar)

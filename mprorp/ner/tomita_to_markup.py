@@ -6,6 +6,8 @@ fact_entities = {'Person': 'person'}
 
 def convert_tomita_result_to_markup(doc_id, grammars, markup_name='another markup from tomita facts', entity=None):
 
+    if entity is None:
+        entity = '0057375a-8242-1c6d-bf64-d5cb5a7ad7dd'
     results = db.get_tomita_results(doc_id, grammars)
     print(results)
     classes = {}
