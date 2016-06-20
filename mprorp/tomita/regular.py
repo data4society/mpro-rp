@@ -4,6 +4,7 @@ from mprorp.ner.regular import regular_entities
 
 grammars = ['date.cxx', 'person.cxx']
 grammar_count = 2
+facts = ['Person']
 
 
 @app.task

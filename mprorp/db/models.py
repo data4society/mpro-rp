@@ -333,14 +333,14 @@ class Gazetteer(Base):
 
 
 class TomitaGrammar(Base):
-    __tablename__ = 'tomitagrammars'
+    __tablename__ = 'tomita_grammars'
 
     gram_id = Column(String(40), primary_key=True)
     name = Column(String(255))
 
 
 class TomitaFact(Base):
-    __tablename__ = 'tomitafacts'
+    __tablename__ = 'tomita_facts'
 
     fact_id = Column(String(40), primary_key=True)
     # name of fact
@@ -360,7 +360,7 @@ class TomitaResult(Base):
 
 
 class NERModel(Base):
-    __tablename__ = 'nermodels'
+    __tablename__ = 'ner_models'
 
     ner_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
     embedding = Column(String(40))
@@ -369,7 +369,7 @@ class NERModel(Base):
 
 
 class NERFeature(Base):
-    __tablename__ = 'nerfeatures'
+    __tablename__ = 'ner_features'
 
     doc_id = Column(UUIDType(binary=False), ForeignKey('documents.doc_id'))
     # 1 - embedding, 2 - gazetteer, 3 - tomita fact, 4 - syntactic feature: case, 5 - syntactic feature: plural/singular

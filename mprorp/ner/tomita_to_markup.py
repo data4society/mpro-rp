@@ -1,6 +1,6 @@
 import mprorp.analyzer.db as db
 
-# keys - fact fields it tomita, values - entity class
+# keys - fact fields in tomita, values - entity class
 fact_entities = {'Person': 'person'}
 
 

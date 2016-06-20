@@ -41,3 +41,5 @@ def create_tomita_features(doc_id, feature_grammars=None):
         for i in result:
             print(i)
             offsets = i.split(':')
+            # find word with offsets
+            # put_ner_feature
