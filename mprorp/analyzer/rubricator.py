@@ -61,15 +61,23 @@ def morpho_doc(doc_id, change_status=0):
     new_morpho = mystem_analyzer.analyze(doc_text)
     word_index = 0
     sentence_index = 0
+    start_offset = 0
     for element in new_morpho:
+        if 'text' in element.keys():
+            text_len = len(element['text'])
+        else:
+            text_len = 0
         if is_word(element):
             element['word_index'] = word_index
             element['sentence_index'] = sentence_index
             word_index += 1
+            element['start_offset'] = start_offset
+            element['end_offset'] = start_offset + text_len - 1
         elif is_sentence_end(element):
             if word_index != 0:
                 sentence_index += 1
                 word_index = 0
+        start_offset += text_len
     db.put_morpho(doc_id, new_morpho, change_status)
     mystem_analyzer.close()
 

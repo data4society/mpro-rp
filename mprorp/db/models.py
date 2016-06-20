@@ -325,7 +325,7 @@ class WordEmbedding(Base):
 class Gazetteer(Base):
     __tablename__ = 'gazetteers'
 
-    gaz_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
+    gaz_id = Column(String(40), primary_key=True)
     # name of gazetteer
     name = Column(String(255))
     # words in gazetteer
@@ -335,22 +335,18 @@ class Gazetteer(Base):
 class TomitaGrammar(Base):
     __tablename__ = 'tomitagrammars'
 
-    gram_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
-    # name of gazetteer
+    gram_id = Column(String(40), primary_key=True)
     name = Column(String(255))
-    # files for tomita
-    files = Column(JSONB())
-    config_file = Column(String())
 
 
 class TomitaFact(Base):
     __tablename__ = 'tomitafacts'
 
-    fact_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
+    fact_id = Column(String(40), primary_key=True)
     # name of fact
     name = Column(String(255))
     # grammar
-    gram_id = Column(UUIDType(binary=False), ForeignKey('tomitagrammars.gram_id'))
+    grammar = Column(String(40))
 
 
 class TomitaResult(Base):
@@ -378,7 +374,8 @@ class NERFeature(Base):
     doc_id = Column(UUIDType(binary=False), ForeignKey('documents.doc_id'))
     # 1 - embedding, 2 - gazetteer, 3 - tomita fact, 4 - syntactic feature: case, 5 - syntactic feature: plural/singular
     feature_type = Column(Integer())
-    feature_id = Column(UUIDType(binary=False))
+    # fact_id, gaz_id, emb_id, ...
+    feature_id = Column(String(40))
     word_index = Column(Integer)
     sentence_index = Column(Integer)
     value = Column(ARRAY(item_type=Float, dimensions=1))
