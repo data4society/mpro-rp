@@ -29,17 +29,57 @@ def create_gazetteer_feature(doc_id, gaz_id):
                                'value': [amount]})
     if len(values) > 0:
         # print(values)
-        db.put_ner_feature(doc_id, gaz_id, values, ner_feature_types['gazetteer'])
+        db.put_ner_feature(doc_id, values, ner_feature_types['gazetteer'], gaz_id)
 
 
 def create_tomita_features(doc_id, feature_grammars=None):
     if feature_grammars is None:
         feature_grammars = grammars
     results = db.get_tomita_results(doc_id, feature_grammars)
+    morpho = db.get_morpho(doc_id)
+    values = []
     for result in results:
         # result - dict with keys like '15:22' and values like 'person' - tomita fact
         for i in result:
             print(i)
             offsets = i.split(':')
             # find word with offsets
+
+            # [begin, inside, end, single]
+            for element in morpho:
+                value = None
+                if 'start_offset' in element.keys():
+                    if element['start_offset'] == offsets[0]:
+                        if element['end_offset'] == offsets[1]:
+                            # single
+                            value = [0, 0, 0, 1]
+                        elif element['end_offset'] < offsets[1]:
+                            # begin
+                            value = [1, 0, 0, 0]
+                        else:
+                            # error
+                            print('error: word ' + element['text'] + ' ' + element['start_offset'] + ':' + element[
+                                'end_offset'] + ' tomita: ' + offsets)
+                    elif element['start_offset'] > offsets[0]:
+                        if element['end_offset'] == offsets[1]:
+                            # end
+                            value = [0, 0, 1, 0]
+                        elif element['end_offset'] < offsets[1]:
+                            # inside
+                            value = [0, 1, 0, 0]
+                        else:
+                            # word past offsets
+                            break
+                    else:
+                        if element['end_offset'] >= offsets[0]:
+                            # error
+                            print('error: word ' + element['text'] + ' ' + element['start_offset'] + ':' + element[
+                                'end_offset'] + ' tomita: ' + offsets)
+                if not (value is None):
+                    values.append({'word_index': element['word_index'],
+                                   'sentence_index': element['sentence_index'],
+                                   'value': value, 'feature': result[i]})
+    if len(values) > 0:
+        # print(values)
+        db.put_ner_feature(doc_id, values, ner_feature_types['tomita'])
             # put_ner_feature
