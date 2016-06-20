@@ -30,7 +30,8 @@ def check_sources():
         if source_type == '0cc76b0c-531e-4a90-ab0b-078695336df5': #  vk
             print("START VK CRAWL")
             vk_start_parsing.delay(source[0])
-        if source[1] == '1d6210b2-5ff3-401c-b0ba-892d43e0b741': #  google_news
+        if source_type == '1d6210b2-5ff3-401c-b0ba-892d43e0b741': #  google_news
+            print("START GOOGLE NEWS CRAWL")
             gn_start_parsing.delay(source[0])
 
 

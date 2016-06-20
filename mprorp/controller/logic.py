@@ -14,6 +14,7 @@ def router_func(doc_id, status):
     if status == 0:
         pass
     if status == 1:
+        doc_id = str(doc_id)
         regular_morpho.delay(doc_id)
     if status == 2:
         regular_lemmas.delay(doc_id)
