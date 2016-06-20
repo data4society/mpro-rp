@@ -79,8 +79,7 @@ def morpho_doc(doc_id, change_status=0):
 def regular_lemmas(doc_id):
     lemmas_freq_doc(doc_id, status['lemmas'])
     # router_func(doc_id, 3)
-    regular_tomita(0, doc_id)
-    #regular_rubrication.delay(doc_id)
+    regular_rubrication.delay(doc_id)
 
 
 # counting lemmas frequency for one document

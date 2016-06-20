@@ -11,5 +11,5 @@ cd build
 sudo cmake ../src/ -DCMAKE_BUILD_TYPE=Release
 sudo make
 cd bin
-wget https://github.com/yandex/tomita-parser/releases/download/v1.0/libmystem_c_binding.so.linux_x64.zip
-unzip libmystem_c_binding.so.linux_x64.zip
+sudo wget https://github.com/yandex/tomita-parser/releases/download/v1.0/libmystem_c_binding.so.linux_x64.zip
+sudo unzip libmystem_c_binding.so.linux_x64.zip
