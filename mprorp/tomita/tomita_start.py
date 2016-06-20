@@ -4,6 +4,7 @@ import os.path as path
 import subprocess as sp
 import re
 from mprorp.analyzer.db import get_doc
+import os
 
 grammars = {'person.cxx': 'bin', # 'bin2',
             'date.cxx': 'bin'}
