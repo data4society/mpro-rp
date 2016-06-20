@@ -258,18 +258,24 @@ def get_gazetteer(gaz_id):
     return session.query(Gazetteer.lemmas).filter(Gazetteer.gaz_id == gaz_id).one().lemmas
 
 
-def put_ner_feature(doc_id, records, feature_type, feature=None):
-    session.query(NERFeature).filter((NERFeature.doc_id == doc_id) &
-                                     (NERFeature.feature_type == feature_type) &
-                                     (NERFeature.feature_id == feature)).delete()
+def put_ner_feature(doc_id, records, feature_type, feature=None, new_status=0):
+    if feature is None:
+        session.query(NERFeature).filter((NERFeature.doc_id == doc_id) &
+                                     (NERFeature.feature_type == feature_type)).delete()
+    else:
+        session.query(NERFeature).filter((NERFeature.doc_id == doc_id) &
+                                         (NERFeature.feature_type == feature_type) &
+                                         (NERFeature.feature == feature)).delete()
+
     for record in records:
-        new_feature = NERFeature(doc_id=doc_id, feature_type=feature_type,
-                               word_index=record['word_index'], sentence_index=record['sentence_index'],
-                               value=record['value'])
-        new_feature['feature'] = feature if not (feature is None) else record['feature']
-        session.add(NERFeature(doc_id=doc_id, feature_type=feature_type, feature_id=feature,
-                               word_index=record['word_index'], sentence_index=record['sentence_index'],
-                               value=record['value']))
+        new_feature = NERFeature(doc_id=doc_id, feature_type=feature_type, word_index=record['word_index'],
+                                 sentence_index=record['sentence_index'], value=record['value'])
+        # print(record['feature'], feature if not (feature is None) else record['feature'])
+        new_feature.feature = feature if not (feature is None) else record['feature']
+        session.add(new_feature)
+    if new_status > 0:
+        doc = Document(doc_id=doc_id)
+        doc.status = new_status
     session.commit()
 
 
