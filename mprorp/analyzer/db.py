@@ -279,6 +279,14 @@ def put_ner_feature(doc_id, records, feature_type, feature=None, new_status=0):
     session.commit()
 
 
+def get_ner_feature(doc_id):
+    result_query = session.query(NERFeature).filter((NERFeature.doc_id == doc_id)).all()
+    result = []
+    for i in result_query:
+        result.append((i.sentence_index, i.word_index, i.feature, i.value))
+    return result
+
+
 def put_tomita_result(doc_id, grammar, result, new_status):
     session.query(TomitaResult).filter((TomitaResult.doc_id == doc_id) & (TomitaResult.grammar == grammar)).delete()
     session.add(TomitaResult(doc_id=doc_id, grammar=grammar, result=result))

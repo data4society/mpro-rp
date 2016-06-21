@@ -31,7 +31,7 @@ def create_gazetteer_feature(doc_id, gaz_id):
         db.put_ner_feature(doc_id, values, ner_feature_types['gazetteer'], gaz_id)
 
 
-def create_tomita_features(doc_id, feature_grammars, new_status=0):
+def create_tomita_feature(doc_id, feature_grammars, new_status=0):
 
     results = db.get_tomita_results(doc_id, feature_grammars)
     morpho = db.get_morpho(doc_id)
@@ -85,3 +85,7 @@ def create_tomita_features(doc_id, feature_grammars, new_status=0):
         # print(values)
         db.put_ner_feature(doc_id, values, ner_feature_types['tomita'], new_status=new_status)
 
+
+def create_embedding_feature(doc_id, new_status=0):
+    morpho = db.get_morpho(doc_id)
+    print(morpho)

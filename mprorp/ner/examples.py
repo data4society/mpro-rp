@@ -10,10 +10,14 @@ import mprorp.analyzer.rubricator as rb
 #     regular_tomita(i, doc_id)
 
 # create tomita features
-doc_id = '000e82b8-6ea7-41f4-adc6-bc688fbbeeb6'
-rb.morpho_doc(doc_id)
+# doc_id = '000e82b8-6ea7-41f4-adc6-bc688fbbeeb6'
+# rb.morpho_doc(doc_id)
 # print(db.get_morpho(doc_id))
-ner_feature.create_tomita_features(doc_id, ['date.cxx', 'person.cxx'])
+# ner_feature.create_tomita_feature(doc_id, ['date.cxx', 'person.cxx'])
+
+# Create embedding feature
+doc_id = '000e82b8-6ea7-41f4-adc6-bc688fbbeeb6'
+ner_feature.create_embedding_feature(doc_id)
 
 # regular processes to create markup with references
 # now: person with tomita, later: few classes with NER
