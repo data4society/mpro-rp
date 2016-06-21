@@ -314,7 +314,7 @@ def put_markup(doc_id, name, classes, markup_type, new_status):
     return new_markup.markup_id
 
 
-def put_references(markup, refs, new_status=0):
+def put_references(doc_id, markup, refs, new_status=0):
     for ref in refs:
         session.add(Reference(markup=markup, entity_class=ref['entity_class'], entity=ref['entity'],
                               start_offset=ref['start_offset'], end_offset=ref['end_offset']))

@@ -58,8 +58,8 @@ def create_tomita_feature(doc_id, feature_grammars, new_status=0):
                             print(element['text'])
                         else:
                             # error
-                            print('error: word ' + element['text'] + ' ' + element['start_offset'] + ':' + element[
-                                'end_offset'] + ' tomita: ' + offsets)
+                            print('error: word ' + element['text'] + ' ', element['start_offset'], ':', element[
+                                'end_offset'], ' tomita: ', offsets)
                     elif element['start_offset'] > offsets[0]:
                         if element['end_offset'] == offsets[1]:
                             # end
