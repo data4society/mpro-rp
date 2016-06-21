@@ -1,3 +1,4 @@
 /mprorp/config/local_settings.py
 celerybeat-schedule
 .vagrant
+*log.txt

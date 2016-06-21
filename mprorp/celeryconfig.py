@@ -1,9 +1,8 @@
 from datetime import timedelta
-from celery.schedules import crontab
-CELERY_INCLUDE = ['mprorp.controller.start','mprorp.crawler.vk','mprorp.crawler.google_news',
-                  'mprorp.crawler.site_page']
+CELERY_INCLUDE = ['mprorp.controller.start','mprorp.controller.logic',
+                  'mprorp.crawler.vk','mprorp.crawler.google_news']
 CELERYBEAT_SCHEDULE = {
-                          'add-every-10-seconds': {
+                          'add-every-30-seconds': {
                               'task': 'mprorp.controller.start.check_sources',
                               'schedule': timedelta(seconds=30),
                           },

@@ -12,8 +12,6 @@ from mprorp.db.models import *
 from mprorp.crawler.utils import send_get_request
 import datetime
 
-from mprorp.crawler.site_page import findFullText
-
 
 @app.task
 def gn_start_parsing(source_id):
@@ -83,8 +81,7 @@ def parseItem(item, source_id):
         insert(new_doc)
         # further parsing
         new_doc_id = new_doc.doc_id
-        findFullText.delay(new_doc_id)
-        #router_func(new_doc_id, 1)
+        router(new_doc_id, GOOGLE_NEWS_INIT_STATUS)
 
 
 if __name__ == '__main__':
