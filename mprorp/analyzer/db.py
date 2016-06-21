@@ -246,7 +246,7 @@ def get_docs_text(set_id):
     return result
 
 
-def put_gazetteer(name, lemmas, short_name = ''):
+def put_gazetteer(name, lemmas, short_name=''):
     new_gaz = Gazetteer(name=name)
     new_gaz.lemmas = lemmas
     new_gaz.gaz_id = name if short_name == '' else short_name
@@ -314,10 +314,13 @@ def put_markup(doc_id, name, classes, markup_type, new_status):
     return new_markup.markup_id
 
 
-def put_references(markup, refs):
+def put_references(markup, refs, new_status=0):
     for ref in refs:
         session.add(Reference(markup=markup, entity_class=ref['entity_class'], entity=ref['entity'],
                               start_offset=ref['start_offset'], end_offset=ref['end_offset']))
+    if new_status > 0:
+        doc = session.query(Document).filter(Document.doc_id == doc_id).one()
+        doc.status = new_status
     session.commit()
 
 
