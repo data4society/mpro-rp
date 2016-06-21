@@ -4,7 +4,7 @@ import mprorp.analyzer.db as db
 fact_entities = {'Person': 'person'}
 
 
-def convert_tomita_result_to_markup(doc_id, grammars, markup_name='another markup from tomita facts', entity=None):
+def convert_tomita_result_to_markup(doc_id, grammars, markup_name='another markup from tomita facts', entity=None, new_status=0):
 
     if entity is None:
         entity = '0057375a-8242-1c6d-bf64-d5cb5a7ad7dd'

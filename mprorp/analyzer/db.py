@@ -246,9 +246,10 @@ def get_docs_text(set_id):
     return result
 
 
-def put_gazetteer(name, lemmas):
+def put_gazetteer(name, lemmas, short_name = ''):
     new_gaz = Gazetteer(name=name)
     new_gaz.lemmas = lemmas
+    new_gaz.gaz_id = name if short_name == '' else short_name
     session.add(new_gaz)
     session.commit()
     return new_gaz.gaz_id

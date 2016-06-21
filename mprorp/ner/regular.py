@@ -9,7 +9,7 @@ import mprorp.ner.feature as ner_feature
 
 @app.task
 def regular_entities(doc_id):
-    convert_tomita_result_to_markup(doc_id, ['person.cxx'])
+    convert_tomita_result_to_markup(doc_id, ['person.cxx'], new_status=1000)
     doc = Document(doc_id=doc_id, status=1000)
     update(doc)
 
