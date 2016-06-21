@@ -2,7 +2,6 @@ import unittest
 from mprorp.db.dbDriver import *
 from mprorp.db.models import *
 from mprorp.crawler.vk import vk_parse_list
-import json
 import os
 
 

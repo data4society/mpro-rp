@@ -4,26 +4,30 @@ import os.path as path
 import subprocess as sp
 import re
 from mprorp.analyzer.db import get_doc
+import os
 
 grammars = {'person.cxx': 'bin', # 'bin2',
-            'date.cxx': 'bin'}
+            'date.cxx': 'bin',
+            'loc.cxx': 'bin' } #bin3
 
 dic = {'person.cxx': '{Name = "FIO"}, {Name = "Персона"}',
-       'date.cxx': '{Name = "DATE"}, {Name = "Дата"}'}
+       'date.cxx': '{Name = "DATE"}, {Name = "Дата"}',
+       'loc.cxx': '{Name = "Локация"}'}
 
 fact = {'person.cxx': '{ Name = "PersonFact_TOMITA" }',
-        'date.cxx': '{ Name = "DateFact_TOMITA" }'}
+        'date.cxx': '{ Name = "DateFact_TOMITA" }',
+        'loc.cxx': '{ Name = "LocationFact_TOMITA" }'}
 
 
 def create_config(grammar_name, file_name):
-    path = os.path.dirname(os.path.realpath(__file__))
-    path = path + '/grammars/dic_'
+    path1 = os.path.dirname(os.path.realpath(__file__))
+    path2 = path1 + '/grammars/dic_'
     grammar = grammar_name + '.cxx'
     config_name = 'config_' + file_name[:-4] + '.proto'
     config_file = '''encoding "utf8";
 
 TTextMinerConfig {
-  Dictionary = ''' + path + grammar_name + '''.gzt"''' + ''';
+  Dictionary = "''' + path2 + grammar_name + '''.gzt"''' + ''';
   Input = {
     File = "''' + file_name + '''";
   }
