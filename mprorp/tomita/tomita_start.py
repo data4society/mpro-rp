@@ -7,13 +7,16 @@ from mprorp.analyzer.db import get_doc
 import os
 
 grammars = {'person.cxx': 'bin', # 'bin2',
-            'date.cxx': 'bin'}
+            'date.cxx': 'bin',
+            'loc.cxx': 'bin' } #bin3
 
 dic = {'person.cxx': '{Name = "FIO"}, {Name = "Персона"}',
-       'date.cxx': '{Name = "DATE"}, {Name = "Дата"}'}
+       'date.cxx': '{Name = "DATE"}, {Name = "Дата"}',
+       'loc.cxx': '{Name = "Локация"}'}
 
 fact = {'person.cxx': '{ Name = "PersonFact_TOMITA" }',
-        'date.cxx': '{ Name = "DateFact_TOMITA" }'}
+        'date.cxx': '{ Name = "DateFact_TOMITA" }',
+        'loc.cxx': '{ Name = "LocationFact_TOMITA" }'}
 
 
 def create_config(grammar_name, file_name):

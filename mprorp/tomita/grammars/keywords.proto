@@ -2,3 +2,6 @@ import "base.proto";
 import "articles_base.proto";
 message month: TAuxDicArticle {}
 message week: TAuxDicArticle {}
+message location_front: TAuxDicArticle {}
+message location_back: TAuxDicArticle {}
+message abbreviation: TAuxDicArticle {}

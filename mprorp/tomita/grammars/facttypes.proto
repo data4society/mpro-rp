@@ -11,3 +11,8 @@ message PersonFact_TOMITA: NFactType.TFact
 {
     required string Person_TOMITA = 1;
 }
+
+message LocationFact_TOMITA: NFactType.TFact 
+{
+    required string Loc_TOMITA = 1;
+}
