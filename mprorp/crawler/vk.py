@@ -60,7 +60,7 @@ def vk_parse_list(req_result, source_id):
                 # further parsing
                 new_doc_id = new_doc.doc_id
                 vk_parse_item(item, new_doc_id)
-                router_func(new_doc_id, 1)
+                router(new_doc_id, 1)
 
 
 def vk_parse_item(item, doc_id):

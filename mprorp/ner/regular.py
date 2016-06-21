@@ -15,5 +15,5 @@ def regular_entities(doc_id):
 
 
 def regular_tomita_features(doc_id):
-    ner_feature.create_tomita_features(doc_id, ['date.cxx', 'person.cxx'], 50)
+    ner_feature.create_tomita_feature(doc_id, ['date.cxx', 'person.cxx'], 50)
 
