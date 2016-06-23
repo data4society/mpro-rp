@@ -55,6 +55,11 @@ print(a[2]['analysis'][0]['gr'])
 for i in mystem_analysis_vect(a[2]['analysis'][0]['gr']):
     print(i)
 
+for word in a:
+    if 'analysis' in word.keys():
+        for i in word['analysis']:
+            print(i['lex'],part_of_speech(i['gr']))
+
 b = mystem.analyze('Я')
 print(b[0]['analysis'][0]['gr'])
 for i in mystem_analysis_vect(b[0]['analysis'][0]['gr']):

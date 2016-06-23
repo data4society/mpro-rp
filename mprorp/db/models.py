@@ -381,7 +381,8 @@ class NERFeature(Base):
     feature = Column(String(40))
     word_index = Column(Integer)
     sentence_index = Column(Integer)
-    value = Column(ARRAY(item_type=Float, dimensions=1))
+    # value = Column(ARRAY(item_type=Float, dimensions=1))
+    value = Column(JSONB())
 
     __table_args__ = (PrimaryKeyConstraint(doc_id, feature_type, feature, word_index, sentence_index),)
 

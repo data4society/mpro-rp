@@ -282,9 +282,11 @@ def put_ner_feature(doc_id, records, feature_type, feature=None, new_status=0):
 
 def get_ner_feature(doc_id):
     result_query = session.query(NERFeature).filter((NERFeature.doc_id == doc_id)).all()
-    result = []
+    result = {}
     for i in result_query:
-        result.append((i.sentence_index, i.word_index, i.feature, i.value))
+        # result.append({'sentence_index': i.sentence_index, 'word_index': i.word_index,
+        #                'feature': i.feature, 'value': i.value})
+        result[(i.sentence_index, i.word_index, i.feature)] = i.value
     return result
 
 

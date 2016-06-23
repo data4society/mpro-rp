@@ -1,6 +1,16 @@
 import mprorp.analyzer.db as db
+import re
+
 ner_feature_types = {'embedding': 1, 'gazetteer': 2, 'tomita': 3, 'syntactic_feature_case': 4,
                      'syntactic_feature_plural_singular': 5}
+
+
+def part_of_speech(gr):
+    gr = re.findall('^\w*', gr)
+    if len(gr) > 0:
+        return gr[0]
+    else:
+        return ''
 
 
 def create_gazetteer_feature(doc_id, gaz_id):
@@ -88,4 +98,21 @@ def create_tomita_feature(doc_id, feature_grammars, new_status=0):
 
 def create_embedding_feature(doc_id, new_status=0):
     morpho = db.get_morpho(doc_id)
-    print(morpho)
+    values = []
+    for element in morpho:
+        if element.get('word_index', -1) != -1:
+            analysis = element.get('analysis', [])
+            feats = {}
+            for l in analysis:
+                weight = l.get('wt', 1)
+                lemma = l.get('lex', '')
+                pos = part_of_speech(l.get('gr', ''))
+                if (len(lemma) > 0) & (len(pos) > 0):
+                    feats[lemma + '_' + pos] = feats.get(lemma + '_' + pos, 0) + weight
+            if len(feats) > 0:
+                values.append({'word_index': element['word_index'],
+                               'sentence_index': element['sentence_index'],
+                               'value': feats})
+    if len(values) > 0:
+        # print(values)
+        db.put_ner_feature(doc_id, values, ner_feature_types['embedding'], 'embedding')
