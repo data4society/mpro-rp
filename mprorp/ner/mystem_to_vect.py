@@ -45,16 +45,16 @@ def mystem_analysis_vect(gr):
 
 a = mystem.analyze('В лесу стали.')
 print(a)
-res = [[0,0,0],[0,0,0,0,0,0,0,0,0],[0,0],[0,0,0,0,0],[0,0,0],[0,0],[0,0,0],[0,0,0],[0,0],[0,0],[0,0],[0,0]]
-for analyse in a[0]['analysis']:
-    vects = mystem_analysis_vect(analyse['gr'])
-    len_vects = len(vects)
-    for vec in vects:
-        delta = (analyse['wt'] / len_vects)
-        print(vec)
-        delta2 = delta * [0,1,2]
-        res += delta
-print(res)
+#res = [[0,0,0],[0,0,0,0,0,0,0,0,0],[0,0],[0,0,0,0,0],[0,0,0],[0,0],[0,0,0],[0,0,0],[0,0],[0,0],[0,0],[0,0]]
+#for analyse in a[0]['analysis']:
+#    vects = mystem_analysis_vect(analyse['gr'])
+#    len_vects = len(vects)
+#    for vec in vects:
+#        delta = (analyse['wt'] / len_vects)
+#        print(vec)
+#        delta2 = delta * [0,1,2]
+#        res += delta
+#print(res)
 
 print(a[2]['analysis'][0]['gr'])
 for i in mystem_analysis_vect(a[2]['analysis'][0]['gr']):
