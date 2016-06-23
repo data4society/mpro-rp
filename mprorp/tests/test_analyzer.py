@@ -21,7 +21,6 @@ class SimpleDBTest(unittest.TestCase):
         rb.morpho_doc(doc_id)
         morpho = db.get_morpho(doc_id)
         self.assertEqual(morpho[0]['text'], 'Эти')
-        self.assertEqual(morpho[0]['text'], 'Эти')
 
     def test_lemmas_freq(self):
         # morpho analysis
