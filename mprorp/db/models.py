@@ -364,8 +364,11 @@ class NERModel(Base):
 
     ner_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
     embedding = Column(String(40))
-    gazetteers = Column(ARRAY(UUIDType(binary=False), ForeignKey('gazetteers.gaz_id')))
-    tomita_facts = Column(ARRAY(UUIDType(binary=False), ForeignKey('tomitafacts.fact_id')))
+    gazetteers = Column(ARRAY(String(40)))
+    tomita_facts = Column(ARRAY(String(40)))
+    morpho_features = Column(ARRAY(String(40)))
+    hyper_parameters = Column(JSONB())
+    parameters = Column(JSONB())
 
 
 class NERFeature(Base):

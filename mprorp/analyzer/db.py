@@ -349,3 +349,17 @@ def put_tomita_grammar(name, files, config_file):
     new_grammar = TomitaGrammar(name=name, files=files, config_file=config_file)
     session.add(new_grammar)
     session.commit()
+
+
+def put_ner_model(embedding, gazetteers, tomita_facts, morpho_features, hyper_parameters):
+    new_model = NERModel(embedding=embedding, gazetteers=gazetteers, tomita_facts=tomita_facts,
+                         morpho_features=morpho_features, hyper_parameters=hyper_parameters)
+    session.add(new_model)
+    session.commit()
+    return new_model.ner_id
+
+
+def get_ner_model(model_id):
+    model = session.query(NERModel).filter(NERModel.ner_id == model_id).one()
+    return {'embedding': model.embedding, 'gazetteers': model.gazetteers, 'tomita_facts': model.tomita_facts,
+            'morpho_features': model.morpho_features, 'hyper_parameters': model.hyper_parameters}
