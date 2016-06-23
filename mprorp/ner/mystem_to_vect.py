@@ -1,11 +1,11 @@
 from mprorp.analyzer.pymystem3_w import Mystem
 mystem = Mystem(disambiguation=False)
 import re
+import numpy as np
 
 def part_of_speech(gr):
     gr = re.findall('^\w*', gr)
     return gr[0]
-
 
 def analisis_to_tamplate(analisis):
     tamplate_0 = [[0,0,0],[0,0,0,0,0,0,0,0,0],[0,0],[0,0,0,0,0],[0,0,0],[0,0],[0,0,0],[0,0,0],[0,0],[0,0],[0,0],[0,0]]
@@ -24,32 +24,37 @@ def mystem_analysis_vect(gr):
     main_arr = []
     pos = part_of_speech(gr)
     if '(' in gr:
+        an = re.findall('(.*)=', gr)[0]
+        an = re.sub(pos + ',', '', an)
         analyzes = re.findall('\\((.*)\\)', gr)[0]
         analyzes = analyzes.split('|')
         for analisis in analyzes:
+            analisis = analisis + ',' + an
             tampl = analisis_to_tamplate(analisis)
             main_arr.append(tampl)
-        return main_arr
+        out = np.array(main_arr)
+        return out
     else:
         analisis = re.sub(pos + ',', '', gr)
         tampl = analisis_to_tamplate(analisis)
         main_arr.append(tampl)
-        return main_arr
+        out = np.array(main_arr)
+        return out
 
 #примеры
 
 a = mystem.analyze('В лесу стали.')
 print(a)
-# res = [[0,0,0],[0,0,0,0,0,0,0,0,0],[0,0],[0,0,0,0,0],[0,0,0],[0,0],[0,0,0],[0,0,0],[0,0],[0,0],[0,0],[0,0]]
-# for analyse in a[0]['analysis']:
-#     vects = mystem_analysis_vect(analyse['gr'])
-#     len_vects = len(vects)
-#     for vec in vects:
-#         delta = (analyse['wt'] / len_vects)
-#         print(vec)
-#         delta2 = delta * [0,1,2]
-#         res += delta
-# print(res)
+res = [[0,0,0],[0,0,0,0,0,0,0,0,0],[0,0],[0,0,0,0,0],[0,0,0],[0,0],[0,0,0],[0,0,0],[0,0],[0,0],[0,0],[0,0]]
+for analyse in a[0]['analysis']:
+    vects = mystem_analysis_vect(analyse['gr'])
+    len_vects = len(vects)
+    for vec in vects:
+        delta = (analyse['wt'] / len_vects)
+        print(vec)
+        delta2 = delta * [0,1,2]
+        res += delta
+print(res)
 
 print(a[2]['analysis'][0]['gr'])
 for i in mystem_analysis_vect(a[2]['analysis'][0]['gr']):
@@ -65,3 +70,7 @@ print(b[0]['analysis'][0]['gr'])
 for i in mystem_analysis_vect(b[0]['analysis'][0]['gr']):
     print(i)
 
+c = mystem.analyze('Лес')
+print(c[0]['analysis'][0]['gr'])
+for i in mystem_analysis_vect(c[0]['analysis'][0]['gr']):
+    print(i)
