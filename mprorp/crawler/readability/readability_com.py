@@ -3,9 +3,6 @@ from mprorp.crawler.utils import *
 import json
 import html
 
-import gspread
-from oauth2client.service_account import ServiceAccountCredentials
-
 
 def find_full_text(url):
     req_url = 'https://www.readability.com/api/content/v1/parser?token=08e612cb0d3f95db2090b87d3d758efc75fb314b&url='+url
