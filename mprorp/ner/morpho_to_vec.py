@@ -7,8 +7,8 @@ tamplate = (('наст', 'непрош', 'прош'), ('им', 'род', 'дат
             ('1-л', '2-л', '3-л'), ('муж', 'жен', 'сред'), ('несов', 'сов'),
             ('действ', 'страд'), ('од', 'неод'), ('пе', 'нп'))
 vec_len = 0
-for attribute in tamplate:
-    vec_len += len(attribute)
+for attr in tamplate:
+    vec_len += len(attr)
 
 
 def part_of_speech(gr):
@@ -23,12 +23,12 @@ def analisis_to_tamplate(analisis):
     analisis = re.sub('=', ',', analisis)
     analisis = analisis.split(',')
     pre_number = 0
-    for attribute in tamplate:
-        for n in range(len(attribute)):
-            value = attribute[n]
+    for attr in tamplate:
+        for n in range(len(attr)):
+            value = attr[n]
             if value in analisis:
                 result[pre_number + n] = 1
-        pre_number += len(attribute)
+        pre_number += len(attr)
     return result
 
 
