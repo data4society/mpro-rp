@@ -53,19 +53,13 @@ def get_final_estimate(in_path):
     print('100: ' + str(estimates100*100/len(estimates)) + '%')
 
 if __name__ == '__main__':
-    # create_table(read_com.find_full_text, 'corpus/readability_com.csv')
-    # create_estimates_table('corpus/readability_com.csv', 'corpus/readability_com_estimates.csv')
+    create_table(read_com.find_full_text, 'corpus/readability_com.csv')
+    create_estimates_table('corpus/readability_com.csv', 'corpus/readability_com_estimates.csv')
     print('Алгоритм readability.com')
     get_final_estimate('corpus/readability_com_estimates.csv')
-    # create_table(read_lxml.find_full_text, 'corpus/readability_lxml.csv')
-    # create_estimates_table('corpus/readability_lxml.csv', 'corpus/readability_lxml_estimates.csv')
+
+    create_table(read_lxml.find_full_text, 'corpus/readability_lxml.csv')
+    create_estimates_table('corpus/readability_lxml.csv', 'corpus/readability_lxml_estimates.csv')
     print('Алгоритм lxml-readability')
     get_final_estimate('corpus/readability_lxml_estimates.csv')
     # print(read_com.find_full_text('http://www.moscow-post.com/news/society/vitse-premjer_karelii_popal_pod_podozrenie94812/'))
-
-    with open(in_path, 'r') as csvfile:
-        spamreader = csv.reader(csvfile)
-        for row in spamreader:
-            row.append(get_compare_estimate(row[1], row[2]))
-            print(row[3])
-            spamwriter.writerow(row)
