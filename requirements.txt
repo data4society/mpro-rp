@@ -10,3 +10,4 @@ numpy
 readability-lxml
 gspread
 oauth2client
+beautifulSoup
