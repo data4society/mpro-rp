@@ -1,8 +1,9 @@
 import mprorp.analyzer.db as db
 import re
+import mprorp.ner.morpho_to_vec as morpho_to_vec
+import numpy as np
 
-ner_feature_types = {'embedding': 1, 'gazetteer': 2, 'tomita': 3, 'syntactic_feature_case': 4,
-                     'syntactic_feature_plural_singular': 5}
+ner_feature_types = {'embedding': 1, 'gazetteer': 2, 'tomita': 3, 'morpho': 4}
 
 
 def part_of_speech(gr):
@@ -115,4 +116,28 @@ def create_embedding_feature(doc_id, new_status=0):
                                'value': feats})
     if len(values) > 0:
         # print(values)
-        db.put_ner_feature(doc_id, values, ner_feature_types['embedding'], 'embedding')
+        db.put_ner_feature(doc_id, values, ner_feature_types['embedding'], 'embedding', new_status=new_status)
+
+
+def create_morpho_feature(doc_id, new_status=0):
+    morpho = db.get_morpho(doc_id)
+    values = []
+    for element in morpho:
+        if element.get('word_index', -1) != -1:
+            analysis = element.get('analysis', [])
+            res = np.zeros(morpho_to_vec.vec_len)
+            for analyse in analysis:
+                # if analyse['wt'] < delta_wt:
+                #     continue
+                # print(analyse['wt'], analyse['gr'])
+                vectors = morpho_to_vec.analyze(analyse['gr'])
+                len_vectors = len(vectors)
+                for vec in vectors:
+                    delta = (analyse['wt'] / len_vectors)
+                    res += delta * vec
+            values.append({'word_index': element['word_index'],
+                           'sentence_index': element['sentence_index'],
+                           'value': res.tolist()})
+    if len(values) > 0:
+        # print(values)
+        db.put_ner_feature(doc_id, values, ner_feature_types['morpho'], 'morpho', new_status=new_status)
