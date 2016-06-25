@@ -38,3 +38,13 @@ class SimpleTomitaTest(unittest.TestCase):
         key = '51:67'
         value = 'Loc'
         self.assertEqual(dic_out[key], value)
+
+    def test_tomita_adr(self):
+        dropall_and_create()
+        my_doc = Document(stripped='Алексей Бочкарев был задержан вечером 8 августа на Манежной площади за плакат, который, по мнению сотрудников полиции, оскорблял Путина.',type='article')
+        insert(my_doc)
+        doc_id = str(my_doc.doc_id)
+        dic_out = run_tomita('adr.cxx', doc_id)
+        key = '51:67'
+        value = 'Adr'
+        self.assertEqual(dic_out[key], value)
