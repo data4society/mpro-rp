@@ -1,7 +1,7 @@
 from requests import Request, Session
 from html.parser import HTMLParser
 import re
-from user_agent import generate_user_agent, generate_navigator
+#from user_agent import generate_user_agent, generate_navigator
 
 
 def send_get_request(url, encoding = '', gen_useragent = False):

@@ -12,3 +12,5 @@ gspread
 oauth2client
 beautifulsoup4
 user_agent
+docopt>=0.6.1,<0.7
+chardet

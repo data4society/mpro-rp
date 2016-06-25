@@ -94,8 +94,8 @@ if __name__ == '__main__':
     #print(read_lxml.find_full_text('http://echospb.ru/2016/06/22/v-sb-ukraini-soobschili-chto-v-gosudarstve-net-baz-po/'))
     #estimate_estimate()
 
-    create_table(bread.find_full_text, 'corpus/breadability.csv')
-    create_estimates_table('corpus/breadability.csv', 'corpus/breadability_estimates.csv')
+    #create_table(bread.find_full_text, 'corpus/breadability.csv')
+    #create_estimates_table('corpus/breadability.csv', 'corpus/breadability_estimates.csv')
     print('Алгоритм breadability')
     get_final_estimate('corpus/breadability_estimates.csv')
 
