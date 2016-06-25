@@ -8,15 +8,18 @@ import os
 
 grammars = {'person.cxx': 'bin', # 'bin2',
             'date.cxx': 'bin',
-            'loc.cxx': 'bin' } #bin3
+            'loc.cxx': 'bin', #bin3
+            'adr.cxx': 'bin'} #bin4
 
 dic = {'person.cxx': '{Name = "FIO"}, {Name = "Персона"}',
        'date.cxx': '{Name = "DATE"}, {Name = "Дата"}',
-       'loc.cxx': '{Name = "Локация"}'}
+       'loc.cxx': '{Name = "Локация"}',
+       'adr.cxx': '{Name = "Адрес"}'}
 
 fact = {'person.cxx': '{ Name = "PersonFact_TOMITA" }',
         'date.cxx': '{ Name = "DateFact_TOMITA" }',
-        'loc.cxx': '{ Name = "LocationFact_TOMITA" }'}
+        'loc.cxx': '{ Name = "LocationFact_TOMITA" }',
+        'adr.cxx': '{ Name = "AdrFact_TOMITA" }'}
 
 
 def create_config(grammar_name, file_name):
