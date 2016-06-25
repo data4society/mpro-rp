@@ -1,7 +1,9 @@
 """script for testing algorithms"""
 import mprorp.crawler.readability.readability_com as read_com
 import mprorp.crawler.readability.lxml_readability as read_lxml
+import mprorp.crawler.readability.readability2 as read2
 import mprorp.crawler.readability.breadability as bread
+import mprorp.crawler.readability.readability_kingwkb as kingwkb
 import csv
 from mprorp.crawler.readability.shingling import get_compare_estimate
 from mprorp.crawler.utils import *
@@ -91,8 +93,19 @@ def estimate_estimate():
 
 
 if __name__ == '__main__':
-    #print(read_lxml.find_full_text('http://echospb.ru/2016/06/22/v-sb-ukraini-soobschili-chto-v-gosudarstve-net-baz-po/'))
+    #print(kingwkb.find_full_text('http://echospb.ru/2016/06/22/v-sb-ukraini-soobschili-chto-v-gosudarstve-net-baz-po/'))
+    #exit()
     #estimate_estimate()
+
+    create_table(read2.find_full_text, 'corpus/read2.csv')
+    create_estimates_table('corpus/read2.csv', 'corpus/read2_estimates.csv')
+    print('Алгоритм readability2')
+    get_final_estimate('corpus/read2_estimates.csv')
+
+    #create_table(kingwkb.find_full_text().find_full_text, 'corpus/kingwkb.csv')
+    #create_estimates_table('corpus/kingwkb.csv', 'corpus/kingwkb_estimates.csv')
+    #print('Алгоритм kingwkb-readability')
+    #get_final_estimate('corpus/kingwkb_estimates.csv')
 
     #create_table(bread.find_full_text, 'corpus/breadability.csv')
     #create_estimates_table('corpus/breadability.csv', 'corpus/breadability_estimates.csv')

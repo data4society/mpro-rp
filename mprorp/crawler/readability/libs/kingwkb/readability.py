@@ -9,16 +9,15 @@ from __future__ import division
 import os
 import sys
 import urllib
-import urlparse
 import re
-import HTMLParser
+from html.parser import HTMLParser
 import math
-import urlparse
+import urllib.parse as urlparse
 import posixpath
 
 import chardet
-from BeautifulSoup import BeautifulSoup
-#from bs4 import BeautifulSoup
+#from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 
 class Readability:
 
@@ -63,7 +62,7 @@ class Readability:
         self.input = self.regexps['replaceBrs'].sub("</p><p>",self.input)
         self.input = self.regexps['replaceFonts'].sub("<\g<1>span>",self.input)
 
-        self.html = BeautifulSoup(self.input)
+        self.html = BeautifulSoup(self.input, "lxml")
 
 #        print self.html.originalEncoding
 #        print self.html

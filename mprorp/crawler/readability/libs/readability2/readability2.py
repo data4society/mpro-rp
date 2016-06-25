@@ -1,9 +1,37 @@
+import math
+
 class unicode_CString:
     def __init__(self, a):
-        self.normal = self.normalizeUnicode(this._initial = a)
+        self._initial = a
+        self.normal = self.normalizeUnicode(self._initial)
 
     def normalizeUnicode(self, a):
         return a.replace( / [«»] / g, '"')
+
+    def contains(self):
+        pass;
+
+unicode_RE_SPACE = /[\s\u200b]+/g
+
+util_BR = {
+    chars: 0,
+    tags: 0,
+                 hyperchars: 0,
+                 score: 0,
+                 compute: function() {},
+             toString: function()
+        {
+        return '\n'}
+        }
+
+# return a copy of the input array, flattened to one(less) dimension.
+def util_flatten(a):
+    return [].concat.apply([], a)
+
+def comp(chars, hyperchars):
+    return math.log2((chars + 1) / (hyperchars + 1))
+
+
 
 /* [readability2.js][1] converts HTML into plain text
  * Copyright (c) 2015 Mark Vasilkov (https://github.com/mvasilkov)
@@ -59,7 +87,6 @@ var LilNode = function () {
         this.childNodes = []
     }
 
-    var _log2 = Math.log2 || function (a) { return Math.log(a) * Math.LOG2E }
 
     function comp(chars, hyperchars) { return _log2((chars + 1) / (hyperchars + 1)) }
 
