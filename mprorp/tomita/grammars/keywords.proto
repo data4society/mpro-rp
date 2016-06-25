@@ -5,3 +5,6 @@ message week: TAuxDicArticle {}
 message location_front: TAuxDicArticle {}
 message location_back: TAuxDicArticle {}
 message abbreviation: TAuxDicArticle {}
+message street: TAuxDicArticle {}
+message house: TAuxDicArticle {}
+message apartment: TAuxDicArticle {}

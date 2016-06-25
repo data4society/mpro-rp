@@ -16,3 +16,8 @@ message LocationFact_TOMITA: NFactType.TFact
 {
     required string Loc_TOMITA = 1;
 }
+
+message AdrFact_TOMITA: NFactType.TFact
+{
+    required string Adr_TOMITA = 1;
+}
