@@ -267,6 +267,7 @@ class Document:
             log.info("Top 5 : %6.3f %s" % (
                 candidate['content_score'],
                 describe(elem)))
+            print("BEST",describe(elem))
 
         best_candidate = sorted_candidates[0]
         return best_candidate
@@ -331,7 +332,7 @@ class Document:
                 describe(elem),
                 ld,
                 score * (1 - ld)))
-            print(describe(elem), score)#, ld, score * (1 - ld))
+            # print(describe(elem), score)#, ld, score * (1 - ld))
             #candidate['content_score'] *= (1 - ld)
 
         return candidates
@@ -384,6 +385,7 @@ class Document:
             sum += self.score_tag(child)
         #print(describe(elem), sum)
         s = "%s %s %s" % (elem.get('class', ''), elem.get('id', ''), elem.tag)
+        #print(s)
         if REGEXES['r2BadContent'].search(s):
             sum = 0.1*sum
         return {
@@ -402,16 +404,31 @@ class Document:
         elif name in ["h1", "h2", "h3", "h4", "h5", "h6", "th"]:
             content_score -= 5
 
-
-
     def remove_unlikely_candidates(self):
+        from lxml import etree
+        #print(etree.tostring(self.html, pretty_print=True))
+        #print(self.html.xpath("//div[@id='footer']"))
+        #print(self.html.xpath('count(.//*)'))
+        ind = 0
+        elements_to_drop = []
         for elem in self.html.iter():
+            ind += 1
             s = "%s %s" % (elem.get('class', ''), elem.get('id', ''))
+            #print(describe(elem), s)
+            if s == 'module__footer':
+                print(REGEXES['unlikelyCandidatesRe'].search(s))
             if len(s) < 2:
                 continue
             if REGEXES['unlikelyCandidatesRe'].search(s) and (not REGEXES['okMaybeItsACandidateRe'].search(s)) and elem.tag not in ['html', 'body']:
                 log.debug("Removing unlikely candidate - %s" % describe(elem))
-                elem.drop_tree()
+                elements_to_drop.append(elem)
+                # elem.drop_tree()
+        for elem in elements_to_drop:
+            elem.drop_tree()
+        #print(len(elements_to_drop))
+        #print(self.html.xpath("//div[@id='footer']"))
+        #print(self.html.xpath('count(.//*)'))
+        #print(ind)
 
     def transform_misused_divs_into_paragraphs(self):
         for elem in self.tags(self.html, 'div'):

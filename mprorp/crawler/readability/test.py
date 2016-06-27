@@ -2,13 +2,15 @@
 import mprorp.crawler.readability.readability_com as read_com
 import mprorp.crawler.readability.lxml_readability as read_lxml
 import mprorp.crawler.readability.readability2 as read2
-import mprorp.crawler.readability.breadability as bread
+#import mprorp.crawler.readability.breadability as bread
 import mprorp.crawler.readability.readability_kingwkb as kingwkb
 import csv
 from mprorp.crawler.readability.shingling import get_compare_estimate
 from mprorp.crawler.utils import *
 import urllib.request
 from urllib.error import *
+from readability.encoding import get_encoding
+import html
 
 
 cloudflare_links = ['http://podrobnosti.ua/2115445-frantsuzy-edut-rassledovat-zaderzhanie-sbu-terrorista.html', 'http://ryb.ru/2016/06/21/348972',
@@ -20,7 +22,7 @@ cloudflare_links = ['http://podrobnosti.ua/2115445-frantsuzy-edut-rassledovat-za
     'http://u-f.ru/News/politics/u9/2016/06/18/101730',
     'http://newsday24.org/11294-savchenko-ustala-ot-takoy-zhizni.html']
 
-bad_links = ['http://pskov.riasv.ru/news/vo_frantsii_arestovali_krupnogo_pskovskogo_zemlevl/1110912/', 'http://podrobnosti.ua/2115445-frantsuzy-edut-rassledovat-zaderzhanie-sbu-terrorista.html', 'http://poliksal.ru/novosti-v-mire/45953-savchenko-prizvala-zapad-ostanovit-rossiyu-na-ukrainskoy-granice.html', 'http://ryb.ru/2016/06/21/348972', 'http://ryb.ru/2016/06/21/348890', 'http://ryb.ru/2016/06/21/349088', 'http://poliksal.ru/novosti-rosii/45899-novye-shokiruyuschie-zayavleniya-savchenko-ona-rasskazala-miru-o-planah-kremlya-zavoevat-evropu.html', 'http://poliksal.ru/novosti-v-mire/45894-v-strasburge-savchenko-prizvala-evropu-dressirovat-rossiyu.html', 'http://www.aysor.am/ru/news/2016/06/21/%D1%81%D0%B5%D1%84%D0%B8%D0%BB%D1%8F%D0%BD/1100847', 'http://news.am/rus/news/333253.html', 'http://news.am/rus/news/333232.html', 'http://news.am/rus/news/333247.html', 'http://u-f.ru/News/politics/u9/2016/06/18/101730', 'http://uinp.info/political_Groups/savchenko_v_strasburge_rezerv_rf_ischerpaetsya_togda_kogda_lyudi_perestanut_quotumirat_za_caryaquot', 'http://newsday24.org/11294-savchenko-ustala-ot-takoy-zhizni.html']
+bad_links = ['http://pskov.riasv.ru/news/vo_frantsii_arestovali_krupnogo_pskovskogo_zemlevl/1110912/', 'http://news-russia.info/2016/06/21/gricak-kosvenno-priznal-chto-lager-dzhihadistov-mog-zhit-v/', 'http://podrobnosti.ua/2115445-frantsuzy-edut-rassledovat-zaderzhanie-sbu-terrorista.html', 'http://poliksal.ru/novosti-v-mire/45953-savchenko-prizvala-zapad-ostanovit-rossiyu-na-ukrainskoy-granice.html', 'http://ryb.ru/2016/06/21/348972', 'http://ryb.ru/2016/06/21/348890', 'http://ryb.ru/2016/06/21/349088', 'http://lastnews.com.ua/novosti-ukraini/515506-ne-zhelayu-nikomu-imet-takogo-soseda-kak-rossiya.html', 'http://poliksal.ru/novosti-rosii/45899-novye-shokiruyuschie-zayavleniya-savchenko-ona-rasskazala-miru-o-planah-kremlya-zavoevat-evropu.html', 'http://poliksal.ru/novosti-v-mire/45894-v-strasburge-savchenko-prizvala-evropu-dressirovat-rossiyu.html', 'http://news-russia.info/2016/06/21/v-plen-terroristov-lnr-ugodila-ukrainskaya-zhurnalistka/', 'http://www.aysor.am/ru/news/2016/06/21/%D1%81%D0%B5%D1%84%D0%B8%D0%BB%D1%8F%D0%BD/1100847', 'http://news.am/rus/news/333253.html', 'http://lratvakan.com/news/212802.html', 'http://news.am/rus/news/333232.html', 'http://news.am/rus/news/333247.html', 'http://u-f.ru/News/politics/u9/2016/06/18/101730', 'http://news-russia.info/2016/06/21/v-ukraine-net-baz-podgotovki-dzhihadistov-gricak/', 'http://newsday24.org/11294-savchenko-ustala-ot-takoy-zhizni.html']
 
 
 def create_table(func, out_path):
@@ -123,9 +125,21 @@ def create_corpus():
         bads = []
         for row in spamreader:
             url = row[0]
+            #if url != 'http://www.ntv.ru/novosti/1637696/':
+            #    continue
             #print(url)
             try:
-                html_source = urllib.request.urlopen(url,timeout=10).read()
+                html_source = urllib.request.urlopen(url, timeout=10).read()
+                encoding = get_encoding(html_source) or 'utf-8'
+                decoded_page = html_source.decode(encoding, 'replace')
+                #print(decoded_page)
+                estimate = get_compare_estimate(row[1], html.unescape(decoded_page))
+                if estimate < 0.1:
+                    #print(row[1])
+                    print(url, "хрень", estimate, ind)
+                    bads.append(url)
+                    ind += 1
+                    continue
                 with open('corpus/docs/' + str(ind) + '.html', 'wb') as f:
                     f.write(html_source)
             except BaseException as err:
@@ -137,16 +151,17 @@ def create_corpus():
                 #if err is HTTPError:
                     #print(url, err.code)
             ind += 1
-        #print(bads)
+        print(bads)
 
 
 if __name__ == '__main__':
-    #url = 'http://www.rosbalt.ru/russia/2016/06/17/1524253.html'
-    #html_source = urllib.request.urlopen(url, timeout=10).read()
-    #print(read2.find_full_text(html_source))
-    #exit()
+    url = 'http://belrynok.com/2016/06/boeviki-lnr-zaderzhali-ukrainskuyu-zhurnalistku-obviniv-ee/'
+    html_source = urllib.request.urlopen(url, timeout=10).read()
+    print(read2.find_full_text(html_source))
+    exit()
 
     #create_corpus()
+    #exit()
     #estimate_estimate()
 
     create_table(read2.find_full_text, 'corpus/read2.csv')
@@ -161,18 +176,18 @@ if __name__ == '__main__':
 
     #create_table(bread.find_full_text, 'corpus/breadability.csv')
     #create_estimates_table('corpus/breadability.csv', 'corpus/breadability_estimates.csv')
-    print('Алгоритм breadability')
-    get_final_estimate('corpus/breadability_estimates.csv')
+    #print('Алгоритм breadability')
+    #get_final_estimate('corpus/breadability_estimates.csv')
 
-    #create_table(read_lxml.find_full_text, 'corpus/readability_lxml.csv')
-    #create_estimates_table('corpus/readability_lxml.csv', 'corpus/readability_lxml_estimates.csv')
+    create_table(read_lxml.find_full_text, 'corpus/readability_lxml.csv')
+    create_estimates_table('corpus/readability_lxml.csv', 'corpus/readability_lxml_estimates.csv')
     print('Алгоритм lxml-readability')
     get_final_estimate('corpus/readability_lxml_estimates.csv')
 
     #create_table_remote(read_com.find_full_text, 'corpus/readability_com.csv')
     #create_estimates_table('corpus/readability_com.csv', 'corpus/readability_com_estimates.csv')
-    print('Алгоритм readability.com')
-    get_final_estimate('corpus/readability_com_estimates.csv')
+    #print('Алгоритм readability.com')
+    #get_final_estimate('corpus/readability_com_estimates.csv')
 
 
     #print(read_com.find_full_text('http://www.moscow-post.com/news/society/vitse-premjer_karelii_popal_pod_podozrenie94812/'))
