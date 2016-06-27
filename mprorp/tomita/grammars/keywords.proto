@@ -8,3 +8,4 @@ message abbreviation: TAuxDicArticle {}
 message street: TAuxDicArticle {}
 message house: TAuxDicArticle {}
 message apartment: TAuxDicArticle {}
+message trial: TAuxDicArticle {}

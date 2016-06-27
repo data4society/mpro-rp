@@ -21,3 +21,8 @@ message AdrFact_TOMITA: NFactType.TFact
 {
     required string Adr_TOMITA = 1;
 }
+
+message OrgFact_TOMITA: NFactType.TFact
+{
+    required string Org_TOMITA = 1;
+}
