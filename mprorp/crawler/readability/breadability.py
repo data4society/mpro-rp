@@ -4,18 +4,10 @@ import urllib.request
 from mprorp.crawler.readability.libs.breadability.readable import Article
 
 
-def find_full_text(url):
-    try:
-        html_source = urllib.request.urlopen(url).read()  #
-        # html_source = send_get_request(url, gen_useragent=True)
-        # print(html)
-        doc = Article(html_source)
-        content = doc.readable
-        # title = doc.short_title()
+def find_full_text(html_source):
+    doc = Article(html_source)
+    content = doc.readable
 
-        stripped = strip_tags(content)
-        stripped = to_plain_text(stripped)
-        return stripped
-    except BaseException:
-        print('ERROR with ' + url)
-        return 'ERROR'
+    stripped = strip_tags(content)
+    stripped = to_plain_text(stripped)
+    return stripped
