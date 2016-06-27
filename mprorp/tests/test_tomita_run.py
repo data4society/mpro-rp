@@ -49,3 +49,13 @@ class SimpleTomitaTest(unittest.TestCase):
         key = '51:67'
         value = 'Adr'
         self.assertEqual(dic_out[key], value)
+
+    def test_tomita_org(self):
+        dropall_and_create()
+        my_doc = Document(stripped='В разрешении спора некоторым образом принял участие и Конституционный суд РФ, приняв Определение от 05. 06. 03 N 276-о "Об отказе в принятии к рассмотрению запроса мирового судьи 113-го судебного участка города Санкт-Петербурга.',type='article')
+        insert(my_doc)
+        doc_id = str(my_doc.doc_id)
+        dic_out = run_tomita('org.cxx', doc_id)
+        key = '54:73'
+        value = 'Org'
+        self.assertEqual(dic_out[key], value)
