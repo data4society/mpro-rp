@@ -15,10 +15,10 @@ import os
 #     regular_tomita(i, doc_id)
 
 # create tomita features
-# doc_id = '000e82b8-6ea7-41f4-adc6-bc688fbbeeb6'
-# rb.morpho_doc(doc_id)
-# print(db.get_morpho(doc_id))
-# ner_feature.create_tomita_feature(doc_id, ['date.cxx', 'person.cxx'])
+doc_id = '000e82b8-6ea7-41f4-adc6-bc688fbbeeb6'
+rb.morpho_doc(doc_id)
+print(db.get_morpho(doc_id))
+ner_feature.create_tomita_feature(doc_id, ['date.cxx', 'person.cxx'])
 
 # Create embedding feature
 # doc_id = '000e82b8-6ea7-41f4-adc6-bc688fbbeeb6'
