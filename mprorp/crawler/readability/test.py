@@ -22,7 +22,7 @@ cloudflare_links = ['http://podrobnosti.ua/2115445-frantsuzy-edut-rassledovat-za
     'http://u-f.ru/News/politics/u9/2016/06/18/101730',
     'http://newsday24.org/11294-savchenko-ustala-ot-takoy-zhizni.html']
 
-bad_links = ['http://pskov.riasv.ru/news/vo_frantsii_arestovali_krupnogo_pskovskogo_zemlevl/1110912/', 'http://podrobnosti.ua/2115445-frantsuzy-edut-rassledovat-zaderzhanie-sbu-terrorista.html', 'http://poliksal.ru/novosti-v-mire/45953-savchenko-prizvala-zapad-ostanovit-rossiyu-na-ukrainskoy-granice.html', 'http://ryb.ru/2016/06/21/348972', 'http://ryb.ru/2016/06/21/348890', 'http://ryb.ru/2016/06/21/349088', 'http://krasnews.com/world/218923/', 'http://poliksal.ru/novosti-rosii/45899-novye-shokiruyuschie-zayavleniya-savchenko-ona-rasskazala-miru-o-planah-kremlya-zavoevat-evropu.html', 'http://poliksal.ru/novosti-v-mire/45894-v-strasburge-savchenko-prizvala-evropu-dressirovat-rossiyu.html', 'http://www.aysor.am/ru/news/2016/06/21/%D1%81%D0%B5%D1%84%D0%B8%D0%BB%D1%8F%D0%BD/1100847', 'http://news.am/rus/news/333253.html', 'http://lratvakan.com/news/212802.html', 'http://news.am/rus/news/333232.html', 'http://news.am/rus/news/333247.html', 'http://u-f.ru/News/politics/u9/2016/06/18/101730', 'http://newsday24.org/11294-savchenko-ustala-ot-takoy-zhizni.html']
+bad_links = ['http://pskov.riasv.ru/news/vo_frantsii_arestovali_krupnogo_pskovskogo_zemlevl/1110912/', 'http://news-russia.info/2016/06/21/gricak-kosvenno-priznal-chto-lager-dzhihadistov-mog-zhit-v/', 'http://podrobnosti.ua/2115445-frantsuzy-edut-rassledovat-zaderzhanie-sbu-terrorista.html', 'http://poliksal.ru/novosti-v-mire/45953-savchenko-prizvala-zapad-ostanovit-rossiyu-na-ukrainskoy-granice.html', 'http://ryb.ru/2016/06/21/348972', 'http://ryb.ru/2016/06/21/348890', 'http://ryb.ru/2016/06/21/349088', 'http://lastnews.com.ua/novosti-ukraini/515506-ne-zhelayu-nikomu-imet-takogo-soseda-kak-rossiya.html', 'http://poliksal.ru/novosti-rosii/45899-novye-shokiruyuschie-zayavleniya-savchenko-ona-rasskazala-miru-o-planah-kremlya-zavoevat-evropu.html', 'http://poliksal.ru/novosti-v-mire/45894-v-strasburge-savchenko-prizvala-evropu-dressirovat-rossiyu.html', 'http://news-russia.info/2016/06/21/v-plen-terroristov-lnr-ugodila-ukrainskaya-zhurnalistka/', 'http://www.aysor.am/ru/news/2016/06/21/%D1%81%D0%B5%D1%84%D0%B8%D0%BB%D1%8F%D0%BD/1100847', 'http://news.am/rus/news/333253.html', 'http://lratvakan.com/news/212802.html', 'http://news.am/rus/news/333232.html', 'http://news.am/rus/news/333247.html', 'http://u-f.ru/News/politics/u9/2016/06/18/101730', 'http://news-russia.info/2016/06/21/v-ukraine-net-baz-podgotovki-dzhihadistov-gricak/', 'http://newsday24.org/11294-savchenko-ustala-ot-takoy-zhizni.html']
 
 
 def create_table(func, out_path):
@@ -155,9 +155,31 @@ def create_corpus():
 
 
 if __name__ == '__main__':
+    """
+    with open('corpus/test.html', 'rb') as f:
+        html_source = f.read()
+    from readability.htmls import build_doc
+    from lxml.html import HtmlElement
+    html, encoding = build_doc(html_source)
+    body = html.xpath("//body")[0]
+    children = body.getchildren()
+    #children = body.xpath("child::node()")
+    for child in children:
+        if type(child) == HtmlElement:
+            print("tag",child.tag, child.get('class', ''))
+            # if describe(elem) == '#content-area>div{04}':
+            #    print(describe(child), child.tag, child_chars, child_tags, child_hyperchars, child_score)
+            #    print(child.text_content())
+        else:
+            pass;
+            #print("text",len(child))
+            # print(len(child))
+            # sum += len(child)#self.comp_score(len(child), 1, 0)
+    exit()
+    """
     #url = 'http://www.gazeta.kg/news/important/99343-sud-arestoval-rukovoditeley-lagerya-na-syamozere.html'
     #html_source = urllib.request.urlopen(url, timeout=10).read()
-    #with open('corpus/docs/' + str(38) + '.html', 'rb') as f:
+    #with open('corpus/docs/' + str(68) + '.html', 'rb') as f:
     #    html_source = f.read()
     #print(read2.find_full_text(html_source))
     #exit()
