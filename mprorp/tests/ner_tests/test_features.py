@@ -22,6 +22,7 @@ class SimpleTomitaTest(unittest.TestCase):
         ner_feature.create_gazetteer_feature(doc_id, gaz_id)
         print(db.get_ner_feature(doc_id))
 
+
     def test_embedding_feature(self):
         dropall_and_create()
         my_doc = Document(

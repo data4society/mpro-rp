@@ -20,6 +20,6 @@ def convert_tomita_result_to_markup(doc_id, grammars, markup_name='another marku
             refs.append({'start_offset': offsets[0], 'end_offset': offsets[1],
                          'entity': entity, 'entity_class': fact_entities[result[i]]})
             classes[fact_entities[result[i]]] = ''
-    markup_id = db.put_markup(doc_id, markup_name, classes.keys(), '20', 500)
-    db.put_references(doc_id, markup_id, refs, new_status)
+    db.put_markup(doc_id, markup_name, classes.keys(), '20', refs, 500)
+    # db.put_references(doc_id, markup_id, refs, new_status)
 
