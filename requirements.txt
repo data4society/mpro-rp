@@ -11,3 +11,4 @@ readability-lxml
 gspread
 oauth2client
 beautifulsoup4
+pandas

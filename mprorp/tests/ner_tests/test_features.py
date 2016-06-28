@@ -32,8 +32,9 @@ class SimpleTomitaTest(unittest.TestCase):
         rb.morpho_doc(doc_id)
         ner_feature.create_embedding_feature(doc_id)
         features = db.get_ner_feature(doc_id)
-        self.assertEqual(features[(0, 11, 'embedding')], {'который_APRO': 1})
-
+        # print(features)
+        self.assertEqual(features[(0, 13, 'embedding')], {'который_APRO': 1})
+        self.assertEqual(features[(0, 12, 'embedding')], {',': 1})
 
     def test_morpho_feature(self):
         dropall_and_create()

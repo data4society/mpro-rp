@@ -15,11 +15,12 @@ class SimpleDBTest(unittest.TestCase):
     def test_morpho(self):
         # morpho analysis
         dropall_and_create()
-        my_doc = Document(stripped='Эти типы стали есть на складе. Проголодались! Вот так.', type='article')
+        my_doc = Document(stripped='Эти типы стали есть, на складе. Проголодались! Вот так.', type='article')
         insert(my_doc)
         doc_id = str(my_doc.doc_id)
         rb.morpho_doc(doc_id)
         morpho = db.get_morpho(doc_id)
+        print(morpho)
         self.assertEqual(morpho[0]['text'], 'Эти')
 
     def test_lemmas_freq(self):

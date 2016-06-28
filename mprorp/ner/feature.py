@@ -110,6 +110,10 @@ def create_embedding_feature(doc_id, new_status=0):
                 pos = part_of_speech(l.get('gr', ''))
                 if (len(lemma) > 0) & (len(pos) > 0):
                     feats[lemma + '_' + pos] = feats.get(lemma + '_' + pos, 0) + weight
+            if len(feats) == 0:
+                text = element.get('text', '').strip()
+                if len(text) > 0:
+                    feats[text] = 1
             if len(feats) > 0:
                 values.append({'word_index': element['word_index'],
                                'sentence_index': element['sentence_index'],
