@@ -1,6 +1,6 @@
 """lxml readability - phyton library"""
 from mprorp.crawler.utils import *
-from readability.readability import Document as Doc
+from mprorp.crawler.readability.libs.readability2.readability import Document as Doc
 import urllib.request
 
 

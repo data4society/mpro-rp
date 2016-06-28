@@ -1,12 +1,12 @@
 """lxml readability - phyton library"""
 from mprorp.crawler.utils import *
-from readability.readability import Document as Doc
 import urllib.request
+from mprorp.crawler.readability.libs.breadability.readable import Article
 
 
 def find_full_text(html_source):
-    doc = Doc(html_source)
-    content = doc.summary()
+    doc = Article(html_source)
+    content = doc.readable
 
     stripped = strip_tags(content)
     stripped = to_plain_text(stripped)

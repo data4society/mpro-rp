@@ -1,12 +1,21 @@
 from requests import Request, Session
 from html.parser import HTMLParser
+import re
+#from user_agent import generate_user_agent, generate_navigator
 
 
-def send_get_request(url, encoding = ''):
+def send_get_request(url, encoding = '', gen_useragent = False):
     """accessory function for sending requests"""
     s = Session()
     req = Request('GET', url)
     prepped = req.prepare()
+    if gen_useragent:
+        prepped.headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.84 Safari/537.36 OPR/38.0.2220.31'#generate_user_agent()
+        prepped.headers['Accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+        prepped.headers['Accept-Encoding'] = 'gzip, deflate, sdch'
+        prepped.headers['Accept-Language'] = 'en-US,en;q=0.8,ru;q=0.6'
+        prepped.headers['Connection'] = 'keep-alive'
+        prepped.headers['Upgrade-Insecure-Requests'] = '1'
     r = s.send(prepped)
     if encoding:
         r.encoding = encoding
@@ -14,6 +23,7 @@ def send_get_request(url, encoding = ''):
 
 
 def strip_tags(html):
+    html = re.sub(r'(<br ?/?>|</p>|</div>)',r'\n\1',html,0,re.IGNORECASE)
     s = MLStripper()
     s.feed(html)
     return s.get_data()
@@ -21,9 +31,8 @@ def strip_tags(html):
 
 def to_plain_text(txt):
     lines = txt.split("\n")
-    lines = [line.strip() for line in lines]
+    lines = [line.strip(' \t\n\r') for line in lines]
     lines = [line for line in lines if line]
-
     return "\n".join(lines)
 
 class MLStripper(HTMLParser):

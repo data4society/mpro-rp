@@ -31,10 +31,31 @@ class SimpleTomitaTest(unittest.TestCase):
 
     def test_tomita_loc(self):
         dropall_and_create()
-        my_doc = Document(stripped='Алексей Бочкарев был задержан вечером 8 августа на Манежной площади за плакат, который, по мнению сотрудников полиции, оскорблял Путина.',type='article')
+        my_doc = Document(stripped='В Одинцовском районе Московской области правоохранители задержали троих квартирных воров.',type='article')
         insert(my_doc)
         doc_id = str(my_doc.doc_id)
         dic_out = run_tomita('loc.cxx', doc_id)
-        key = '51:67'
+        print(dic_out)
+        key = '2:20'
         value = 'Loc'
+        self.assertEqual(dic_out[key], value)
+
+    def test_tomita_adr(self):
+        dropall_and_create()
+        my_doc = Document(stripped='Алексей Бочкарев был задержан вечером 8 августа на Манежной площади за плакат, который, по мнению сотрудников полиции, оскорблял Путина.',type='article')
+        insert(my_doc)
+        doc_id = str(my_doc.doc_id)
+        dic_out = run_tomita('adr.cxx', doc_id)
+        key = '51:67'
+        value = 'Adr'
+        self.assertEqual(dic_out[key], value)
+
+    def test_tomita_org(self):
+        dropall_and_create()
+        my_doc = Document(stripped='В разрешении спора некоторым образом принял участие и Конституционный суд РФ, приняв Определение от 05. 06. 03 N 276-о "Об отказе в принятии к рассмотрению запроса мирового судьи 113-го судебного участка города Санкт-Петербурга.',type='article')
+        insert(my_doc)
+        doc_id = str(my_doc.doc_id)
+        dic_out = run_tomita('org.cxx', doc_id)
+        key = '54:73'
+        value = 'Org'
         self.assertEqual(dic_out[key], value)
