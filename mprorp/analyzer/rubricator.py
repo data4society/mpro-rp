@@ -23,13 +23,16 @@ stop_lemmas = ['в', 'на', 'из', 'он', 'что', 'и', 'это', 'по', '
 # one document morphological analysis regular
 
 def is_word(mystem_element):
-    if 'analysis' in mystem_element.keys():
-        if len(mystem_element['analysis']):
-            return True
-        else:
-            word = mystem_element.get('text', '')
-            if len(word) > 0:
-                return True
+    # if 'analysis' in mystem_element.keys():
+    #     if len(mystem_element['analysis']):
+    #         return True
+    #     else:
+    #         word = mystem_element.get('text', '')
+    #         if len(word) > 0:
+    #             return True
+    word = mystem_element.get('text', '')
+    if len(word.strip()) > 0:
+        return True
     return False
 
 
@@ -51,17 +54,17 @@ def morpho_doc(doc_id, change_status=0):
             text_len = len(element['text'])
         else:
             text_len = 0
-        if is_word(element):
+        if is_sentence_end(element):
+            text_len = 0
+            if word_index != 0:
+                sentence_index += 1
+                word_index = 0
+        elif is_word(element):
             element['word_index'] = word_index
             element['sentence_index'] = sentence_index
             word_index += 1
             element['start_offset'] = start_offset
             element['end_offset'] = start_offset + text_len - 1
-        elif is_sentence_end(element):
-            text_len = 0
-            if word_index != 0:
-                sentence_index += 1
-                word_index = 0
         start_offset += text_len
     db.put_morpho(doc_id, new_morpho, change_status)
     mystem_analyzer.close()

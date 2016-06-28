@@ -290,6 +290,20 @@ def get_ner_feature(doc_id):
     return result
 
 
+def get_ner_feature_for_set(set_id, feature=None):
+    training_set = session.query(TrainingSet).filter(TrainingSet.set_id == set_id).one()
+    all_words = session.query(NERFeature).filter(
+        NERFeature.doc_id.in_(training_set.doc_ids) & NERFeature.feature == feature).order_by(
+        NERFeature.sentence_index, NERFeature.word_index).all()
+    result = {}
+    for word in all_words:
+        doc_id = str(word.doc_id)
+        if result.get(doc_id, None) is None:
+            result[doc_id] = []
+        result[doc_id].append((word.sentence_index, word.word_index, word.value))
+    return result
+
+
 def put_tomita_result(doc_id, grammar, result, new_status):
     session.query(TomitaResult).filter((TomitaResult.doc_id == doc_id) & (TomitaResult.grammar == grammar)).delete()
     session.add(TomitaResult(doc_id=doc_id, grammar=grammar, result=result))
@@ -326,6 +340,19 @@ def put_references(doc_id, markup, refs, new_status=0):
     session.commit()
 
 
+def get_references_for_set(set_id, markup_type = '10'):
+    training_set = session.query(TrainingSet).filter(TrainingSet.set_id == set_id).one()
+    all_refs = session.query(Reference).join(Markup).filter(
+            Markup.doc_id.in_(training_set.doc_ids) & Markup.type == markup_type).order_by(Reference.start_offset).all()
+    result = {}
+    for ref in all_refs:
+        doc_id = str(ref.document)
+        if result.get(doc_id, None) is None:
+            result[doc_id] = []
+        result[doc_id].append((ref.start_offset, ref.end_offset, ref.entity_class))
+    return result
+
+
 def del_markup(markup_id=None, markup_type=None):
     if markup_id is None:
         markups = session.query(Markup.markup_id).filter(Markup.type == markup_type).all()
@@ -345,6 +372,15 @@ def get_word_embedding(embedding, lemma):
         return None
     else:
         return res[0]
+
+
+def get_multi_word_embedding(embedding, lemmas):
+    res = session.query(WordEmbedding).filter(
+        (WordEmbedding.embedding == embedding) & (WordEmbedding.lemma.in_(lemmas))).all()
+    if res is None:
+        return None
+    else:
+        return {i.lemma: i.vector for i in res}
 
 
 def put_tomita_grammar(name, files, config_file):
