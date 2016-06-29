@@ -8,6 +8,7 @@ import numpy as np
 import mprorp.ner.morpho_to_vec as mystem_to_vec
 from os.path import expanduser
 import os
+import mprorp.ner.tomita_to_markup as tomita_to_markup
 
 # regular processes with tomita
 # doc_id = '000e82b8-6ea7-41f4-adc6-bc688fbbeeb6'
@@ -19,6 +20,7 @@ doc_id = '000e82b8-6ea7-41f4-adc6-bc688fbbeeb6'
 rb.morpho_doc(doc_id)
 print(db.get_morpho(doc_id))
 ner_feature.create_tomita_feature(doc_id, ['date.cxx', 'person.cxx'])
+tomita_to_markup.convert_tomita_result_to_markup(doc_id, ['person.cxx'])
 
 # Create embedding feature
 # doc_id = '000e82b8-6ea7-41f4-adc6-bc688fbbeeb6'

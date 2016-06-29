@@ -326,11 +326,14 @@ def put_markup(doc_id, name, classes, markup_type, refs, new_status):
     new_markup = Markup(document=doc_id, name=name, entity_classes=classes, type=markup_type)
     new_markup.markup_id = uuid.uuid1()
     session.add(new_markup)
+
+    session.commit()
+
     markup_for_doc = {}
     entities = {}
     for ref in refs:
         ref_id = str(uuid.uuid1())
-        markup_for_doc[ref_id] = {'set': new_markup.markup_id,
+        markup_for_doc[ref_id] = {'set': str(new_markup.markup_id),
                                   'class': ref['entity_class'],
                                   'entity': ref['entity'],
                                   'start_offset': ref['start_offset'],
