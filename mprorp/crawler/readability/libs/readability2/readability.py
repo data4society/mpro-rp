@@ -19,7 +19,6 @@ from .htmls import get_title
 from .htmls import shorten_title
 from .compat import str_
 from .debug import describe, text_content
-from lxml.html import HtmlElement
 
 from lxml import etree
 
@@ -27,7 +26,7 @@ from lxml import etree
 log = logging.getLogger("readability.readability")
 
 REGEXES = {
-    'unlikelyCandidatesRe': re.compile('combx|comment|community|disqus|extra|foot|header|menu|remark|rss|shoutbox|sponsor|ad-break|agegate|pagination|pager|popup|tweet|twitter|podval', re.I),
+    'unlikelyCandidatesRe': re.compile('combx|comment|community|disqus|extra|foot|header|menu|remark|rss|shoutbox|sidebar|sponsor|ad-break|agegate|pagination|pager|popup|tweet|twitter', re.I),
     'okMaybeItsACandidateRe': re.compile('and|article|body|column|main|shadow|js-pagination', re.I),
     'positiveRe': re.compile('article|body|content|entry|hentry|main|page|pagination|post|text|blog|story', re.I),
     'negativeRe': re.compile('combx|comment|com-|contact|foot|footer|footnote|masthead|media|meta|outbrain|promo|related|scroll|shoutbox|sidebar|sponsor|shopping|tags|tool|widget', re.I),
@@ -165,22 +164,11 @@ class Document:
                 if ruthless:
                     self.remove_unlikely_candidates()
                 self.transform_misused_divs_into_paragraphs()
-                #candidates = self.score_paragraphs()
+                self.score_node(self.html.xpath("//div[@class='full-str']")[0])
+                exit()
+                candidates = self.score_paragraphs()
 
-                #best_candidate = self.select_best_candidate(candidates)
-
-
-                candidates = {}
-                res = {
-                    'sum': 0,
-                    'node': None
-                }
-
-                self.compute(self.html, res, candidates)
-                print("TUT")
                 best_candidate = self.select_best_candidate(candidates)
-
-                #print(res)
 
                 if best_candidate:
                     article = self.get_article(candidates, best_candidate,
@@ -207,8 +195,6 @@ class Document:
                 retry_length = self.retry_length
                 of_acceptable_length = article_length >= retry_length
                 if ruthless and not of_acceptable_length:
-                    print("CONT")
-                    print(cleaned_article)
                     ruthless = False
                     # Loop through and try again.
                     continue
@@ -271,74 +257,6 @@ class Document:
         #    output.append(best_elem)
         return output
 
-    def compute(self, elem, res, candidates, linked=False):
-        chars = 0
-        tags = 1
-        hyperchars = 0
-        sum = 0
-
-        linked = linked or (elem.tag in ['button','a','option'])
-        #children = elem.getchildren()
-        children = elem.xpath("child::node()")
-        for child in children:
-            if isinstance(child, HtmlElement):
-                child_chars, child_tags, child_hyperchars, child_score = self.compute(child, res, candidates, linked)
-                chars += child_chars
-                tags += child_tags
-                hyperchars += child_hyperchars
-                sum += child_score
-                #if describe(elem) == 'html>body#readabilityBody':
-                #print(describe(elem), describe(child), child.tag, child_chars, child_tags, child_hyperchars, child_score)
-                #print(child.text_content())
-            else:
-                #print(len(child))
-                child = str(child).strip()
-                child_text_len = len(child)
-                sum += child_text_len
-                #sum += self.comp_score(child_text_len, 1, 0)
-                chars += child_text_len
-                #if describe(elem) == 'article.item>h3.article_subheader':
-                #    print(child_text_len)
-                #print(child)
-
-        #if describe(elem) == 'div{04}>p{08}':
-        #    print(elem.xpath(".//*"))
-        #    print(elem.tail,elem.text)
-        #if len(children) == 1:
-        #    chars = text_length(elem)
-        if linked:
-            hyperchars = chars
-            #print("AAAAAAA", elem.tag, describe(elem))
-        #chars_of_text_blocks = text_length(elem)-chars
-        #sum += self.comp_score(chars_of_text_blocks, 1, 0)
-
-
-        score = self.comp_score(chars, tags, hyperchars)
-        #if describe(elem) == '.static>p{04}':
-        #print(describe(elem), chars, tags, hyperchars, score, sum)
-        #print(elem.text_content())
-        #if describe(elem) == 'article.item>h3.article_subheader':
-        #    print(elem.text_content())
-        #    exit()
-
-        s = "%s %s %s" % (elem.get('class', ''), elem.get('id', ''), elem.tag)
-        if REGEXES['r2BadContent'].search(s):
-            sum = 0.1 * sum
-
-        candidates[elem] = {
-            'content_score': sum,
-            'elem': elem
-        }
-        #print(describe(elem),sum)
-        if sum > res['sum']:
-            res['node'] = elem
-            res['sum'] = sum
-
-        return chars, tags, hyperchars, score
-
-    def comp_score(self, chars, tags, hyperchars):
-        return (chars / tags) * math.log2((chars + 1) / (hyperchars + 1))
-
     def select_best_candidate(self, candidates):
         if not candidates:
             return None
@@ -353,7 +271,7 @@ class Document:
             log.info("Top 5 : %6.3f %s" % (
                 candidate['content_score'],
                 describe(elem)))
-            print("BEST",describe(elem),candidate['content_score'])
+            #print("BEST",describe(elem))
 
         best_candidate = sorted_candidates[0]
         return best_candidate
@@ -469,6 +387,11 @@ class Document:
         sum = 0
         for child in children:
             sum += self.score_tag(child)
+            if describe(elem) == '.story-full.group>.full-str':
+                print(child.tag)
+                print(child.text_content())
+        if describe(elem) == '.story-full.group>.full-str':
+            print(etree.tostring(elem, pretty_print=True))
         #print(describe(elem), sum)
         s = "%s %s %s" % (elem.get('class', ''), elem.get('id', ''), elem.tag)
         #print(s)
@@ -492,7 +415,7 @@ class Document:
 
     def remove_unlikely_candidates(self):
         #print(etree.tostring(self.html, pretty_print=True))
-        print(self.html.xpath("//div[@class='newstext']"))
+        #print(self.html.xpath("//div[@class='story__content__body  ']"))
         #print(self.html.xpath('count(.//*)'))
         ind = 0
         elements_to_drop = []
@@ -511,8 +434,6 @@ class Document:
         for elem in elements_to_drop:
             #print(describe(elem))
             elem.drop_tree()
-        print(self.html.xpath("//div[@class='newstext']"))
-        #print(self.html.xpath("//div[@class='swm_container']"))
         #print(self.html.xpath("//div[@class='layout__container']"))
         #print(etree.tostring(self.html, pretty_print=True))
         #print(len(elements_to_drop))

@@ -4,6 +4,7 @@ from mprorp.db.models import *
 from datetime import datetime
 from sqlalchemy import desc
 import numpy as np
+import uuid
 
 session = Driver.DBSession()
 
@@ -271,6 +272,7 @@ def put_ner_feature(doc_id, records, feature_type, feature=None, new_status=0):
     for record in records:
         new_feature = NERFeature(doc_id=doc_id, feature_type=feature_type, word_index=record['word_index'],
                                  sentence_index=record['sentence_index'], value=record['value'])
+        print(new_feature.value)
         # print(record['feature'], feature if not (feature is None) else record['feature'])
         new_feature.feature = feature if not (feature is None) else record['feature']
         session.add(new_feature)
@@ -290,6 +292,20 @@ def get_ner_feature(doc_id):
     return result
 
 
+def get_ner_feature_for_set(set_id, feature=None):
+    training_set = session.query(TrainingSet).filter(TrainingSet.set_id == set_id).one()
+    all_words = session.query(NERFeature).filter(
+        NERFeature.doc_id.in_(training_set.doc_ids) & NERFeature.feature == feature).order_by(
+        NERFeature.sentence_index, NERFeature.word_index).all()
+    result = {}
+    for word in all_words:
+        doc_id = str(word.doc_id)
+        if result.get(doc_id, None) is None:
+            result[doc_id] = []
+        result[doc_id].append((word.sentence_index, word.word_index, word.value))
+    return result
+
+
 def put_tomita_result(doc_id, grammar, result, new_status):
     session.query(TomitaResult).filter((TomitaResult.doc_id == doc_id) & (TomitaResult.grammar == grammar)).delete()
     session.add(TomitaResult(doc_id=doc_id, grammar=grammar, result=result))
@@ -306,14 +322,29 @@ def get_tomita_results(doc_id, grammars):
     return [i[0] for i in res]
 
 
-def put_markup(doc_id, name, classes, markup_type, new_status):
+def put_markup(doc_id, name, classes, markup_type, refs, new_status):
     new_markup = Markup(document=doc_id, name=name, entity_classes=classes, type=markup_type)
+    new_markup.markup_id = uuid.uuid1()
     session.add(new_markup)
+    markup_for_doc = {}
+    entities = {}
+    for ref in refs:
+        ref_id = str(uuid.uuid1())
+        markup_for_doc[ref_id] = {'set': new_markup.markup_id,
+                                  'class': ref['entity_class'],
+                                  'entity': ref['entity'],
+                                  'start_offset': ref['start_offset'],
+                                  'end_offset': ref['end_offset']}
+        session.add(Reference(reference_id=ref_id, markup=new_markup.markup_id, entity_class=ref['entity_class'],
+                              entity=ref['entity'], start_offset=ref['start_offset'], end_offset=ref['end_offset']))
+        entities[ref['entity']] = ''
+    doc = session.query(Document).filter(Document.doc_id == doc_id).one()
+    doc.markup = markup_for_doc
+    doc.entity_ids = entities.keys()
     if new_status > 0:
-        doc = session.query(Document).filter(Document.doc_id == doc_id).one()
         doc.status = new_status
     session.commit()
-    return new_markup.markup_id
+
 
 
 def put_references(doc_id, markup, refs, new_status=0):
@@ -324,6 +355,19 @@ def put_references(doc_id, markup, refs, new_status=0):
         doc = session.query(Document).filter(Document.doc_id == doc_id).one()
         doc.status = new_status
     session.commit()
+
+
+def get_references_for_set(set_id, markup_type = '10'):
+    training_set = session.query(TrainingSet).filter(TrainingSet.set_id == set_id).one()
+    all_refs = session.query(Reference).join(Markup).filter(
+            Markup.doc_id.in_(training_set.doc_ids) & Markup.type == markup_type).order_by(Reference.start_offset).all()
+    result = {}
+    for ref in all_refs:
+        doc_id = str(ref.document)
+        if result.get(doc_id, None) is None:
+            result[doc_id] = []
+        result[doc_id].append((ref.start_offset, ref.end_offset, ref.entity_class))
+    return result
 
 
 def del_markup(markup_id=None, markup_type=None):
@@ -345,6 +389,15 @@ def get_word_embedding(embedding, lemma):
         return None
     else:
         return res[0]
+
+
+def get_multi_word_embedding(embedding, lemmas):
+    res = session.query(WordEmbedding).filter(
+        (WordEmbedding.embedding == embedding) & (WordEmbedding.lemma.in_(lemmas))).all()
+    if res is None:
+        return None
+    else:
+        return {i.lemma: i.vector for i in res}
 
 
 def put_tomita_grammar(name, files, config_file):

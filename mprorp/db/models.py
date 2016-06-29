@@ -88,6 +88,10 @@ class Document(Base):
     rubric_ids = Column(ARRAY(UUIDType(binary=False), ForeignKey('rubrics.rubric_id')))
     # model type: vk/article
     type = Column(String(255), nullable=False)
+    # markup with entities
+    markup = Column(JSONB())
+    # entities of markup
+    entity_ids = Column(ARRAY(UUIDType(binary=False), ForeignKey('entities.entity_id')))
 
 
 class Record(Base):
