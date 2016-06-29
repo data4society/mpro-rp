@@ -22,6 +22,7 @@ def list_make(text):
                     line = text[n]
                     line = re.sub(' , ', ', ', line)
                     line = re.sub(' \\.', '.', line)
+                    line = re.sub(' : ', ': ', line)
                     line = line + ' '
         if 'TOMITA =' in text[n]:
             fact = re.findall('TOMITA = (.*)', text[n])[0]
@@ -32,7 +33,7 @@ def list_make(text):
                 symbols = str(first_symbol + len_of_line) + ':' + str(last_symbol + len_of_line)
                 out[symbols] = name_fact
                 line = line[last_symbol:]
-            len_of_line += last_symbol
+                len_of_line += last_symbol
     return out
 
 

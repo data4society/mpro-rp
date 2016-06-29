@@ -25,3 +25,4 @@ def run_tomita(grammar, doc_id, status=0):
 #print(run_tomita('date.cxx', '000e82b8-6ea7-41f4-adc6-bc688fbbeeb6', status=0))
 #print(run_tomita('person.cxx', '000e82b8-6ea7-41f4-adc6-bc688fbbeeb6', status=0))
 #print(run_tomita('loc.cxx', '000e82b8-6ea7-41f4-adc6-bc688fbbeeb6', status=0))
+#print(run_tomita('date.cxx', '75fa182d-7fbc-4ec7-bbfd-fc4d743e8834', status=0))
