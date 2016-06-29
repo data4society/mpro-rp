@@ -272,6 +272,7 @@ def put_ner_feature(doc_id, records, feature_type, feature=None, new_status=0):
     for record in records:
         new_feature = NERFeature(doc_id=doc_id, feature_type=feature_type, word_index=record['word_index'],
                                  sentence_index=record['sentence_index'], value=record['value'])
+        print(new_feature.value)
         # print(record['feature'], feature if not (feature is None) else record['feature'])
         new_feature.feature = feature if not (feature is None) else record['feature']
         session.add(new_feature)
@@ -328,7 +329,7 @@ def put_markup(doc_id, name, classes, markup_type, refs, new_status):
     markup_for_doc = {}
     entities = {}
     for ref in refs:
-        ref_id = uuid.uuid1()
+        ref_id = str(uuid.uuid1())
         markup_for_doc[ref_id] = {'set': new_markup.markup_id,
                                   'class': ref['entity_class'],
                                   'entity': ref['entity'],
