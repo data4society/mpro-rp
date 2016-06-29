@@ -19,6 +19,7 @@ def build_doc(page):
     
     # XXX: we have to do .decode and .encode even for utf-8 pages to remove bad characters
     doc = lxml.html.document_fromstring(decoded_page.encode('utf-8', 'replace'), parser=utf8_parser)
+    #print(doc.text_content())
     return doc, encoding
 
 def js_re(src, pattern, flags, repl):

@@ -177,6 +177,7 @@ class Document:
                 }
 
                 self.compute(self.html, res, candidates)
+                print("TUT")
                 best_candidate = self.select_best_candidate(candidates)
 
                 #print(res)
@@ -206,6 +207,8 @@ class Document:
                 retry_length = self.retry_length
                 of_acceptable_length = article_length >= retry_length
                 if ruthless and not of_acceptable_length:
+                    print("CONT")
+                    print(cleaned_article)
                     ruthless = False
                     # Loop through and try again.
                     continue
@@ -268,41 +271,55 @@ class Document:
         #    output.append(best_elem)
         return output
 
-    def compute(self, elem, res, candidates):
+    def compute(self, elem, res, candidates, linked=False):
         chars = 0
         tags = 1
         hyperchars = 0
         sum = 0
 
+        linked = linked or (elem.tag in ['button','a','option'])
         #children = elem.getchildren()
         children = elem.xpath("child::node()")
         for child in children:
-            if type(child) == HtmlElement:
-                child_chars, child_tags, child_hyperchars, child_score = self.compute(child, res, candidates)
+            if isinstance(child, HtmlElement):
+                child_chars, child_tags, child_hyperchars, child_score = self.compute(child, res, candidates, linked)
                 chars += child_chars
                 tags += child_tags
                 hyperchars += child_hyperchars
                 sum += child_score
-                #if describe(elem) == '#content-area>div{04}':
-                #    print(describe(child), child.tag, child_chars, child_tags, child_hyperchars, child_score)
-                #    print(child.text_content())
+                #if describe(elem) == 'html>body#readabilityBody':
+                #print(describe(elem), describe(child), child.tag, child_chars, child_tags, child_hyperchars, child_score)
+                #print(child.text_content())
             else:
-                sum += self.comp_score(len(child), 1, 0)
+                #print(len(child))
+                child = str(child).strip()
+                child_text_len = len(child)
+                sum += child_text_len
+                #sum += self.comp_score(child_text_len, 1, 0)
+                chars += child_text_len
+                #if describe(elem) == 'article.item>h3.article_subheader':
+                #    print(child_text_len)
+                #print(child)
 
         #if describe(elem) == 'div{04}>p{08}':
         #    print(elem.xpath(".//*"))
         #    print(elem.tail,elem.text)
-
-        if len(children) == 0:
-            chars = text_length(elem)
-        if elem.tag in ['button','a','option']:
+        #if len(children) == 1:
+        #    chars = text_length(elem)
+        if linked:
             hyperchars = chars
-
+            #print("AAAAAAA", elem.tag, describe(elem))
         #chars_of_text_blocks = text_length(elem)-chars
         #sum += self.comp_score(chars_of_text_blocks, 1, 0)
 
 
         score = self.comp_score(chars, tags, hyperchars)
+        #if describe(elem) == '.static>p{04}':
+        #print(describe(elem), chars, tags, hyperchars, score, sum)
+        #print(elem.text_content())
+        #if describe(elem) == 'article.item>h3.article_subheader':
+        #    print(elem.text_content())
+        #    exit()
 
         s = "%s %s %s" % (elem.get('class', ''), elem.get('id', ''), elem.tag)
         if REGEXES['r2BadContent'].search(s):
@@ -475,7 +492,7 @@ class Document:
 
     def remove_unlikely_candidates(self):
         #print(etree.tostring(self.html, pretty_print=True))
-        #print(self.html.xpath("//div[@class='swm_container']"))
+        print(self.html.xpath("//div[@class='newstext']"))
         #print(self.html.xpath('count(.//*)'))
         ind = 0
         elements_to_drop = []
@@ -494,6 +511,7 @@ class Document:
         for elem in elements_to_drop:
             #print(describe(elem))
             elem.drop_tree()
+        print(self.html.xpath("//div[@class='newstext']"))
         #print(self.html.xpath("//div[@class='swm_container']"))
         #print(self.html.xpath("//div[@class='layout__container']"))
         #print(etree.tostring(self.html, pretty_print=True))
