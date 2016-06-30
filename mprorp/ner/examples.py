@@ -9,6 +9,7 @@ import mprorp.ner.morpho_to_vec as mystem_to_vec
 from os.path import expanduser
 import os
 import mprorp.ner.tomita_to_markup as tomita_to_markup
+from mprorp.tomita.tomita_run import run_tomita
 
 # regular processes with tomita
 # doc_id = '000e82b8-6ea7-41f4-adc6-bc688fbbeeb6'
@@ -16,11 +17,15 @@ import mprorp.ner.tomita_to_markup as tomita_to_markup
 #     regular_tomita(i, doc_id)
 
 # create tomita features
-doc_id = '000e82b8-6ea7-41f4-adc6-bc688fbbeeb6'
+doc_id = '75fa182d-7fbc-4ec7-bbfd-fc4d743e8834'
 rb.morpho_doc(doc_id)
 print(db.get_morpho(doc_id))
+print(db.get_doc(doc_id))
+grammars = ['date.cxx', 'person.cxx']
+run_tomita(grammars[0], doc_id)
+run_tomita(grammars[1], doc_id)
 ner_feature.create_tomita_feature(doc_id, ['date.cxx', 'person.cxx'])
-tomita_to_markup.convert_tomita_result_to_markup(doc_id, ['person.cxx'])
+# tomita_to_markup.convert_tomita_result_to_markup(doc_id, ['person.cxx'])
 
 # Create embedding feature
 # doc_id = '000e82b8-6ea7-41f4-adc6-bc688fbbeeb6'
@@ -70,5 +75,11 @@ tomita_to_markup.convert_tomita_result_to_markup(doc_id, ['person.cxx'])
 #                     'n_1': 500, 'n_2': 10}
 # model_id = db.put_ner_model(embedding, gazetteers, tomita_facts, morpho_features, hyper_parameters)
 
-home = expanduser("~")
-print(os.getcwd())
+#
+# import mprorp.db.dbDriver as Driver
+# from mprorp.db.models import *
+# session = Driver.DBSession()
+# tr_set = []
+# res = session.query(Document.doc_id).filter(Document.type == 'oc').limit(5).all()
+# for i in res:
+#     tr_set.append(str(i))
