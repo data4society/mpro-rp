@@ -2,7 +2,7 @@
 
 Pers -> Word<kwtype="FIO"> interp(PersonFact_TOMITA.Person_TOMITA::not_norm);
 
-Wrong -> Word<kwset=~['street', 'location_front', 'location_back', "FIO"]>;
+Wrong -> AnyWord<kwset=~['street', 'location_front', 'location_back', "FIO"]>;
 
 Pers0 -> Pers  Wrong | Pers  Punct;
 Pers1 -> Pers<fw> Punct;

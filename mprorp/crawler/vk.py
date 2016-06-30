@@ -8,6 +8,7 @@ from mprorp.db.models import *
 from requests import Request, Session
 import json
 import datetime
+from mprorp.crawler.utils import *
 
 #import logging
 #logging.basicConfig(format = u'%(filename)s[LINE:%(lineno)d]# %(levelname)-8s [%(asctime)s]  %(message)s', level = logging.DEBUG)
@@ -69,8 +70,10 @@ def vk_parse_item(item, doc_id):
     new_doc = Document(doc_id=doc_id)
     # main text
     txt = item["text"]
+    stripped = strip_tags('<html><body>' + txt + '</body></html>')
+    stripped = to_plain_text(stripped)
     new_doc.doc_source = txt
-    new_doc.stripped = txt
+    new_doc.stripped = stripped
     # publish date timestamp
     timestamp = item["date"]
     new_doc.published_date = datetime.datetime.fromtimestamp(timestamp)
