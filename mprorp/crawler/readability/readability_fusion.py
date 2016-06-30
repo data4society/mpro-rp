@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+"""readability algorithm which is fusion of lxml-readability and readability2"""
 from __future__ import print_function
 import logging
 import re
@@ -11,14 +11,14 @@ from lxml.etree import tounicode
 from lxml.html import document_fromstring
 from lxml.html import fragment_fromstring
 
-from .cleaners import clean_attributes
-from .cleaners import html_cleaner
-from .htmls import build_doc
-from .htmls import get_body
-from .htmls import get_title
-from .htmls import shorten_title
-from .compat import str_
-from .debug import describe, text_content
+from readability.cleaners import clean_attributes
+from readability.cleaners import html_cleaner
+from readability.htmls import build_doc
+from readability.htmls import get_body
+from readability.htmls import get_title
+from readability.htmls import shorten_title
+from readability.compat import str_
+from readability.debug import describe, text_content
 from lxml.html import HtmlElement
 
 from lxml import etree
@@ -187,17 +187,13 @@ class Document:
                             html_partial=html_partial)
                 else:
                     if ruthless:
-                        log.info("ruthless removal did not work. ")
+                        #log.info("ruthless removal did not work. ")
                         ruthless = False
-                        log.debug(
-                            ("ended up stripping too much - "
-                             "going for a safer _parse"))
+                        #log.debug("ended up stripping too much - going for a safer _parse")
                         # try again
                         continue
                     else:
-                        log.debug(
-                            ("Ruthless and lenient parsing did not work. "
-                             "Returning raw html"))
+                        #log.debug("Ruthless and lenient parsing did not work. Returning raw html")
                         article = self.html.find('body')
                         if article is None:
                             article = self.html
@@ -353,9 +349,7 @@ class Document:
         )
         for candidate in sorted_candidates[:5]:
             elem = candidate['elem']
-            log.info("Top 5 : %6.3f %s" % (
-                candidate['content_score'],
-                describe(elem)))
+            #log.info("Top 5 : %6.3f %s" % (candidate['content_score'],describe(elem)))
             #print("BEST",describe(elem),candidate['content_score'])
 
         best_candidate = sorted_candidates[0]
@@ -418,12 +412,8 @@ class Document:
             ld = self.get_link_density(elem)
             score = candidate['content_score']
 
-            log.debug("Branch %6.3f %s link density %.3f -> %6.3f" % (
-                score,
-                describe(elem),
-                ld,
-                score * (1 - ld)))
-            print(describe(elem), score)#, ld, score * (1 - ld))
+            #("Branch %6.3f %s link density %.3f -> %6.3f" % (score,describe(elem),ld,score * (1 - ld)))
+            #print(describe(elem), score)#, ld, score * (1 - ld))
             #candidate['content_score'] *= (1 - ld)
 
         return candidates
@@ -510,7 +500,7 @@ class Document:
             if len(s) < 2:
                 continue
             if REGEXES['unlikelyCandidatesRe'].search(s) and (not REGEXES['okMaybeItsACandidateRe'].search(s)) and elem.tag not in ['html', 'body']:
-                log.debug("Removing unlikely candidate - %s" % describe(elem))
+                #("Removing unlikely candidate - %s" % describe(elem))
                 elements_to_drop.append(elem)
                 # elem.drop_tree()
         for elem in elements_to_drop:
@@ -597,8 +587,7 @@ class Document:
             tag = el.tag
 
             if weight + content_score < 0:
-                log.debug("Removed %s with score %6.3f and weight %-3s" %
-                    (describe(el), content_score, weight, ))
+                #log.debug("Removed %s with score %6.3f and weight %-3s" %(describe(el), content_score, weight, ))
                 el.drop_tree()
             elif el.text_content().count(",") < 10:
                 counts = {}
@@ -698,19 +687,18 @@ class Document:
                     #log.debug(str_(siblings))
                     if siblings and sum(siblings) > 1000:
                         to_remove = False
-                        log.debug("Allowing %s" % describe(el))
+                        #log.debug("Allowing %s" % describe(el))
                         for desnode in self.tags(el, "table", "ul", "div"):
                             allowed[desnode] = True
 
                 if to_remove:
-                    log.debug("Removed %6.3f %s with weight %s cause it has %s." %
-                        (content_score, describe(el), weight, reason))
+                    #log.debug("Removed %6.3f %s with weight %s cause it has %s." %(content_score, describe(el), weight, reason))
                     #print tounicode(el)
                     #log.debug("pname %s pweight %.3f" %(pname, pweight))
                     el.drop_tree()
                 else:
-                    log.debug("Not removing %s of length %s: %s" % (
-                        describe(el), content_length, text_content(el)))
+                    #log.debug("Not removing %s of length %s: %s" % (describe(el), content_length, text_content(el)))
+                    pass;
 
         self.html = node
         return self.get_clean_html()

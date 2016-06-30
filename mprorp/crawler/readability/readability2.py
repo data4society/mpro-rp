@@ -7,7 +7,9 @@ import urllib.request
 def find_full_text(html_source):
     doc = Doc(html_source)
     content = doc.summary()
+    confidence = doc.get_confidence()
+    #print(confidence)
 
     stripped = strip_tags(content)
     stripped = to_plain_text(stripped)
-    return stripped
+    return stripped, confidence

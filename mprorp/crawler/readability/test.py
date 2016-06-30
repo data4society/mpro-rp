@@ -22,7 +22,7 @@ cloudflare_links = ['http://podrobnosti.ua/2115445-frantsuzy-edut-rassledovat-za
     'http://u-f.ru/News/politics/u9/2016/06/18/101730',
     'http://newsday24.org/11294-savchenko-ustala-ot-takoy-zhizni.html']
 
-bad_links = ['http://pskov.riasv.ru/news/vo_frantsii_arestovali_krupnogo_pskovskogo_zemlevl/1110912/', 'http://news-russia.info/2016/06/21/gricak-kosvenno-priznal-chto-lager-dzhihadistov-mog-zhit-v/', 'http://podrobnosti.ua/2115445-frantsuzy-edut-rassledovat-zaderzhanie-sbu-terrorista.html', 'http://poliksal.ru/novosti-v-mire/45953-savchenko-prizvala-zapad-ostanovit-rossiyu-na-ukrainskoy-granice.html', 'http://ryb.ru/2016/06/21/348972', 'http://ryb.ru/2016/06/21/348890', 'http://ryb.ru/2016/06/21/349088', 'http://lastnews.com.ua/novosti-ukraini/515506-ne-zhelayu-nikomu-imet-takogo-soseda-kak-rossiya.html', 'http://poliksal.ru/novosti-rosii/45899-novye-shokiruyuschie-zayavleniya-savchenko-ona-rasskazala-miru-o-planah-kremlya-zavoevat-evropu.html', 'http://poliksal.ru/novosti-v-mire/45894-v-strasburge-savchenko-prizvala-evropu-dressirovat-rossiyu.html', 'http://news-russia.info/2016/06/21/v-plen-terroristov-lnr-ugodila-ukrainskaya-zhurnalistka/', 'http://www.aysor.am/ru/news/2016/06/21/%D1%81%D0%B5%D1%84%D0%B8%D0%BB%D1%8F%D0%BD/1100847', 'http://news.am/rus/news/333253.html', 'http://lratvakan.com/news/212802.html', 'http://news.am/rus/news/333232.html', 'http://news.am/rus/news/333247.html', 'http://u-f.ru/News/politics/u9/2016/06/18/101730', 'http://news-russia.info/2016/06/21/v-ukraine-net-baz-podgotovki-dzhihadistov-gricak/', 'http://newsday24.org/11294-savchenko-ustala-ot-takoy-zhizni.html']
+bad_links = ['http://pskov.riasv.ru/news/vo_frantsii_arestovali_krupnogo_pskovskogo_zemlevl/1110912/', 'http://podrobnosti.ua/2115445-frantsuzy-edut-rassledovat-zaderzhanie-sbu-terrorista.html', 'http://poliksal.ru/novosti-v-mire/45953-savchenko-prizvala-zapad-ostanovit-rossiyu-na-ukrainskoy-granice.html', 'http://ryb.ru/2016/06/21/348972', 'http://ryb.ru/2016/06/21/348890', 'http://ryb.ru/2016/06/21/349088', 'http://krasnews.com/world/218923/', 'http://poliksal.ru/novosti-rosii/45899-novye-shokiruyuschie-zayavleniya-savchenko-ona-rasskazala-miru-o-planah-kremlya-zavoevat-evropu.html', 'http://poliksal.ru/novosti-v-mire/45894-v-strasburge-savchenko-prizvala-evropu-dressirovat-rossiyu.html', 'http://www.aysor.am/ru/news/2016/06/21/%D1%81%D0%B5%D1%84%D0%B8%D0%BB%D1%8F%D0%BD/1100847', 'http://news.am/rus/news/333253.html', 'http://lratvakan.com/news/212802.html', 'http://news.am/rus/news/333232.html', 'http://news.am/rus/news/333247.html', 'http://u-f.ru/News/politics/u9/2016/06/18/101730', 'http://newsday24.org/11294-savchenko-ustala-ot-takoy-zhizni.html']
 
 
 def create_table(func, out_path):
@@ -40,6 +40,21 @@ def create_table(func, out_path):
                         spamwriter.writerow(row)
                 ind += 1
 
+def create_table_with_confidence(func, out_path):
+    with open(out_path, 'w') as csvnewfile:
+        spamwriter = csv.writer(csvnewfile)
+        with open('corpus/readability_corpus.csv', 'r') as csvfile:
+            spamreader = csv.reader(csvfile)
+            ind = 1
+            for row in spamreader:
+                if not row[0] in bad_links:
+                    with open('corpus/docs/' + str(ind) + '.html', 'rb') as f:
+                        text = f.read()
+                        text, confidence = func(text)
+                        row.append(text)
+                        row.append(confidence)
+                        spamwriter.writerow(row)
+                ind += 1
 
 def create_table_remote(func, out_path):
     with open(out_path, 'w') as csvnewfile:
@@ -70,12 +85,15 @@ def get_final_estimate(in_path):
     estimates90 = 0
     estimates100 = 0
     bads = 0
+    confidence = 0
     with open(in_path, 'r') as csvfile:
         spamreader = csv.reader(csvfile)
         for row in spamreader:
             #if not row[0] in cloudflare_links:
             if row[2] != 'ERROR':
-                estim = float(row[3])
+                estim = float(row[len(row)-1])
+                if len(row) == 5:
+                    confidence += float(row[3])
                 # print(estim)
                 estimates.append(estim)
                 if estim >= 10:
@@ -91,6 +109,7 @@ def get_final_estimate(in_path):
     print('Среднее: ' + str(float(sum(estimates))/len(estimates)))
     print('Среднее без плохих: ' + str(float(sum(estimates1))/len(estimates1)))
     print('Плохие: ' + str(bads*100/len(estimates)) + '%')
+    print('Уверенность: ' + str(confidence*100/len(estimates)) + '%')
     print('>=90: ' + str(estimates90*100/len(estimates)) + '%')
     print('100: ' + str(estimates100*100/len(estimates)) + '%')
 
@@ -160,19 +179,20 @@ if __name__ == '__main__':
         html_source = f.read()
     from readability.htmls import build_doc
     from lxml.html import HtmlElement
+
     html, encoding = build_doc(html_source)
     body = html.xpath("//body")[0]
     children = body.getchildren()
-    #children = body.xpath("child::node()")
+    # children = body.xpath("child::node()")
     for child in children:
         if type(child) == HtmlElement:
-            print("tag",child.tag, child.get('class', ''))
+            print("tag", child.tag, child.get('class', ''))
             # if describe(elem) == '#content-area>div{04}':
             #    print(describe(child), child.tag, child_chars, child_tags, child_hyperchars, child_score)
             #    print(child.text_content())
         else:
             pass;
-            #print("text",len(child))
+            # print("text",len(child))
             # print(len(child))
             # sum += len(child)#self.comp_score(len(child), 1, 0)
     exit()
@@ -188,7 +208,7 @@ if __name__ == '__main__':
     #exit()
     #estimate_estimate()
 
-    create_table(read2.find_full_text, 'corpus/read2.csv')
+    create_table_with_confidence(read2.find_full_text, 'corpus/read2.csv')
     create_estimates_table('corpus/read2.csv', 'corpus/read2_estimates.csv')
     print('Алгоритм readability2')
     get_final_estimate('corpus/read2_estimates.csv')
@@ -217,3 +237,6 @@ if __name__ == '__main__':
     #print(read_com.find_full_text('http://www.moscow-post.com/news/society/vitse-premjer_karelii_popal_pod_podozrenie94812/'))
     #find_errors()
 
+
+
+# select guid from documents where source_id='71dc5343-c27d-44bf-aa76-f4d8085317fe' order by created asc

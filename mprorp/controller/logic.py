@@ -12,6 +12,7 @@ import logging
 
 VK_COMPLETE_STATUS = 19
 GOOGLE_NEWS_INIT_STATUS = 20
+SITE_PAGE_LOADING_FAILED = 91
 SITE_PAGE_COMPLETE_STATUS = 99
 MORPHO_COMPLETE_STATUS = 100
 LEMMAS_COMPLETE_STATUS = 101
@@ -38,8 +39,10 @@ facts = ['Person']
 def router(doc_id, status):
     logging.info("route doc: " + str(doc_id) + " status: " + str(status))
     if status == GOOGLE_NEWS_INIT_STATUS:  # to find full text of HTML page
+        print("to find full text of HTML page")
         regular_find_full_text.delay(doc_id, SITE_PAGE_COMPLETE_STATUS)
-    if status < 100 and status%10 == 9:  # to morpho
+    elif status < 100 and status%10 == 9:  # to morpho
+        print("to morpho")
         doc_id = str(doc_id)
         regular_morpho.delay(doc_id, MORPHO_COMPLETE_STATUS)
     elif status == MORPHO_COMPLETE_STATUS:  # to lemmas
@@ -62,7 +65,7 @@ def router(doc_id, status):
 # parsing HTML page to find full text
 @app.task
 def regular_find_full_text(doc_id, new_status):
-    find_full_text(doc_id, new_status)
+    find_full_text(doc_id, new_status, SITE_PAGE_LOADING_FAILED)
     router(doc_id, new_status)
 
 # morphologia
