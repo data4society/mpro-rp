@@ -70,7 +70,7 @@ def vk_parse_item(item, doc_id):
     new_doc = Document(doc_id=doc_id)
     # main text
     txt = item["text"]
-    stripped = strip_tags(txt)
+    stripped = strip_tags('<html><body>' + txt + '</body></html>')
     stripped = to_plain_text(stripped)
     new_doc.doc_source = txt
     new_doc.stripped = stripped
