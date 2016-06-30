@@ -13,3 +13,8 @@ trial "Суд"
 {
  key = { "trials_rf.txt" type=FILE }
 }
+
+OOO "OOO"
+{
+ key = { "org_ooo.txt" type=FILE }
+}

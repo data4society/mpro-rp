@@ -15,7 +15,6 @@ def list_make(text, source_name):
     sourse = re.sub('\n', ' ', sourse)
     out = {}
     len_of_line = 0
-    line = ''
     for n in range(len(text)):
         if 'TOMITA =' in text[n]:
             fact = re.findall('TOMITA = (.*)', text[n])[0]
