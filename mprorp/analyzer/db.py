@@ -337,7 +337,8 @@ def put_markup(doc_id, name, classes, markup_type, refs, new_status):
                                   'class': ref['entity_class'],
                                   'entity': ref['entity'],
                                   'start_offset': ref['start_offset'],
-                                  'end_offset': ref['end_offset']}
+                                  'end_offset': ref['end_offset'],
+                                  'len_offset': ref['len_offset']}
         session.add(Reference(reference_id=ref_id, markup=new_markup.markup_id, entity_class=ref['entity_class'],
                               entity=ref['entity'], start_offset=ref['start_offset'], end_offset=ref['end_offset']))
         entities[ref['entity']] = ''

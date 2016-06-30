@@ -17,14 +17,14 @@ from mprorp.tomita.tomita_run import run_tomita
 #     regular_tomita(i, doc_id)
 
 # create tomita features
-doc_id = '75fa182d-7fbc-4ec7-bbfd-fc4d743e8834'
-rb.morpho_doc(doc_id)
-print(db.get_morpho(doc_id))
-print(db.get_doc(doc_id))
-grammars = ['date.cxx', 'person.cxx']
-run_tomita(grammars[0], doc_id)
-run_tomita(grammars[1], doc_id)
-ner_feature.create_tomita_feature(doc_id, ['date.cxx', 'person.cxx'])
+# doc_id = '75fa182d-7fbc-4ec7-bbfd-fc4d743e8834'
+# rb.morpho_doc(doc_id)
+# print(db.get_morpho(doc_id))
+# print(db.get_doc(doc_id))
+# grammars = ['date.cxx', 'person.cxx']
+# run_tomita(grammars[0], doc_id)
+# run_tomita(grammars[1], doc_id)
+# ner_feature.create_tomita_feature(doc_id, ['date.cxx', 'person.cxx'])
 # tomita_to_markup.convert_tomita_result_to_markup(doc_id, ['person.cxx'])
 
 # Create embedding feature
@@ -76,10 +76,13 @@ ner_feature.create_tomita_feature(doc_id, ['date.cxx', 'person.cxx'])
 # model_id = db.put_ner_model(embedding, gazetteers, tomita_facts, morpho_features, hyper_parameters)
 
 #
-# import mprorp.db.dbDriver as Driver
-# from mprorp.db.models import *
-# session = Driver.DBSession()
-# tr_set = []
-# res = session.query(Document.doc_id).filter(Document.type == 'oc').limit(5).all()
-# for i in res:
-#     tr_set.append(str(i))
+import mprorp.db.dbDriver as Driver
+from mprorp.db.models import *
+session = Driver.DBSession()
+tr_set = []
+res = session.query(Document.doc_id).filter(Document.type == 'oc').limit(5).all()
+for i in res:
+    tr_set.append(str(i[0]))
+print(db.put_training_set(tr_set))
+
+tr_set = '7436d611-f196-403f-98a1-f17024e96d94' # docs with markup
