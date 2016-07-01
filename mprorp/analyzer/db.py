@@ -342,15 +342,16 @@ def put_references(doc_id, markup, refs, new_status=0):
 
 def get_references_for_set(set_id, markup_type = '10'):
     training_set = session.query(TrainingSet).filter(TrainingSet.set_id == set_id).one()
-    all_refs = session.query(Reference).join(Markup).filter(
-            Markup.doc_id.in_(training_set.doc_ids) & Markup.type == markup_type).order_by(Reference.start_offset).all()
-    result = {}
+    all_refs = session.query(Reference,Markup).join(Markup).filter(
+        Markup.document.in_(training_set.doc_ids) & (Markup.type == markup_type)).order_by(Reference.start_offset).all()
+    resultt = {}
     for ref in all_refs:
-        doc_id = str(ref.document)
-        if result.get(doc_id, None) is None:
-            result[doc_id] = []
-        result[doc_id].append((ref.start_offset, ref.end_offset, ref.entity_class))
-    return result
+        print(ref[1])
+        doc_id = str(ref[1].document)
+        if resultt.get(doc_id, None) is None:
+            resultt[doc_id] = []
+        resultt[doc_id].append((ref[0].start_offset, ref[0].end_offset, ref[0].entity_class))
+    return resultt
 
 
 def del_markup(markup_id=None, markup_type=None):

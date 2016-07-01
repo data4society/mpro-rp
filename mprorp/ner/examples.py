@@ -1,13 +1,13 @@
-from mprorp.ner.regular import regular_entities
-from mprorp.tomita.regular import regular_tomita, grammar_count
+#from mprorp.ner.regular import regular_entities
+#from mprorp.tomita.regular import regular_tomita, grammar_count
 import mprorp.analyzer.db as db
 import mprorp.ner.feature as ner_feature
 import mprorp.analyzer.rubricator as rb
-from mprorp.analyzer.pymystem3_w import Mystem
-import numpy as np
-import mprorp.ner.morpho_to_vec as mystem_to_vec
-from os.path import expanduser
-import os
+#from mprorp.analyzer.pymystem3_w import Mystem
+#import numpy as np
+#import mprorp.ner.morpho_to_vec as mystem_to_vec
+#from os.path import expanduser
+#import os
 
 # regular processes with tomita
 # doc_id = '000e82b8-6ea7-41f4-adc6-bc688fbbeeb6'
@@ -68,5 +68,9 @@ import os
 #                     'n_1': 500, 'n_2': 10}
 # model_id = db.put_ner_model(embedding, gazetteers, tomita_facts, morpho_features, hyper_parameters)
 
-home = expanduser("~")
-print(os.getcwd())
+set_id = '7436d611-f196-403f-98a1-f17024e96d94'
+# doc_id = '000e82b8-6ea7-41f4-adc6-bc688fbbeeb6'
+# for doc_id in db.get_set_docs(set_id):
+#     rb.morpho_doc(doc_id)
+
+ner_feature.create_answers_feature(set_id)
