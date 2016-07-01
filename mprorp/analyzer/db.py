@@ -4,6 +4,7 @@ from mprorp.db.models import *
 from datetime import datetime
 from sqlalchemy import desc
 import numpy as np
+import uuid
 
 session = Driver.DBSession()
 
@@ -38,6 +39,11 @@ def put_lemmas(doc_id, lemmas, new_status):
 # reading lemmas frequently of document from db
 def get_lemmas(doc_id):
     return session.query(Document.lemmas).filter(Document.doc_id == doc_id).one().lemmas
+
+
+# reading lemmas frequently of document from db
+def get_markup_from_doc(doc_id):
+    return session.query(Document.markup).filter(Document.doc_id == doc_id).one().markup
 
 
 # reading lemmas frequently of all documents in training set from db
@@ -271,6 +277,7 @@ def put_ner_feature(doc_id, records, feature_type, feature=None, new_status=0):
     for record in records:
         new_feature = NERFeature(doc_id=doc_id, feature_type=feature_type, word_index=record['word_index'],
                                  sentence_index=record['sentence_index'], value=record['value'])
+        # print(new_feature.value)
         # print(record['feature'], feature if not (feature is None) else record['feature'])
         new_feature.feature = feature if not (feature is None) else record['feature']
         session.add(new_feature)
@@ -293,7 +300,7 @@ def get_ner_feature(doc_id):
 def get_ner_feature_for_set(set_id, feature=None):
     training_set = session.query(TrainingSet).filter(TrainingSet.set_id == set_id).one()
     all_words = session.query(NERFeature).filter(
-        NERFeature.doc_id.in_(training_set.doc_ids) & NERFeature.feature == feature).order_by(
+        NERFeature.doc_id.in_(training_set.doc_ids) & (NERFeature.feature == feature)).order_by(
         NERFeature.sentence_index, NERFeature.word_index).all()
     result = {}
     for word in all_words:
@@ -320,14 +327,32 @@ def get_tomita_results(doc_id, grammars):
     return [i[0] for i in res]
 
 
-def put_markup(doc_id, name, classes, markup_type, new_status):
+def put_markup(doc_id, name, classes, markup_type, refs, new_status):
     new_markup = Markup(document=doc_id, name=name, entity_classes=classes, type=markup_type)
+    new_markup.markup_id = uuid.uuid1()
     session.add(new_markup)
+
+    session.commit()
+
+    markup_for_doc = {}
+    entities = {}
+    for ref in refs:
+        ref_id = str(uuid.uuid1())
+        markup_for_doc[ref_id] = {'set': str(new_markup.markup_id),
+                                  'class': ref['entity_class'],
+                                  'entity': ref['entity'],
+                                  'start_offset': ref['start_offset'],
+                                  'end_offset': ref['end_offset'],
+                                  'len_offset': ref['len_offset']}
+        session.add(Reference(reference_id=ref_id, markup=new_markup.markup_id, entity_class=ref['entity_class'],
+                              entity=ref['entity'], start_offset=ref['start_offset'], end_offset=ref['end_offset']))
+        entities[ref['entity']] = ''
+    doc = session.query(Document).filter(Document.doc_id == doc_id).one()
+    doc.markup = markup_for_doc
+    doc.entity_ids = entities.keys()
     if new_status > 0:
-        doc = session.query(Document).filter(Document.doc_id == doc_id).one()
         doc.status = new_status
     session.commit()
-    return new_markup.markup_id
 
 
 def put_references(doc_id, markup, refs, new_status=0):
@@ -342,16 +367,15 @@ def put_references(doc_id, markup, refs, new_status=0):
 
 def get_references_for_set(set_id, markup_type = '10'):
     training_set = session.query(TrainingSet).filter(TrainingSet.set_id == set_id).one()
-    all_refs = session.query(Reference,Markup).join(Markup).filter(
-        Markup.document.in_(training_set.doc_ids) & (Markup.type == markup_type)).order_by(Reference.start_offset).all()
-    resultt = {}
+    all_refs = session.query(Reference, Markup).join(Markup).filter(
+            Markup.document.in_(training_set.doc_ids) & (Markup.type == markup_type)).order_by(Reference.start_offset).all()
+    result = {}
     for ref in all_refs:
-        print(ref[1])
         doc_id = str(ref[1].document)
-        if resultt.get(doc_id, None) is None:
-            resultt[doc_id] = []
-        resultt[doc_id].append((ref[0].start_offset, ref[0].end_offset, ref[0].entity_class))
-    return resultt
+        if result.get(doc_id, None) is None:
+            result[doc_id] = []
+        result[doc_id].append((ref[0].start_offset, ref[0].end_offset, ref[0].entity_class))
+    return result
 
 
 def del_markup(markup_id=None, markup_type=None):

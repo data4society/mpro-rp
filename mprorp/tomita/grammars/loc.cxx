@@ -1,6 +1,6 @@
 #encoding "utf-8"
 
-Loc1 -> Word<gram='geo'>;
+Loc1 -> Word<gram='geo', no_hom>;
 Loc2 -> Word<kwtype='location_front'> Word<h-reg1, gram=~'PR, abbr'>*;
 Loc3 -> Word<h-reg1, gram=~'PR, abbr'>* Word<kwtype='location_back'>;
 Loc4 -> Word<kwtype='abbreviation'> Word<h-reg1, gram=~'PR, abbr'>*;

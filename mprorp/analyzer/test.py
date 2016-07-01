@@ -46,5 +46,7 @@ test_set_id = u'f23449f6-08cd-463b-8c90-95480735c4f7' # Свобода слов�
 # print(rb.probabilities_score(model_id, test_set_id, rubric_id))
 
 doc_id = u'000e82b8-6ea7-41f4-adc6-bc688fbbeeb6' # 9556b091-b550-4489-9768-1690485fa664
+doc_id = u'add1dd0c-3004-49db-adeb-d841c5d8a9f7'
 
-rb.spot_doc_rubrics(doc_id, rb.rubrics_for_regular)
+# rb.spot_doc_rubrics(doc_id, rb.rubrics_for_regular)
+rb.lemmas_freq_doc(doc_id)

@@ -20,12 +20,14 @@ from .htmls import shorten_title
 from .compat import str_
 from .debug import describe, text_content
 
+from lxml import etree
+
 
 log = logging.getLogger("readability.readability")
 
 REGEXES = {
     'unlikelyCandidatesRe': re.compile('combx|comment|community|disqus|extra|foot|header|menu|remark|rss|shoutbox|sidebar|sponsor|ad-break|agegate|pagination|pager|popup|tweet|twitter', re.I),
-    'okMaybeItsACandidateRe': re.compile('and|article|body|column|main|shadow', re.I),
+    'okMaybeItsACandidateRe': re.compile('and|article|body|column|main|shadow|js-pagination', re.I),
     'positiveRe': re.compile('article|body|content|entry|hentry|main|page|pagination|post|text|blog|story', re.I),
     'negativeRe': re.compile('combx|comment|com-|contact|foot|footer|footnote|masthead|media|meta|outbrain|promo|related|scroll|shoutbox|sidebar|sponsor|shopping|tags|tool|widget', re.I),
     'divToPElementsRe': re.compile('<(a|blockquote|dl|div|img|ol|p|pre|table|ul)', re.I),
@@ -162,6 +164,8 @@ class Document:
                 if ruthless:
                     self.remove_unlikely_candidates()
                 self.transform_misused_divs_into_paragraphs()
+                self.score_node(self.html.xpath("//div[@class='full-str']")[0])
+                exit()
                 candidates = self.score_paragraphs()
 
                 best_candidate = self.select_best_candidate(candidates)
@@ -267,7 +271,7 @@ class Document:
             log.info("Top 5 : %6.3f %s" % (
                 candidate['content_score'],
                 describe(elem)))
-            print("BEST",describe(elem))
+            #print("BEST",describe(elem))
 
         best_candidate = sorted_candidates[0]
         return best_candidate
@@ -332,7 +336,7 @@ class Document:
                 describe(elem),
                 ld,
                 score * (1 - ld)))
-            # print(describe(elem), score)#, ld, score * (1 - ld))
+            print(describe(elem), score)#, ld, score * (1 - ld))
             #candidate['content_score'] *= (1 - ld)
 
         return candidates
@@ -383,6 +387,11 @@ class Document:
         sum = 0
         for child in children:
             sum += self.score_tag(child)
+            if describe(elem) == '.story-full.group>.full-str':
+                print(child.tag)
+                print(child.text_content())
+        if describe(elem) == '.story-full.group>.full-str':
+            print(etree.tostring(elem, pretty_print=True))
         #print(describe(elem), sum)
         s = "%s %s %s" % (elem.get('class', ''), elem.get('id', ''), elem.tag)
         #print(s)
@@ -405,9 +414,8 @@ class Document:
             content_score -= 5
 
     def remove_unlikely_candidates(self):
-        from lxml import etree
         #print(etree.tostring(self.html, pretty_print=True))
-        #print(self.html.xpath("//div[@id='footer']"))
+        #print(self.html.xpath("//div[@class='story__content__body  ']"))
         #print(self.html.xpath('count(.//*)'))
         ind = 0
         elements_to_drop = []
@@ -415,8 +423,8 @@ class Document:
             ind += 1
             s = "%s %s" % (elem.get('class', ''), elem.get('id', ''))
             #print(describe(elem), s)
-            if s == 'module__footer':
-                print(REGEXES['unlikelyCandidatesRe'].search(s))
+            #if s == 'module__footer':
+            #    print(REGEXES['unlikelyCandidatesRe'].search(s))
             if len(s) < 2:
                 continue
             if REGEXES['unlikelyCandidatesRe'].search(s) and (not REGEXES['okMaybeItsACandidateRe'].search(s)) and elem.tag not in ['html', 'body']:
@@ -424,7 +432,10 @@ class Document:
                 elements_to_drop.append(elem)
                 # elem.drop_tree()
         for elem in elements_to_drop:
+            #print(describe(elem))
             elem.drop_tree()
+        #print(self.html.xpath("//div[@class='layout__container']"))
+        #print(etree.tostring(self.html, pretty_print=True))
         #print(len(elements_to_drop))
         #print(self.html.xpath("//div[@id='footer']"))
         #print(self.html.xpath('count(.//*)'))

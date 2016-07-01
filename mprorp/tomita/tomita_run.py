@@ -16,7 +16,8 @@ def del_files(doc_id):
 
 def run_tomita(grammar, doc_id, status=0):
     output = start_tomita(grammar, doc_id)
-    out = tomita_out(output)
+    source_name = doc_id + '.txt'
+    out = tomita_out(output, source_name)
     put_tomita_result(doc_id, grammar, out, status)
     del_files(doc_id)
     return out
@@ -25,3 +26,4 @@ def run_tomita(grammar, doc_id, status=0):
 #print(run_tomita('date.cxx', '000e82b8-6ea7-41f4-adc6-bc688fbbeeb6', status=0))
 #print(run_tomita('person.cxx', '000e82b8-6ea7-41f4-adc6-bc688fbbeeb6', status=0))
 #print(run_tomita('loc.cxx', '000e82b8-6ea7-41f4-adc6-bc688fbbeeb6', status=0))
+#print(run_tomita('date.cxx', '75fa182d-7fbc-4ec7-bbfd-fc4d743e8834', status=0))

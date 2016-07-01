@@ -1,13 +1,15 @@
-#from mprorp.ner.regular import regular_entities
-#from mprorp.tomita.regular import regular_tomita, grammar_count
+from mprorp.ner.regular import regular_entities
+from mprorp.tomita.regular import regular_tomita, grammar_count
 import mprorp.analyzer.db as db
 import mprorp.ner.feature as ner_feature
 import mprorp.analyzer.rubricator as rb
-#from mprorp.analyzer.pymystem3_w import Mystem
-#import numpy as np
-#import mprorp.ner.morpho_to_vec as mystem_to_vec
-#from os.path import expanduser
-#import os
+from mprorp.analyzer.pymystem3_w import Mystem
+import numpy as np
+import mprorp.ner.morpho_to_vec as mystem_to_vec
+from os.path import expanduser
+import os
+import mprorp.ner.tomita_to_markup as tomita_to_markup
+from mprorp.tomita.tomita_run import run_tomita
 
 # regular processes with tomita
 # doc_id = '000e82b8-6ea7-41f4-adc6-bc688fbbeeb6'
@@ -15,10 +17,15 @@ import mprorp.analyzer.rubricator as rb
 #     regular_tomita(i, doc_id)
 
 # create tomita features
-# doc_id = '000e82b8-6ea7-41f4-adc6-bc688fbbeeb6'
+# doc_id = '75fa182d-7fbc-4ec7-bbfd-fc4d743e8834'
 # rb.morpho_doc(doc_id)
 # print(db.get_morpho(doc_id))
+# print(db.get_doc(doc_id))
+# grammars = ['date.cxx', 'person.cxx']
+# run_tomita(grammars[0], doc_id)
+# run_tomita(grammars[1], doc_id)
 # ner_feature.create_tomita_feature(doc_id, ['date.cxx', 'person.cxx'])
+# tomita_to_markup.convert_tomita_result_to_markup(doc_id, ['person.cxx'])
 
 # Create embedding feature
 # doc_id = '000e82b8-6ea7-41f4-adc6-bc688fbbeeb6'
@@ -67,6 +74,40 @@ import mprorp.analyzer.rubricator as rb
 #                     'd_wrd': 1000,  # Size of vector associate to word
 #                     'n_1': 500, 'n_2': 10}
 # model_id = db.put_ner_model(embedding, gazetteers, tomita_facts, morpho_features, hyper_parameters)
+
+#
+# import mprorp.db.dbDriver as Driver
+# from mprorp.db.models import *
+# session = Driver.DBSession()
+# tr_set = []
+# res = session.query(Document.doc_id).filter(Document.type == 'oc').limit(5).all()
+# for i in res:
+#     tr_set.append(str(i[0]))
+# print(db.put_training_set(tr_set))
+
+
+from mprorp.tomita.grammars.config import config
+
+tr_set = '7436d611-f196-403f-98a1-f17024e96d94' # docs with markup
+
+# for doc_id in db.get_set_docs(tr_set):
+#     print(doc_id)
+#     rb.morpho_doc(doc_id)
+#     rb.lemmas_freq_doc(doc_id)
+#     for gram in config:
+#         run_tomita(gram, str(doc_id))
+#     ner_feature.create_tomita_feature(str(doc_id), config.keys())
+#     ner_feature.create_embedding_feature(str(doc_id))
+
+doc_id = '0e01603e-0e1e-06c8-21a5-379ccc4dba69'
+# ner_feature.create_tomita_feature(doc_id, ['loc.cxx'])
+# tomita_to_markup.convert_tomita_result_to_markup(doc_id, ['loc.cxx'])
+markup = db.get_markup_from_doc(doc_id)
+for key in markup:
+    ref = markup[key]
+    print(type(ref['start_offset']), ref['start_offset'], ref['start_offset'] + ref['len_offset'])
+    break
+
 
 set_id = '7436d611-f196-403f-98a1-f17024e96d94'
 # doc_id = '000e82b8-6ea7-41f4-adc6-bc688fbbeeb6'
