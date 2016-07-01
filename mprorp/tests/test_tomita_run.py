@@ -35,7 +35,6 @@ class SimpleTomitaTest(unittest.TestCase):
         insert(my_doc)
         doc_id = str(my_doc.doc_id)
         dic_out = run_tomita('loc.cxx', doc_id)
-        print(dic_out)
         key = '2:20'
         value = 'Loc'
         self.assertEqual(dic_out[key], value)
