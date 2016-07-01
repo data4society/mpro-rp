@@ -76,13 +76,35 @@ from mprorp.tomita.tomita_run import run_tomita
 # model_id = db.put_ner_model(embedding, gazetteers, tomita_facts, morpho_features, hyper_parameters)
 
 #
-import mprorp.db.dbDriver as Driver
-from mprorp.db.models import *
-session = Driver.DBSession()
-tr_set = []
-res = session.query(Document.doc_id).filter(Document.type == 'oc').limit(5).all()
-for i in res:
-    tr_set.append(str(i[0]))
-print(db.put_training_set(tr_set))
+# import mprorp.db.dbDriver as Driver
+# from mprorp.db.models import *
+# session = Driver.DBSession()
+# tr_set = []
+# res = session.query(Document.doc_id).filter(Document.type == 'oc').limit(5).all()
+# for i in res:
+#     tr_set.append(str(i[0]))
+# print(db.put_training_set(tr_set))
+
+
+from mprorp.tomita.grammars.config import config
 
 tr_set = '7436d611-f196-403f-98a1-f17024e96d94' # docs with markup
+
+# for doc_id in db.get_set_docs(tr_set):
+#     print(doc_id)
+#     rb.morpho_doc(doc_id)
+#     rb.lemmas_freq_doc(doc_id)
+#     for gram in config:
+#         run_tomita(gram, str(doc_id))
+#     ner_feature.create_tomita_feature(str(doc_id), config.keys())
+#     ner_feature.create_embedding_feature(str(doc_id))
+
+doc_id = '0e01603e-0e1e-06c8-21a5-379ccc4dba69'
+# ner_feature.create_tomita_feature(doc_id, ['loc.cxx'])
+# tomita_to_markup.convert_tomita_result_to_markup(doc_id, ['loc.cxx'])
+markup = db.get_markup_from_doc(doc_id)
+for key in markup:
+    ref = markup[key]
+    print(type(ref['start_offset']), ref['start_offset'], ref['start_offset'] + ref['len_offset'])
+    break
+

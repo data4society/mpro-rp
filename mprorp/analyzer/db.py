@@ -41,6 +41,11 @@ def get_lemmas(doc_id):
     return session.query(Document.lemmas).filter(Document.doc_id == doc_id).one().lemmas
 
 
+# reading lemmas frequently of document from db
+def get_markup_from_doc(doc_id):
+    return session.query(Document.markup).filter(Document.doc_id == doc_id).one().markup
+
+
 # reading lemmas frequently of all documents in training set from db
 def get_lemmas_freq(set_id):
     training_set = session.query(TrainingSet).filter(TrainingSet.set_id == set_id).one()
@@ -295,7 +300,7 @@ def get_ner_feature(doc_id):
 def get_ner_feature_for_set(set_id, feature=None):
     training_set = session.query(TrainingSet).filter(TrainingSet.set_id == set_id).one()
     all_words = session.query(NERFeature).filter(
-        NERFeature.doc_id.in_(training_set.doc_ids) & NERFeature.feature == feature).order_by(
+        NERFeature.doc_id.in_(training_set.doc_ids) & (NERFeature.feature == feature)).order_by(
         NERFeature.sentence_index, NERFeature.word_index).all()
     result = {}
     for word in all_words:
@@ -362,14 +367,14 @@ def put_references(doc_id, markup, refs, new_status=0):
 
 def get_references_for_set(set_id, markup_type = '10'):
     training_set = session.query(TrainingSet).filter(TrainingSet.set_id == set_id).one()
-    all_refs = session.query(Reference).join(Markup).filter(
-            Markup.doc_id.in_(training_set.doc_ids) & Markup.type == markup_type).order_by(Reference.start_offset).all()
+    all_refs = session.query(Reference, Markup).join(Markup).filter(
+            Markup.document.in_(training_set.doc_ids) & (Markup.type == markup_type)).order_by(Reference.start_offset).all()
     result = {}
     for ref in all_refs:
-        doc_id = str(ref.document)
+        doc_id = str(ref[1].document)
         if result.get(doc_id, None) is None:
             result[doc_id] = []
-        result[doc_id].append((ref.start_offset, ref.end_offset, ref.entity_class))
+        result[doc_id].append((ref[0].start_offset, ref[0].end_offset, ref[0].entity_class))
     return result
 
 

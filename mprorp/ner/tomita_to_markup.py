@@ -1,7 +1,7 @@
 import mprorp.analyzer.db as db
 
 # keys - fact fields in tomita, values - entity class
-fact_entities = {'Person': 'person'}
+fact_entities = {'Person': 'person', 'Loc': 'location'}
 
 
 def convert_tomita_result_to_markup(doc_id, grammars, markup_name='another markup from tomita facts', entity=None, new_status=0):
