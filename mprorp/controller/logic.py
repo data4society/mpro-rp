@@ -6,6 +6,7 @@ from mprorp.tomita.tomita_run import run_tomita
 from mprorp.ner.tomita_to_markup import convert_tomita_result_to_markup
 from mprorp.crawler.site_page import find_full_text
 import mprorp.ner.feature as ner_feature
+from mprorp.tomita.grammars.config import config as tomita_config
 
 from mprorp.celery_app import app
 import logging
@@ -32,7 +33,7 @@ else:
     celery = False
 
 rubrics_for_regular = {u'76819d19-d3f7-43f1-bc7f-b10ec5a2e2cc': u'404f1c89-53bd-4313-842d-d4a417c88d67'}  # 404f1c89-53bd-4313-842d-d4a417c88d67
-grammars = ['date.cxx', 'person.cxx']
+grammars = tomita_config.keys() #  ['date.cxx', 'person.cxx']
 facts = ['Person']
 
 
@@ -99,12 +100,12 @@ def regular_tomita(grammar_index, doc_id, new_status):
 # tomita features
 @app.task
 def regular_tomita_features(doc_id, new_status):
-    ner_feature.create_tomita_feature(doc_id, ['date.cxx', 'person.cxx'], new_status)
+    ner_feature.create_tomita_feature(doc_id, grammars, new_status)
     router(doc_id, new_status)
 
 
 # ner entities
 @app.task
 def regular_entities(doc_id, new_status):
-    convert_tomita_result_to_markup(doc_id, ['person.cxx'], new_status=new_status)
+    convert_tomita_result_to_markup(doc_id, grammars, new_status=new_status)
     router(doc_id, new_status)
