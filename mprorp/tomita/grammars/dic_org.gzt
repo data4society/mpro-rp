@@ -23,3 +23,18 @@ inter "International"
 {
  key = { "inter_org.txt" type=FILE }
 }
+
+rusorg "RussOrg"
+{
+ key = { "rus_org.txt" type=FILE }
+}
+
+ministry "Ministry"
+{
+ key = { "ministry.txt" type=FILE }
+}
+
+RF "RF"
+{
+ key = "РФ"|"российская федерация"
+}
