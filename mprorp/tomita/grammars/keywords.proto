@@ -11,3 +11,6 @@ message apartment: TAuxDicArticle {}
 message trial: TAuxDicArticle {}
 message OOO: TAuxDicArticle {}
 message inter: TAuxDicArticle {}
+message rusorg: TAuxDicArticle {}
+message ministry: TAuxDicArticle {}
+message RF: TAuxDicArticle {}
