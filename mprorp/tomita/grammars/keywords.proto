@@ -10,3 +10,4 @@ message house: TAuxDicArticle {}
 message apartment: TAuxDicArticle {}
 message trial: TAuxDicArticle {}
 message OOO: TAuxDicArticle {}
+message inter: TAuxDicArticle {}

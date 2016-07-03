@@ -18,3 +18,8 @@ OOO "OOO"
 {
  key = { "org_ooo.txt" type=FILE }
 }
+
+inter "International"
+{
+ key = { "inter_org.txt" type=FILE }
+}
