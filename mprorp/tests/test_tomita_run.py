@@ -33,6 +33,7 @@ class SimpleTomitaTest(unittest.TestCase):
         key6 = '1249:1266'
         key7 = '1384:1401'
         value = 'Person'
+        print(dic_out)
         self.assertEqual(dic_out[key1], value)
         self.assertEqual(dic_out[key2], value)
         #self.assertEqual(dic_out[key3], value)

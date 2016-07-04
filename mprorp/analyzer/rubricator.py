@@ -232,7 +232,7 @@ def print_lemmas(set_id, numbers, lemmas=None, idf=None):
 def learning_rubric_model(set_id, rubric_id):
 
     # get answers for rubric
-    answers = db.get_answers(set_id, rubric_id)
+    answers = db.get_rubric_answers(set_id, rubric_id)
     # get object_features, lemma_index, doc_index
     doc_index, object_features = db.get_doc_index_object_features(set_id)
 
@@ -341,7 +341,7 @@ def spot_doc_rubrics(doc_id, rubrics, new_status=0):
 
     # fill set_id in rubrics and data in models
     for rubric_id in rubrics:
-        # correct_answers[rubric_id] = db.get_answer_doc(doc_id, rubric_id)
+        # correct_answers[rubric_id] = db.get_rubric_answer_doc(doc_id, rubric_id)
         if rubrics[rubric_id] is None:
             rubrics[rubric_id] = db.get_set_id_by_rubric_id(rubric_id)
         models[rubric_id] = db.get_model(rubric_id, rubrics[rubric_id])
@@ -435,7 +435,7 @@ def spot_test_set_rubric(test_set_id, rubric_id):
 def f1_score(model_id, test_set_id, rubric_id):
     result = {'true_positive': 0, 'false_positive': 0, 'true_negative': 0, 'false_negative': 0}
     # right answers
-    answers = db.get_answers(test_set_id, rubric_id)
+    answers = db.get_rubric_answers(test_set_id, rubric_id)
     # rubrication results
     rubrication_result = db.get_rubrication_result(model_id, test_set_id, rubric_id)
 
@@ -469,7 +469,7 @@ def f1_score(model_id, test_set_id, rubric_id):
 def probabilities_score(model_id, test_set_id, rubric_id):
     result = {'true_average_probability': 0, 'false_average_probability': 0}
     # right answers
-    answers = db.get_answers(test_set_id, rubric_id)
+    answers = db.get_rubric_answers(test_set_id, rubric_id)
     # rubrication results
     rubrication_result = db.get_rubrication_probability(model_id, test_set_id, rubric_id)
 
