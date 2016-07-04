@@ -2,7 +2,7 @@ import mprorp.analyzer.db as db
 
 # keys - fact fields in tomita, values - entity class
 fact_entities = {'Person': 'person',
-                 'Location': 'location',
+                 'Loc': 'location',
                  'Date': 'date',
                  'Address': 'address',
                  'Org': 'org'}
