@@ -33,7 +33,7 @@ else:
     celery = False
 
 rubrics_for_regular = {u'76819d19-d3f7-43f1-bc7f-b10ec5a2e2cc': u'404f1c89-53bd-4313-842d-d4a417c88d67'}  # 404f1c89-53bd-4313-842d-d4a417c88d67
-grammars = tomita_config.keys() #  ['date.cxx', 'person.cxx']
+grammars = list(tomita_config.keys()) #  ['date.cxx', 'person.cxx']
 facts = ['Person']
 
 
