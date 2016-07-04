@@ -17,7 +17,7 @@ import logging
 logging.basicConfig(format = u'%(levelname)-8s [%(asctime)s] %(message)s', level = logging.DEBUG, filename = u'crawler_log.txt')
 
 
-def find_full_text(doc_id, new_status, failed_status): #, wks):
+def find_full_text(doc_id, new_status):#, failed_status): #, wks):
     [url,meta] = select([Document.guid,Document.meta], Document.doc_id == doc_id).fetchone()
     print('start grabbing ' + url)
     """
@@ -39,26 +39,29 @@ def find_full_text(doc_id, new_status, failed_status): #, wks):
     print(stripped)
     """
 
-    try:
-        html_source = urllib.request.urlopen(url, timeout=10).read()
-        doc = Doc(html_source)
-        content = doc.summary()
+    html_source = urllib.request.urlopen(url, timeout=10).read()
+    doc = Doc(html_source)
+    content = doc.summary()
 
-        if content.strip() == '':
-            logging.error("Получен пустой текст url: " + url)
-            content = meta["abstract"]
+    if content.strip() == '':
+        logging.error("Получен пустой текст url: " + url)
+        content = meta["abstract"]
 
-        stripped = strip_tags(content)
-        stripped = to_plain_text(stripped)
-        parsed_url = urlparse.urlparse(url)
-        publisher_url = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_url)
-        meta["publisher"]['url'] = publisher_url
-        #print(content)
-        #print(stripped)
-        #print(meta)
+    stripped = strip_tags(content)
+    stripped = to_plain_text(stripped)
+    parsed_url = urlparse.urlparse(url)
+    publisher_url = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_url)
+    meta["publisher"]['url'] = publisher_url
+    #print(content)
+    #print(stripped)
+    #print(meta)
 
-        document = Document(doc_id=doc_id, doc_source=content, stripped=stripped, meta=meta, status=new_status)
-        update(document)
+    if stripped == '':
+        raise ValueError('Empty text')
+
+    document = Document(doc_id=doc_id, doc_source=content, stripped=stripped, meta=meta, status=new_status)
+    update(document)
+    """
     except BaseException as err:
         if type(err) == HTTPError:
             #print(url, err.code)
@@ -68,7 +71,7 @@ def find_full_text(doc_id, new_status, failed_status): #, wks):
             logging.error("Ошибка загрузки тип: " + type(err) + " url: " + url)
         document = Document(doc_id=doc_id, status=failed_status)
         update(document)
-
+    """
 
 
 
