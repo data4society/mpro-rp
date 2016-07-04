@@ -4,7 +4,7 @@ import mprorp.analyzer.db as db
 fact_entities = {'Person': 'person',
                  'Loc': 'location',
                  'Date': 'date',
-                 'Address': 'address',
+                 'Adr': 'address',
                  'Org': 'org'}
 
 

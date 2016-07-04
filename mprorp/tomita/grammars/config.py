@@ -1,5 +1,5 @@
 config = {'person.cxx': 'Person',
           'date.cxx': 'Date',
           'loc.cxx': 'Loc',
-          'adr.cxx': 'Address',
+          'adr.cxx': 'Adr',
           'org.cxx': 'Org'}
