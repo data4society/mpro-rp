@@ -1,10 +1,16 @@
 import mprorp.analyzer.db as db
 
 # keys - fact fields in tomita, values - entity class
-fact_entities = {'Person': 'person', 'Loc': 'location'}
+fact_entities = {'Person': 'person',
+                 'Loc': 'location',
+                 'Date': 'date',
+                 'Adr': 'address',
+                 'Org': 'org'}
 
 
-def convert_tomita_result_to_markup(doc_id, grammars, markup_name='another markup from tomita facts', entity=None, new_status=0):
+def convert_tomita_result_to_markup(doc_id, grammars,
+                                    markup_name='another markup from tomita facts',
+                                    entity=None, new_status=0):
 
     if entity is None:
         entity = '0057375a-8242-1c6d-bf64-d5cb5a7ad7dd'

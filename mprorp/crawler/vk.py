@@ -63,7 +63,6 @@ def vk_parse_list(req_result, source_id):
                 # further parsing
                 new_doc_id = new_doc.doc_id
                 vk_parse_item(item, new_doc_id)
-                router(new_doc_id, VK_COMPLETE_STATUS)
 
 
 def vk_parse_item(item, doc_id):
@@ -91,9 +90,10 @@ def vk_parse_item(item, doc_id):
     meta_json['vk_owner'] = vk_get_user(item["owner_id"])
     new_doc.meta = meta_json # json.dumps(meta_json)
 
-    new_doc.status = 1  # this status mean complete crawler work with this item
+    new_doc.status = VK_COMPLETE_STATUS  # this status mean complete crawler work with this item
     # update row in database
     update(new_doc)
+    router(doc_id, VK_COMPLETE_STATUS)
 
 
 def vk_get_user(owner_id):
