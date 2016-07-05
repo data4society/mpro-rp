@@ -6,6 +6,7 @@ from mprorp.tomita.tomita_run import run_tomita
 import mprorp.analyzer.rubricator as rb
 import mprorp.ner.feature as ner_feature
 import mprorp.analyzer.db as db
+from mprorp.tomita.grammars.config import config
 
 
 class SimpleTomitaTest(unittest.TestCase):
@@ -16,9 +17,12 @@ class SimpleTomitaTest(unittest.TestCase):
         my_doc = Document(stripped=mytext, type='article')
         insert(my_doc)
         doc_id = str(my_doc.doc_id)
-        dic_out = run_tomita('person.cxx', doc_id)
         rb.morpho_doc(doc_id)
-        ner_feature.create_tomita_feature(doc_id, ['date.cxx', 'person.cxx'])
+        for gram in config:
+            run_tomita(gram, str(doc_id))
+        ner_feature.create_tomita_feature(str(doc_id), config.keys())
+
+        ner_feature.create_tomita_feature(doc_id, config.keys())
         gaz_id = db.put_gazetteer('gaz1', ['площадь', 'улица', 'переулок'])
         ner_feature.create_gazetteer_feature(doc_id, gaz_id)
         print(db.get_ner_feature(doc_id))
