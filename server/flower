@@ -41,8 +41,12 @@ server {
     error_log /var/log/nginx/celery-flower.error.log;
     
     location /celery_log.txt {
-	root /var/www/mprorp;
-	charset utf-8;
+        root /var/www/mprorp;
+        charset utf-8;
+    }
+
+    location /renew {
+        content_by_lua 'os.execute("/home/mprorp/renew.sh")';
     }
 
     location / {

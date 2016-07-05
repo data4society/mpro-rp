@@ -437,7 +437,7 @@ def get_multi_word_embedding(embedding, lemmas):
     if res is None:
         return None
     else:
-        return {i.lemma: i.vector for i in res}
+        return {i.lemma: np.array(i.vector) for i in res}
 
 
 def put_tomita_grammar(name, files, config_file):

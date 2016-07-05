@@ -6,7 +6,6 @@ import mprorp.analyzer.rubricator as rb
 from mprorp.analyzer.pymystem3_w import Mystem
 import numpy as np
 import mprorp.ner.morpho_to_vec as mystem_to_vec
-from os.path import expanduser
 import os
 import mprorp.ner.tomita_to_markup as tomita_to_markup
 from mprorp.tomita.tomita_run import run_tomita
@@ -109,16 +108,18 @@ tr_set = '7436d611-f196-403f-98a1-f17024e96d94' # docs with markup
 #     break
 
 doc_id = '1bff4e98-7f7f-473c-a405-0a4d35c06f35'
+
 # print(doc_id)
 # rb.morpho_doc(doc_id)
 # rb.lemmas_freq_doc(doc_id)
 # for gram in config:
 #     run_tomita(gram, str(doc_id))
-ner_feature.create_tomita_feature(str(doc_id), config.keys())
-ner_feature.create_embedding_feature(str(doc_id))
-print(db.get_markup_from_doc(doc_id))
+# ner_feature.create_tomita_feature(str(doc_id), config.keys())
+# ner_feature.create_embedding_feature(str(doc_id))
+# print(db.get_markup_from_doc(doc_id))
 
 set_id = '7436d611-f196-403f-98a1-f17024e96d94'
+print(db.get_docs_text(doc_id))
 # doc_id = '000e82b8-6ea7-41f4-adc6-bc688fbbeeb6'
 # for doc_id in db.get_set_docs(set_id):
 #     rb.morpho_doc(doc_id)
