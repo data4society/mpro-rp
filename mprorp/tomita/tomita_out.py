@@ -12,6 +12,7 @@ def text_make(file_name):
 
 def list_make(text, source_name):
     sourse = open(source_name, 'r', encoding='utf-8').read()
+    #s = sourse
     sourse = re.sub('\n', ' ', sourse)
     out = {}
     len_of_line = 0
@@ -20,8 +21,21 @@ def list_make(text, source_name):
             fact = re.findall('TOMITA = (.*)', text[n])[0]
             name_fact = re.findall('(.*)_TOMITA', text[n])[0]
             first_symbol = sourse.find(fact)
-            last_symbol = first_symbol + len(fact)
-            symbols = str(first_symbol + len_of_line) + ':' + str(last_symbol + len_of_line)
+            if first_symbol != -1:
+                last_symbol = first_symbol + len(fact)
+                symbols = str(first_symbol + len_of_line) + ':' + str(last_symbol + len_of_line)
+            else:
+                fact = re.sub(' ', '', fact)
+                first_symbol = sourse.find(fact)
+                last_symbol = first_symbol + len(fact)
+                symbols = str(first_symbol + len_of_line) + ':' + str(last_symbol + len_of_line)
+
+            #print(fact)
+            #print(symbols)
+            #print(sourse[first_symbol:last_symbol])
+            #print(s[first_symbol + len_of_line:last_symbol + len_of_line])
+            # print(sourse)
+
             out[symbols] = name_fact
             sourse = sourse[last_symbol:]
             len_of_line += last_symbol

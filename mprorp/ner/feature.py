@@ -2,8 +2,10 @@ import mprorp.analyzer.db as db
 import re
 import mprorp.ner.morpho_to_vec as morpho_to_vec
 import numpy as np
+import logging as log
 
-ner_feature_types = {'embedding': 1, 'gazetteer': 2, 'tomita': 3, 'morpho': 4}
+
+ner_feature_types = {'embedding': 1, 'gazetteer': 2, 'tomita': 3, 'morpho': 4, 'answer': 5}
 
 
 def part_of_speech(gr):
@@ -41,6 +43,80 @@ def create_gazetteer_feature(doc_id, gaz_id):
         # print(values)
         db.put_ner_feature(doc_id, values, ner_feature_types['gazetteer'], gaz_id)
 
+
+def create_answers_feature(set_id, new_status=0):
+
+    results = db.get_references_for_set(set_id)
+    print(results)
+
+    for doc_id in results:
+        morpho = db.get_morpho(doc_id)
+        current_results = results[doc_id]
+
+        # values = []
+        values = {}
+
+        for i in current_results:
+            # print(result)
+            # for i in result:
+            for element in morpho:
+                value = None
+                if 'start_offset' in element.keys():
+                    if element['start_offset'] == i[0]:
+                        if element['end_offset'] == i[0] + i[1] - 1:
+                            # single
+                            value = (i[2], 'S')  # B I E S
+                        elif element['end_offset'] < i[1] + i[0] - 1:
+                            # begin
+                            value = (i[2], 'B')
+                        else:
+                            # error
+                            log.info(
+                                'error: word ' + element['text'] + ' ' + str(element['start_offset']) + ':' +
+                                str(element['end_offset']) + ' refs: ' + str(i))
+                            print(
+                                'error: word ' + element['text'] + ' ' + str(element['start_offset']) + ':' +
+                                str(element['end_offset']) + ' refs: ' + str(i))
+                    elif element['start_offset'] > i[0]:
+                        if element['end_offset'] == i[1] + i[0] - 1:
+                            # end
+                            value = (i[2], 'E')
+                        elif element['end_offset'] < i[1] + i[0] - 1:
+                            # inside
+                            value = (i[2], 'I')
+                        else:
+                            # word past offsets
+                            break
+                    else:
+                        if element['end_offset'] >= i[0]:
+                            # error
+                            log.info(
+                                'error: word ' + element['text'] + ' ' + str(element['start_offset']) + ':' +
+                                str(element['end_offset']) + ' refs: ' + str(i))
+                            print(
+                                'error: word ' + element['text'] + ' ' + str(element['start_offset']) + ':' +
+                                str(element['end_offset']) + ' refs: ' + str(i))
+                if not (value is None):
+                    key = (element['sentence_index'], element['word_index'], i[2] + '_answer')
+                    old_value = values.get(key, None)
+                    values[key] = stronger_value(old_value, value)
+                    # values.append({'word_index': element['word_index'],
+                    #                'sentence_index': element['sentence_index'],
+                    #                'value': value, 'feature': i[2] + '_answer'})
+
+        if len(values) > 0:
+            db.put_ner_feature_dict(doc_id, values, ner_feature_types['answer'], new_status=new_status)
+
+
+def stronger_value(old_value, value):
+    if old_value is None:
+        return value
+    if old_value[1] == value[1]:  # same B I E S
+        return value
+    elif old_value[1] < value[1]:
+        return value
+    else:
+        return old_value
 
 def create_tomita_feature(doc_id, feature_grammars, new_status=0):
 

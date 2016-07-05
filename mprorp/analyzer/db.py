@@ -103,7 +103,7 @@ def put_training_set(doc_id_array):
 
 
 # reading answers for one rubric and all documents in set
-def get_answers(set_id, rubric_id):
+def get_rubric_answers(set_id, rubric_id):
     docs = Driver.select(TrainingSet.doc_ids, TrainingSet.set_id == set_id).fetchone()[0]
     # docs = session.query(TrainingSet).filter(TrainingSet.set_id == set_id).one()
     docs_rubric = session.query(DocumentRubric.doc_id).filter(
@@ -118,7 +118,7 @@ def get_answers(set_id, rubric_id):
 
 
 # reading answer for one document and one rubric
-def get_answer_doc(doc_id, rubric_id):
+def get_rubric_answer_doc(doc_id, rubric_id):
     doc_rubric = session.query(DocumentRubric.doc_id).filter(
         (DocumentRubric.rubric_id == rubric_id) & (DocumentRubric.doc_id == doc_id)).all()
     return len(doc_rubric)
@@ -287,6 +287,28 @@ def put_ner_feature(doc_id, records, feature_type, feature=None, new_status=0):
     session.commit()
 
 
+def put_ner_feature_dict(doc_id, records, feature_type, feature=None, new_status=0):
+    if feature is None:
+        session.query(NERFeature).filter((NERFeature.doc_id == doc_id) &
+                                     (NERFeature.feature_type == feature_type)).delete()
+    else:
+        session.query(NERFeature).filter((NERFeature.doc_id == doc_id) &
+                                         (NERFeature.feature_type == feature_type) &
+                                         (NERFeature.feature == feature)).delete()
+
+    for key in records:
+        new_feature = NERFeature(doc_id=doc_id, feature_type=feature_type, word_index=key[1],
+                                 sentence_index=key[0], value=records[key])
+        # print(new_feature.value)
+        # print(record['feature'], feature if not (feature is None) else record['feature'])
+        new_feature.feature = feature if not (feature is None) else key[2]
+        session.add(new_feature)
+    if new_status > 0:
+        doc = Document(doc_id=doc_id)
+        doc.status = new_status
+    session.commit()
+
+
 def get_ner_feature(doc_id):
     result_query = session.query(NERFeature).filter((NERFeature.doc_id == doc_id)).all()
     result = {}
@@ -297,7 +319,11 @@ def get_ner_feature(doc_id):
     return result
 
 
-def get_ner_feature_for_set(set_id, feature=None):
+def get_ner_feature_for_set_dict(set_id, feature=None):
+    return get_ner_feature_for_set(set_id, feature, True)
+
+
+def get_ner_feature_for_set(set_id, feature=None, return_dict=False):
     training_set = session.query(TrainingSet).filter(TrainingSet.set_id == set_id).one()
     all_words = session.query(NERFeature).filter(
         NERFeature.doc_id.in_(training_set.doc_ids) & (NERFeature.feature == feature)).order_by(
@@ -305,9 +331,15 @@ def get_ner_feature_for_set(set_id, feature=None):
     result = {}
     for word in all_words:
         doc_id = str(word.doc_id)
-        if result.get(doc_id, None) is None:
-            result[doc_id] = []
-        result[doc_id].append((word.sentence_index, word.word_index, word.value))
+        if return_dict:
+            if result.get(doc_id, None) is None:
+                result[doc_id] = {}
+            result[doc_id][(word.sentence_index, word.word_index)] = word.value
+        else:
+            if result.get(doc_id, None) is None:
+                result[doc_id] = []
+            result[doc_id].append((word.sentence_index, word.word_index, word.value))
+
     return result
 
 
