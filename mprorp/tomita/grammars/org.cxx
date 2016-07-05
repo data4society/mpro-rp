@@ -1,5 +1,5 @@
 #encoding "utf-8"
-// Суды
+// Суд
 Trial -> Word<kwtype='trial'>;
 // Тюрьмы
 Jail1 -> Word<kwtype='jail', h-reg1> | 'колония' Word<kwtype='jail', h-reg1>;
