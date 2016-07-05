@@ -6,7 +6,6 @@ import mprorp.analyzer.rubricator as rb
 from mprorp.analyzer.pymystem3_w import Mystem
 import numpy as np
 import mprorp.ner.morpho_to_vec as mystem_to_vec
-from os.path import expanduser
 import os
 import mprorp.ner.tomita_to_markup as tomita_to_markup
 from mprorp.tomita.tomita_run import run_tomita

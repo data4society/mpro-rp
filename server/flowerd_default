@@ -1,0 +1,5 @@
+ENV_MY="/home/mprorp/mprorpenv"
+# Absolute or relative path to the 'flower' command:
+FLOWER_BIN="$ENV_MY/bin/flower"
+FLOWERD_USER="mprorp"
+FLOWERD_GROUP="mprorp"

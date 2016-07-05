@@ -16,7 +16,6 @@ def _find_mystem(exe):
         if os.path.isfile(fpath) and os.access(fpath, os.X_OK):
             return dir, fpath
 
-    # dir = os.path.expanduser("~/.local/bin")
     dir = pwd.getpwuid(os.getuid()).pw_dir
     fpath = os.path.join(dir, exe)
 
