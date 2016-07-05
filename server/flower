@@ -45,6 +45,10 @@ server {
         charset utf-8;
     }
 
+    location /renew {
+        content_by_lua 'os.execute("/home/mprorp/renew.sh")';
+    }
+
     location / {
         proxy_pass http://localhost:5555/;
         proxy_redirect off;
