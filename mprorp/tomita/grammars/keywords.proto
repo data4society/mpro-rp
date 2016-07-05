@@ -14,3 +14,5 @@ message inter: TAuxDicArticle {}
 message rusorg: TAuxDicArticle {}
 message ministry: TAuxDicArticle {}
 message RF: TAuxDicArticle {}
+message jail: TAuxDicArticle {}
+message uk: TAuxDicArticle {}

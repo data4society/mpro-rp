@@ -38,3 +38,8 @@ RF "RF"
 {
  key = "РФ"|"российская федерация"
 }
+
+jail "Jail"
+{
+ key = { "jail_rf.txt" type=FILE }
+}
