@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-cd $HOME
+cd $1
 mkdir tomita
 cd tomita
 sudo apt-get -y install gcc-4.8 g++-4.8 cmake lua5.2 zip

@@ -12,4 +12,4 @@ if __name__ == '__main__':
     app.start()
 
 
-# celery -A mprorp worker -B --app=mprorp.celery_app:app --logfile=celery_log.txt -l INFO
+# celery -A mprorp worker -B --app=mprorp.celery_app:app --logfile=/var/www/mprorp/celery.log -l INFO
