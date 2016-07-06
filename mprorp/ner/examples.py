@@ -80,10 +80,17 @@ from mprorp.tomita.tomita_run import run_tomita
 # from mprorp.db.models import *
 # session = Driver.DBSession()
 # tr_set = []
-# res = session.query(Document.doc_id).filter(Document.type == 'oc').limit(5).all()
+# dev_set = []
+# res = session.query(Document.doc_id).filter(Document.type == 'oc').all()
+# count = 0
 # for i in res:
-#     tr_set.append(str(i[0]))
-# print(db.put_training_set(tr_set))
+#     if count < 10:
+#         dev_set.append(str(i[0]))
+#     else:
+#         tr_set.append(str(i[0]))
+#     count += 1
+# print('train', db.put_training_set(tr_set))
+# print('dev', db.put_training_set(dev_set))
 
 
 from mprorp.tomita.grammars.config import config
@@ -120,9 +127,11 @@ doc_id = '1bff4e98-7f7f-473c-a405-0a4d35c06f35'
 # print(db.get_markup_from_doc(doc_id))
 
 set_id = '7436d611-f196-403f-98a1-f17024e96d94'
-print(db.get_docs_text(doc_id))
+set_id = u'199698a2-e3f4-48a8-aaaa-09778161c8c4'
+# set_id = u'074c809b-208c-4fb4-851c-1e71d7f01b60'
+# print(db.get_docs_text(doc_id))
 # doc_id = '000e82b8-6ea7-41f4-adc6-bc688fbbeeb6'
-# for doc_id in db.get_set_docs(set_id):
-#     rb.morpho_doc(doc_id)
-
-# ner_feature.create_answers_feature(set_id)
+for doc_id in db.get_set_docs(set_id):
+    rb.morpho_doc(doc_id)
+    ner_feature.create_embedding_feature(str(doc_id))
+ner_feature.create_answers_feature(set_id)
