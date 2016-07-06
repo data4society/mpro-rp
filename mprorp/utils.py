@@ -8,7 +8,10 @@ if "worker" in sys.argv:
 else:
     celery = False
 
+home_dir = pwd.getpwuid(os.getuid()).pw_dir
+"""
 if celery:
     home_dir = pwd.getpwuid(os.getuid()).pw_dir
 else:
     home_dir = os.path.expanduser("~")
+"""
