@@ -46,7 +46,19 @@ server {
     }
 
     location /renew {
-        content_by_lua 'os.execute("/home/mprorp/renew.sh")';
+        content_by_lua '
+            if ngx.var.arg_branch == nil then
+                ngx.print('please, select branch');
+            else
+                if ngx.var.arg_branch == "dev" then
+                    command = "/home/mprorp/renew.sh "..ngx.var.arg_branch
+                    local handle = io.popen(command);
+                    local result = handle:read("*a");
+                    handle:close();
+                    ngx.print(result);
+                else
+                    ngx.print('wrong branch');
+            end';
     }
 
     location / {
