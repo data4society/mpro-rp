@@ -166,6 +166,8 @@ class Rubric(Base):
     created = Column(TIMESTAMP(), server_default=functions.current_timestamp())
     # parent reference
     parent_id = Column(UUIDType(binary=False), ForeignKey('rubrics.rubric_id'))
+    # rubric description
+    description = Column(Text())
 
 
 class DocumentRubric(Base):
