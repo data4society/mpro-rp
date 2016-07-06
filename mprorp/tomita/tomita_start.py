@@ -1,5 +1,5 @@
 from os import chdir
-from os.path import expanduser
+from mprorp.utils import home_dir
 import os.path as path
 import subprocess as sp
 import re
@@ -64,8 +64,7 @@ def create_file(doc_id):
 
 
 def start_tomita(grammar, doc_id):
-    home = expanduser("~")
-    home_path = home + '/tomita/tomita-parser-master/build'
+    home_path = home_dir + '/tomita/tomita-parser-master/build'
     tomita_path = path.join(home_path, grammars[grammar])
     grammar_name = re.findall('(.*)\\.cxx', grammar)[0]
     chdir(tomita_path)
