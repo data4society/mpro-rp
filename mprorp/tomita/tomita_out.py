@@ -21,14 +21,22 @@ def list_make(text, source_name):
             fact = re.findall('TOMITA = (.*)', text[n])[0]
             name_fact = re.findall('(.*)_TOMITA', text[n])[0]
             first_symbol = sourse.find(fact)
+            fact = re.sub(' ,', ',', fact)
             if first_symbol != -1:
                 last_symbol = first_symbol + len(fact)
                 symbols = str(first_symbol + len_of_line) + ':' + str(last_symbol + len_of_line)
             else:
-                fact = re.sub(' ', '', fact)
-                first_symbol = sourse.find(fact)
-                last_symbol = first_symbol + len(fact)
-                symbols = str(first_symbol + len_of_line) + ':' + str(last_symbol + len_of_line)
+                fact_new = re.sub(' ', '', fact)
+                first_symbol = sourse.find(fact_new)
+                if first_symbol == -1:
+                    fact = re.sub('"(\w*)"?', '«\\1»', fact)
+                    first_symbol = sourse.find(fact)
+                    last_symbol = first_symbol + len(fact)
+                    symbols = str(first_symbol + len_of_line) + ':' + str(last_symbol + len_of_line)
+                else:
+                    fact = fact_new
+                    last_symbol = first_symbol + len(fact)
+                    symbols = str(first_symbol + len_of_line) + ':' + str(last_symbol + len_of_line)
 
             #print(fact)
             #print(symbols)
