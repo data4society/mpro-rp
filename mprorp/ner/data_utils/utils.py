@@ -138,19 +138,19 @@ def docs_to_windows2(train_set_words, word_to_num, tag_to_num, answers, wsize=3)
     X = []
     y = []
     for doc_id in train_set_words:
-        print(doc_id)
+        # print(doc_id)
         sent_index = -1
         word_index = -1
         words = None
         for word in train_set_words[doc_id]:  # word - (sentence_index, word_index, value)
-            print(word)
+            # print(word)
             if not (word[0] == sent_index):
                 if not (words is None):
                     appendXY(words, pad, word_index, answers.get(doc_id,{}), sent_index, tag_to_num, X, y)
                 words = [0 for i in range(pad)]
             sent_index = word[0]
             word_index = word[1]
-            words.append(word_to_num[max_key(word[2])])
+            words.append(word_to_num.get(max_key(word[2]),0))
         if not (words is None):
             appendXY(words, pad, word_index, answers.get(doc_id, {}), sent_index, tag_to_num, X, y)
     return array(X), array(y)

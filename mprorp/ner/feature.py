@@ -109,11 +109,12 @@ def create_answers_feature(set_id, new_status=0):
 
 
 def stronger_value(old_value, value):
+    priority = {'B': 2, 'I': 4, 'E': 3, 'S': 1}
     if old_value is None:
         return value
     if old_value[1] == value[1]:  # same B I E S
         return value
-    elif old_value[1] < value[1]:
+    elif priority(old_value[1]) > priority(value[1]):
         return value
     else:
         return old_value

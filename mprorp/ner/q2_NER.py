@@ -29,7 +29,8 @@ class Config(object):
     lr = 0.001
     l2 = 0.001
     window_size = 3
-    training_set = u'7436d611-f196-403f-98a1-f17024e96d94'
+    training_set = u'199698a2-e3f4-48a8-aaaa-09778161c8c4'
+    dev_set = u'074c809b-208c-4fb4-851c-1e71d7f01b60'
     embedding = 'first_test_embedding'
 
 
@@ -49,18 +50,31 @@ class NERModel(LanguageModel):
         train_set_words = db.get_ner_feature_for_set(training_set, 'embedding')
 
         # collect words from set
-        word_to_num = {'UUUNKKK': 0}
-        count = 1
+
+        words_for_embedding = {}
         for doc_id in train_set_words:
             doc_words = train_set_words[doc_id]
             for element in doc_words:
                 for word in element[2]:
-                    if word_to_num.get(word, 0) == 0:
-                        word_to_num[word] = count
-                        count += 1
+                    words_for_embedding[word] = ''
 
-        self.wv = db.get_multi_word_embedding(self.config.embedding, word_to_num.keys())
+        wv_dict = db.get_multi_word_embedding(self.config.embedding, words_for_embedding.keys())
 
+        # Create word_to_num and LookUp table (wv)
+
+        wv_array = [np.random.uniform(-0.1, 0.1, 300)]
+
+        word_to_num = {'UUUNKKK': 0}
+        count = 1
+        for word in wv_dict:
+            word_to_num[word] = count
+            wv_array.append(wv_dict[word])
+            count += 1
+
+        # If word not in wv_dict (in embedding) we change it with 'UUUNKKK' = 0
+        # We can append random array for such word
+
+        self.wv = np.array(wv_array, dtype=np.float32)
         # refs[doc_if] = [(start_offset, end_offset, entity_class)]
         # refs = db.get_references_for_set(training_set)
 
@@ -84,11 +98,15 @@ class NERModel(LanguageModel):
         self.num_to_tag = dict(enumerate(tagnames))
         tag_to_num = {v: k for k, v in iter(self.num_to_tag.items())}
 
-        # answers from db
-        answers = db.get_ner_feature_for_set_dict(training_set, 'org_answer')
-        # Load the training set
 
         self.X_train, self.y_train = du.docs_to_windows2(train_set_words, word_to_num,
+                                                         tag_to_num, answers, wsize=self.config.window_size)
+
+        dev_set = self.config.training_set
+        #  train_set_words[doc_id] = [(sentence, word, [lemma1, lemma2]), ... (...)]
+        dev_set_words = db.get_ner_feature_for_set(dev_set, 'embedding')
+        answers = db.get_ner_feature_for_set_dict(training_set, 'org_answer')
+        self.X_dev, self.y_dev = du.docs_to_windows2(dev_set_words, word_to_num,
                                                          tag_to_num, answers, wsize=self.config.window_size)
 
         print("Размер учебной выборки: ", len(self.X_train))
@@ -217,7 +235,8 @@ class NERModel(LanguageModel):
         # The embedding lookup is currently only implemented for the CPU
         with tf.device('/cpu:0'):
             ### YOUR CODE HERE
-            embedding = tf.get_variable('Embedding', [len(self.wv), self.config.embed_size])
+            # embedding = tf.get_variable('Embedding', [len(self.wv), self.config.embed_size])
+            embedding = tf.Variable(self.wv, name='Embedding')
             window = tf.nn.embedding_lookup(embedding, self.input_placeholder)
             window = tf.reshape(
                 window, [-1, self.config.window_size * self.config.embed_size])
@@ -318,8 +337,8 @@ class NERModel(LanguageModel):
     def __init__(self, config):
         """Constructs the network using the helper functions defined above."""
         self.config = config
-        self.load_data(debug=False)
-        # self.load_data_db(debug=False)
+        # self.load_data(debug=False)
+        self.load_data_db(debug=False)
         self.add_placeholders()
         window = self.add_embedding()
         y = self.add_model(window)
@@ -462,11 +481,11 @@ def test_NER():
                 print('Total time: {}'.format(time.time() - start))
 
             saver.restore(session, './weights/ner.weights')
-            print('Test')
-            print('=-=-=')
-            print('Writing predictions to q2_test.predicted')
-            _, predictions = model.predict(session, model.X_test, model.y_test)
-            save_predictions(predictions, "q2_test.predicted")
+            # print('Test')
+            # print('=-=-=')
+            # print('Writing predictions to q2_test.predicted')
+            # _, predictions = model.predict(session, model.X_train, model.y_train)
+            # save_predictions(predictions, "q2_test.predicted")
 
 if __name__ == "__main__":
     test_NER()
