@@ -3,7 +3,7 @@
 import os
 import os.path
 import sys
-import pwd
+from mprorp.utils import home_dir
 
 
 def _find_mystem(exe):
@@ -16,8 +16,7 @@ def _find_mystem(exe):
         if os.path.isfile(fpath) and os.access(fpath, os.X_OK):
             return dir, fpath
 
-    dir = pwd.getpwuid(os.getuid()).pw_dir
-    fpath = os.path.join(dir, exe)
+    fpath = os.path.join(home_dir, exe)
 
     return dir, fpath
 
