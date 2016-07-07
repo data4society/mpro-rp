@@ -45,6 +45,7 @@ def router(doc_id, status):
     elif status < 100 and status%10 == 9:  # to morpho
         source_id = select([Document.source_id], Document.doc_id == doc_id).fetchone()[0]
         source_type = select([Source.source_type_id], Source.source_id == source_id).fetchone()[0]
+        source_type = str(source_type)
         if source_type in ['0cc76b0c-531e-4a90-ab0b-078695336df5','1d6210b2-5ff3-401c-b0ba-892d43e0b741']:
             #doc_id = str(doc_id)
             regular_morpho.delay(doc_id, MORPHO_COMPLETE_STATUS)
