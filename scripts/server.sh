@@ -33,7 +33,9 @@ cp /home/mprorp/mpro-rp-dev/server/flowerd_default /etc/default/flowerd
 cp /home/mprorp/mpro-rp-dev/server/celeryd_default /etc/default/celeryd
 chmod 644 /etc/default/flowerd
 chmod 644 /etc/default/celeryd
-cp /home/mprorp/mpro-rp-dev/server/renew.sh /home/prorp
+cp /home/mprorp/mpro-rp-dev/server/renew.sh /home/mprorp
+update-rc.d flowerd defaults
+update-rc.d celeryd defaults
 
 
 su mprorp
@@ -43,8 +45,5 @@ pip3 install -r requirements.txt
 export TF_BINARY_URL=https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.9.0rc0-cp34-cp34m-linux_x86_64.whl
 pip3 install --upgrade $TF_BINARY_URL
 pip3 install flower
-
-flower
-celery -A mprorp worker -B --app=mprorp.celery_app:app --logfile=celery_log.txt -l INFO
 
 
