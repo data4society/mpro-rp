@@ -12,6 +12,7 @@ from mprorp.celery_app import app
 import logging
 from urllib.error import *
 
+
 VK_COMPLETE_STATUS = 19
 GOOGLE_NEWS_INIT_STATUS = 20
 SITE_PAGE_LOADING_FAILED = 91
@@ -27,7 +28,7 @@ VALIDATION_AND_CONVERTING_COMPLETE = 1001
 VALIDATION_FAILED = 1002
 FROM_OPEN_CORPORA = 1100
 FROM_MANUAL_SOURCES_FOR_LEARNING = 1101
-FOR_TRAINING = 1200
+FOR_TRAINING = 1000
 EMPTY_TEXT = 2000
 
 
@@ -113,7 +114,9 @@ def regular_lemmas(doc_id, new_status):
 # regular rubrication
 @app.task
 def regular_rubrication(doc_id, new_status):
-    rb.spot_doc_rubrics(doc_id, rubrics_for_regular, new_status)
+    # rb.spot_doc_rubrics(doc_id, rubrics_for_regular, new_status)
+    doc = Document(doc_id=doc_id, status=new_status, rubric_ids=['19848dd0-436a-11e6-beb8-9e71128cae50'])
+    update(doc)
     router(doc_id, new_status)
 
 
