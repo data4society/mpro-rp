@@ -74,7 +74,7 @@ def router(doc_id, status):
 @app.task
 def regular_find_full_text(doc_id, new_status):
     try:
-        find_full_text(doc_id, new_status, SITE_PAGE_LOADING_FAILED)
+        find_full_text(doc_id, new_status)
         router(doc_id, new_status)
     except Exception as err:
         err_txt = repr(err)
