@@ -31,8 +31,9 @@ chmod 755 /etc/init.d/flowerd
 chmod 755 /etc/init.d/celeryd
 cp /home/mprorp/mpro-rp-dev/server/flowerd_default /etc/default/flowerd
 cp /home/mprorp/mpro-rp-dev/server/celeryd_default /etc/default/celeryd
-chmod 644 /etc/init.d/flowerd
-chmod 644 /etc/init.d/celeryd
+chmod 644 /etc/default/flowerd
+chmod 644 /etc/default/celeryd
+cp /home/mprorp/mpro-rp-dev/server/renew.sh /home/prorp
 
 
 su mprorp

@@ -1,29 +1,12 @@
-# Names of nodes to start
-#   most people will only start one node:
-CELERYD_NODES="flower"
-
 ENV_MY="/home/mprorp/mprorpenv"
-# Absolute or relative path to the 'celery' command:
-CELERY_BIN="$ENV_MY/bin/celery"
-CELERYD_MULTI="$ENV_MY/bin/celery multi"
-CELERYCTL="$ENV_MY/bin/celeryctl"
+# Absolute or relative path to the 'flower' command:
+FLOWERD_BIN="$ENV_MY/bin/flower"
 
 # Where to chdir at start.
-CELERYD_CHDIR="/home/mprorp/mpro-rp-dev/"
-
-# Extra command-line arguments to the worker
-CELERYD_OPTS="flower --logfile=/home/mprorp/mpro-rp-dev/flower_log.txt -l INFO"
-
-# %N will be replaced with the first part of the nodename.
-CELERYD_LOG_FILE="/var/log/flower/%N.log"
-CELERYD_PID_FILE="/var/run/flower/%N.pid"
+FLOWERD_CHDIR="/home/mprorp/mpro-rp-dev/"
 
 # Workers should run as an unprivileged user.
 #   You need to create this user manually (or you can choose
 #   a user/group combination that already exists, e.g. nobody).
-CELERYD_USER="mprorp"
-CELERYD_GROUP="mprorp"
-
-# If enabled pid and log directories will be created if missing,
-# and owned by the userid/group configured.
-CELERY_CREATE_DIRS=1
+FLOWERD_USER="mprorp"
+FLOWERD_GROUP="mprorp"
