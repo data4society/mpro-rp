@@ -3,6 +3,7 @@ useradd mprorp -m
 passwd mprorp #set pass
 apt-get update
 apt-get -y upgrade
+dpkg-reconfigure tzdata
 apt-get -y install mc python-virtualenv rabbitmq-server python3-pip libpq-dev nginx
 apt-get -y build-dep python3-lxml
 
@@ -12,18 +13,26 @@ virtualenv -p /usr/bin/python3 --no-site-packages ~/mprorpenv
 cd ~
 wget https://github.com/data4society/mpro-rp/archive/dev.zip
 unzip dev.zip
-cp /home/mprorp/mpro-rp-dev/mprorp/config/local_settings.sample.py /home/mprorp/mpro-rp-dev/mprorp/config/local_settings.py
+cp /home/mprorp/mpro-rp-dev/mprorp/config/local_settings.sample.py /home/mprorp/local_settings.py
 # update local config
-cp /home/mprorp/mpro-rp-dev/mprorp/config/local_settings.py /home/mprorp/
+cp /home/mprorp/local_settings.py /home/mprorp/mpro-rp-dev/mprorp/config/local_settings.py
 
 
 su - #input root pass
 sh /home/mprorp/mpro-rp-dev/scripts/tomita.sh /home/mprorp
 chown -R mprorp:mprorp /home/mprorp
-cp /home/mprorp/mpro-rp-dev/scripts/flower /etc/nginx/sites-available/
+cp /home/mprorp/mpro-rp-dev/server/flower_nginx /etc/nginx/sites-available/flower
 ln -s /etc/nginx/sites-available/flower /etc/nginx/sites-enabled/flower
 rm /etc/nginx/sites-enabled/default
 service nginx reload
+cp /home/mprorp/mpro-rp-dev/server/flowerd_init /etc/init.d/flowerd
+cp /home/mprorp/mpro-rp-dev/server/celeryd_init /etc/init.d/celeryd
+chmod 755 /etc/init.d/flowerd
+chmod 755 /etc/init.d/celeryd
+cp /home/mprorp/mpro-rp-dev/server/flowerd_default /etc/default/flowerd
+cp /home/mprorp/mpro-rp-dev/server/celeryd_default /etc/default/celeryd
+chmod 644 /etc/init.d/flowerd
+chmod 644 /etc/init.d/celeryd
 
 
 su mprorp

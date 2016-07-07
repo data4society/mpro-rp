@@ -19,8 +19,8 @@
 # some commands work asyncronously, so we'll wait this many seconds
 SLEEP_SECONDS=5
 
-DEFAULT_PID_FILE="/var/run/celery/%n.pid"
-DEFAULT_LOG_FILE="/var/log/celery/%n.log"
+DEFAULT_PID_FILE="/var/run/flower/%n.pid"
+DEFAULT_LOG_FILE="/var/log/flower/%n.log"
 DEFAULT_LOG_LEVEL="INFO"
 DEFAULT_NODES="celery"
 DEFAULT_CELERYD="-m celery.bin.celeryd_detach"
