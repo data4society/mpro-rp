@@ -27,6 +27,7 @@ VALIDATION_AND_CONVERTING_COMPLETE = 1001
 VALIDATION_FAILED = 1002
 FROM_OPEN_CORPORA = 1100
 FROM_MANUAL_SOURCES_FOR_LEARNING = 1101
+FOR_TRAINING = 1200
 EMPTY_TEXT = 2000
 
 
@@ -41,8 +42,14 @@ def router(doc_id, status):
     if status == GOOGLE_NEWS_INIT_STATUS:  # to find full text of HTML page
         regular_find_full_text.delay(doc_id, SITE_PAGE_COMPLETE_STATUS)
     elif status < 100 and status%10 == 9:  # to morpho
-        doc_id = str(doc_id)
-        regular_morpho.delay(doc_id, MORPHO_COMPLETE_STATUS)
+        source_id = select([Document.source_id], Document.doc_id == doc_id).fetchone()[0]
+        source_type = select([Source.source_type_id], Source.source_id == source_id).fetchone()[0]
+        if source_type in ['0cc76b0c-531e-4a90-ab0b-078695336df5','1d6210b2-5ff3-401c-b0ba-892d43e0b741']:
+            doc_id = str(doc_id)
+            regular_morpho.delay(doc_id, MORPHO_COMPLETE_STATUS)
+        else:
+            doc = Document(doc_id=doc_id, status=FOR_TRAINING, type='trn')
+            update(doc)
     elif status == MORPHO_COMPLETE_STATUS:  # to lemmas
         regular_lemmas.delay(doc_id, LEMMAS_COMPLETE_STATUS)
     elif status == LEMMAS_COMPLETE_STATUS:  # to rubrication

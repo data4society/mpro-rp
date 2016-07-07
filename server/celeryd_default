@@ -25,7 +25,7 @@ CELERYCTL="$ENV_MY/bin/celeryctl"
 CELERYD_CHDIR="/home/mprorp/mpro-rp-dev/"
 
 # Extra command-line arguments to the worker
-CELERYD_OPTS="mprorp -B --app=mprorp.celery_app:app --logfile=/home/mprorp/mpro-rp-dev/celery_log.txt -l INFO"
+CELERYD_OPTS="-B --app=mprorp.celery_app:app --logfile=/home/mprorp/mpro-rp-dev/celery_log.txt -l INFO"
 
 # %N will be replaced with the first part of the nodename.
 CELERYD_LOG_FILE="/var/log/celery/%N.log"
