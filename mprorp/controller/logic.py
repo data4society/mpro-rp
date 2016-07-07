@@ -38,6 +38,7 @@ facts = ['Person']
 
 
 def router(doc_id, status):
+    doc_id = str(doc_id)
     logging.info("route doc: " + str(doc_id) + " status: " + str(status))
     if status == GOOGLE_NEWS_INIT_STATUS:  # to find full text of HTML page
         regular_find_full_text.delay(doc_id, SITE_PAGE_COMPLETE_STATUS)
@@ -45,7 +46,7 @@ def router(doc_id, status):
         source_id = select([Document.source_id], Document.doc_id == doc_id).fetchone()[0]
         source_type = select([Source.source_type_id], Source.source_id == source_id).fetchone()[0]
         if source_type in ['0cc76b0c-531e-4a90-ab0b-078695336df5','1d6210b2-5ff3-401c-b0ba-892d43e0b741']:
-            doc_id = str(doc_id)
+            #doc_id = str(doc_id)
             regular_morpho.delay(doc_id, MORPHO_COMPLETE_STATUS)
         else:
             doc = Document(doc_id=doc_id, status=FOR_TRAINING, type='trn')
