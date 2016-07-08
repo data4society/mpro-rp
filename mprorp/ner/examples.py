@@ -120,7 +120,7 @@ features = db.get_ner_feature(doc_id)
 print(features[(0, 11, 'morpho')])
 print(len(features[(0, 11, 'morpho')]))
 
-doc_id = '727863d7-b35e-45db-87cc-3448fa12c67e'
+doc_id = '27fd2552-2566-4909-960c-e4ba2910b2ae'
 # print(doc_id)
 rb.morpho_doc(doc_id)
 rb.lemmas_freq_doc(doc_id)
