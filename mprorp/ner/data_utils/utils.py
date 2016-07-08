@@ -119,9 +119,11 @@ def max_key(mydict):
     return res
 
 
-def appendXY(words, pad, sent_length, doc_answers, sent_index, tag_to_num, X, y):
+def appendXY(words, words_feature, pad, zero_feature, doc_answers, sent_length, sent_index, tag_to_num,
+             X_feature, X, y):
     for i in range(pad):
         words.append(0)
+        words_feature.append(zero_feature)
     for i in range(pad, sent_length + pad):
         answer = doc_answers.get((sent_index, i - pad), None)
         if answer is None:
@@ -129,31 +131,51 @@ def appendXY(words, pad, sent_length, doc_answers, sent_index, tag_to_num, X, y)
         else:
             tagn = tag_to_num[(answer[0], answer[1])]
         idxs = [words[ii] for ii in range(i - pad, i + pad + 1)]
+        feat_vec = [words_feature[ii] for ii in range(i - pad, i + pad + 1)]
+        X_feature.append(feat_vec)
         X.append(idxs)
         y.append(tagn)
 
 
-def docs_to_windows2(train_set_words, word_to_num, tag_to_num, answers, wsize=3):
+def docs_to_windows2(train_set_words, word_to_num, tag_to_num, answers,
+                     feature_list, features_set, features_size, wsize=3):
     pad = int((wsize - 1) / 2)
     X = []
     y = []
+    X_feature = []
     for doc_id in train_set_words:
         # print(doc_id)
         sent_index = -1
         word_index = -1
         words = None
+        words_feature = None
+        zero_feature = [0 for i in feature_list for _ in range(features_size[i])]
         for word in train_set_words[doc_id]:  # word - (sentence_index, word_index, value)
             # print(word)
             if not (word[0] == sent_index):
                 if not (words is None):
-                    appendXY(words, pad, word_index, answers.get(doc_id,{}), sent_index, tag_to_num, X, y)
+                    appendXY(words, words_feature, pad, zero_feature, answers.get(doc_id,{}), word_index + 1, sent_index, tag_to_num,
+                             X_feature, X, y)
                 words = [0 for i in range(pad)]
+                words_feature = [zero_feature for i in range(pad)]
             sent_index = word[0]
             word_index = word[1]
             words.append(word_to_num.get(max_key(word[2]),0))
+            feature_word = []
+            for feature in feature_list:
+                feat_doc = features_set[feature].get(doc_id, None)
+                if feat_doc is None:
+                    new_feat = [0 for i in range(features_size[feature])]
+                else:
+                    new_feat = feat_doc.get((sent_index, word_index), None)
+                    if new_feat is None:
+                        new_feat = [0 for i in range(features_size[feature])]
+                feature_word.extend(new_feat)
+            words_feature.append(feature_word)
         if not (words is None):
-            appendXY(words, pad, word_index, answers.get(doc_id, {}), sent_index, tag_to_num, X, y)
-    return array(X), array(y)
+            appendXY(words, words_feature, pad, zero_feature, answers.get(doc_id, {}), word_index + 1, sent_index, tag_to_num,
+                     X_feature, X, y)
+    return array(X_feature), array(X), array(y)
 
 
 def window_to_vec(window, L):

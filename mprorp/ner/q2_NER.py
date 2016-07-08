@@ -11,6 +11,7 @@ import mprorp.ner.data_utils.ner as ner
 from mprorp.ner.utils import data_iterator
 from mprorp.ner.model import LanguageModel
 import mprorp.analyzer.db as db
+from mprorp.ner.config import features_size
 
 class Config(object):
     """Holds model hyperparams and data information.
@@ -28,10 +29,13 @@ class Config(object):
     dropout = 0.9
     lr = 0.001
     l2 = 0.001
-    window_size = 3
+    window_size = 5
     training_set = u'199698a2-e3f4-48a8-aaaa-09778161c8c4'
     dev_set = u'074c809b-208c-4fb4-851c-1e71d7f01b60'
+    pre_embedding = True
     embedding = 'first_test_embedding'
+    features = []
+    # features = ['Org', 'Person', 'morpho']
 
 
 class NERModel(LanguageModel):
@@ -98,16 +102,32 @@ class NERModel(LanguageModel):
         self.num_to_tag = dict(enumerate(tagnames))
         tag_to_num = {v: k for k, v in iter(self.num_to_tag.items())}
 
+        features_set = {}
+        for feat in self.config.features:
+            features_set[feat] = db.get_ner_feature_for_set_dict(training_set, feat)
 
-        self.X_train, self.y_train = du.docs_to_windows2(train_set_words, word_to_num,
-                                                         tag_to_num, answers, wsize=self.config.window_size)
+        self.feat_train, self.X_train, self.y_train = du.docs_to_windows2(train_set_words, word_to_num,
+                                                        tag_to_num, answers,
+                                                        self.config.features,
+                                                        features_set, features_size,
+                                                        wsize=self.config.window_size)
 
-        dev_set = self.config.training_set
+        features_set = {}
+        for feat in self.config.features:
+            features_set[feat] = db.get_ner_feature_for_set_dict(training_set,feat)
+
+        dev_set = self.config.dev_set
         #  train_set_words[doc_id] = [(sentence, word, [lemma1, lemma2]), ... (...)]
         dev_set_words = db.get_ner_feature_for_set(dev_set, 'embedding')
-        answers = db.get_ner_feature_for_set_dict(training_set, 'org_answer')
-        self.X_dev, self.y_dev = du.docs_to_windows2(dev_set_words, word_to_num,
-                                                         tag_to_num, answers, wsize=self.config.window_size)
+        answers = db.get_ner_feature_for_set_dict(dev_set, 'org_answer')
+        features_set = {}
+        for feat in self.config.features:
+            features_set[feat] = db.get_ner_feature_for_set_dict(dev_set, feat)
+        self.X_dev, self.X_dev, self.y_dev = du.docs_to_windows2(dev_set_words, word_to_num,
+                                                         tag_to_num, answers,
+                                                         self.config.features,
+                                                         features_set, features_size,
+                                                         wsize=self.config.window_size)
 
         print("Размер учебной выборки: ", len(self.X_train))
 
@@ -208,7 +228,7 @@ class NERModel(LanguageModel):
         return feed_dict
 
 
-    def add_embedding(self):
+    def add_embedding(self, pre_embedding):
         """Add embedding layer that maps from vocabulary to vectors.
 
         Creates an embedding tensor (of shape (len(self.wv), embed_size). Use the
@@ -235,8 +255,11 @@ class NERModel(LanguageModel):
         # The embedding lookup is currently only implemented for the CPU
         with tf.device('/cpu:0'):
             ### YOUR CODE HERE
-            # embedding = tf.get_variable('Embedding', [len(self.wv), self.config.embed_size])
-            embedding = tf.Variable(self.wv, name='Embedding')
+            if pre_embedding:
+                embedding = tf.Variable(self.wv, name='Embedding')
+            else:
+                embedding = tf.get_variable('Embedding', [len(self.wv), self.config.embed_size])
+            # embedding = tf.Variable(self.wv, name='Embedding')
             window = tf.nn.embedding_lookup(embedding, self.input_placeholder)
             window = tf.reshape(
                 window, [-1, self.config.window_size * self.config.embed_size])
@@ -340,7 +363,7 @@ class NERModel(LanguageModel):
         # self.load_data(debug=False)
         self.load_data_db(debug=False)
         self.add_placeholders()
-        window = self.add_embedding()
+        window = self.add_embedding(config.pre_embedding)
         y = self.add_model(window)
 
         self.loss = self.add_loss_op(y)

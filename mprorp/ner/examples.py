@@ -115,22 +115,28 @@ tr_set = '7436d611-f196-403f-98a1-f17024e96d94' # docs with markup
 #     break
 
 doc_id = '1bff4e98-7f7f-473c-a405-0a4d35c06f35'
+ner_feature.create_morpho_feature(doc_id)
+features = db.get_ner_feature(doc_id)
+print(features[(0, 11, 'morpho')])
+print(len(features[(0, 11, 'morpho')]))
 
+doc_id = '727863d7-b35e-45db-87cc-3448fa12c67e'
 # print(doc_id)
-# rb.morpho_doc(doc_id)
-# rb.lemmas_freq_doc(doc_id)
-# for gram in config:
-#     run_tomita(gram, str(doc_id))
-# ner_feature.create_tomita_feature(str(doc_id), config.keys())
+rb.morpho_doc(doc_id)
+rb.lemmas_freq_doc(doc_id)
+for gram in config:
+    run_tomita(gram, str(doc_id))
+ner_feature.create_tomita_feature(str(doc_id), config.keys())
 # ner_feature.create_embedding_feature(str(doc_id))
 # print(db.get_markup_from_doc(doc_id))
 
 set_id = '7436d611-f196-403f-98a1-f17024e96d94'
 set_id = u'199698a2-e3f4-48a8-aaaa-09778161c8c4'
 # set_id = u'074c809b-208c-4fb4-851c-1e71d7f01b60'
-# print(db.get_docs_text(doc_id))
-# doc_id = '000e82b8-6ea7-41f4-adc6-bc688fbbeeb6'
-for doc_id in db.get_set_docs(set_id):
-    rb.morpho_doc(doc_id)
-    ner_feature.create_embedding_feature(str(doc_id))
-ner_feature.create_answers_feature(set_id)
+
+# for doc_id in db.get_set_docs(set_id):
+#     rb.morpho_doc(doc_id)
+#     ner_feature.create_embedding_feature(str(doc_id))
+# ner_feature.create_answers_feature(set_id)
+
+

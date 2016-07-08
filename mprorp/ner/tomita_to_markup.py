@@ -5,7 +5,8 @@ fact_entities = {'Person': 'person',
                  'Loc': 'location',
                  'Date': 'date',
                  'Adr': 'address',
-                 'Org': 'org'}
+                 'Org': 'org',
+                 'Norm': 'norm'}
 
 
 def convert_tomita_result_to_markup(doc_id, grammars,
