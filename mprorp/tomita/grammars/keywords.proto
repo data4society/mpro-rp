@@ -16,3 +16,4 @@ message ministry: TAuxDicArticle {}
 message RF: TAuxDicArticle {}
 message jail: TAuxDicArticle {}
 message uk: TAuxDicArticle {}
+message KoAP: TAuxDicArticle {}
