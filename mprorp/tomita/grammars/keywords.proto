@@ -17,3 +17,4 @@ message RF: TAuxDicArticle {}
 message jail: TAuxDicArticle {}
 message uk: TAuxDicArticle {}
 message KoAP: TAuxDicArticle {}
+message lost_loc: TAuxDicArticle {}
