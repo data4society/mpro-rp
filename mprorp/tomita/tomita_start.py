@@ -10,19 +10,22 @@ grammars = {'person.cxx': 'bin',
             'date.cxx': 'bin', #bin2
             'loc.cxx': 'bin', #bin3
             'adr.cxx': 'bin', #bin4
-            'org.cxx': 'bin'} #bin5
+            'org.cxx': 'bin', #bin5
+            'norm_act.cxx': 'bin'} #bin6
 
 dic = {'person.cxx': '{Name = "FIO"}, {Name = "Персона"}',
        'date.cxx': '{Name = "DATE"}, {Name = "Дата"}',
        'loc.cxx': '{Name = "Локация"}',
        'adr.cxx': '{Name = "Адрес"}',
-       'org.cxx': '{Name = "Организация"}'}
+       'org.cxx': '{Name = "Организация"}',
+       'norm_act.cxx': '{Name = "Нормативный Акт"}'}
 
 fact = {'person.cxx': '{ Name = "PersonFact_TOMITA" }',
         'date.cxx': '{ Name = "DateFact_TOMITA" }',
         'loc.cxx': '{ Name = "LocationFact_TOMITA" }',
         'adr.cxx': '{ Name = "AdrFact_TOMITA" }',
-        'org.cxx': '{ Name = "OrgFact_TOMITA" }'}
+        'org.cxx': '{ Name = "OrgFact_TOMITA" }',
+        'norm_act.cxx': '{Name = "NormFact_TOMITA"}'}
 
 
 def create_config(grammar_name, file_name):

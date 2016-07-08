@@ -33,7 +33,6 @@ class SimpleTomitaTest(unittest.TestCase):
         key6 = '1249:1266'
         key7 = '1384:1401'
         value = 'Person'
-        print(dic_out)
         self.assertEqual(dic_out[key1], value)
         self.assertEqual(dic_out[key2], value)
         self.assertEqual(dic_out[key3], value)
@@ -88,11 +87,11 @@ class SimpleTomitaTest(unittest.TestCase):
         insert(my_doc)
         doc_id = str(my_doc.doc_id)
         dic_out = run_tomita('norm_act.cxx', doc_id)
-        key1 = '1077:1083'
-        key2 ='987:993'
-        key3 ='1073:1076'
-        key4 ='1164:1190'
-        key5 ='983:986'
+        key1 = '17:20'
+        key2 ='21:27'
+        key3 ='107:110'
+        key4 ='111:117'
+        key5 ='198:224'
         value = 'Norm'
         self.assertEqual(dic_out[key1], value)
         self.assertEqual(dic_out[key2], value)
