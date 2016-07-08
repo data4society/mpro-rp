@@ -82,3 +82,20 @@ class SimpleTomitaTest(unittest.TestCase):
         value = 'Org'
         self.assertEqual(dic_out[key], value)
 
+    def test_tomita_norm_act(self):
+        dropall_and_create()
+        my_doc = Document(stripped='Ей инкриминируют ч.2 ст.110 (посягательство на территориальную целостность и неприкосновенность Украины) и ч.3 ст.369 (предложение, обещание или предоставление неправомерной выгоды служебному лицу) Уголовного кодекса Украины.',type='article')
+        insert(my_doc)
+        doc_id = str(my_doc.doc_id)
+        dic_out = run_tomita('norm_act.cxx', doc_id)
+        key1 = '1077:1083'
+        key2 ='987:993'
+        key3 ='1073:1076'
+        key4 ='1164:1190'
+        key5 ='983:986'
+        value = 'Norm'
+        self.assertEqual(dic_out[key1], value)
+        self.assertEqual(dic_out[key2], value)
+        self.assertEqual(dic_out[key3], value)
+        self.assertEqual(dic_out[key4], value)
+        self.assertEqual(dic_out[key5], value)

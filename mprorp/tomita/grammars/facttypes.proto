@@ -26,3 +26,8 @@ message OrgFact_TOMITA: NFactType.TFact
 {
     required string Org_TOMITA = 1;
 }
+
+message NormFact_TOMITA: NFactType.TFact
+{
+    required string Norm_TOMITA = 1;
+}
