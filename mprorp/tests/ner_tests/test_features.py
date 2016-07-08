@@ -53,6 +53,7 @@ class SimpleTomitaTest(unittest.TestCase):
         ner_feature.create_morpho_feature(doc_id)
         features = db.get_ner_feature(doc_id)
         print(features[(0, 11, 'morpho')])
+        print(len(features[(0, 11, 'morpho')]))
         # self.assertEqual(features[(0, 11, 'embedding')], {'который_APRO': 1})
 
 mytext = '''Следственный судья Киевского райсуда Харькова Валентина Божко удовлетворила ходатайство прокуратуры об аресте бывшего народного депутата от Компартии Украины Аллы Александровской, подозреваемой в сепаратизме, посягательстве на территориальную целостность Украины и попытке подкупа депутатов.
