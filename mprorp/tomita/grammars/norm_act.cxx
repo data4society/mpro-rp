@@ -27,7 +27,7 @@ Act4 -> UK;
 
 // KoAP
 KoAP -> Word<kwtype='KoAP'> | Word<kwtype='KoAP'> RF;
-KoAP_N -> 'n' AnyWord<wfl="[0-9]+.?[А-Я]+">;
+KoAP_N -> 'n' AnyWord<wfl="[0-9]+(.?[А-Я]+)?">;
 
 Norm_Act -> Act1 | Act2 | Act3 | Act4 | KoAP | KoAP_N;
 Norm_Act_int -> Norm_Act interp(NormFact_TOMITA.Norm_TOMITA::not_norm);

@@ -23,3 +23,8 @@ abbreviation "Сокращения"
 {
  key = { "abbreviations.txt" type=FILE }
 }
+
+lost_loc "lost locations"
+{
+ key = "Астана"
+}

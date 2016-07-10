@@ -43,3 +43,18 @@ jail "Jail"
 {
  key = { "jail_rf.txt" type=FILE }
 }
+
+comp "Компания"
+{
+ key = "Компания"
+}
+
+ag "Агентство"
+{
+ key = "Агентство"
+}
+
+fond "Фонд"
+{
+ key = "Фонд"
+}
