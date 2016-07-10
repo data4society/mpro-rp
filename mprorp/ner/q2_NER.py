@@ -116,10 +116,6 @@ class NERModel(LanguageModel):
                                                         features_set, features_size, self.config.features_length,
                                                         wsize=self.config.window_size)
 
-        features_set = {}
-        for feat in self.config.features:
-            features_set[feat] = db.get_ner_feature_for_set_dict(training_set,feat)
-
         dev_set = self.config.dev_set
         #  train_set_words[doc_id] = [(sentence, word, [lemma1, lemma2]), ... (...)]
         dev_set_words = db.get_ner_feature_for_set(dev_set, 'embedding')
