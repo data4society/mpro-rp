@@ -34,8 +34,12 @@ class Config(object):
     dev_set = u'074c809b-208c-4fb4-851c-1e71d7f01b60'
     pre_embedding = True
     embedding = 'first_test_embedding'
-    features = []
-    # features = ['Org', 'Person', 'morpho']
+    # features = []
+    features = ['Org', 'Person', 'morpho']
+    print(features)
+    features_length = 0
+    for feat in features:
+        features_length += features_size[feat]
 
 
 class NERModel(LanguageModel):
@@ -109,7 +113,7 @@ class NERModel(LanguageModel):
         self.feat_train, self.X_train, self.y_train = du.docs_to_windows2(train_set_words, word_to_num,
                                                         tag_to_num, answers,
                                                         self.config.features,
-                                                        features_set, features_size,
+                                                        features_set, features_size, self.config.features_length,
                                                         wsize=self.config.window_size)
 
         features_set = {}
@@ -123,10 +127,10 @@ class NERModel(LanguageModel):
         features_set = {}
         for feat in self.config.features:
             features_set[feat] = db.get_ner_feature_for_set_dict(dev_set, feat)
-        self.X_dev, self.X_dev, self.y_dev = du.docs_to_windows2(dev_set_words, word_to_num,
+        self.feat_dev, self.X_dev, self.y_dev = du.docs_to_windows2(dev_set_words, word_to_num,
                                                          tag_to_num, answers,
                                                          self.config.features,
-                                                         features_set, features_size,
+                                                         features_set, features_size, self.config.features_length,
                                                          wsize=self.config.window_size)
 
         print("Размер учебной выборки: ", len(self.X_train))
@@ -190,12 +194,16 @@ class NERModel(LanguageModel):
         ### YOUR CODE HERE
         self.input_placeholder = tf.placeholder(
             tf.int32, shape=[None, self.config.window_size], name='Input')
+
+        self.features_placeholder = tf.placeholder(
+            tf.float32, shape=[None, self.config.window_size * self.config.features_length], name='Feat_Input')
+
         self.labels_placeholder = tf.placeholder(
             tf.float32, shape=[None, self.config.label_size], name='Target')
         self.dropout_placeholder = tf.placeholder(tf.float32, name='Dropout')
         ### END YOUR CODE
 
-    def create_feed_dict(self, input_batch, dropout, label_batch=None):
+    def create_feed_dict(self, input_batch, dropout, label_batch=None, feat_batch=None):
         """Creates the feed_dict for softmax classifier.
 
         A feed_dict takes the form of:
@@ -224,6 +232,11 @@ class NERModel(LanguageModel):
             feed_dict[self.labels_placeholder] = label_batch
         if dropout is not None:
             feed_dict[self.dropout_placeholder] = dropout
+        if feat_batch is not None:
+            feed_dict[self.features_placeholder] = feat_batch
+        elif self.config.features_length > 0:
+            feed_dict[self.features_placeholder] = np.zeros(self.config.window_size * self.config.features_length)
+
         ### END YOUR CODE
         return feed_dict
 
@@ -299,7 +312,14 @@ class NERModel(LanguageModel):
                 'W', [self.config.window_size * self.config.embed_size,
                     self.config.hidden_size])
             b1 = tf.get_variable('b1', [self.config.hidden_size])
-            h = tf.nn.tanh(tf.matmul(window, W) + b1)
+            if self.config.features_length > 0:
+                Wf = tf.get_variable(
+                    'Wf', [self.config.window_size * self.config.features_length,
+                           self.config.hidden_size])
+                h = tf.nn.tanh(tf.matmul(window, W) + tf.matmul(self.features_placeholder, Wf) + b1)
+            else:
+                h = tf.nn.tanh(tf.matmul(window, W) + b1)
+
             if self.config.l2:
                 tf.add_to_collection('total_loss', 0.5 * self.config.l2 * tf.nn.l2_loss(W))
 
@@ -374,18 +394,18 @@ class NERModel(LanguageModel):
         self.correct_predictions = tf.reduce_sum(tf.cast(correct_prediction, 'int32'))
         self.train_op = self.add_training_op(self.loss)
 
-    def run_epoch(self, session, input_data, input_labels, shuffle=True, verbose=True):
-        orig_X, orig_y = input_data, input_labels
+    def run_epoch(self, session, input_data, input_labels, input_features, shuffle=True, verbose=True):
+        orig_features, orig_X, orig_y = input_features, input_data, input_labels
         dp = self.config.dropout
         # We're interested in keeping track of the loss and accuracy during training
         total_loss = []
         total_correct_examples = 0
         total_processed_examples = 0
         total_steps = len(orig_X) / self.config.batch_size
-        for step, (x, y) in enumerate(
-            data_iterator(orig_X, orig_y, batch_size=self.config.batch_size,
+        for step, (x, y, f) in enumerate(
+            data_iterator(orig_X, orig_y, orig_features, batch_size=self.config.batch_size,
                        label_size=self.config.label_size, shuffle=shuffle)):
-            feed = self.create_feed_dict(input_batch=x, dropout=dp, label_batch=y)
+            feed = self.create_feed_dict(input_batch=x, dropout=dp, label_batch=y, feat_batch=f)
             loss, total_correct, _ = session.run(
                 [self.loss, self.correct_predictions, self.train_op],
                 feed_dict=feed)
@@ -402,21 +422,24 @@ class NERModel(LanguageModel):
             sys.stdout.flush()
         return np.mean(total_loss), total_correct_examples / float(total_processed_examples)
 
-    def predict(self, session, X, y=None):
+    def predict(self, session, X, y=None, features=None):
         """Make predictions from the provided model."""
         # If y is given, the loss is also calculated
         # We deactivate dropout by setting it to 1
         dp = 1
         losses = []
         results = []
-        if np.any(y):
-            data = data_iterator(X, y, batch_size=self.config.batch_size,
-                                 label_size=self.config.label_size, shuffle=False)
-        else:
-            data = data_iterator(X, batch_size=self.config.batch_size,
-                                 label_size=self.config.label_size, shuffle=False)
-        for step, (x, y) in enumerate(data):
-            feed = self.create_feed_dict(input_batch=x, dropout=dp)
+        data = data_iterator(X, y, features, batch_size=self.config.batch_size,
+                             label_size=self.config.label_size, shuffle=False)
+
+        # if np.any(y):
+        #     data = data_iterator(X, y, features, batch_size=self.config.batch_size,
+        #                          label_size=self.config.label_size, shuffle=False)
+        # else:
+        #     data = data_iterator(X, batch_size=self.config.batch_size,
+        #                          label_size=self.config.label_size, shuffle=False)
+        for step, (x, y, f) in enumerate(data):
+            feed = self.create_feed_dict(input_batch=x, feat_batch=f, dropout=dp)
             if np.any(y):
                 feed[self.labels_placeholder] = y
                 loss, preds = session.run(
@@ -484,8 +507,8 @@ def test_NER():
                 start = time.time()
                 ###
                 train_loss, train_acc = model.run_epoch(session, model.X_train,
-                                                    model.y_train)
-                val_loss, predictions = model.predict(session, model.X_dev, model.y_dev)
+                                                    model.y_train, model.feat_train)
+                val_loss, predictions = model.predict(session, model.X_dev, model.y_dev, model.feat_dev)
                 print ('Training loss: {}'.format(train_loss))
                 print ('Training acc: {}'.format(train_acc))
                 print ('Validation loss: {}'.format(val_loss))
