@@ -15,7 +15,7 @@ class SimpleDBTest(unittest.TestCase):
     def test_morpho(self):
         # morpho analysis
         dropall_and_create()
-        my_doc = Document(stripped='Эти типы стали есть, на складе. Проголодались! Вот так.', type='article')
+        my_doc = Document(stripped='Эти типы стали есть, на складе. Проголодались! Вот так. "Кладовка" - крупнейший складской комплекс', type='article')
         insert(my_doc)
         doc_id = str(my_doc.doc_id)
         rb.morpho_doc(doc_id)
