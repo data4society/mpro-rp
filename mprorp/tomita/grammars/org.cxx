@@ -14,7 +14,7 @@ International -> Word<kwtype='inter'>;
 // Российские организации
 RusOrg -> Word<kwtype='rusorg'>;
 // Аббревиатура
-Org1 -> AnyWord<wfl="[А-Я][А-Я][А-Я]+"> | AnyWord<wfl="[А-Я][а-я]+([А-Я][а-я]+)+">;
+Org1 -> AnyWord<wfl="[А-Я][А-Я][А-Я]+", ~dict> | AnyWord<wfl="[А-Я][а-я]+([А-Я][а-я]+)+", ~dict>;
 // Фонды
 Fond -> Word<kwtype='fond'> Word<gram='gen'>+ | Word<kwtype='fond'> Word<gram='gen'>+ SimConjAnd Word<gram='gen'>+ | Word<kwtype='fond'> Prep Dop_Fond1;
 Dop_Fond1 -> Noun<gram=~'nom'> | Adj<gram=~'nom'>;
