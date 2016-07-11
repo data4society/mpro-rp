@@ -82,15 +82,17 @@ def sample(a, temperature=1.0):
     return np.argmax(np.random.multinomial(1, a, 1))
 
 
-def data_iterator(orig_X, orig_y=None, batch_size=32, label_size=2, shuffle=False):
+def data_iterator(orig_X, orig_y=None, orig_features=None, batch_size=32, label_size=2, shuffle=False):
     # Optionally shuffle the data before training
     if shuffle:
         indices = np.random.permutation(len(orig_X))
         data_X = orig_X[indices]
         data_y = orig_y[indices] if np.any(orig_y) else None
+        data_F = orig_features[indices] if np.any(orig_features) else None
     else:
         data_X = orig_X
         data_y = orig_y
+        data_F = orig_features
     ###
     total_processed_examples = 0
     total_steps = int(np.ceil(len(data_X) / float(batch_size)))
@@ -104,8 +106,11 @@ def data_iterator(orig_X, orig_y=None, batch_size=32, label_size=2, shuffle=Fals
             y_indices = data_y[batch_start:batch_start + batch_size]
             y = np.zeros((len(x), label_size), dtype=np.int32)
             y[np.arange(len(y_indices)), y_indices] = 1
+        f = None
+        if np.any(data_F):
+            f = data_F[batch_start:batch_start + batch_size]
         ###
-        yield x, y
+        yield x, y, f
         total_processed_examples += len(x)
     # Sanity check to make sure we iterated over all the dataset as intended
     assert total_processed_examples == len(data_X), 'Expected {} and processed {}'.format(len(data_X), total_processed_examples)

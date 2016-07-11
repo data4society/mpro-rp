@@ -114,29 +114,33 @@ tr_set = '7436d611-f196-403f-98a1-f17024e96d94' # docs with markup
 #     print(type(ref['start_offset']), ref['start_offset'], ref['start_offset'] + ref['len_offset'])
 #     break
 
-doc_id = '1bff4e98-7f7f-473c-a405-0a4d35c06f35'
-ner_feature.create_morpho_feature(doc_id)
-features = db.get_ner_feature(doc_id)
-print(features[(0, 11, 'morpho')])
-print(len(features[(0, 11, 'morpho')]))
-
-doc_id = '27fd2552-2566-4909-960c-e4ba2910b2ae'
-# print(doc_id)
-rb.morpho_doc(doc_id)
-rb.lemmas_freq_doc(doc_id)
-for gram in config:
-    run_tomita(gram, str(doc_id))
-ner_feature.create_tomita_feature(str(doc_id), config.keys())
+# doc_id = '1bff4e98-7f7f-473c-a405-0a4d35c06f35'
+# ner_feature.create_morpho_feature(doc_id)
+# features = db.get_ner_feature(doc_id)
+# print(features[(0, 11, 'morpho')])
+# print(len(features[(0, 11, 'morpho')]))
+#
+# doc_id = '3b595187-8e89-4910-80be-b7f8f6dd9022'
+# print(db.get_doc(doc_id))
+# rb.morpho_doc(doc_id)
+# rb.lemmas_freq_doc(doc_id)
+# for gram in config:
+#     run_tomita(gram, str(doc_id))
+# ner_feature.create_tomita_feature(str(doc_id), config.keys())
 # ner_feature.create_embedding_feature(str(doc_id))
 # print(db.get_markup_from_doc(doc_id))
+from mprorp.tomita.grammars.config import config as tomita_config
 
-set_id = '7436d611-f196-403f-98a1-f17024e96d94'
 set_id = u'199698a2-e3f4-48a8-aaaa-09778161c8c4'
-# set_id = u'074c809b-208c-4fb4-851c-1e71d7f01b60'
+set_id = u'074c809b-208c-4fb4-851c-1e71d7f01b60'
 
-# for doc_id in db.get_set_docs(set_id):
-#     rb.morpho_doc(doc_id)
-#     ner_feature.create_embedding_feature(str(doc_id))
-# ner_feature.create_answers_feature(set_id)
+for doc_id in db.get_set_docs(set_id):
+    rb.morpho_doc(doc_id)
+    ner_feature.create_embedding_feature(str(doc_id))
+    for gram in tomita_config:
+        run_tomita(gram, str(doc_id))
+    ner_feature.create_tomita_feature(str(doc_id), tomita_config.keys())
+    ner_feature.create_morpho_feature(str(doc_id))
+ner_feature.create_answers_feature(set_id)
 
 

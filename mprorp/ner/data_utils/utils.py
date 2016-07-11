@@ -120,7 +120,7 @@ def max_key(mydict):
 
 
 def appendXY(words, words_feature, pad, zero_feature, doc_answers, sent_length, sent_index, tag_to_num,
-             X_feature, X, y):
+             feature_window_size, X_feature, X, y):
     for i in range(pad):
         words.append(0)
         words_feature.append(zero_feature)
@@ -132,13 +132,14 @@ def appendXY(words, words_feature, pad, zero_feature, doc_answers, sent_length, 
             tagn = tag_to_num[(answer[0], answer[1])]
         idxs = [words[ii] for ii in range(i - pad, i + pad + 1)]
         feat_vec = [words_feature[ii] for ii in range(i - pad, i + pad + 1)]
-        X_feature.append(feat_vec)
+
+        X_feature.append(reshape(array(feat_vec), [-1, feature_window_size])[0])
         X.append(idxs)
         y.append(tagn)
 
 
 def docs_to_windows2(train_set_words, word_to_num, tag_to_num, answers,
-                     feature_list, features_set, features_size, wsize=3):
+                     feature_list, features_set, features_size, feature_length, wsize=3):
     pad = int((wsize - 1) / 2)
     X = []
     y = []
@@ -154,8 +155,8 @@ def docs_to_windows2(train_set_words, word_to_num, tag_to_num, answers,
             # print(word)
             if not (word[0] == sent_index):
                 if not (words is None):
-                    appendXY(words, words_feature, pad, zero_feature, answers.get(doc_id,{}), word_index + 1, sent_index, tag_to_num,
-                             X_feature, X, y)
+                    appendXY(words, words_feature, pad, zero_feature, answers.get(doc_id,{}), word_index + 1,
+                             sent_index, tag_to_num, wsize * feature_length, X_feature, X, y)
                 words = [0 for i in range(pad)]
                 words_feature = [zero_feature for i in range(pad)]
             sent_index = word[0]
@@ -173,8 +174,8 @@ def docs_to_windows2(train_set_words, word_to_num, tag_to_num, answers,
                 feature_word.extend(new_feat)
             words_feature.append(feature_word)
         if not (words is None):
-            appendXY(words, words_feature, pad, zero_feature, answers.get(doc_id, {}), word_index + 1, sent_index, tag_to_num,
-                     X_feature, X, y)
+            appendXY(words, words_feature, pad, zero_feature, answers.get(doc_id, {}), word_index + 1,
+                     sent_index, tag_to_num, wsize * feature_length, X_feature, X, y)
     return array(X_feature), array(X), array(y)
 
 
