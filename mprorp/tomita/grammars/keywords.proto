@@ -21,3 +21,4 @@ message lost_loc: TAuxDicArticle {}
 message comp: TAuxDicArticle {}
 message ag: TAuxDicArticle {}
 message fond: TAuxDicArticle {}
+message profession: TAuxDicArticle {}

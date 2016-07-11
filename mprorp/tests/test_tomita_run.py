@@ -98,3 +98,15 @@ class SimpleTomitaTest(unittest.TestCase):
         self.assertEqual(dic_out[key3], value)
         self.assertEqual(dic_out[key4], value)
         self.assertEqual(dic_out[key5], value)
+
+    def test_tomita_profession(self):
+        dropall_and_create()
+        my_doc = Document(stripped=' Конечно, мы будем подавать апелляцию", - сказал адвокат А.Шадрин корреспонденту агентства "Интерфакс-Украина".',type='article')
+        insert(my_doc)
+        doc_id = str(my_doc.doc_id)
+        dic_out = run_tomita('prof.cxx', doc_id)
+        key1 = '49:56'
+        key2 = '66:80'
+        value = 'Prof'
+        self.assertEqual(dic_out[key1], value)
+        self.assertEqual(dic_out[key2], value)
