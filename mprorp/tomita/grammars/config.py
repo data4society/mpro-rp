@@ -3,4 +3,5 @@ config = {'person.cxx': 'Person',
           'loc.cxx': 'Loc',
           'adr.cxx': 'Adr',
           'org.cxx': 'Org',
-          'norm_act.cxx': 'Norm'}
+          'norm_act.cxx': 'Norm',
+          'prof.cxx': 'Prof'}
