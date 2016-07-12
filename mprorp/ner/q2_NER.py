@@ -25,7 +25,7 @@ class Config(object):
     label_size = 5
     hidden_size = 500
     max_epochs = 24
-    early_stopping = 0
+    early_stopping = 2
     dropout = 0.9
     lr = 0.001
     l2 = 0.001
@@ -34,6 +34,8 @@ class Config(object):
     dev_set = u'074c809b-208c-4fb4-851c-1e71d7f01b60'
     pre_embedding = True
     embedding = 'first_test_embedding'
+    feature_answer = 'person_answer'
+    # feature_answer = 'org_answer'
     # features = []
     features = ['Org', 'Person', 'morpho']
     print(features)
@@ -90,7 +92,7 @@ class NERModel(LanguageModel):
         # for doc_id in refs:
         #     for word in train_set_words[doc_id]:
 
-        answers = db.get_ner_feature_for_set_dict(training_set, 'org_answer')
+        answers = db.get_ner_feature_for_set_dict(training_set, self.config.feature_answer)
 
         tagnames = [0]
         for doc_id in answers:
@@ -119,7 +121,7 @@ class NERModel(LanguageModel):
         dev_set = self.config.dev_set
         #  train_set_words[doc_id] = [(sentence, word, [lemma1, lemma2]), ... (...)]
         dev_set_words = db.get_ner_feature_for_set(dev_set, 'embedding')
-        answers = db.get_ner_feature_for_set_dict(dev_set, 'org_answer')
+        answers = db.get_ner_feature_for_set_dict(dev_set, self.config.feature_answer)
         features_set = {}
         for feat in self.config.features:
             features_set[feat] = db.get_ner_feature_for_set_dict(dev_set, feat)
