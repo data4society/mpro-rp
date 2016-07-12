@@ -37,7 +37,8 @@ Min ->  Word<kwtype='ministry'> RF | Word<kwtype='ministry'>;
 Org2 -> Word<kwtype='comp'> AnyWord<lat, h-reg1>+;
 
 // Агентство|Холдинг
-Agent -> Word<kwtype='ag'> Words Q<quoted> | Word<kwtype='ag'> Q<quoted>;
+Agent -> Word<kwtype='ag'> interp(OrgFact_TOMITA.Org_TOMITA::not_norm) Words Q<quoted> interp(+OrgFact_TOMITA.Org_TOMITA::not_norm) | Word<kwtype='ag'> interp(OrgFact_TOMITA.Org_TOMITA::not_norm) Q<quoted> interp(+OrgFact_TOMITA.Org_TOMITA::not_norm);
 
-Org -> Trial | OOO | International | Fonds | RusOrg | Min | Org2 | Jail | Org1<kwtype=~'KoAP'> | Agent;
-Organisation -> Org interp(OrgFact_TOMITA.Org_TOMITA::not_norm);
+Org -> Trial | OOO | International | Fonds | RusOrg | Min | Org2 | Jail | Org1<kwtype=~'KoAP'>;
+Organisation1 -> Org interp(OrgFact_TOMITA.Org_TOMITA::not_norm);
+Organisation -> Organisation1 | Agent;
