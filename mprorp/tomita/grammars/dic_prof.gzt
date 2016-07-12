@@ -1,0 +1,15 @@
+encoding "utf8";
+import "base.proto";     
+import "articles_base.proto";
+import "keywords.proto";
+import "facttypes.proto";
+
+TAuxDicArticle "Профессия"
+{
+    key = { "tomita:prof.cxx" type=CUSTOM }
+}
+
+profession "Profession"
+{
+ key = { "prof_rus.txt" type=FILE }
+}

@@ -69,6 +69,154 @@ def morpho_doc(doc_id, change_status=0):
     db.put_morpho(doc_id, new_morpho, change_status)
     mystem_analyzer.close()
 
+def morpho_doc_new(doc_id, change_status=0):
+
+    doc_text = db.get_doc(doc_id)
+    mystem_analyzer.start()
+    new_morpho = mystem_analyzer.analyze(doc_text)
+
+    morpho_list = []
+
+    sentence_index = 0
+    word_index = 0
+    start_offset = 0
+
+    for element in new_morpho:
+
+        if is_sentence_end(element):
+            morpho_list.append(element)
+            if word_index != 0:
+                sentence_index += 1
+                word_index = 0
+
+        else:
+
+            line = element.get('text', '')
+
+            space_len = 0
+
+            word_start = -1
+            word_len = 0
+
+            symbol_number = -1
+            for symbol in line:
+
+                symbol_number+=1
+
+                if symbol == "'" or symbol == '"':
+
+                    if space_len > 0: # добавим пробелы
+
+                        cur_space = ' ' * space_len
+                        new_element = {'text': cur_space}
+                        if 'analysis' in element: new_element['analysis'] = element['analysis']
+                        morpho_list.append(new_element)
+                        space_len = 0
+
+                    elif word_start > -1: # добавим слово
+
+                        cur_word = line[word_start:(word_start + word_len)]
+                        cur_word_len = len(cur_word)
+
+                        new_element = {'text': cur_word}
+                        if 'analysis' in element: new_element['analysis'] = element['analysis']
+                        new_element['start_offset'] = start_offset
+                        new_element['end_offset'] = start_offset + cur_word_len - 1
+                        new_element['word_index'] = word_index
+                        new_element['sentence_index'] = sentence_index
+                        morpho_list.append(new_element)
+
+                        start_offset += cur_word_len
+
+                        word_start = -1
+                        word_len = 0
+
+                        word_index += 1
+
+                    # добавим кавычку
+                    new_element = {'text': symbol}
+                    if 'analysis' in element: new_element['analysis'] = element['analysis']
+                    new_element['start_offset'] = start_offset
+                    new_element['end_offset'] = start_offset
+                    new_element['word_index'] = word_index
+                    new_element['sentence_index'] = sentence_index
+                    morpho_list.append(new_element)
+
+                    start_offset += 1
+
+                    word_index += 1
+
+                elif symbol == " ":
+
+                    if word_start > -1: # добавим слово
+
+                        cur_word = line[word_start:(word_start + word_len)]
+                        cur_word_len = len(cur_word)
+
+                        new_element = {'text': cur_word}
+                        if 'analysis' in element: new_element['analysis'] = element['analysis']
+                        new_element['start_offset'] = start_offset
+                        new_element['end_offset'] = start_offset + cur_word_len - 1
+                        new_element['word_index'] = word_index
+                        new_element['sentence_index'] = sentence_index
+                        morpho_list.append(new_element)
+
+                        start_offset += cur_word_len
+
+                        word_start = -1
+                        word_len = 0
+
+                        word_index += 1
+
+                    space_len += 1
+
+                else:
+
+                    if space_len > 0: # добавим пробелы
+
+                        cur_space = ' ' * space_len
+                        new_element = {'text': cur_space}
+                        if 'analysis' in element: new_element['analysis'] = element['analysis']
+                        morpho_list.append(new_element)
+                        space_len = 0
+
+                    if word_start == -1:
+                        word_start = symbol_number
+                        word_len = 1
+                    else:
+                        word_len += 1
+
+            if space_len > 0: # добавим пробелы
+
+                cur_space = ' ' * space_len
+                new_element = {'text': cur_space}
+                if 'analysis' in element: new_element['analysis'] = element['analysis']
+                morpho_list.append(new_element)
+
+            elif word_start > -1: # добавим слово
+
+                cur_word = line[word_start:(word_start + word_len)]
+                cur_word_len = len(cur_word)
+
+                new_element = {'text': cur_word}
+                if 'analysis' in element: new_element['analysis'] = element['analysis']
+                new_element['start_offset'] = start_offset
+                new_element['end_offset'] = start_offset + cur_word_len - 1
+                new_element['word_index'] = word_index
+                new_element['sentence_index'] = sentence_index
+                morpho_list.append(new_element)
+
+                start_offset += cur_word_len
+
+                word_index += 1
+
+    for i in range(len(morpho_list) - 1):
+        if i > 0:
+            if morpho_list[i - 1]['text'] == ' ' and morpho_list[i]['text'] == '"' and morpho_list[i + 1]['text'] == '\\s':
+                morpho_list[i], morpho_list[i + 1] = morpho_list[i + 1], morpho_list[i]
+
+    db.put_morpho(doc_id, morpho_list, change_status)
+    mystem_analyzer.close()
 
 # counting lemmas frequency for one document
 def lemmas_freq_doc(doc_id, new_status=0):

@@ -31,3 +31,8 @@ message NormFact_TOMITA: NFactType.TFact
 {
     required string Norm_TOMITA = 1;
 }
+
+message ProfFact_TOMITA: NFactType.TFact
+{
+    required string Prof_TOMITA = 1;
+}
