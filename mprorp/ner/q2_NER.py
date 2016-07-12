@@ -25,7 +25,7 @@ class Config(object):
     label_size = 5
     hidden_size = 500
     max_epochs = 24
-    early_stopping = 2
+    early_stopping = 0
     dropout = 0.9
     lr = 0.001
     l2 = 0.001
@@ -110,7 +110,7 @@ class NERModel(LanguageModel):
         for feat in self.config.features:
             features_set[feat] = db.get_ner_feature_for_set_dict(training_set, feat)
 
-        self.feat_train, self.X_train, self.y_train = du.docs_to_windows2(train_set_words, word_to_num,
+        self.feat_train, self.X_train, self.y_train, _ = du.docs_to_windows2(train_set_words, word_to_num,
                                                         tag_to_num, answers,
                                                         self.config.features,
                                                         features_set, features_size, self.config.features_length,
@@ -123,13 +123,15 @@ class NERModel(LanguageModel):
         features_set = {}
         for feat in self.config.features:
             features_set[feat] = db.get_ner_feature_for_set_dict(dev_set, feat)
-        self.feat_dev, self.X_dev, self.y_dev = du.docs_to_windows2(dev_set_words, word_to_num,
+        self.feat_dev, self.X_dev, self.y_dev, self.w_dev = du.docs_to_windows2(dev_set_words, word_to_num,
                                                          tag_to_num, answers,
                                                          self.config.features,
                                                          features_set, features_size, self.config.features_length,
                                                          wsize=self.config.window_size)
 
         print("Размер учебной выборки: ", len(self.X_train))
+
+        # self.tagnames = tagnames
 
 
     def load_data(self, debug=False):
@@ -523,10 +525,12 @@ def test_NER():
                 print('Total time: {}'.format(time.time() - start))
 
             saver.restore(session, './weights/ner.weights')
-            # print('Test')
-            # print('=-=-=')
+            print('dev: lemma, answer, ner answer')
+            print('=-=-=')
             # print('Writing predictions to q2_test.predicted')
-            # _, predictions = model.predict(session, model.X_train, model.y_train)
+            _, predictions = model.predict(session, model.X_dev, model.y_dev, model.feat_dev)
+            for i in range(len(model.w_dev)):
+                print(model.w_dev[i], model.num_to_tag[model.y_dev[i]], model.num_to_tag[predictions[i]])
             # save_predictions(predictions, "q2_test.predicted")
 
 if __name__ == "__main__":
