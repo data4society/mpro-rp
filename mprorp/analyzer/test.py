@@ -50,3 +50,4 @@ doc_id = u'add1dd0c-3004-49db-adeb-d841c5d8a9f7'
 
 # rb.spot_doc_rubrics(doc_id, rb.rubrics_for_regular)
 rb.lemmas_freq_doc(doc_id)
+
