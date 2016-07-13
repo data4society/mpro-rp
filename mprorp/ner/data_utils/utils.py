@@ -133,7 +133,8 @@ def appendXY(words, words_text, words_feature, pad, zero_feature, doc_answers, s
         idxs = [words[ii] for ii in range(i - pad, i + pad + 1)]
         feat_vec = [words_feature[ii] for ii in range(i - pad, i + pad + 1)]
 
-        X_feature.append(reshape(array(feat_vec), [-1, feature_window_size])[0])
+        if feature_window_size > 0:
+            X_feature.append(reshape(array(feat_vec), [-1, feature_window_size])[0])
         X.append(idxs)
         y.append(tagn)
         W.append(words_text[i])
