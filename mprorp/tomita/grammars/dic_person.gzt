@@ -29,3 +29,8 @@ location_back "ЛокацииB"
  key = { "loc_back.txt" type=FILE }
 }
 
+wrong_pers "Wrong Persons"
+{
+ key = { "wrong_pers.txt" type=FILE }
+}
+

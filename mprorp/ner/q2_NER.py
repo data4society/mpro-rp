@@ -34,6 +34,8 @@ class Config(object):
     dev_set = u'074c809b-208c-4fb4-851c-1e71d7f01b60'
     pre_embedding = True
     embedding = 'first_test_embedding'
+    feature_answer = 'person_answer'
+    # feature_answer = 'org_answer'
     # features = []
     features = ['Org', 'Person', 'morpho']
     print(features)
@@ -90,7 +92,7 @@ class NERModel(LanguageModel):
         # for doc_id in refs:
         #     for word in train_set_words[doc_id]:
 
-        answers = db.get_ner_feature_for_set_dict(training_set, 'org_answer')
+        answers = db.get_ner_feature_for_set_dict(training_set, self.config.feature_answer)
 
         tagnames = [0]
         for doc_id in answers:
@@ -110,7 +112,7 @@ class NERModel(LanguageModel):
         for feat in self.config.features:
             features_set[feat] = db.get_ner_feature_for_set_dict(training_set, feat)
 
-        self.feat_train, self.X_train, self.y_train = du.docs_to_windows2(train_set_words, word_to_num,
+        self.feat_train, self.X_train, self.y_train, _ = du.docs_to_windows2(train_set_words, word_to_num,
                                                         tag_to_num, answers,
                                                         self.config.features,
                                                         features_set, features_size, self.config.features_length,
@@ -119,17 +121,19 @@ class NERModel(LanguageModel):
         dev_set = self.config.dev_set
         #  train_set_words[doc_id] = [(sentence, word, [lemma1, lemma2]), ... (...)]
         dev_set_words = db.get_ner_feature_for_set(dev_set, 'embedding')
-        answers = db.get_ner_feature_for_set_dict(dev_set, 'org_answer')
+        answers = db.get_ner_feature_for_set_dict(dev_set, self.config.feature_answer)
         features_set = {}
         for feat in self.config.features:
             features_set[feat] = db.get_ner_feature_for_set_dict(dev_set, feat)
-        self.feat_dev, self.X_dev, self.y_dev = du.docs_to_windows2(dev_set_words, word_to_num,
+        self.feat_dev, self.X_dev, self.y_dev, self.w_dev = du.docs_to_windows2(dev_set_words, word_to_num,
                                                          tag_to_num, answers,
                                                          self.config.features,
                                                          features_set, features_size, self.config.features_length,
                                                          wsize=self.config.window_size)
 
         print("Размер учебной выборки: ", len(self.X_train))
+
+        # self.tagnames = tagnames
 
 
     def load_data(self, debug=False):
@@ -523,10 +527,12 @@ def test_NER():
                 print('Total time: {}'.format(time.time() - start))
 
             saver.restore(session, './weights/ner.weights')
-            # print('Test')
-            # print('=-=-=')
+            print('dev: lemma, answer, ner answer')
+            print('=-=-=')
             # print('Writing predictions to q2_test.predicted')
-            # _, predictions = model.predict(session, model.X_train, model.y_train)
+            _, predictions = model.predict(session, model.X_dev, model.y_dev, model.feat_dev)
+            for i in range(len(model.w_dev)):
+                print(model.w_dev[i], model.num_to_tag[model.y_dev[i]], model.num_to_tag[predictions[i]])
             # save_predictions(predictions, "q2_test.predicted")
 
 if __name__ == "__main__":
