@@ -97,7 +97,7 @@ def morpho_doc(doc_id, change_status=0):
 
                 symbol_number+=1
 
-                if symbol == "'" or symbol == '"':
+                if symbol == "'" or symbol == '"' or symbol == '»' or symbol == '«':
 
                     if space_len > 0: # добавим пробелы
 
