@@ -64,7 +64,7 @@ def create_file(doc_id):
     file_name = str(doc_id) + '.txt'
     file = open(file_name, 'w', encoding='utf-8')
     text = get_doc(doc_id)
-    file.write(text)
+    file.write(text.replace('\n',''))
     file.close()
     return file_name
 

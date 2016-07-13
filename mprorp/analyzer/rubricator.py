@@ -38,7 +38,7 @@ def is_word(mystem_element):
 
 def is_sentence_end(mystem_element):
     word = mystem_element.get('text', '')
-    return word == '\\s'
+    return word == '\\s' or word == '\n'
 
 
 # one document morphological analysis
@@ -73,7 +73,9 @@ def morpho_doc(doc_id, change_status=0):
 
     doc_text = db.get_doc(doc_id)
     mystem_analyzer.start()
-    new_morpho = mystem_analyzer.analyze(doc_text)
+    # new_morpho = mystem_analyzer.analyze(doc_text)
+    new_morpho = mystem_analyzer.analyze(doc_text.replace('\n',''))
+
 
     morpho_list = []
 
@@ -197,8 +199,8 @@ def morpho_doc(doc_id, change_status=0):
                 element['word_index'] = word_index
                 element['sentence_index'] = sentence_index
 
-                start_offset += line_len
                 word_index += 1
+            start_offset += line_len
 
     db.put_morpho(doc_id, morpho_list, change_status)
     mystem_analyzer.close()

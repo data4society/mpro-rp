@@ -25,11 +25,11 @@ class Config(object):
     label_size = 5
     hidden_size = 500
     max_epochs = 24
-    early_stopping = 2
+    early_stopping = 5
     dropout = 0.9
     lr = 0.001
     l2 = 0.001
-    window_size = 5
+    window_size = 7
     training_set = u'199698a2-e3f4-48a8-aaaa-09778161c8c4'
     dev_set = u'074c809b-208c-4fb4-851c-1e71d7f01b60'
     pre_embedding = True

@@ -176,6 +176,20 @@ def create_tomita_feature(doc_id, feature_grammars, new_status=0):
         db.put_ner_feature(doc_id, values, ner_feature_types['tomita'], new_status=new_status)
 
 
+def print_tomita_result(doc_id, feature_grammars, new_status=0):
+
+    results = db.get_tomita_results(doc_id, feature_grammars)
+    mytext = db.get_doc(doc_id).replace('\n','')
+
+    for result in results:
+        # result - dict with keys like '15:22' and values like 'person' - tomita fact
+        for i in result:
+            print(i, result[i])
+            offsets = [int(j) for j in i.split(':')]
+            print(mytext[offsets[0]:offsets[1]])
+
+
+
 def create_embedding_feature(doc_id, new_status=0):
     morpho = db.get_morpho(doc_id)
     values = []
