@@ -278,6 +278,16 @@ class Reference(Base):
     entity = Column(UUIDType(binary=False), ForeignKey('entities.entity_id'))
     start_offset = Column(Integer())
     end_offset = Column(Integer())
+    length_offset = Column(Integer())
+    outer_id = Column(Integer())
+
+class Mention(Base):
+    __tablename__ = 'mentions'
+
+    mention_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
+    reference_ids = Column(ARRAY(UUIDType(binary=False), ForeignKey('references.reference_id')))
+    markup = Column(UUIDType(binary=False), ForeignKey('markups.markup_id'))
+    outer_id = Column(Integer())
 
 
 class Change(Base):
