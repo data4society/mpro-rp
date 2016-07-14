@@ -23,7 +23,7 @@ class SimpleTomitaTest(unittest.TestCase):
             run_tomita(gram, str(doc_id))
         ner_feature.print_tomita_result(str(doc_id), config.keys())
 
-        # ner_feature.create_tomita_feature(doc_id, config.keys())
+        ner_feature.create_tomita_feature(doc_id, config.keys())
         # gaz_id = db.put_gazetteer('gaz1', ['площадь', 'улица', 'переулок'])
         # ner_feature.create_gazetteer_feature(doc_id, gaz_id)
         # print(db.get_ner_feature(doc_id))
@@ -57,10 +57,9 @@ class SimpleTomitaTest(unittest.TestCase):
         print(len(features[(0, 11, 'morpho')]))
         # self.assertEqual(features[(0, 11, 'embedding')], {'который_APRO': 1})
 
-mytext = '''7. Станислав Востоков — «Рябиновое солнце», «Секретный пес» и др. («Клевер», «Самокат»).
-8. Самуил Маршак — стихи («АСТ»).
-9. Корней Чуковский — «Краденое солнце», «Доктор Айболит» и др. («Нигма»).
-10. Русские народные сказки (например, «Русь сказочная» с иллюстрациями Николая Кочергина, издательство «Нигма»).'''
+mytext = '''
+1. Арнольд Лобел — серия книг о Кваке и Жабе («Розовый жираф»).
+2. Евгений и Николай Чарушины — рассказы («Акварель»).'''
 
 mytext2 = '''ЛУЧШИЕ ДЕТСКИЕ КНИГИ ПО МНЕНИЮ ВЕДУЩИХ ДЕТСКИХ ИЗДАТЕЛЬСТВ
 В проекте участвовали «Розовый жираф», «Самокат», «Серафим и София», «КомпасГид», «Клевер», «Нигма», «Акварель», «Карьера-пресс», «Энас-Книга», «Речь» и «Поляндрия»

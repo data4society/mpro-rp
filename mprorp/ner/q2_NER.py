@@ -36,8 +36,8 @@ class Config(object):
     embedding = 'first_test_embedding'
     feature_answer = 'person_answer'
     # feature_answer = 'org_answer'
-    # features = []
-    features = ['Org', 'Person', 'morpho']
+    features = []
+    # features = ['Org', 'Person', 'morpho']
     print(features)
     features_length = 0
     for feat in features:
