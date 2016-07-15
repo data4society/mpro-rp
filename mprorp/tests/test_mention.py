@@ -131,6 +131,7 @@ def form_spans_info(spans, words_info):
                 for element_word_info in word_info:
                     if element_word_info not in all_span_info:
                         all_span_info.append(element_word_info)
+            i = i + 1
 
         span_info = []
         for element_all_span_info in all_span_info:
@@ -142,6 +143,7 @@ def form_spans_info(spans, words_info):
                     if element_all_span_info not in word_info:
                         flag = False
                         break
+                i = i + 1
             if flag == True:
                 span_info.append(element_all_span_info)
 
