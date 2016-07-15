@@ -1,7 +1,9 @@
 #encoding "utf-8"
 // Дополнительные терминалы
-Q -> AnyWord+;
-Words -> Word {count = 4};
+quot -> AnyWord+;
+lat -> AnyWord<lat, h-reg1>+;
+Q -> quot<quoted>;
+Words -> Word<~lat> {count = 4};
 
 // Суды
 Trial -> Word<kwtype='trial'>;
@@ -12,7 +14,7 @@ SIZO -> 'сизо' AnyWord<wfl="[0-9]+"> | 'сизо' '№' AnyWord<wfl="[0-9]+"
 Jail -> Jail1 | SIZO;
 
 // ОАО
-OOO -> Word<kwtype='OOO'> Word<h-reg2>+ | Word<kwtype='OOO'> Q<quoted> | Word<kwtype='OOO'> Word<lat>;
+OOO -> Word<kwtype='OOO'> Word<h-reg2>+ | Word<kwtype='OOO'> Q | Word<kwtype='OOO'> Word<lat>;
 
 // Международные организации
 International -> Word<kwtype='inter'>;
@@ -20,8 +22,11 @@ International -> Word<kwtype='inter'>;
 // Российские организации
 RusOrg -> Word<kwtype='rusorg'>;
 
-// Аббревиатура
+// Аббревиатура Rus
 Org1 -> AnyWord<wfl="[А-Я][А-Я][А-Я]+", ~dict> | AnyWord<wfl="[А-Я][а-я]+([А-Я][а-я]+)+", ~dict>;
+
+// Аббревиатура Eng
+Org3 -> AnyWord<wfl="[A-Z][A-Z][A-Z]+", ~dict> | AnyWord<wfl="[A-Z][a-z]+([A-Z][a-z]+)+", ~dict>;
 
 // Фонды
 Fond -> Word<kwtype='fond'> Word<gram='gen'>+ | Word<kwtype='fond'> Word<gram='gen'>+ SimConjAnd Word<gram='gen'>+ | Word<kwtype='fond'> Prep Dop_Fond1;
@@ -34,11 +39,13 @@ RF -> Word<kwtype='RF'>;
 Min ->  Word<kwtype='ministry'> RF | Word<kwtype='ministry'>;
 
 // Иностранные организации
-Org2 -> Word<kwtype='comp'> AnyWord<lat, h-reg1>+;
+Org_lat -> lat;
 
 // Агентство|Холдинг
-Agent -> Word<kwtype='ag'> interp(OrgFact_TOMITA.Org_TOMITA::not_norm) Words Q<quoted> interp(+OrgFact_TOMITA.Org_TOMITA::not_norm) | Word<kwtype='ag'> interp(OrgFact_TOMITA.Org_TOMITA::not_norm) Q<quoted> interp(+OrgFact_TOMITA.Org_TOMITA::not_norm);
+Org2_NoWords -> Word<kwtype='ag'> Q | Word<kwtype='ag'> lat;
+Org2_Words -> Word<kwtype='ag'> interp(OrgFact_TOMITA.Org_TOMITA::not_norm) Words Q interp(+OrgFact_TOMITA.Org_TOMITA::not_norm) | Word<kwtype='ag'> interp(OrgFact_TOMITA.Org_TOMITA::not_norm) Words lat interp(+OrgFact_TOMITA.Org_TOMITA::not_norm);
+Org2 -> Org2_NoWords interp(OrgFact_TOMITA.Org_TOMITA::not_norm) | Org2_Words;
 
-Org -> Trial | OOO | International | Fonds | RusOrg | Min | Org2 | Jail | Org1<kwtype=~'KoAP'>;
+Org -> Trial | OOO | International | Fonds | RusOrg | Min | Jail | Org1<kwtype=~'KoAP'> | Org3 | Org_lat;
 Organisation1 -> Org interp(OrgFact_TOMITA.Org_TOMITA::not_norm);
-Organisation -> Organisation1 | Agent;
+Organisation -> Organisation1 | Org2;
