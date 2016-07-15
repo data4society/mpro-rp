@@ -285,8 +285,9 @@ class Mention(Base):
     __tablename__ = 'mentions'
 
     mention_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
-    reference_ids = Column(ARRAY(UUIDType(binary=False), ForeignKey('references.reference_id')))
     markup = Column(UUIDType(binary=False), ForeignKey('markups.markup_id'))
+    entity_class = Column(String(40))
+    reference_ids = Column(ARRAY(UUIDType(binary=False), ForeignKey('references.reference_id')))
     outer_id = Column(Integer())
 
 
