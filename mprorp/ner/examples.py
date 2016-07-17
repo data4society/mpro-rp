@@ -99,7 +99,7 @@ tr_set = '7436d611-f196-403f-98a1-f17024e96d94' # docs with markup
 # for doc_id in db.get_set_docs(tr_set):
 #     print(doc_id)
 #     rb.morpho_doc2(doc_id)
-#     rb.lemmas_freq_doc(doc_id)
+#     rb.lemmas_freq_doc2(doc_id)
 #     for gram in config:
 #         run_tomita(gram, str(doc_id))
 #     ner_feature.create_tomita_feature(str(doc_id), config.keys())
@@ -124,7 +124,7 @@ tomita_to_markup.convert_tomita_result_to_markup(doc_id, ['loc.cxx'])
 # doc_id = '3b595187-8e89-4910-80be-b7f8f6dd9022'
 # print(db.get_doc(doc_id))
 # rb.morpho_doc2(doc_id)
-# rb.lemmas_freq_doc(doc_id)
+# rb.lemmas_freq_doc2(doc_id)
 # for gram in config:
 #     run_tomita(gram, str(doc_id))
 # ner_feature.create_tomita_feature(str(doc_id), config.keys())

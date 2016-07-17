@@ -17,7 +17,7 @@ def regular_morpho(doc_id):
 # counting lemmas frequency for one document
 @app.task
 def regular_lemmas(doc_id):
-    rb.lemmas_freq_doc(doc_id, status['lemmas'])
+    rb.lemmas_freq_doc2(doc_id, status['lemmas'])
     # router_func(doc_id, 3)
     regular_rubrication.delay(doc_id)
 
@@ -25,6 +25,6 @@ def regular_lemmas(doc_id):
 # regular ribrication
 @app.task
 def regular_rubrication(doc_id):
-    rb.spot_doc_rubrics(doc_id, rubrics_for_regular, status['rubrics'])
+    rb.spot_doc_rubrics2(doc_id, rubrics_for_regular, status['rubrics'])
     # router_func(doc_id, 4)
     regular_tomita(0, doc_id)

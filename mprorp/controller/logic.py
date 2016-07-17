@@ -107,14 +107,14 @@ def regular_morpho(doc_id, new_status):
 # counting lemmas frequency for one document
 @app.task
 def regular_lemmas(doc_id, new_status):
-    rb.lemmas_freq_doc(doc_id, new_status)
+    rb.lemmas_freq_doc2(doc_id, new_status)
     router(doc_id, new_status)
 
 
 # regular rubrication
 @app.task
 def regular_rubrication(doc_id, new_status):
-    # rb.spot_doc_rubrics(doc_id, rubrics_for_regular, new_status)
+    # rb.spot_doc_rubrics2(doc_id, rubrics_for_regular, new_status)
     doc = Document(doc_id=doc_id, status=new_status, rubric_ids=['19848dd0-436a-11e6-beb8-9e71128cae50'])
     update(doc)
     router(doc_id, new_status)

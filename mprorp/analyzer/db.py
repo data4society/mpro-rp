@@ -13,10 +13,12 @@ session = Driver.DBSession()
 def get_doc(doc_id):
     return select(Document.stripped, Document.doc_id == doc_id).fetchone()[0]
 
-def morpho_doc3(doc_id, my_def):
-    doc= session.query(Document).filter_by(doc_id=doc_id).first()
-    my_def(doc)
+
+def doc_apply(doc_id, my_def, *args):
+    doc = session.query(Document).filter_by(doc_id=doc_id).first()
+    my_def(doc, *args)
     session.commit()
+
 
 # writing result of morphological analysis of document in db
 def put_morpho(doc_id, morpho, new_status):
@@ -230,9 +232,24 @@ def get_rubrication_result(model_id, set_id, rubric_id):
     return get_rubrication_result_probability(model_id, set_id, rubric_id, 1)
 
 
+def get_rubrication_result2(model_id, set_id, rubric_id):
+    docs = Driver.select(TrainingSet.doc_ids, TrainingSet.set_id == set_id).fetchone()[0]
+    res = session.query(Document.doc_id, Document.rubric_ids).filter(
+        (Document.doc_id.in_(docs))).all()
+    result = {}
+    for doc_id in docs:
+        result[str(doc_id)] = 0
+    for doc in res:
+        for r_id in doc[1]:
+            if rubric_id == str(r_id):
+                result[str(doc[0])] = 1
+                break
+    return result
+
 # reading result of rubrication (result_type - 1 or 2) for model, training set and rubric
 def get_rubrication_result_probability(model_id, set_id, rubric_id, result_type):
     docs = Driver.select(TrainingSet.doc_ids, TrainingSet.set_id == set_id).fetchone()[0]
+
     rubrication_result = session.query(RubricationResult.doc_id, RubricationResult.result,
                                        RubricationResult.probability).filter(
         (RubricationResult.model_id == model_id) &

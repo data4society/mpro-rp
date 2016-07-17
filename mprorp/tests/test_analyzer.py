@@ -36,7 +36,7 @@ class SimpleDBTest(unittest.TestCase):
         insert(my_doc)
         doc_id = str(my_doc.doc_id)
         rb.morpho_doc2(doc_id)
-        rb.lemmas_freq_doc(doc_id)
+        rb.lemmas_freq_doc2(doc_id)
         lemmas = db.get_lemmas(doc_id)
         self.assertEqual(lemmas['склад'], 1)
 
@@ -62,9 +62,9 @@ class SimpleDBTest(unittest.TestCase):
         rb.learning_rubric_model(set_id, rubric_id)
 
         for doc_id in db.get_set_docs(set_id):
-            rb.spot_doc_rubrics(doc_id, {rubric_id: None})
+            rb.spot_doc_rubrics2(doc_id, {rubric_id: None})
             # check we can overwrite rubrication results:
-            rb.spot_doc_rubrics(doc_id, {rubric_id: None})
+            rb.spot_doc_rubrics2(doc_id, {rubric_id: None})
 
         model_id = db.get_model(rubric_id, set_id)["model_id"]
 
@@ -108,7 +108,7 @@ def fill_db():
 
     for doc_id in tr_set:
         rb.morpho_doc2(str(doc_id))
-        rb.lemmas_freq_doc(str(doc_id))
+        rb.lemmas_freq_doc2(str(doc_id))
 
     set_id = str(db.put_training_set(tr_set))
 

@@ -19,13 +19,13 @@ test_set_id = u'f23449f6-08cd-463b-8c90-95480735c4f7' # Свобода слов�
 #     print(counter, doc_id)
 #     counter += 1
 #     rb.morpho_doc2(doc_id)
-#     rb.lemmas_freq_doc(doc_id)
+#     rb.lemmas_freq_doc2(doc_id)
 # # #
 # for doc_id in db.get_set_docs(test_set_id):
 #     print(counter, doc_id)
 #     counter += 1
 #     rb.morpho_doc2(doc_id)
-#     rb.lemmas_freq_doc(doc_id)
+#     rb.lemmas_freq_doc2(doc_id)
 #
 #
 # rb.idf_object_features_set(set_id)
@@ -34,7 +34,7 @@ test_set_id = u'f23449f6-08cd-463b-8c90-95480735c4f7' # Свобода слов�
 #
 # print('start spot...')
 # # for doc_id in db.get_set_docs(set_id):
-# #     rb.spot_doc_rubrics(doc_id, {rubric_id: None})
+# #     rb.spot_doc_rubrics2(doc_id, {rubric_id: None})
 #
 #
 # rb.spot_test_set_rubric(test_set_id, rubric_id)
@@ -48,6 +48,6 @@ test_set_id = u'f23449f6-08cd-463b-8c90-95480735c4f7' # Свобода слов�
 doc_id = u'000e82b8-6ea7-41f4-adc6-bc688fbbeeb6' # 9556b091-b550-4489-9768-1690485fa664
 doc_id = u'add1dd0c-3004-49db-adeb-d841c5d8a9f7'
 
-# rb.spot_doc_rubrics(doc_id, rb.rubrics_for_regular)
-rb.lemmas_freq_doc(doc_id)
+# rb.spot_doc_rubrics2(doc_id, rb.rubrics_for_regular)
+rb.lemmas_freq_doc2(doc_id)
 

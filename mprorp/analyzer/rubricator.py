@@ -71,7 +71,8 @@ def morpho_doc_old(doc_id, change_status=0):
 
 
 def morpho_doc2(doc_id, change_status=0):
-    db.morpho_doc3(doc_id, morpho_doc)
+    db.doc_apply(doc_id, morpho_doc)
+
 
 def morpho_doc(doc):
 
@@ -209,10 +210,15 @@ def morpho_doc(doc):
     doc.morpho = morpho_list
     mystem_analyzer.close()
 
+
 # counting lemmas frequency for one document
-def lemmas_freq_doc(doc_id, new_status=0):
+def lemmas_freq_doc2(doc_id,  change_status=0):
+    db.doc_apply(doc_id, lemmas_freq_doc)
+
+
+def lemmas_freq_doc(doc):
     lemmas = {}
-    morpho = db.get_morpho(doc_id)
+    morpho = doc.morpho
     for i in morpho:
         # if this is a word
         if 'analysis' in i.keys():
@@ -228,8 +234,7 @@ def lemmas_freq_doc(doc_id, new_status=0):
                 # take word, don't take number
                 if (len(word) > 0) and not word.isdigit():
                     lemmas[word] = lemmas.get(word, 0) + 1
-    db.put_lemmas(doc_id, lemmas, new_status)
-
+    doc.lemmas = lemmas
 
 # compute idf and object-features matrix for training set
 # idf for calc features of new docs
@@ -466,9 +471,13 @@ def learning_rubric_model(set_id, rubric_id):
 # save in DB doc_id, rubric_id and YES or NO
 # rubrics is a dict. key = rubric_id, value = None or set_id
 # value = set_id: use model, learned with this trainingSet
-def spot_doc_rubrics(doc_id, rubrics, new_status=0):
+def spot_doc_rubrics2(doc_id, rubrics, new_status=0):
+    db.doc_apply(doc_id, spot_doc_rubrics, rubrics)
+
+
+def spot_doc_rubrics(doc, rubrics):
     # get lemmas by doc_id
-    lemmas = db.get_lemmas(doc_id)
+    lemmas = doc.lemmas
     # compute document size
     doc_size = 0
     for lemma in lemmas:
@@ -514,15 +523,10 @@ def spot_doc_rubrics(doc_id, rubrics, new_status=0):
         mif.resize(mif_number + 1)
         mif[mif_number] = 1
         probability = sigmoid(np.dot(mif, models[rubric_id]['model']))
-        answers.append({'rubric_id': rubric_id, 'result': round(probability), 'model_id': models[rubric_id]['model_id'],
-                        'doc_id': doc_id, 'probability': probability})
-        # if answers[rubric_id]['result'] == correct_answers[rubric_id]:
-        #     res = 'correct'
-        # else:
-        #     res = 'incorrect'
-        # print(doc_id, answers[rubric_id]['result'],  res)
-    db.put_rubrics(answers, new_status)
+        if probability > 0.5:
+            answers.append(rubric_id)
 
+    doc.rubric_ids = answers
 
 # take 1 rubric and all doc from test_set
 # save in DB doc_id, rubric_id and YES or NO
@@ -576,7 +580,7 @@ def f1_score(model_id, test_set_id, rubric_id):
     # right answers
     answers = db.get_rubric_answers(test_set_id, rubric_id)
     # rubrication results
-    rubrication_result = db.get_rubrication_result(model_id, test_set_id, rubric_id)
+    rubrication_result = db.get_rubrication_result2(model_id, test_set_id, rubric_id)
 
     for key in rubrication_result:
         if rubrication_result[key] == answers[key]:
