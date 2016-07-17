@@ -2,8 +2,8 @@ from mprorp.db.dbDriver import *
 from mprorp.db.models import *
 
 import mprorp.analyzer.rubricator as rb
-from mprorp.tomita.tomita_run import run_tomita
-from mprorp.ner.tomita_to_markup import convert_tomita_result_to_markup
+from mprorp.tomita.tomita_run import run_tomita2
+from mprorp.ner.tomita_to_markup import convert_tomita_result_to_markup2
 from mprorp.crawler.site_page import find_full_text
 import mprorp.ner.feature as ner_feature
 from mprorp.tomita.grammars.config import config as tomita_config
@@ -113,7 +113,7 @@ def regular_morpho(doc_id, new_status):
 # counting lemmas frequency for one document
 @app.task
 def regular_lemmas(doc_id, new_status):
-    rb.lemmas_freq_doc2(doc_id, new_status)
+    rb.lemmas_freq_doc2(doc_id)
     router(doc_id, new_status)
 
 
@@ -129,19 +129,19 @@ def regular_rubrication(doc_id, new_status):
 # tomita
 @app.task
 def regular_tomita(grammar_index, doc_id, new_status):
-    run_tomita(grammars[grammar_index], doc_id, new_status)
+    run_tomita2(grammars[grammar_index], doc_id, new_status)
     router(doc_id, new_status)
 
 
 # tomita features
 @app.task
 def regular_tomita_features(doc_id, new_status):
-    ner_feature.create_tomita_feature(doc_id, grammars, new_status)
+    ner_feature.create_tomita_feature2(doc_id, grammars)
     router(doc_id, new_status)
 
 
 # ner entities
 @app.task
 def regular_entities(doc_id, new_status):
-    convert_tomita_result_to_markup(doc_id, grammars, new_status=new_status)
+    convert_tomita_result_to_markup2(doc_id, grammars)
     router(doc_id, new_status)

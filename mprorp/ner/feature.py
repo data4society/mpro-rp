@@ -119,10 +119,14 @@ def stronger_value(old_value, value):
     else:
         return old_value
 
-def create_tomita_feature(doc_id, feature_grammars, new_status=0):
+def create_tomita_feature2(doc_id, feature_grammars):
+    db.doc_apply(doc_id, create_tomita_feature, feature_grammars)
 
-    results = db.get_tomita_results(doc_id, feature_grammars)
-    morpho = db.get_morpho(doc_id)
+
+def create_tomita_feature(doc, feature_grammars, session=None, commit_session=True):
+    doc_id = doc.doc_id
+    results = db.get_tomita_results(doc_id, feature_grammars, session)
+    morpho = doc.morpho
     values = []
     for result in results:
         # result - dict with keys like '15:22' and values like 'person' - tomita fact
@@ -173,7 +177,7 @@ def create_tomita_feature(doc_id, feature_grammars, new_status=0):
                     print(offsets, result[i], element['word_index'], element['sentence_index'])
     if len(values) > 0:
         # print(values)
-        db.put_ner_feature(doc_id, values, ner_feature_types['tomita'], new_status=new_status)
+        db.put_ner_feature(doc_id, values, ner_feature_types['tomita'], session=session, commit_session=commit_session)
 
 
 def print_tomita_result(doc_id, feature_grammars, new_status=0):
@@ -190,7 +194,7 @@ def print_tomita_result(doc_id, feature_grammars, new_status=0):
 
 
 
-def create_embedding_feature(doc_id, new_status=0):
+def create_embedding_feature(doc_id):
     morpho = db.get_morpho(doc_id)
     values = []
     for element in morpho:
@@ -213,10 +217,10 @@ def create_embedding_feature(doc_id, new_status=0):
                                'value': feats})
     if len(values) > 0:
         # print(values)
-        db.put_ner_feature(doc_id, values, ner_feature_types['embedding'], 'embedding', new_status=new_status)
+        db.put_ner_feature(doc_id, values, ner_feature_types['embedding'], 'embedding')
 
 
-def create_morpho_feature(doc_id, new_status=0):
+def create_morpho_feature(doc_id):
     morpho = db.get_morpho(doc_id)
     values = []
     for element in morpho:
@@ -237,4 +241,4 @@ def create_morpho_feature(doc_id, new_status=0):
                            'value': res.tolist()})
     if len(values) > 0:
         # print(values)
-        db.put_ner_feature(doc_id, values, ner_feature_types['morpho'], 'morpho', new_status=new_status)
+        db.put_ner_feature(doc_id, values, ner_feature_types['morpho'], 'morpho')

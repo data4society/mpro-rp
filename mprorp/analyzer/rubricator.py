@@ -212,7 +212,7 @@ def morpho_doc(doc):
 
 
 # counting lemmas frequency for one document
-def lemmas_freq_doc2(doc_id,  change_status=0):
+def lemmas_freq_doc2(doc_id):
     db.doc_apply(doc_id, lemmas_freq_doc)
 
 
@@ -471,11 +471,11 @@ def learning_rubric_model(set_id, rubric_id):
 # save in DB doc_id, rubric_id and YES or NO
 # rubrics is a dict. key = rubric_id, value = None or set_id
 # value = set_id: use model, learned with this trainingSet
-def spot_doc_rubrics2(doc_id, rubrics, new_status=0):
+def spot_doc_rubrics2(doc_id, rubrics):
     db.doc_apply(doc_id, spot_doc_rubrics, rubrics)
 
 
-def spot_doc_rubrics(doc, rubrics):
+def spot_doc_rubrics(doc, rubrics, session=None, commit_session=True):
     # get lemmas by doc_id
     lemmas = doc.lemmas
     # compute document size
@@ -491,11 +491,11 @@ def spot_doc_rubrics(doc, rubrics):
     for rubric_id in rubrics:
         # correct_answers[rubric_id] = db.get_rubric_answer_doc(doc_id, rubric_id)
         if rubrics[rubric_id] is None:
-            rubrics[rubric_id] = db.get_set_id_by_rubric_id(rubric_id)
-        models[rubric_id] = db.get_model(rubric_id, rubrics[rubric_id])
+            rubrics[rubric_id] = db.get_set_id_by_rubric_id(rubric_id, session)
+        models[rubric_id] = db.get_model(rubric_id, rubrics[rubric_id], session)
     # get dict with idf and lemma_index for each set_id
     # sets[...] is dict: {'idf':..., 'lemma_index': ...}
-    sets = db.get_idf_lemma_index_by_set_id(rubrics.values())
+    sets = db.get_idf_lemma_index_by_set_id(rubrics.values(), session)
     for set_id in sets:
         # compute idf for doc_id (lemmas) and set_id
         idf_doc = {}
@@ -504,6 +504,7 @@ def spot_doc_rubrics(doc, rubrics):
         sets[set_id]['idf_doc'] = idf_doc
     # for each rubric
     answers = []
+    result = []
     for rubric_id in rubrics:
         set_id = rubrics[rubric_id]
         mif_number = models[rubric_id]['features_num']
@@ -525,8 +526,13 @@ def spot_doc_rubrics(doc, rubrics):
         probability = sigmoid(np.dot(mif, models[rubric_id]['model']))
         if probability > 0.5:
             answers.append(rubric_id)
+        result.append(
+                {'rubric_id': rubric_id, 'result': round(probability), 'model_id': models[rubric_id]['model_id'],
+                 'doc_id': doc.doc_id, 'probability': probability})
 
+    db.put_rubrics(result, session, commit_session)
     doc.rubric_ids = answers
+
 
 # take 1 rubric and all doc from test_set
 # save in DB doc_id, rubric_id and YES or NO
@@ -571,7 +577,7 @@ def spot_test_set_rubric(test_set_id, rubric_id):
             answers.append({'result': 0, 'model_id': model['model_id'],
                             'rubric_id': rubric_id, 'doc_id': doc_id, 'probability': 0})
 
-    db.put_rubrics(answers, 0)
+    db.put_rubrics(answers)
 
 
 # compute TP, FP, TN, FN, Precision, Recall and F-score on data from db
@@ -618,7 +624,6 @@ def probabilities_score(model_id, test_set_id, rubric_id):
 
     true_number = 0
     true_probability = 0
-
     false_number = 0
     false_probability = 0
 
