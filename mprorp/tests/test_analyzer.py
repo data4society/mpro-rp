@@ -20,7 +20,7 @@ class SimpleDBTest(unittest.TestCase):
         my_doc = Document(stripped=doc_stripped, type='article')
         insert(my_doc)
         doc_id = str(my_doc.doc_id)
-        rb.morpho_doc(doc_id)
+        rb.morpho_doc2(doc_id)
         morpho = db.get_morpho(doc_id)
         print(morpho)
         doc_text = ''
@@ -35,7 +35,7 @@ class SimpleDBTest(unittest.TestCase):
         my_doc = Document(stripped='Эти типы стали есть на складе', type='article')
         insert(my_doc)
         doc_id = str(my_doc.doc_id)
-        rb.morpho_doc(doc_id)
+        rb.morpho_doc2(doc_id)
         rb.lemmas_freq_doc(doc_id)
         lemmas = db.get_lemmas(doc_id)
         self.assertEqual(lemmas['склад'], 1)
@@ -107,7 +107,7 @@ def fill_db():
             insert(DocumentRubric(doc_id=str(tr_set[i]), rubric_id=rubric_id))
 
     for doc_id in tr_set:
-        rb.morpho_doc(str(doc_id))
+        rb.morpho_doc2(str(doc_id))
         rb.lemmas_freq_doc(str(doc_id))
 
     set_id = str(db.put_training_set(tr_set))

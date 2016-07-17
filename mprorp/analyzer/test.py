@@ -18,13 +18,13 @@ test_set_id = u'f23449f6-08cd-463b-8c90-95480735c4f7' # Свобода слов�
 # for doc_id in db.get_set_docs(set_id):
 #     print(counter, doc_id)
 #     counter += 1
-#     rb.morpho_doc(doc_id)
+#     rb.morpho_doc2(doc_id)
 #     rb.lemmas_freq_doc(doc_id)
 # # #
 # for doc_id in db.get_set_docs(test_set_id):
 #     print(counter, doc_id)
 #     counter += 1
-#     rb.morpho_doc(doc_id)
+#     rb.morpho_doc2(doc_id)
 #     rb.lemmas_freq_doc(doc_id)
 #
 #

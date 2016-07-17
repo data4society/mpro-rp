@@ -9,7 +9,7 @@ rubrics_for_regular = {u'76819d19-d3f7-43f1-bc7f-b10ec5a2e2cc': u'404f1c89-53bd-
 
 @app.task
 def regular_morpho(doc_id):
-    rb.morpho_doc(doc_id, status['morpho'])
+    rb.morpho_doc2(doc_id, status['morpho'])
     # router_func(doc_id, 2)
     regular_lemmas.delay(doc_id)
 

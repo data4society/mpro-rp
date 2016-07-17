@@ -274,6 +274,7 @@ class Reference(Base):
 
     reference_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
     markup = Column(UUIDType(binary=False), ForeignKey('markups.markup_id'))
+    markup_rel = relationship(Markup)
     entity_class = Column(String(40))
     entity = Column(UUIDType(binary=False), ForeignKey('entities.entity_id'))
     start_offset = Column(Integer())

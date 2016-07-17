@@ -100,7 +100,7 @@ def regular_find_full_text(doc_id, new_status):
 # morphologia
 @app.task
 def regular_morpho(doc_id, new_status):
-    rb.morpho_doc(doc_id, new_status)
+    rb.morpho_doc2(doc_id, new_status)
     router(doc_id, new_status)
 
 

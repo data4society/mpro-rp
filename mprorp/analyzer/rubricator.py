@@ -69,9 +69,13 @@ def morpho_doc_old(doc_id, change_status=0):
     db.put_morpho(doc_id, new_morpho, change_status)
     mystem_analyzer.close()
 
-def morpho_doc(doc_id, change_status=0):
 
-    doc_text = db.get_doc(doc_id)
+def morpho_doc2(doc_id, change_status=0):
+    db.morpho_doc3(doc_id, morpho_doc)
+
+def morpho_doc(doc):
+
+    doc_text = doc.stripped
     mystem_analyzer.start()
     # new_morpho = mystem_analyzer.analyze(doc_text)
     new_morpho = mystem_analyzer.analyze(doc_text.replace('\n',''))
@@ -202,7 +206,7 @@ def morpho_doc(doc_id, change_status=0):
                 word_index += 1
             start_offset += line_len
 
-    db.put_morpho(doc_id, morpho_list, change_status)
+    doc.morpho = morpho_list
     mystem_analyzer.close()
 
 # counting lemmas frequency for one document

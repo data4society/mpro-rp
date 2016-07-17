@@ -13,6 +13,10 @@ session = Driver.DBSession()
 def get_doc(doc_id):
     return select(Document.stripped, Document.doc_id == doc_id).fetchone()[0]
 
+def morpho_doc3(doc_id, my_def):
+    doc= session.query(Document).filter_by(doc_id=doc_id).first()
+    my_def(doc)
+    session.commit()
 
 # writing result of morphological analysis of document in db
 def put_morpho(doc_id, morpho, new_status):
@@ -361,10 +365,10 @@ def get_tomita_results(doc_id, grammars):
 
 def put_markup(doc_id, name, classes, markup_type, refs, new_status):
     new_markup = Markup(document=doc_id, name=name, entity_classes=classes, type=markup_type)
-    new_markup.markup_id = uuid.uuid1()
+    new_markup.markup_id = uuid.uuid4()
     session.add(new_markup)
 
-    session.commit()
+    # session.commit()
 
     markup_for_doc = {}
     entities = {}
