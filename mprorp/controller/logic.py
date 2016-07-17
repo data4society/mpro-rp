@@ -12,6 +12,7 @@ from mprorp.celery_app import app
 import logging
 from urllib.error import *
 
+from mprorp.db.dbDriver import DBSession
 
 VK_COMPLETE_STATUS = 19
 GOOGLE_NEWS_INIT_STATUS = 20
@@ -100,7 +101,12 @@ def regular_find_full_text(doc_id, new_status):
 # morphologia
 @app.task
 def regular_morpho(doc_id, new_status):
-    rb.morpho_doc2(doc_id, new_status)
+    session = DBSession()
+    doc = session.query(Document).filter_by(doc_id=doc_id).first()
+    rb.morpho_doc(doc)
+    doc.status = new_status
+    session.commit()
+    session.close()
     router(doc_id, new_status)
 
 
