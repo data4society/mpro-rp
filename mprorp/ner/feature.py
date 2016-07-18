@@ -124,7 +124,7 @@ def create_tomita_feature2(doc_id, feature_grammars):
 
 
 def create_tomita_feature(doc, feature_grammars, session=None, commit_session=True):
-    doc_id = doc.doc_id
+    doc_id = str(doc.doc_id)
     results = db.get_tomita_results(doc_id, feature_grammars, session)
     morpho = doc.morpho
     values = []
@@ -180,10 +180,11 @@ def create_tomita_feature(doc, feature_grammars, session=None, commit_session=Tr
         db.put_ner_feature(doc_id, values, ner_feature_types['tomita'], session=session, commit_session=commit_session)
 
 
-def print_tomita_result(doc_id, feature_grammars, new_status=0):
+def print_tomita_result(doc, feature_grammars, new_status=0):
 
+    doc_id = doc.doc_id
     results = db.get_tomita_results(doc_id, feature_grammars)
-    mytext = db.get_doc(doc_id).replace('\n','')
+    mytext = (doc.stripped).replace('\n','')
 
     for result in results:
         # result - dict with keys like '15:22' and values like 'person' - tomita fact
