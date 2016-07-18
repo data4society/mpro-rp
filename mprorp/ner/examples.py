@@ -8,6 +8,7 @@ import mprorp.ner.morpho_to_vec as mystem_to_vec
 import os
 import mprorp.ner.tomita_to_markup as tomita_to_markup
 from mprorp.tomita.tomita_run import run_tomita2
+from mprorp.tomita.grammars.config import config as grammar_config
 
 # regular processes with tomita
 # doc_id = '000e82b8-6ea7-41f4-adc6-bc688fbbeeb6'
@@ -106,8 +107,10 @@ tr_set = '7436d611-f196-403f-98a1-f17024e96d94' # docs with markup
 
 doc_id = '0e01603e-0e1e-06c8-21a5-379ccc4dba69'
 doc_id = '3b595187-8e89-4910-80be-b7f8f6dd9022'
-ner_feature.create_tomita_feature2(doc_id, ['loc.cxx'])
-tomita_to_markup.convert_tomita_result_to_markup2(doc_id, ['loc.cxx'])
+doc_id = '10e24788-b887-4bf8-b9bd-3ec184f2348e'
+ner_feature.print_tomita_result2(doc_id, grammar_config.keys())
+ner_feature.create_tomita_feature2(doc_id, grammar_config.keys())
+tomita_to_markup.convert_tomita_result_to_markup2(doc_id, grammar_config.keys())
 # markup = db.get_markup_from_doc(doc_id)
 # for key in markup:
 #     ref = markup[key]

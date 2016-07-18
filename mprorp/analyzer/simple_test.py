@@ -45,7 +45,7 @@ rubrics_id = ['6816ab38-14fe-4d86-9b34-5608274d20c2', # 'Маша',
 # insert(DocumentRubric(doc_id = set[9],rubric_id = rubrics_id[2]))
 
 for doc_id in set:
-   print(doc_id)
+   # print(doc_id)
    rb.morpho_doc2(doc_id)
    rb.lemmas_freq_doc2(doc_id)
 

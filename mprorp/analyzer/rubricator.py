@@ -324,7 +324,7 @@ def entropy_difference(feature, answers, num_lemma):
     f_min = np.min(feature)
     # check is it unsound feature
     if f_max == f_min:
-        print('lemma 0: ', num_lemma)
+        # print('lemma 0: ', num_lemma)
         return 10000
     step = (f_max - f_min) / 1000
     p = [[0, 0] for _ in range(1000)]
@@ -365,7 +365,7 @@ def print_lemmas(set_id, numbers, lemmas=None, idf=None):
         lemmas = db.get_lemma_index(set_id)
     my_lemmas = [k for k in lemmas if lemmas[k] in numbers]
     # print(numbers)
-    print(my_lemmas)
+    # print(my_lemmas)
     # print([idf.get(k, '') for k in my_lemmas])
     # for i in numbers:
     #     m
