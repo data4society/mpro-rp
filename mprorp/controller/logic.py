@@ -78,7 +78,14 @@ def router(doc_id, status):
 # parsing google news request
 @app.task
 def regular_gn_start_parsing(source_id):
-    gn_start_parsing(source_id)
+    session = DBSession()
+    docs = gn_start_parsing(source_id, session)
+    for doc in docs:
+        doc.status = GOOGLE_NEWS_INIT_STATUS
+    session.commit()
+    for doc in docs:
+        router(doc.doc_id, GOOGLE_NEWS_INIT_STATUS)
+    session.close()
 
 # parsing vk request
 @app.task
