@@ -2,7 +2,7 @@ import unittest
 
 from mprorp.db.dbDriver import *
 from mprorp.db.models import *
-from mprorp.tomita.tomita_run import run_tomita
+from mprorp.tomita.tomita_run import run_tomita2
 import mprorp.analyzer.rubricator as rb
 import mprorp.ner.feature as ner_feature
 import mprorp.analyzer.db as db
@@ -17,13 +17,13 @@ class SimpleTomitaTest(unittest.TestCase):
         my_doc = Document(stripped=mytext, type='article')
         insert(my_doc)
         doc_id = str(my_doc.doc_id)
-        rb.morpho_doc(doc_id)
+        rb.morpho_doc2(doc_id)
         print(db.get_morpho(doc_id))
         for gram in config:
-            run_tomita(gram, str(doc_id))
+            run_tomita2(gram, str(doc_id))
         ner_feature.print_tomita_result(str(doc_id), config.keys())
 
-        ner_feature.create_tomita_feature(doc_id, config.keys())
+        ner_feature.create_tomita_feature2(doc_id, config.keys())
         # gaz_id = db.put_gazetteer('gaz1', ['площадь', 'улица', 'переулок'])
         # ner_feature.create_gazetteer_feature(doc_id, gaz_id)
         # print(db.get_ner_feature(doc_id))
@@ -36,7 +36,7 @@ class SimpleTomitaTest(unittest.TestCase):
             type='article')
         insert(my_doc)
         doc_id = str(my_doc.doc_id)
-        rb.morpho_doc(doc_id)
+        rb.morpho_doc2(doc_id)
         ner_feature.create_embedding_feature(doc_id)
         features = db.get_ner_feature(doc_id)
         # print(features)
@@ -50,7 +50,7 @@ class SimpleTomitaTest(unittest.TestCase):
             type='article')
         insert(my_doc)
         doc_id = str(my_doc.doc_id)
-        rb.morpho_doc(doc_id)
+        rb.morpho_doc2(doc_id)
         ner_feature.create_morpho_feature(doc_id)
         features = db.get_ner_feature(doc_id)
         print(features[(0, 11, 'morpho')])

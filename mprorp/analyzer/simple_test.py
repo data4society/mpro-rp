@@ -46,11 +46,11 @@ rubrics_id = ['6816ab38-14fe-4d86-9b34-5608274d20c2', # 'Маша',
 
 for doc_id in set:
    print(doc_id)
-   rb.morpho_doc(doc_id)
-   rb.lemmas_freq_doc(doc_id)
+   rb.morpho_doc2(doc_id)
+   rb.lemmas_freq_doc2(doc_id)
 
 rb.idf_object_features_set(set_id)
 rb.learning_rubric_model(set_id, rubrics_id[0])
 
 for doc_id in set:
-    rb.spot_doc_rubrics(doc_id, {rubrics_id[0]: None})
+    rb.spot_doc_rubrics2(doc_id, {rubrics_id[0]: None})

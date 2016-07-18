@@ -1,5 +1,4 @@
-from mprorp.ner.regular import regular_entities
-from mprorp.tomita.regular import regular_tomita, grammar_count
+from mprorp.tomita.regular import grammar_count
 import mprorp.analyzer.db as db
 import mprorp.ner.feature as ner_feature
 import mprorp.analyzer.rubricator as rb
@@ -8,7 +7,7 @@ import numpy as np
 import mprorp.ner.morpho_to_vec as mystem_to_vec
 import os
 import mprorp.ner.tomita_to_markup as tomita_to_markup
-from mprorp.tomita.tomita_run import run_tomita
+from mprorp.tomita.tomita_run import run_tomita2
 
 # regular processes with tomita
 # doc_id = '000e82b8-6ea7-41f4-adc6-bc688fbbeeb6'
@@ -17,14 +16,14 @@ from mprorp.tomita.tomita_run import run_tomita
 
 # create tomita features
 # doc_id = '75fa182d-7fbc-4ec7-bbfd-fc4d743e8834'
-# rb.morpho_doc(doc_id)
+# rb.morpho_doc2(doc_id)
 # print(db.get_morpho(doc_id))
 # print(db.get_doc(doc_id))
 # grammars = ['date.cxx', 'person.cxx']
-# run_tomita(grammars[0], doc_id)
-# run_tomita(grammars[1], doc_id)
-# ner_feature.create_tomita_feature(doc_id, ['date.cxx', 'person.cxx'])
-# tomita_to_markup.convert_tomita_result_to_markup(doc_id, ['person.cxx'])
+# run_tomita2(grammars[0], doc_id)
+# run_tomita2(grammars[1], doc_id)
+# ner_feature.create_tomita_feature2(doc_id, ['date.cxx', 'person.cxx'])
+# tomita_to_markup.convert_tomita_result_to_markup2(doc_id, ['person.cxx'])
 
 # Create embedding feature
 # doc_id = '000e82b8-6ea7-41f4-adc6-bc688fbbeeb6'
@@ -98,16 +97,17 @@ tr_set = '7436d611-f196-403f-98a1-f17024e96d94' # docs with markup
 
 # for doc_id in db.get_set_docs(tr_set):
 #     print(doc_id)
-#     rb.morpho_doc(doc_id)
-#     rb.lemmas_freq_doc(doc_id)
+#     rb.morpho_doc2(doc_id)
+#     rb.lemmas_freq_doc2(doc_id)
 #     for gram in config:
-#         run_tomita(gram, str(doc_id))
-#     ner_feature.create_tomita_feature(str(doc_id), config.keys())
+#         run_tomita2(gram, str(doc_id))
+#     ner_feature.create_tomita_feature2(str(doc_id), config.keys())
 #     ner_feature.create_embedding_feature(str(doc_id))
 
-# doc_id = '0e01603e-0e1e-06c8-21a5-379ccc4dba69'
-# # ner_feature.create_tomita_feature(doc_id, ['loc.cxx'])
-# # tomita_to_markup.convert_tomita_result_to_markup(doc_id, ['loc.cxx'])
+doc_id = '0e01603e-0e1e-06c8-21a5-379ccc4dba69'
+doc_id = '3b595187-8e89-4910-80be-b7f8f6dd9022'
+ner_feature.create_tomita_feature2(doc_id, ['loc.cxx'])
+tomita_to_markup.convert_tomita_result_to_markup2(doc_id, ['loc.cxx'])
 # markup = db.get_markup_from_doc(doc_id)
 # for key in markup:
 #     ref = markup[key]
@@ -120,15 +120,15 @@ tr_set = '7436d611-f196-403f-98a1-f17024e96d94' # docs with markup
 # print(features[(0, 11, 'morpho')])
 # print(len(features[(0, 11, 'morpho')]))
 #
-doc_id = '3b595187-8e89-4910-80be-b7f8f6dd9022'
-print(db.get_doc(doc_id))
-rb.morpho_doc(doc_id)
-rb.lemmas_freq_doc(doc_id)
-for gram in config:
-    run_tomita(gram, str(doc_id))
-ner_feature.create_tomita_feature(str(doc_id), config.keys())
-# ner_feature.create_embedding_feature(str(doc_id))
-print(db.get_markup_from_doc(doc_id))
+# doc_id = '3b595187-8e89-4910-80be-b7f8f6dd9022'
+# print(db.get_doc(doc_id))
+# rb.morpho_doc2(doc_id)
+# rb.lemmas_freq_doc2(doc_id)
+# for gram in config:
+#     run_tomita2(gram, str(doc_id))
+# ner_feature.create_tomita_feature2(str(doc_id), config.keys())
+# # ner_feature.create_embedding_feature(str(doc_id))
+# print(db.get_markup_from_doc(doc_id))
 
 
 # from mprorp.tomita.grammars.config import config as tomita_config
@@ -137,11 +137,11 @@ print(db.get_markup_from_doc(doc_id))
 # set_id = u'074c809b-208c-4fb4-851c-1e71d7f01b60'
 #
 # for doc_id in db.get_set_docs(set_id):
-#     rb.morpho_doc(doc_id)
+#     rb.morpho_doc2(doc_id)
 #     ner_feature.create_embedding_feature(str(doc_id))
 #     for gram in tomita_config:
-#         run_tomita(gram, str(doc_id))
-#     ner_feature.create_tomita_feature(str(doc_id), tomita_config.keys())
+#         run_tomita2(gram, str(doc_id))
+#     ner_feature.create_tomita_feature2(str(doc_id), tomita_config.keys())
 #     ner_feature.create_morpho_feature(str(doc_id))
 # ner_feature.create_answers_feature(set_id)
 
