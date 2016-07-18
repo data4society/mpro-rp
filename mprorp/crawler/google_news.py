@@ -13,7 +13,6 @@ from mprorp.crawler.utils import send_get_request
 import datetime
 
 
-@app.task
 def gn_start_parsing(source_id):
     """download google news start feed and feeds for every story"""
     # get source url

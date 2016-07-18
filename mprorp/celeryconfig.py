@@ -1,6 +1,5 @@
 from datetime import timedelta
-CELERY_INCLUDE = ['mprorp.controller.start','mprorp.controller.logic',
-                  'mprorp.crawler.vk','mprorp.crawler.google_news']
+CELERY_INCLUDE = ['mprorp.controller.start','mprorp.controller.logic']
 CELERYBEAT_SCHEDULE = {
                           'add-every-30-seconds': {
                               'task': 'mprorp.controller.start.check_sources',

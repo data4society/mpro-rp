@@ -14,8 +14,12 @@ from urllib.error import *
 
 from mprorp.db.dbDriver import DBSession
 
+from mprorp.crawler.google_news import gn_start_parsing
+from mprorp.crawler.vk import vk_start_parsing
+
 VK_COMPLETE_STATUS = 19
 GOOGLE_NEWS_INIT_STATUS = 20
+GOOGLE_NEWS_INIT_STATUS = 21
 SITE_PAGE_LOADING_FAILED = 91
 SITE_PAGE_COMPLETE_STATUS = 99
 MORPHO_COMPLETE_STATUS = 100
@@ -52,7 +56,7 @@ def router(doc_id, status):
             #doc_id = str(doc_id)
             regular_morpho.delay(doc_id, MORPHO_COMPLETE_STATUS)
         else:
-            doc = Document(doc_id=doc_id, status=FOR_TRAINING, type='trn')
+            doc = Document(doc_id=doc_id, status=FOR_TRAINING, type='tng')
             update(doc)
     elif status == MORPHO_COMPLETE_STATUS:  # to lemmas
         regular_lemmas.delay(doc_id, LEMMAS_COMPLETE_STATUS)
@@ -70,6 +74,16 @@ def router(doc_id, status):
         doc = Document(doc_id = doc_id, status = REGULAR_PROCESSES_FINISH_STATUS)
         update(doc)
 
+
+# parsing google news request
+@app.task
+def regular_gn_start_parsing(source_id):
+    gn_start_parsing(source_id)
+
+# parsing vk request
+@app.task
+def regular_vk_start_parsing(source_id):
+    vk_start_parsing(source_id)
 
 # parsing HTML page to find full text
 @app.task

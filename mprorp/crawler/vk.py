@@ -22,10 +22,10 @@ def send_get_request(url):
     r.encoding = 'utf-8'
     return r.text
 
-@app.task
+
 def vk_start_parsing(source_id):
-    print('vk_start_parsing')
     """download vk response and run list parsing function"""
+    print('vk_start_parsing')
     # get source url
     [source_url, parse_period] = select([Source.url,Source.parse_period], Source.source_id == source_id).fetchone()
     # download vk response
