@@ -1,9 +1,9 @@
 #encoding "utf-8"
 // Дополнительные терминалы
-quot -> AnyWord+;
+quot -> Word+;
 lat -> AnyWord<lat, h-reg1>+;
 Q -> quot<quoted>;
-Words -> Word<~lat> {count = 4};
+Words -> Word<~lat, ~l-quoted> {count = 4};
 
 // Суды
 Trial -> Word<kwtype='trial'>;
