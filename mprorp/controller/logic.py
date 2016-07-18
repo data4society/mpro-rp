@@ -84,7 +84,7 @@ def regular_gn_start_parsing(source_id):
 @app.task
 def regular_vk_start_parsing(source_id):
     session = DBSession()
-    docs = vk_start_parsing(source_id)
+    docs = vk_start_parsing(source_id, session)
     for doc in docs:
         doc.status = VK_COMPLETE_STATUS
     session.commit()
