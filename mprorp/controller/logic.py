@@ -2,8 +2,8 @@ from mprorp.db.dbDriver import *
 from mprorp.db.models import *
 
 import mprorp.analyzer.rubricator as rb
-from mprorp.tomita.tomita_run import run_tomita2
-from mprorp.ner.tomita_to_markup import convert_tomita_result_to_markup2
+from mprorp.tomita.tomita_run import run_tomita
+from mprorp.ner.tomita_to_markup import convert_tomita_result_to_markup
 from mprorp.crawler.site_page import find_full_text
 import mprorp.ner.feature as ner_feature
 from mprorp.tomita.grammars.config import config as tomita_config
@@ -113,35 +113,59 @@ def regular_morpho(doc_id, new_status):
 # counting lemmas frequency for one document
 @app.task
 def regular_lemmas(doc_id, new_status):
-    rb.lemmas_freq_doc2(doc_id)
+    session = DBSession()
+    doc = session.query(Document).filter_by(doc_id=doc_id).first()
+    rb.lemmas_freq_doc(doc)
+    doc.status = new_status
+    session.commit()
+    session.close()
     router(doc_id, new_status)
 
 
 # regular rubrication
 @app.task
 def regular_rubrication(doc_id, new_status):
+    session = DBSession()
+    doc = session.query(Document).filter_by(doc_id=doc_id).first()
     # rb.spot_doc_rubrics2(doc_id, rubrics_for_regular, new_status)
-    doc = Document(doc_id=doc_id, status=new_status, rubric_ids=['19848dd0-436a-11e6-beb8-9e71128cae50'])
-    update(doc)
+    doc.rubric_ids = ['19848dd0-436a-11e6-beb8-9e71128cae50']
+    doc.status = new_status
+    session.commit()
+    session.close()
     router(doc_id, new_status)
 
 
 # tomita
 @app.task
 def regular_tomita(grammar_index, doc_id, new_status):
-    run_tomita2(grammars[grammar_index], doc_id, new_status)
+    session = DBSession()
+    doc = session.query(Document).filter_by(doc_id=doc_id).first()
+    run_tomita(grammars[grammar_index], doc, session, False)
+    doc.status = new_status
+    session.commit()
+    session.close()
     router(doc_id, new_status)
 
 
 # tomita features
 @app.task
 def regular_tomita_features(doc_id, new_status):
-    ner_feature.create_tomita_feature2(doc_id, grammars)
+    session = DBSession()
+    doc = session.query(Document).filter_by(doc_id=doc_id).first()
+    ner_feature.create_tomita_feature(doc, grammars, session, False)
+    doc.status = new_status
+    session.commit()
+    session.close()
     router(doc_id, new_status)
 
 
 # ner entities
 @app.task
 def regular_entities(doc_id, new_status):
-    convert_tomita_result_to_markup2(doc_id, grammars)
+    session = DBSession()
+    doc = session.query(Document).filter_by(doc_id=doc_id).first()
+    convert_tomita_result_to_markup(doc_id, grammars, session=session, commit_session=False)
+    doc.status = new_status
+    session.commit()
+    session.close()
     router(doc_id, new_status)
