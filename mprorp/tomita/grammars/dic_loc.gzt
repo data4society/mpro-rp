@@ -26,5 +26,5 @@ abbreviation "Сокращения"
 
 lost_loc "lost locations"
 {
- key = "Астана"
+ key = "Астана"|"Алматы"
 }
