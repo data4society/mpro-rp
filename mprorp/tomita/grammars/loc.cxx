@@ -7,4 +7,4 @@ Loc4 -> Word<kwtype='abbreviation'> Word<h-reg1>;
 Loc5 -> Word<kwtype='lost_loc'>;
 
 Loc -> Loc1<~l-quoted, ~r-quoted> | Loc2<~l-quoted, ~r-quoted> | Loc3<~l-quoted, ~r-quoted> | Loc4<~l-quoted, ~r-quoted> | Loc5<~l-quoted, ~r-quoted>;
-Location -> Loc<gram='S'> interp(LocationFact_TOMITA.Loc_TOMITA::not_norm);
+Location -> Loc interp(LocationFact_TOMITA.Loc_TOMITA::not_norm);
