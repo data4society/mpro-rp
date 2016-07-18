@@ -1,7 +1,7 @@
 from datetime import timedelta
 CELERY_INCLUDE = ['mprorp.controller.start','mprorp.controller.logic']
 CELERYBEAT_SCHEDULE = {
-                          'add-every-30-seconds': {
+                          'resource-checking': {
                               'task': 'mprorp.controller.start.check_sources',
                               'schedule': timedelta(seconds=30),
                           },

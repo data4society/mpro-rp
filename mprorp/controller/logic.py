@@ -83,7 +83,15 @@ def regular_gn_start_parsing(source_id):
 # parsing vk request
 @app.task
 def regular_vk_start_parsing(source_id):
-    vk_start_parsing(source_id)
+    session = DBSession()
+    docs = vk_start_parsing(source_id)
+    for doc in docs:
+        doc.status = VK_COMPLETE_STATUS
+    session.commit()
+    for doc in docs:
+        router(doc.doc_id, VK_COMPLETE_STATUS)
+    session.close()
+
 
 # parsing HTML page to find full text
 @app.task
