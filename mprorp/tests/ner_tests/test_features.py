@@ -21,7 +21,7 @@ class SimpleTomitaTest(unittest.TestCase):
         print(db.get_morpho(doc_id))
         for gram in config:
             run_tomita2(gram, str(doc_id))
-        ner_feature.print_tomita_result(str(doc_id), config.keys())
+        ner_feature.print_tomita_result(my_doc, config.keys())
 
         ner_feature.create_tomita_feature2(doc_id, config.keys())
         # gaz_id = db.put_gazetteer('gaz1', ['площадь', 'улица', 'переулок'])

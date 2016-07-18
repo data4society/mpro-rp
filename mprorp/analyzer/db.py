@@ -6,14 +6,6 @@ from sqlalchemy import desc
 import numpy as np
 import uuid
 
-# session = Driver.DBSession()
-
-
-# reading document plain text from db
-def get_doc(doc_id, session=None):
-    if session is None:
-        session = Driver.DBSession()
-    return session.query(Document.stripped).filter(Document.doc_id == doc_id).one().stripped
 
 
 def doc_apply(doc_id, my_def, *args):
@@ -37,31 +29,6 @@ def get_morpho(doc_id, session=None):
     if session is None:
         session = Driver.DBSession()
     return session.query(Document.morpho).filter(Document.doc_id == doc_id).one().morpho
-
-
-# writing lemmas frequently of document in db
-# def put_lemmas(doc_id, lemmas, new_status, session=None):
-#     if session is None:
-#         session = Driver.DBSession()
-#     some_doc = session.query(Document).filter(Document.doc_id == doc_id).one()
-#     some_doc.lemmas = lemmas
-#     if new_status > 0:
-#         some_doc.status = new_status
-#     session.commit()
-
-
-# reading lemmas frequently of document from db
-def get_lemmas(doc_id, session=None):
-    if session is None:
-        session = Driver.DBSession()
-    return session.query(Document.lemmas).filter(Document.doc_id == doc_id).one().lemmas
-
-
-# reading lemmas frequently of document from db
-def get_markup_from_doc(doc_id, session=None):
-    if session is None:
-        session = Driver.DBSession()
-    return session.query(Document.markup).filter(Document.doc_id == doc_id).one().markup
 
 
 # reading lemmas frequently of all documents in training set from db
@@ -112,7 +79,8 @@ def put_training_set_params(set_id, idf,  doc_index, lemma_index, object_feature
         session.query(ObjectFeatures).filter(
             (ObjectFeatures.doc_id == doc_id) & (ObjectFeatures.set_id == set_id)).delete()
         session.add(ObjectFeatures(doc_id=doc_id, set_id=set_id, compressed=True, features=features, indexes=indexes))
-    session.commit()
+    if commit_session:
+        session.commit()
 
 
 # writing new training set in db
@@ -122,7 +90,8 @@ def put_training_set(doc_id_array, session=None, commit_session=True):
     new_set = TrainingSet()
     new_set.doc_ids = doc_id_array
     session.add(new_set)
-    session.commit()
+    if commit_session:
+        session.commit()
     return new_set.set_id
 
 
@@ -141,15 +110,6 @@ def get_rubric_answers(set_id, rubric_id, session=None):
     for doc_id in docs_rubric:
         result[str(doc_id[0])] = 1
     return result
-
-
-# reading answer for one document and one rubric
-def get_rubric_answer_doc(doc_id, rubric_id, session=None):
-    if session is None:
-        session = Driver.DBSession()
-    doc_rubric = session.query(DocumentRubric.doc_id).filter(
-        (DocumentRubric.rubric_id == rubric_id) & (DocumentRubric.doc_id == doc_id)).all()
-    return len(doc_rubric)
 
 
 # reading object-features matrix and index of documents in it
@@ -300,20 +260,6 @@ def get_rubrication_result_probability(model_id, set_id, rubric_id, result_type,
     return result
 
 
-# text of all documents in set
-def get_docs_text(set_id, session=None):
-    if session is None:
-        session = Driver.DBSession()
-    docs_id = session.query(TrainingSet).filter(TrainingSet.set_id == set_id).one().doc_ids
-    docs = session.query(Document.doc_id, Document.stripped, Document.morpho, Document.lemmas).filter(
-        (DocumentRubric.doc_id.in_(docs_id))).all()
-
-    result = {}
-    for doc in docs:
-        result[str(doc.doc_id)] = {'text': doc.stripped, 'morpho': doc.morpho, 'lemmas': doc.lemmas}
-    return result
-
-
 def put_gazetteer(name, lemmas, short_name='', session=None, commit_session=True):
     if session is None:
         session = Driver.DBSession()
@@ -461,18 +407,6 @@ def put_markup(doc, doc_id, name, classes, markup_type, refs, session=None, comm
         session.commit()
 
 
-def put_references(doc_id, markup, refs, new_status=0, session=None, commit_session=True):
-    if session is None:
-        session = Driver.DBSession()
-    for ref in refs:
-        session.add(Reference(markup=markup, entity_class=ref['entity_class'], entity=ref['entity'],
-                              start_offset=ref['start_offset'], end_offset=ref['end_offset']))
-    if new_status > 0:
-        doc = session.query(Document).filter(Document.doc_id == doc_id).one()
-        doc.status = new_status
-    session.commit()
-
-
 def get_references_for_set(set_id, markup_type='10', session=None):
     if session is None:
         session = Driver.DBSession()
@@ -486,6 +420,75 @@ def get_references_for_set(set_id, markup_type='10', session=None):
             result[doc_id] = []
         result[doc_id].append((ref[0].start_offset, ref[0].end_offset, ref[0].entity_class))
     return result
+
+
+def get_multi_word_embedding(embedding, lemmas, session=None):
+    if session is None:
+        session = Driver.DBSession()
+    res = session.query(WordEmbedding).filter(
+        (WordEmbedding.embedding == embedding) & (WordEmbedding.lemma.in_(lemmas))).all()
+    if res is None:
+        return None
+    else:
+        return {i.lemma: np.array(i.vector) for i in res}
+
+
+# NO USED
+
+# reading document plain text from db
+def get_doc(doc_id, session=None):
+    if session is None:
+        session = Driver.DBSession()
+    return session.query(Document.stripped).filter(Document.doc_id == doc_id).one().stripped
+
+
+# writing lemmas frequently of document in db
+# def put_lemmas(doc_id, lemmas, new_status, session=None):
+#     if session is None:
+#         session = Driver.DBSession()
+#     some_doc = session.query(Document).filter(Document.doc_id == doc_id).one()
+#     some_doc.lemmas = lemmas
+#     if new_status > 0:
+#         some_doc.status = new_status
+#     session.commit()
+
+
+# reading lemmas frequently of document from db
+def get_lemmas(doc_id, session=None):
+    if session is None:
+        session = Driver.DBSession()
+    return session.query(Document.lemmas).filter(Document.doc_id == doc_id).one().lemmas
+
+
+# reading lemmas frequently of document from db
+def get_markup_from_doc(doc_id, session=None):
+    if session is None:
+        session = Driver.DBSession()
+    return session.query(Document.markup).filter(Document.doc_id == doc_id).one().markup
+
+
+# reading answer for one document and one rubric
+def get_rubric_answer_doc(doc_id, rubric_id, session=None):
+    if session is None:
+        session = Driver.DBSession()
+    doc_rubric = session.query(DocumentRubric.doc_id).filter(
+        (DocumentRubric.rubric_id == rubric_id) & (DocumentRubric.doc_id == doc_id)).all()
+    return len(doc_rubric)
+
+
+# text of all documents in set
+def get_docs_text(set_id, session=None):
+    if session is None:
+        session = Driver.DBSession()
+    docs_id = session.query(TrainingSet).filter(TrainingSet.set_id == set_id).one().doc_ids
+    docs = session.query(Document.doc_id, Document.stripped, Document.morpho, Document.lemmas).filter(
+        (DocumentRubric.doc_id.in_(docs_id))).all()
+
+    result = {}
+    for doc in docs:
+        result[str(doc.doc_id)] = {'text': doc.stripped, 'morpho': doc.morpho, 'lemmas': doc.lemmas}
+    return result
+
 
 
 def del_markup(markup_id=None, markup_type=None, session=None, commit_session=True):
@@ -511,17 +514,6 @@ def get_word_embedding(embedding, lemma, session=None):
         return None
     else:
         return res[0]
-
-
-def get_multi_word_embedding(embedding, lemmas, session=None):
-    if session is None:
-        session = Driver.DBSession()
-    res = session.query(WordEmbedding).filter(
-        (WordEmbedding.embedding == embedding) & (WordEmbedding.lemma.in_(lemmas))).all()
-    if res is None:
-        return None
-    else:
-        return {i.lemma: np.array(i.vector) for i in res}
 
 
 def put_tomita_grammar(name, files, config_file, session=None, commit_session=True):
