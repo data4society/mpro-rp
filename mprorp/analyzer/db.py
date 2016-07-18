@@ -10,8 +10,10 @@ import uuid
 
 
 # reading document plain text from db
-def get_doc(doc_id):
-    return select(Document.stripped, Document.doc_id == doc_id).fetchone()[0]
+def get_doc(doc_id, session=None):
+    if session is None:
+        session = Driver.DBSession()
+    return session.query(Document.stripped).filter(Document.doc_id == doc_id).one().stripped
 
 
 def doc_apply(doc_id, my_def, *args):
@@ -22,29 +24,30 @@ def doc_apply(doc_id, my_def, *args):
     return  result
 
 
-
 # writing result of morphological analysis of document in db
-def put_morpho(doc_id, morpho, new_status):
-    new_document = Document(doc_id=doc_id, morpho=morpho)
-    if new_status > 0:
-        new_document.status = new_status
-    update(new_document)
+# def put_morpho(doc_id, morpho, new_status):
+#     new_document = Document(doc_id=doc_id, morpho=morpho)
+#     if new_status > 0:
+#         new_document.status = new_status
+#     update(new_document)
 
 
 # reading result of morphological analysis of document from db
-def get_morpho(doc_id):
-    return select(Document.morpho, Document.doc_id == doc_id).fetchone()[0]
+def get_morpho(doc_id, session=None):
+    if session is None:
+        session = Driver.DBSession()
+    return session.query(Document.morpho).filter(Document.doc_id == doc_id).one().morpho
 
 
 # writing lemmas frequently of document in db
-def put_lemmas(doc_id, lemmas, new_status, session=None):
-    if session is None:
-        session = Driver.DBSession()
-    some_doc = session.query(Document).filter(Document.doc_id == doc_id).one()
-    some_doc.lemmas = lemmas
-    if new_status > 0:
-        some_doc.status = new_status
-    session.commit()
+# def put_lemmas(doc_id, lemmas, new_status, session=None):
+#     if session is None:
+#         session = Driver.DBSession()
+#     some_doc = session.query(Document).filter(Document.doc_id == doc_id).one()
+#     some_doc.lemmas = lemmas
+#     if new_status > 0:
+#         some_doc.status = new_status
+#     session.commit()
 
 
 # reading lemmas frequently of document from db
@@ -97,7 +100,7 @@ def uncompress(array, indexes, size):
 
 
 # writing training set parameters (idf, object-features matrix and indexes of lemmas and documents in it) db
-def put_training_set_params(set_id, idf,  doc_index, lemma_index, object_features, session=None):
+def put_training_set_params(set_id, idf,  doc_index, lemma_index, object_features, session=None, commit_session=True):
     if session is None:
         session = Driver.DBSession()
     some_set = session.query(TrainingSet).filter(TrainingSet.set_id == set_id).one()
@@ -113,7 +116,7 @@ def put_training_set_params(set_id, idf,  doc_index, lemma_index, object_feature
 
 
 # writing new training set in db
-def put_training_set(doc_id_array, session=None):
+def put_training_set(doc_id_array, session=None, commit_session=True):
     if session is None:
         session = Driver.DBSession()
     new_set = TrainingSet()
@@ -127,8 +130,8 @@ def put_training_set(doc_id_array, session=None):
 def get_rubric_answers(set_id, rubric_id, session=None):
     if session is None:
         session = Driver.DBSession()
-    docs = Driver.select(TrainingSet.doc_ids, TrainingSet.set_id == set_id).fetchone()[0]
-    # docs = session.query(TrainingSet).filter(TrainingSet.set_id == set_id).one()
+    # docs = Driver.select(TrainingSet.doc_ids, TrainingSet.set_id == set_id).fetchone()[0]
+    docs = session.query(TrainingSet.doc_ids).filter(TrainingSet.set_id == set_id).one().doc_ids
     docs_rubric = session.query(DocumentRubric.doc_id).filter(
         (DocumentRubric.rubric_id == rubric_id) & (DocumentRubric.doc_id.in_(docs))).all()
 
@@ -168,12 +171,16 @@ def get_doc_index_object_features(set_id, session=None):
 
 
 # reading documents in set
-def get_set_docs(set_id):
-    return select(TrainingSet.doc_ids, TrainingSet.set_id == set_id).fetchone()[0]
+def get_set_docs(set_id, session=None):
+    if session is None:
+        session = Driver.DBSession()
+    return session.query(TrainingSet.doc_ids).filter(TrainingSet.set_id == set_id).one().doc_ids
 
 
 # writing model compute for one rubric (rubric_id) with training set (set_id) using selected features (features)
-def put_model(rubric_id, set_id, model, features, features_number):
+def put_model(rubric_id, set_id, model, features, features_number, session=None, commit_session=True):
+    if session is None:
+        session = Driver.DBSession()
     new_model = RubricationModel()
     new_model.rubric_id = rubric_id
     new_model.set_id = set_id
@@ -181,7 +188,9 @@ def put_model(rubric_id, set_id, model, features, features_number):
     new_model.features = features
     new_model.features_num = features_number
     new_model.learning_date = datetime.now()
-    insert(new_model)
+    session.add(new_model)
+    if commit_session:
+        session.commit()
 
 
 # reading set_id of last computing model for rubric_id
@@ -258,7 +267,8 @@ def get_rubrication_result(model_id, set_id, rubric_id):
 def get_rubrication_result2(model_id, set_id, rubric_id, session=None):
     if session is None:
         session = Driver.DBSession()
-    docs = Driver.select(TrainingSet.doc_ids, TrainingSet.set_id == set_id).fetchone()[0]
+    # docs = Driver.select(TrainingSet.doc_ids, TrainingSet.set_id == set_id).fetchone()[0]
+    docs = session.query(TrainingSet.doc_ids).filter(TrainingSet.set_id == set_id).one().doc_ids
     res = session.query(Document.doc_id, Document.rubric_ids).filter(
         (Document.doc_id.in_(docs))).all()
     result = {}
@@ -276,7 +286,8 @@ def get_rubrication_result2(model_id, set_id, rubric_id, session=None):
 def get_rubrication_result_probability(model_id, set_id, rubric_id, result_type, session=None):
     if session is None:
         session = Driver.DBSession()
-    docs = Driver.select(TrainingSet.doc_ids, TrainingSet.set_id == set_id).fetchone()[0]
+    # docs = Driver.select(TrainingSet.doc_ids, TrainingSet.set_id == set_id).fetchone()[0]
+    docs = session.query(TrainingSet.doc_ids).filter(TrainingSet.set_id == set_id).one().doc_ids
 
     rubrication_result = session.query(RubricationResult.doc_id, RubricationResult.result,
                                        RubricationResult.probability).filter(
@@ -303,7 +314,7 @@ def get_docs_text(set_id, session=None):
     return result
 
 
-def put_gazetteer(name, lemmas, short_name='', session=None):
+def put_gazetteer(name, lemmas, short_name='', session=None, commit_session=True):
     if session is None:
         session = Driver.DBSession()
     new_gaz = Gazetteer(name=name)
@@ -450,7 +461,7 @@ def put_markup(doc, doc_id, name, classes, markup_type, refs, session=None, comm
         session.commit()
 
 
-def put_references(doc_id, markup, refs, new_status=0, session=None):
+def put_references(doc_id, markup, refs, new_status=0, session=None, commit_session=True):
     if session is None:
         session = Driver.DBSession()
     for ref in refs:
@@ -477,7 +488,7 @@ def get_references_for_set(set_id, markup_type='10', session=None):
     return result
 
 
-def del_markup(markup_id=None, markup_type=None, session=None):
+def del_markup(markup_id=None, markup_type=None, session=None, commit_session=True):
     if session is None:
         session = Driver.DBSession()
     if markup_id is None:
@@ -513,7 +524,7 @@ def get_multi_word_embedding(embedding, lemmas, session=None):
         return {i.lemma: np.array(i.vector) for i in res}
 
 
-def put_tomita_grammar(name, files, config_file, session=None):
+def put_tomita_grammar(name, files, config_file, session=None, commit_session=True):
     if session is None:
         session = Driver.DBSession()
     new_grammar = TomitaGrammar(name=name, files=files, config_file=config_file)
@@ -521,7 +532,7 @@ def put_tomita_grammar(name, files, config_file, session=None):
     session.commit()
 
 
-def put_ner_model(embedding, gazetteers, tomita_facts, morpho_features, hyper_parameters, session=None):
+def put_ner_model(embedding, gazetteers, tomita_facts, morpho_features, hyper_parameters, session=None, commit_session=True):
     if session is None:
         session = Driver.DBSession()
     new_model = NERModel(embedding=embedding, gazetteers=gazetteers, tomita_facts=tomita_facts,

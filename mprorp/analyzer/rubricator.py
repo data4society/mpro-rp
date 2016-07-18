@@ -42,32 +42,32 @@ def is_sentence_end(mystem_element):
 
 
 # one document morphological analysis
-def morpho_doc_old(doc_id, change_status=0):
-    doc_text = db.get_doc(doc_id)
-    mystem_analyzer.start()
-    new_morpho = mystem_analyzer.analyze(doc_text)
-    word_index = 0
-    sentence_index = 0
-    start_offset = 0
-    for element in new_morpho:
-        if 'text' in element.keys():
-            text_len = len(element['text'])
-        else:
-            text_len = 0
-        if is_sentence_end(element):
-            text_len = 0
-            if word_index != 0:
-                sentence_index += 1
-                word_index = 0
-        elif is_word(element):
-            element['word_index'] = word_index
-            element['sentence_index'] = sentence_index
-            word_index += 1
-            element['start_offset'] = start_offset
-            element['end_offset'] = start_offset + text_len - 1
-        start_offset += text_len
-    db.put_morpho(doc_id, new_morpho, change_status)
-    mystem_analyzer.close()
+# def morpho_doc_old(doc_id, change_status=0):
+#     doc_text = db.get_doc(doc_id)
+#     mystem_analyzer.start()
+#     new_morpho = mystem_analyzer.analyze(doc_text)
+#     word_index = 0
+#     sentence_index = 0
+#     start_offset = 0
+#     for element in new_morpho:
+#         if 'text' in element.keys():
+#             text_len = len(element['text'])
+#         else:
+#             text_len = 0
+#         if is_sentence_end(element):
+#             text_len = 0
+#             if word_index != 0:
+#                 sentence_index += 1
+#                 word_index = 0
+#         elif is_word(element):
+#             element['word_index'] = word_index
+#             element['sentence_index'] = sentence_index
+#             word_index += 1
+#             element['start_offset'] = start_offset
+#             element['end_offset'] = start_offset + text_len - 1
+#         start_offset += text_len
+#     db.put_morpho(doc_id, new_morpho, change_status)
+#     mystem_analyzer.close()
 
 
 def morpho_doc2(doc_id, change_status=0):
