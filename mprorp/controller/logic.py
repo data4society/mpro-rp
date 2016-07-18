@@ -140,7 +140,7 @@ def regular_rubrication(doc_id, new_status):
 def regular_tomita(grammar_index, doc_id, new_status):
     session = DBSession()
     doc = session.query(Document).filter_by(doc_id=doc_id).first()
-    run_tomita(grammars[grammar_index], doc, session, False)
+    run_tomita(doc, grammars[grammar_index], session, False)
     doc.status = new_status
     session.commit()
     session.close()
@@ -164,7 +164,7 @@ def regular_tomita_features(doc_id, new_status):
 def regular_entities(doc_id, new_status):
     session = DBSession()
     doc = session.query(Document).filter_by(doc_id=doc_id).first()
-    convert_tomita_result_to_markup(doc_id, grammars, session=session, commit_session=False)
+    convert_tomita_result_to_markup(doc, grammars, session=session, commit_session=False)
     doc.status = new_status
     session.commit()
     session.close()
