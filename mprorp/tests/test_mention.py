@@ -46,7 +46,7 @@ class SimpleDBTest(unittest.TestCase):
 
         # Проведем морфологический анализ
         doc_id = str(my_doc.doc_id)
-        rb.morpho_doc(doc_id)
+        rb.morpho_doc2(doc_id)
         morpho = db.get_morpho(doc_id)
 
         # Сформируем спаны
