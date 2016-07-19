@@ -549,6 +549,7 @@ def NER_predict(filename):
     with tf.Graph().as_default():
         model = NERModel(config)
 
+        init = tf.initialize_all_variables()
         saver = tf.train.Saver()
 
         with tf.Session() as session:

@@ -27,7 +27,7 @@ from lxml import etree
 log = logging.getLogger("readability.readability")
 
 REGEXES = {
-    'unlikelyCandidatesRe': re.compile('combx|comment|community|disqus|extra|foot|header|menu|remark|rss|shoutbox|sponsor|ad-break|agegate|pagination|pager|popup|tweet|twitter|podval', re.I),
+    'unlikelyCandidatesRe': re.compile('combx|comment|community|disqus|extra|foot|header|menu|remark|rss|shoutbox|sponsor|ad-break|agegate|pagination|pager|popup|tweet|twitter|podval|adsbygoogle|share|uptolike-buttons|error|adfox_banner', re.I),
     'okMaybeItsACandidateRe': re.compile('and|article|body|column|main|shadow|js-pagination', re.I),
     'positiveRe': re.compile('article|body|content|entry|hentry|main|page|pagination|post|text|blog|story', re.I),
     'negativeRe': re.compile('combx|comment|com-|contact|foot|footer|footnote|masthead|media|meta|outbrain|promo|related|scroll|shoutbox|sidebar|sponsor|shopping|tags|tool|widget', re.I),
@@ -41,6 +41,8 @@ REGEXES = {
     'videoRe': re.compile('https?:\/\/(www\.)?(youtube|vimeo)\.com', re.I),
     #skipFootnoteLink:      /^\s*(\[?[a-z0-9]{1,2}\]?|^|edit|citation needed)\s*$/i,
 }
+THRESHOLD_RATIO = 0.666
+
 
 
 class Unparseable(ValueError):
@@ -211,9 +213,9 @@ class Document:
         except Exception as e:
             log.exception('error getting summary: ')
             if sys.version_info[0] == 2:
-                from .compat.two import raise_with_traceback
+                from readability.compat.two import raise_with_traceback
             else:
-                from .compat.three import raise_with_traceback
+                from readability.compat.three import raise_with_traceback
             raise_with_traceback(Unparseable, sys.exc_info()[2], str_(e))
 
     def get_article(self, candidates, best_candidate, html_partial=False):
@@ -253,7 +255,7 @@ class Document:
                     and link_density == 0 \
                     and re.search('\.( |$)', node_content):
                     append = True
-
+            append = False
             if append:
                 # We don't want to append directly to output, but the div
                 # in html->body->div
@@ -263,6 +265,7 @@ class Document:
                     output.getchildren()[0].getchildren()[0].append(sibling)
         #if output is not None:
         #    output.append(best_elem)
+        output.append(best_elem)
         return output
 
     def compute(self, elem, res, candidates, linked=False):
@@ -281,6 +284,8 @@ class Document:
                 tags += child_tags
                 hyperchars += child_hyperchars
                 sum += child_score
+                #if describe(elem) == '.article_body>.text':
+                #    print(child_score)
                 #if describe(elem) == 'html>body#readabilityBody':
                 #print(describe(elem), describe(child), child.tag, child_chars, child_tags, child_hyperchars, child_score)
                 #print(child.text_content())
@@ -291,7 +296,7 @@ class Document:
                 sum += child_text_len
                 #sum += self.comp_score(child_text_len, 1, 0)
                 chars += child_text_len
-                #if describe(elem) == 'article.item>h3.article_subheader':
+                #if describe(elem) == 'p.bottom>span.summary':
                 #    print(child_text_len)
                 #print(child)
 
@@ -331,7 +336,7 @@ class Document:
         return chars, tags, hyperchars, score
 
     def comp_score(self, chars, tags, hyperchars):
-        return (chars / tags) * math.log2((chars + 1) / (hyperchars + 1))
+        return (chars / tags) * (1-(hyperchars + 1)/(chars + 1)) #math.log2((chars + 1) / (hyperchars + 1))
 
     def get_confidence(self):
         if self.confidence == -1:
@@ -347,15 +352,36 @@ class Document:
             key=lambda x: x['content_score'],
             reverse=True
         )
-        for candidate in sorted_candidates[:5]:
-            elem = candidate['elem']
+        #for candidate in sorted_candidates[:5]:
+            #elem = candidate['elem']
             #log.info("Top 5 : %6.3f %s" % (candidate['content_score'],describe(elem)))
             #print("BEST",describe(elem),candidate['content_score'])
 
         best_candidate = sorted_candidates[0]
+        best_candidate_score = best_candidate['content_score']
+        if best_candidate_score > 0:
+            n = 0
+            for candidate in sorted_candidates:
+                if candidate['content_score']/best_candidate_score < THRESHOLD_RATIO:
+                    break;
+                n += 1
+        for candidate in sorted_candidates[:n]:
+            elem = candidate['elem']
+            #print("BEST", describe(elem), candidate['content_score'])
+            from mprorp.crawler.readability.shingling import get_compare_estimate
+            #print(get_compare_estimate(, title)
+        title = self.title()
+        #print(title)
         if best_candidate['content_score']:
             self.confidence = 1-sorted_candidates[1]['content_score']/best_candidate['content_score']
+
         return best_candidate
+
+    def recursia(self, elem):
+        children = elem.getchildren()
+        #print(describe(elem))
+        for child in children:
+            self.recursia(child)
 
     def get_link_density(self, elem):
         link_length = 0
@@ -567,11 +593,13 @@ class Document:
         for elem in self.tags(node, "form", "textarea"):
             elem.drop_tree()
 
+        """
         for elem in self.tags(node, "iframe"):
             if "src" in elem.attrib and REGEXES["videoRe"].search(elem.attrib["src"]):
                 elem.text = "VIDEO" # ADD content to iframe text node to force <iframe></iframe> proper output
             else:
                 elem.drop_tree()
+        """
 
         allowed = {}
         # Conditionally clean <table>s, <ul>s, and <div>s
@@ -701,6 +729,7 @@ class Document:
                     pass;
 
         self.html = node
+        self.recursia(node)
         return self.get_clean_html()
 
 
@@ -750,7 +779,7 @@ def main():
             negative_keywords = options.negative_keywords,
         )
         if options.browser:
-            from .browser import open_in_browser
+            from readability.browser import open_in_browser
             result = '<h2>' + doc.short_title() + '</h2><br/>' + doc.summary()
             open_in_browser(result)
         else:

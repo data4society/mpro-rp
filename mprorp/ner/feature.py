@@ -47,7 +47,7 @@ def create_gazetteer_feature(doc_id, gaz_id):
 def create_answers_feature(set_id, new_status=0):
 
     results = db.get_references_for_set(set_id)
-    print(results)
+    # print(results)
 
     for doc_id in results:
         morpho = db.get_morpho(doc_id)
@@ -74,9 +74,9 @@ def create_answers_feature(set_id, new_status=0):
                             log.info(
                                 'error: word ' + element['text'] + ' ' + str(element['start_offset']) + ':' +
                                 str(element['end_offset']) + ' refs: ' + str(i))
-                            print(
-                                'error: word ' + element['text'] + ' ' + str(element['start_offset']) + ':' +
-                                str(element['end_offset']) + ' refs: ' + str(i))
+                            # print(
+                            #     'error: word ' + element['text'] + ' ' + str(element['start_offset']) + ':' +
+                            #     str(element['end_offset']) + ' refs: ' + str(i))
                     elif element['start_offset'] > i[0]:
                         if element['end_offset'] == i[1] + i[0] - 1:
                             # end
@@ -93,9 +93,9 @@ def create_answers_feature(set_id, new_status=0):
                             log.info(
                                 'error: word ' + element['text'] + ' ' + str(element['start_offset']) + ':' +
                                 str(element['end_offset']) + ' refs: ' + str(i))
-                            print(
-                                'error: word ' + element['text'] + ' ' + str(element['start_offset']) + ':' +
-                                str(element['end_offset']) + ' refs: ' + str(i))
+                            # print(
+                            #     'error: word ' + element['text'] + ' ' + str(element['start_offset']) + ':' +
+                            #     str(element['end_offset']) + ' refs: ' + str(i))
                 if not (value is None):
                     key = (element['sentence_index'], element['word_index'], i[2] + '_answer')
                     old_value = values.get(key, None)
@@ -119,15 +119,19 @@ def stronger_value(old_value, value):
     else:
         return old_value
 
-def create_tomita_feature(doc_id, feature_grammars, new_status=0):
+def create_tomita_feature2(doc_id, feature_grammars):
+    db.doc_apply(doc_id, create_tomita_feature, feature_grammars)
 
-    results = db.get_tomita_results(doc_id, feature_grammars)
-    morpho = db.get_morpho(doc_id)
+
+def create_tomita_feature(doc, feature_grammars, session=None, commit_session=True):
+    doc_id = str(doc.doc_id)
+    results = db.get_tomita_results(doc_id, feature_grammars, session)
+    morpho = doc.morpho
     values = []
     for result in results:
         # result - dict with keys like '15:22' and values like 'person' - tomita fact
         for i in result:
-            print(i)
+            # print(i)
             offsets = [int(j) for j in i.split(':')]
             offsets[1] += -1
             # find word with offsets
@@ -139,11 +143,11 @@ def create_tomita_feature(doc_id, feature_grammars, new_status=0):
                         if element['end_offset'] == offsets[1]:
                             # single
                             value = [0, 0, 0, 1]
-                            print(element['text'])
+                            # print(element['text'])
                         elif element['end_offset'] < offsets[1]:
                             # begin
                             value = [1, 0, 0, 0]
-                            print(element['text'])
+                            # print(element['text'])
                         else:
                             # error
                             print('error: ' + doc_id + ' word: "' + element['text'] + '" morpho:', element['start_offset'], ':', element[
@@ -173,10 +177,29 @@ def create_tomita_feature(doc_id, feature_grammars, new_status=0):
                     print(offsets, result[i], element['word_index'], element['sentence_index'])
     if len(values) > 0:
         # print(values)
-        db.put_ner_feature(doc_id, values, ner_feature_types['tomita'], new_status=new_status)
+        db.put_ner_feature(doc_id, values, ner_feature_types['tomita'], session=session, commit_session=commit_session)
 
 
-def create_embedding_feature(doc_id, new_status=0):
+def print_tomita_result2(doc_id, feature_grammars):
+    db.doc_apply(doc_id, print_tomita_result, feature_grammars)
+
+
+def print_tomita_result(doc, feature_grammars, new_status=0):
+
+    doc_id = doc.doc_id
+    results = db.get_tomita_results(doc_id, feature_grammars)
+    mytext = (doc.stripped).replace('\n','')
+
+    for result in results:
+        # result - dict with keys like '15:22' and values like 'person' - tomita fact
+        for i in result:
+            print(i, result[i])
+            offsets = [int(j) for j in i.split(':')]
+            print(mytext[offsets[0]:offsets[1]])
+
+
+
+def create_embedding_feature(doc_id):
     morpho = db.get_morpho(doc_id)
     values = []
     for element in morpho:
@@ -199,10 +222,10 @@ def create_embedding_feature(doc_id, new_status=0):
                                'value': feats})
     if len(values) > 0:
         # print(values)
-        db.put_ner_feature(doc_id, values, ner_feature_types['embedding'], 'embedding', new_status=new_status)
+        db.put_ner_feature(doc_id, values, ner_feature_types['embedding'], 'embedding')
 
 
-def create_morpho_feature(doc_id, new_status=0):
+def create_morpho_feature(doc_id):
     morpho = db.get_morpho(doc_id)
     values = []
     for element in morpho:
@@ -223,4 +246,4 @@ def create_morpho_feature(doc_id, new_status=0):
                            'value': res.tolist()})
     if len(values) > 0:
         # print(values)
-        db.put_ner_feature(doc_id, values, ner_feature_types['morpho'], 'morpho', new_status=new_status)
+        db.put_ner_feature(doc_id, values, ner_feature_types['morpho'], 'morpho')

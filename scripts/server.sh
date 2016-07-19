@@ -34,8 +34,8 @@ cp /home/mprorp/mpro-rp-dev/server/celeryd_default /etc/default/celeryd
 chmod 644 /etc/default/flowerd
 chmod 644 /etc/default/celeryd
 cp /home/mprorp/mpro-rp-dev/server/renew.sh /home/mprorp
-update-rc.d flowerd defaults
-update-rc.d celeryd defaults
+update-rc.d celeryd defaults 90
+update-rc.d flowerd defaults 91
 
 
 su mprorp

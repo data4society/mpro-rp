@@ -3,7 +3,6 @@ from mprorp.utils import home_dir
 import os.path as path
 import subprocess as sp
 import re
-from mprorp.analyzer.db import get_doc
 import os
 
 grammars = {'person.cxx': 'bin',
@@ -60,22 +59,22 @@ TTextMinerConfig {
     config.close()
 
 
-def create_file(doc_id):
-    file_name = str(doc_id) + '.txt'
+def create_file(doc):
+    file_name = str(doc.doc_id) + '.txt'
     file = open(file_name, 'w', encoding='utf-8')
-    text = get_doc(doc_id)
-    file.write(text)
+    text = doc.stripped
+    file.write(text.replace('\n',''))
     file.close()
     return file_name
 
 
-def start_tomita(grammar, doc_id):
+def start_tomita(grammar, doc):
     home_path = home_dir + '/tomita/tomita-parser-master/build'
     tomita_path = path.join(home_path, grammars[grammar])
     grammar_name = re.findall('(.*)\\.cxx', grammar)[0]
     chdir(tomita_path)
     # создаем файл с текстом
-    file_name = create_file(doc_id)
+    file_name = create_file(doc)
     # создаем config.proto
     create_config(grammar_name, file_name)
     # запускаем tomitaparser.exe

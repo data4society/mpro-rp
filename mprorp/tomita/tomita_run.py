@@ -1,6 +1,6 @@
 import os
 
-from mprorp.analyzer.db import put_tomita_result
+import mprorp.analyzer.db as db
 from mprorp.tomita.tomita_out import tomita_out
 from mprorp.tomita.tomita_start import start_tomita
 
@@ -14,16 +14,20 @@ def del_files(doc_id):
     os.remove(file_name3, dir_fd=None)
 
 
-def run_tomita(grammar, doc_id, status=0):
-    output = start_tomita(grammar, doc_id)
-    source_name = doc_id + '.txt'
+def run_tomita2(grammar, doc_id, status=0):
+    return db.doc_apply(doc_id, run_tomita, grammar)
+
+
+def run_tomita(doc, grammar, session=None, commit_session=True):
+    output = start_tomita(grammar, doc)
+    source_name = str(doc.doc_id) + '.txt'
     out = tomita_out(output, source_name)
-    put_tomita_result(doc_id, grammar, out, status)
-    del_files(doc_id)
+    db.put_tomita_result(str(doc.doc_id), grammar, out, session, commit_session)
+    del_files(str(doc.doc_id))
     return out
 
 #start_tomita('date.cxx', '000e82b8-6ea7-41f4-adc6-bc688fbbeeb6')
-#print(run_tomita('date.cxx', '000e82b8-6ea7-41f4-adc6-bc688fbbeeb6', status=0))
-#print(run_tomita('person.cxx', '000e82b8-6ea7-41f4-adc6-bc688fbbeeb6', status=0))
-#print(run_tomita('loc.cxx', '000e82b8-6ea7-41f4-adc6-bc688fbbeeb6', status=0))
-#print(run_tomita('date.cxx', '75fa182d-7fbc-4ec7-bbfd-fc4d743e8834', status=0))
+#print(run_tomita2('date.cxx', '000e82b8-6ea7-41f4-adc6-bc688fbbeeb6', status=0))
+#print(run_tomita2('person.cxx', '000e82b8-6ea7-41f4-adc6-bc688fbbeeb6', status=0))
+#print(run_tomita2('loc.cxx', '000e82b8-6ea7-41f4-adc6-bc688fbbeeb6', status=0))
+#print(run_tomita2('date.cxx', '75fa182d-7fbc-4ec7-bbfd-fc4d743e8834', status=0))

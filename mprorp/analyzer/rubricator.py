@@ -38,42 +38,49 @@ def is_word(mystem_element):
 
 def is_sentence_end(mystem_element):
     word = mystem_element.get('text', '')
-    return word == '\\s'
+    return word == '\\s' or word == '\n'
 
 
 # one document morphological analysis
-def morpho_doc_old(doc_id, change_status=0):
-    doc_text = db.get_doc(doc_id)
-    mystem_analyzer.start()
-    new_morpho = mystem_analyzer.analyze(doc_text)
-    word_index = 0
-    sentence_index = 0
-    start_offset = 0
-    for element in new_morpho:
-        if 'text' in element.keys():
-            text_len = len(element['text'])
-        else:
-            text_len = 0
-        if is_sentence_end(element):
-            text_len = 0
-            if word_index != 0:
-                sentence_index += 1
-                word_index = 0
-        elif is_word(element):
-            element['word_index'] = word_index
-            element['sentence_index'] = sentence_index
-            word_index += 1
-            element['start_offset'] = start_offset
-            element['end_offset'] = start_offset + text_len - 1
-        start_offset += text_len
-    db.put_morpho(doc_id, new_morpho, change_status)
-    mystem_analyzer.close()
+# def morpho_doc_old(doc_id, change_status=0):
+#     doc_text = db.get_doc(doc_id)
+#     mystem_analyzer.start()
+#     new_morpho = mystem_analyzer.analyze(doc_text)
+#     word_index = 0
+#     sentence_index = 0
+#     start_offset = 0
+#     for element in new_morpho:
+#         if 'text' in element.keys():
+#             text_len = len(element['text'])
+#         else:
+#             text_len = 0
+#         if is_sentence_end(element):
+#             text_len = 0
+#             if word_index != 0:
+#                 sentence_index += 1
+#                 word_index = 0
+#         elif is_word(element):
+#             element['word_index'] = word_index
+#             element['sentence_index'] = sentence_index
+#             word_index += 1
+#             element['start_offset'] = start_offset
+#             element['end_offset'] = start_offset + text_len - 1
+#         start_offset += text_len
+#     db.put_morpho(doc_id, new_morpho, change_status)
+#     mystem_analyzer.close()
 
-def morpho_doc(doc_id, change_status=0):
 
-    doc_text = db.get_doc(doc_id)
+def morpho_doc2(doc_id, change_status=0):
+    db.doc_apply(doc_id, morpho_doc)
+
+
+def morpho_doc(doc):
+
+    doc_text = doc.stripped
     mystem_analyzer.start()
-    new_morpho = mystem_analyzer.analyze(doc_text)
+    # new_morpho = mystem_analyzer.analyze(doc_text)
+    new_morpho = mystem_analyzer.analyze(doc_text.replace('\n',''))
+
 
     morpho_list = []
 
@@ -95,7 +102,7 @@ def morpho_doc(doc_id, change_status=0):
 
                 symbol_number+=1
 
-                if symbol == "'" or symbol == '"':
+                if symbol == "'" or symbol == '"' or symbol == '»' or symbol == '«':
 
                     if space_len > 0: # добавим пробелы
 
@@ -197,16 +204,21 @@ def morpho_doc(doc_id, change_status=0):
                 element['word_index'] = word_index
                 element['sentence_index'] = sentence_index
 
-                start_offset += line_len
                 word_index += 1
+            start_offset += line_len
 
-    db.put_morpho(doc_id, morpho_list, change_status)
+    doc.morpho = morpho_list
     mystem_analyzer.close()
 
+
 # counting lemmas frequency for one document
-def lemmas_freq_doc(doc_id, new_status=0):
+def lemmas_freq_doc2(doc_id):
+    db.doc_apply(doc_id, lemmas_freq_doc)
+
+
+def lemmas_freq_doc(doc):
     lemmas = {}
-    morpho = db.get_morpho(doc_id)
+    morpho = doc.morpho
     for i in morpho:
         # if this is a word
         if 'analysis' in i.keys():
@@ -222,8 +234,7 @@ def lemmas_freq_doc(doc_id, new_status=0):
                 # take word, don't take number
                 if (len(word) > 0) and not word.isdigit():
                     lemmas[word] = lemmas.get(word, 0) + 1
-    db.put_lemmas(doc_id, lemmas, new_status)
-
+    doc.lemmas = lemmas
 
 # compute idf and object-features matrix for training set
 # idf for calc features of new docs
@@ -313,7 +324,7 @@ def entropy_difference(feature, answers, num_lemma):
     f_min = np.min(feature)
     # check is it unsound feature
     if f_max == f_min:
-        print('lemma 0: ', num_lemma)
+        # print('lemma 0: ', num_lemma)
         return 10000
     step = (f_max - f_min) / 1000
     p = [[0, 0] for _ in range(1000)]
@@ -354,7 +365,7 @@ def print_lemmas(set_id, numbers, lemmas=None, idf=None):
         lemmas = db.get_lemma_index(set_id)
     my_lemmas = [k for k in lemmas if lemmas[k] in numbers]
     # print(numbers)
-    print(my_lemmas)
+    # print(my_lemmas)
     # print([idf.get(k, '') for k in my_lemmas])
     # for i in numbers:
     #     m
@@ -460,9 +471,13 @@ def learning_rubric_model(set_id, rubric_id):
 # save in DB doc_id, rubric_id and YES or NO
 # rubrics is a dict. key = rubric_id, value = None or set_id
 # value = set_id: use model, learned with this trainingSet
-def spot_doc_rubrics(doc_id, rubrics, new_status=0):
+def spot_doc_rubrics2(doc_id, rubrics):
+    db.doc_apply(doc_id, spot_doc_rubrics, rubrics)
+
+
+def spot_doc_rubrics(doc, rubrics, session=None, commit_session=True):
     # get lemmas by doc_id
-    lemmas = db.get_lemmas(doc_id)
+    lemmas = doc.lemmas
     # compute document size
     doc_size = 0
     for lemma in lemmas:
@@ -476,11 +491,11 @@ def spot_doc_rubrics(doc_id, rubrics, new_status=0):
     for rubric_id in rubrics:
         # correct_answers[rubric_id] = db.get_rubric_answer_doc(doc_id, rubric_id)
         if rubrics[rubric_id] is None:
-            rubrics[rubric_id] = db.get_set_id_by_rubric_id(rubric_id)
-        models[rubric_id] = db.get_model(rubric_id, rubrics[rubric_id])
+            rubrics[rubric_id] = db.get_set_id_by_rubric_id(rubric_id, session)
+        models[rubric_id] = db.get_model(rubric_id, rubrics[rubric_id], session)
     # get dict with idf and lemma_index for each set_id
     # sets[...] is dict: {'idf':..., 'lemma_index': ...}
-    sets = db.get_idf_lemma_index_by_set_id(rubrics.values())
+    sets = db.get_idf_lemma_index_by_set_id(rubrics.values(), session)
     for set_id in sets:
         # compute idf for doc_id (lemmas) and set_id
         idf_doc = {}
@@ -489,6 +504,7 @@ def spot_doc_rubrics(doc_id, rubrics, new_status=0):
         sets[set_id]['idf_doc'] = idf_doc
     # for each rubric
     answers = []
+    result = []
     for rubric_id in rubrics:
         set_id = rubrics[rubric_id]
         mif_number = models[rubric_id]['features_num']
@@ -508,14 +524,14 @@ def spot_doc_rubrics(doc_id, rubrics, new_status=0):
         mif.resize(mif_number + 1)
         mif[mif_number] = 1
         probability = sigmoid(np.dot(mif, models[rubric_id]['model']))
-        answers.append({'rubric_id': rubric_id, 'result': round(probability), 'model_id': models[rubric_id]['model_id'],
-                        'doc_id': doc_id, 'probability': probability})
-        # if answers[rubric_id]['result'] == correct_answers[rubric_id]:
-        #     res = 'correct'
-        # else:
-        #     res = 'incorrect'
-        # print(doc_id, answers[rubric_id]['result'],  res)
-    db.put_rubrics(answers, new_status)
+        if probability > 0.5:
+            answers.append(rubric_id)
+        result.append(
+                {'rubric_id': rubric_id, 'result': round(probability), 'model_id': models[rubric_id]['model_id'],
+                 'doc_id': doc.doc_id, 'probability': probability})
+
+    db.put_rubrics(result, session, commit_session)
+    doc.rubric_ids = answers
 
 
 # take 1 rubric and all doc from test_set
@@ -561,7 +577,7 @@ def spot_test_set_rubric(test_set_id, rubric_id):
             answers.append({'result': 0, 'model_id': model['model_id'],
                             'rubric_id': rubric_id, 'doc_id': doc_id, 'probability': 0})
 
-    db.put_rubrics(answers, 0)
+    db.put_rubrics(answers)
 
 
 # compute TP, FP, TN, FN, Precision, Recall and F-score on data from db
@@ -570,7 +586,7 @@ def f1_score(model_id, test_set_id, rubric_id):
     # right answers
     answers = db.get_rubric_answers(test_set_id, rubric_id)
     # rubrication results
-    rubrication_result = db.get_rubrication_result(model_id, test_set_id, rubric_id)
+    rubrication_result = db.get_rubrication_result2(model_id, test_set_id, rubric_id)
 
     for key in rubrication_result:
         if rubrication_result[key] == answers[key]:
@@ -608,7 +624,6 @@ def probabilities_score(model_id, test_set_id, rubric_id):
 
     true_number = 0
     true_probability = 0
-
     false_number = 0
     false_probability = 0
 

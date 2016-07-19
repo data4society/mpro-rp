@@ -7,15 +7,16 @@ from mprorp.db.models import *
 
 import datetime
 
-from mprorp.crawler.vk import *
-from mprorp.crawler.google_news import *
+#from mprorp.crawler.vk import *
+#from mprorp.crawler.google_news import *
+from .logic import regular_gn_start_parsing, regular_vk_start_parsing
 
 if "worker" in sys.argv:
     celery = True
 else:
     celery = False
 
-@app.task
+@app.task(ignore_result=True)
 def check_sources():
     #vk_start_parsing.delay('2c00848d-dc19-4de0-a076-8d89c414a4fd')
     #return
@@ -29,10 +30,10 @@ def check_sources():
         source_type = str(source[1])
         if source_type in ['0cc76b0c-531e-4a90-ab0b-078695336df5','81518bd0-9aef-4899-84c5-c1839e155963']: #  vk
             print("START VK CRAWL")
-            vk_start_parsing.delay(source[0])
+            regular_vk_start_parsing.delay(source[0])
         if source_type in ['1d6210b2-5ff3-401c-b0ba-892d43e0b741', '62cf1ff2-c860-40db-92e6-c3a3898fea48']: #  google_news
             print("START GOOGLE NEWS CRAWL")
-            gn_start_parsing.delay(source[0])
+            regular_gn_start_parsing.delay(source[0])
 
 
 

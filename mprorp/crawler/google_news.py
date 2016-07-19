@@ -1,53 +1,52 @@
 """google news list and story parser"""
 from lxml import etree
-from mprorp.celery_app import app
-from mprorp.controller.logic import *
 import re
 import datetime
 import urllib.parse as urlparse
 
-from mprorp.db.dbDriver import *
 from mprorp.db.models import *
 
 from mprorp.crawler.utils import send_get_request
 import datetime
 
 
-@app.task
-def gn_start_parsing(source_id):
+def gn_start_parsing(source_id, session):
     """download google news start feed and feeds for every story"""
     # get source url
-    [source_url, parse_period] = select([Source.url,Source.parse_period], Source.source_id == source_id).fetchone()
+    source = session.query(Source).filter_by(source_id=source_id).first()
     # download google news start feed
-    req_result = send_get_request(source_url,'utf-8')
+    req_result = send_get_request(source.url,'utf-8')
     root_xml = etree.fromstring(req_result)
     channel = root_xml.find("channel")
-    print(len(channel.findall("item")))
+    # print(len(channel.findall("item")))
     items = channel.findall("item")
+    docs = []
     for item in items:
         desc = item.find("description").text
         # find story id for every item
         ncls = re.findall(r'ncl=([A-Za-z0-9-_]+)',desc)
         # if no story id was found we parse item from start feed
         if len(ncls) == 0:
-            parseItem(item, source_id)
+            parseItem(item, source_id, session, docs)
         else:
             for ncl in ncls:
                 # download google news story feed
                 req_result = send_get_request('https://news.google.com/news?cf=all&hl=ru&pz=1&ned=ru_ru&scoring=n&cf=all&ncl='+ncl+'&output=rss','utf-8')
                 sub_root_xml = etree.fromstring(req_result)
                 sub_channel = sub_root_xml.find("channel")
-                print(len(sub_channel.findall("item")))
+                # print(len(sub_channel.findall("item")))
                 sub_items = sub_channel.findall("item")
                 for sub_item in sub_items:
-                    parseItem(sub_item, source_id)
+                    parseItem(sub_item, source_id, session, docs)
 
-    next_crawling_time = datetime.datetime.fromtimestamp(datetime.datetime.now().timestamp() + parse_period)
-    source = Source(source_id = source_id, next_crawling_time = next_crawling_time, wait = True)
-    update(source)
+    source.next_crawling_time = datetime.datetime.fromtimestamp(
+        datetime.datetime.now().timestamp() + source.parse_period)
+    source.wait = True
     print("GN CRAWL COMPLETE")
+    return docs
 
-def parseItem(item, source_id):
+
+def parseItem(item, source_id, session, docs):
     title = item.find("title").text
     gnews_link = item.find("link").text
     url = urlparse.parse_qs(urlparse.urlparse(gnews_link).query)['url'][0]
@@ -63,12 +62,15 @@ def parseItem(item, source_id):
     pos = title.find(' - '+publisher)
     title = title[:pos]
 
+    """
     if not select(Document.doc_id, Document.guid == url).fetchone():
         print(title)
         print(url)
         print(publisher)
         print(desc)
         print(date)
+    """
+    if session.query(Document).filter_by(guid=url).count() == 0:
         # initial insert with guid, start status and reference to source
         new_doc = Document(guid=url, source_id=source_id, status=0, type='article')
         new_doc.published_date = date
@@ -78,10 +80,8 @@ def parseItem(item, source_id):
         meta["abstract"] = desc
         new_doc.meta = meta
 
-        insert(new_doc)
-        # further parsing
-        new_doc_id = new_doc.doc_id
-        router(new_doc_id, GOOGLE_NEWS_INIT_STATUS)
+        session.add(new_doc)
+        docs.append(new_doc)
 
 
 if __name__ == '__main__':

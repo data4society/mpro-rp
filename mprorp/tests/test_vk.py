@@ -22,12 +22,18 @@ class SimpleVKTest(unittest.TestCase):
         s = open(ins_source_url, 'r').read()
 
         # Do we have all docs?
-        vk_parse_list(s, ins_source_id)
+        session = DBSession()
+        vk_parse_list(s, ins_source_id, session)
+        session.commit()
+        session.close()
         docs = select(Document.doc_id, Document.source_id == ins_source_id).fetchall()
         self.assertEqual(len(docs), 2)
 
         # Do we have repeated docs?
-        vk_parse_list(s, ins_source_id)
+        session = DBSession()
+        vk_parse_list(s, ins_source_id, session)
+        session.commit()
+        session.close()
         docs = select(Document.doc_id, Document.source_id == ins_source_id).fetchall()
         self.assertEqual(len(docs), 2)
 

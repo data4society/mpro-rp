@@ -199,15 +199,15 @@ if __name__ == '__main__':
     """
     #url = 'http://www.gazeta.kg/news/important/99343-sud-arestoval-rukovoditeley-lagerya-na-syamozere.html'
     #html_source = urllib.request.urlopen(url, timeout=10).read()
-    with open('corpus/docs/' + str(310) + '.html', 'rb') as f:
-        html_source = f.read()
-    print(read2.find_full_text(html_source))
-    exit()
+    #with open('corpus/docs/' + str(284) + '.html', 'rb') as f:
+    #    html_source = f.read()
+    #print(read2.find_full_text(html_source))
+    #exit()
 
     #create_corpus()
     #exit()
     #estimate_estimate()
-    print(len(bad_links))
+    #print(len(bad_links))
     create_table_with_confidence(read2.find_full_text, 'corpus/read2.csv')
     create_estimates_table('corpus/read2.csv', 'corpus/read2_estimates.csv')
     print('Алгоритм readability2')

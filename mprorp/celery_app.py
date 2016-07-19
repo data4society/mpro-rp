@@ -4,7 +4,7 @@ import mprorp.celeryconfig as celeryconfig
 
 app = Celery('mprorp',
              broker='amqp://',
-             backend='amqp://',
+             # backend='amqp://',
              )
 app.config_from_object(celeryconfig)
 
