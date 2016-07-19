@@ -299,7 +299,7 @@ def put_ner_feature(doc_id, records, feature_type, feature=None, session=None, c
         session.commit()
 
 
-def put_ner_feature_dict(doc_id, records, feature_type, feature=None, new_status=0, session=None):
+def put_ner_feature_dict(doc_id, records, feature_type, feature=None, session=None, commit_session=True):
     if session is None:
         session = Driver.DBSession()
     if feature is None:
@@ -317,10 +317,8 @@ def put_ner_feature_dict(doc_id, records, feature_type, feature=None, new_status
         # print(record['feature'], feature if not (feature is None) else record['feature'])
         new_feature.feature = feature if not (feature is None) else key[2]
         session.add(new_feature)
-    if new_status > 0:
-        doc = Document(doc_id=doc_id)
-        doc.status = new_status
-    session.commit()
+    if commit_session:
+        session.commit()
 
 
 def get_ner_feature(doc_id, session=None):
