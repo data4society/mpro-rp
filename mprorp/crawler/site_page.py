@@ -17,8 +17,9 @@ import logging
 logging.basicConfig(format = u'%(levelname)-8s [%(asctime)s] %(message)s', level = logging.DEBUG, filename = u'crawler_log.txt')
 
 
-def find_full_text(doc_id, new_status):#, failed_status): #, wks):
-    [url,meta] = select([Document.guid,Document.meta], Document.doc_id == doc_id).fetchone()
+def find_full_text(doc):#, failed_status): #, wks):
+    url = doc.guid
+    meta = doc.meta
     print('start grabbing ' + url)
     """
     res = send_get_request(req_url) # urllib.request.urlopen(url).read().decode('unicode-escape')# send_get_request(url).decode('unicode-escape')
@@ -59,8 +60,9 @@ def find_full_text(doc_id, new_status):#, failed_status): #, wks):
     if stripped == '':
         raise ValueError('Empty text')
 
-    document = Document(doc_id=doc_id, doc_source=content, stripped=stripped, meta=meta, status=new_status)
-    update(document)
+    doc.doc_source = content
+    doc.stripped = stripped
+    doc.meta = meta
     """
     except BaseException as err:
         if type(err) == HTTPError:

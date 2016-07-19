@@ -103,28 +103,28 @@ def regular_vk_start_parsing(source_id):
 # parsing HTML page to find full text
 @app.task(ignore_result=True)
 def regular_find_full_text(doc_id, new_status):
+    session = DBSession()
+    doc = session.query(Document).filter_by(doc_id=doc_id).first()
     try:
-        find_full_text(doc_id, new_status)
-        router(doc_id, new_status)
+        find_full_text(doc)
     except Exception as err:
         err_txt = repr(err)
         if err_txt == 'Empty text':
             logging.error("Пустой текст doc_id: " + doc_id)
-            err_status = EMPTY_TEXT
+            new_status = EMPTY_TEXT
         elif type(err) == HTTPError:
             # print(url, err.code)
-            err_status = SITE_PAGE_LOADING_FAILED
+            new_status = SITE_PAGE_LOADING_FAILED
             logging.error("Ошибка загрузки код: " + str(err.code) + " doc_id: " + doc_id) # + " url: " + url)
         else:
             # print(url, type(err))
-            err_status = SITE_PAGE_LOADING_FAILED
+            new_status = SITE_PAGE_LOADING_FAILED
             logging.error("Неизвестная ошибка doc_id: " + doc_id)
 
-        doc = Document(doc_id=doc_id, status=err_status)
-        update(doc)
-        router(doc_id, err_status)
-
-
+    doc.status = new_status
+    session.commit()
+    session.close()
+    router(doc_id, new_status)
 
 
 # morphologia

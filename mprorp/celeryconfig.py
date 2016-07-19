@@ -6,6 +6,6 @@ CELERYBEAT_SCHEDULE = {
                               'schedule': timedelta(seconds=30),
                           },
                       }
-CELERY_TIMEZONE = 'UTC'
+# CELERY_TIMEZONE = 'UTC'
 CELERYD_CONCURRENCY = 1
 CELERYD_FORCE_EXECV = True
