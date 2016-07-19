@@ -34,6 +34,7 @@ VALIDATION_FAILED = 1002
 FROM_OPEN_CORPORA = 1100
 FROM_MANUAL_SOURCES_FOR_LEARNING = 1101
 FOR_TRAINING = 1000
+FOR_RUBRICS_TRAINING = 1200  # Normal documents from crawler that marked in redactor as for training
 EMPTY_TEXT = 2000
 
 
