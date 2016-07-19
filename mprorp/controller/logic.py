@@ -76,7 +76,7 @@ def router(doc_id, status):
 
 
 # parsing google news request
-@app.task
+@app.task(ignore_result=True)
 def regular_gn_start_parsing(source_id):
     session = DBSession()
     docs = gn_start_parsing(source_id, session)
@@ -88,7 +88,7 @@ def regular_gn_start_parsing(source_id):
     session.close()
 
 # parsing vk request
-@app.task
+@app.task(ignore_result=True)
 def regular_vk_start_parsing(source_id):
     session = DBSession()
     docs = vk_start_parsing(source_id, session)
@@ -101,7 +101,7 @@ def regular_vk_start_parsing(source_id):
 
 
 # parsing HTML page to find full text
-@app.task
+@app.task(ignore_result=True)
 def regular_find_full_text(doc_id, new_status):
     try:
         find_full_text(doc_id, new_status)
@@ -128,7 +128,7 @@ def regular_find_full_text(doc_id, new_status):
 
 
 # morphologia
-@app.task
+@app.task(ignore_result=True)
 def regular_morpho(doc_id, new_status):
     session = DBSession()
     doc = session.query(Document).filter_by(doc_id=doc_id).first()
@@ -140,7 +140,7 @@ def regular_morpho(doc_id, new_status):
 
 
 # counting lemmas frequency for one document
-@app.task
+@app.task(ignore_result=True)
 def regular_lemmas(doc_id, new_status):
     session = DBSession()
     doc = session.query(Document).filter_by(doc_id=doc_id).first()
@@ -152,7 +152,7 @@ def regular_lemmas(doc_id, new_status):
 
 
 # regular rubrication
-@app.task
+@app.task(ignore_result=True)
 def regular_rubrication(doc_id, new_status):
     session = DBSession()
     doc = session.query(Document).filter_by(doc_id=doc_id).first()
@@ -165,7 +165,7 @@ def regular_rubrication(doc_id, new_status):
 
 
 # tomita
-@app.task
+@app.task(ignore_result=True)
 def regular_tomita(grammar_index, doc_id, new_status):
     session = DBSession()
     doc = session.query(Document).filter_by(doc_id=doc_id).first()
@@ -177,7 +177,7 @@ def regular_tomita(grammar_index, doc_id, new_status):
 
 
 # tomita features
-@app.task
+@app.task(ignore_result=True)
 def regular_tomita_features(doc_id, new_status):
     session = DBSession()
     doc = session.query(Document).filter_by(doc_id=doc_id).first()
@@ -189,7 +189,7 @@ def regular_tomita_features(doc_id, new_status):
 
 
 # ner entities
-@app.task
+@app.task(ignore_result=True)
 def regular_entities(doc_id, new_status):
     session = DBSession()
     doc = session.query(Document).filter_by(doc_id=doc_id).first()

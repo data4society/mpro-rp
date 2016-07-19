@@ -16,7 +16,7 @@ if "worker" in sys.argv:
 else:
     celery = False
 
-@app.task
+@app.task(ignore_result=True)
 def check_sources():
     #vk_start_parsing.delay('2c00848d-dc19-4de0-a076-8d89c414a4fd')
     #return
