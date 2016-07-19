@@ -172,31 +172,49 @@ def exist_overall_info(spans_info):
 
     return False
 
-def turn_list_mention(mention):
+def turn_list_mention(mention):# Сворачивает список упоминаний - убирает те, которые полностью включены в другие
 
-    # Сворачивает список упоминаний
     del_list = []
-    for i in range(len(mention)):
-        for j in range(len(mention)):
-            if i != j:
-                if str(mention[i])[1:-1] in str(mention[j])[1:-1]:
-                    if mention[i] not in del_list:
-                        del_list.append(mention[i])
+
+    mention_len = len(mention)
+
+    i = 0
+    while i < mention_len - 1:
+        j = i + 1
+        while j < mention_len:
+            Flag = True
+            for k in mention[i]:
+                if k not in mention[j]:
+                    Flag = False
+                    break
+            if Flag:
+                if mention[i] not in del_list:
+                    del_list.append(mention[i])
+            j = j + 1
+        i = i + 1
 
     for element_del_list in del_list:
         mention.remove(element_del_list)
 
-def remove_intersection_list_mention(mention):
+def remove_intersection_list_mention(mention):# Сворачивает список упоминаний - убирает пересекающиеся
 
     del_list = []
 
-    for i in range(len(mention) - 1):
-        for j in mention[i]:
-            if j in mention[i + 1]:
-                if mention[i] not in del_list:
-                    del_list.append(mention[i])
-                if mention[i + 1] not in del_list:
-                    del_list.append(mention[i + 1])
+    mention_len = len(mention)
+
+    i = 0
+    while i < mention_len - 1:
+        j = i + 1
+        while j < mention_len:
+            for k in mention[i]:
+                if k in mention[j]:
+                    if mention[i] not in del_list:
+                        del_list.append(mention[i])
+                    if mention[i + 1] not in del_list:
+                        del_list.append(mention[i + 1])
+                    break
+            j = j + 1
+        i = i + 1
 
     for element_del_list in del_list:
         mention.remove(element_del_list)
