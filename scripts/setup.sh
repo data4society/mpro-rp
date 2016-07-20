@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
+# base setup script for vagrant and travis
 # update repositories information
 sudo apt-get update
 #sudo apt-get -y upgrade
-# install some including pip3 and nosetests3
+# install some libs
 sudo apt-get -y install libpq-dev mc python3-pip python3-nose
 sudo apt-get -y build-dep python3-lxml
 # install project requirements

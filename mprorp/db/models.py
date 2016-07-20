@@ -174,8 +174,11 @@ class DocumentRubric(Base):
     # Row in table means document associated with rubric by user
     __tablename__ = 'documentrubrics'
 
+    # document identificator
     doc_id = Column(UUIDType(binary=False), ForeignKey('documents.doc_id'))
+    # document identifier
     rubric_id = Column(UUIDType(binary=False), ForeignKey('rubrics.rubric_id'))
+    # rubric identifier
     __table_args__ = (PrimaryKeyConstraint(doc_id, rubric_id),)
 
 

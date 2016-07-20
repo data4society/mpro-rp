@@ -1,10 +1,13 @@
+# flower config for nginx
 server {
     listen 80 default_server;
     #server_name     flower.oag.cottagelabs.com flower.test.oag.cottagelabs.com;
 
     access_log /var/log/nginx/celery-flower.access.log;
     error_log /var/log/nginx/celery-flower.error.log;
-    
+
+
+    # for accessing celery log
     location /celery_log.txt {
         root /home/mprorp;
         charset utf-8;

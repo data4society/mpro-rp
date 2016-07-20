@@ -1,12 +1,19 @@
+"""celery config"""
+
 from datetime import timedelta
-CELERY_INCLUDE = ['mprorp.controller.start','mprorp.controller.logic',
-                  'mprorp.crawler.vk','mprorp.crawler.google_news']
+# these files contain celery tasks:
+CELERY_INCLUDE = ['mprorp.controller.start', 'mprorp.controller.logic']
+# we have one shedule-task:
 CELERYBEAT_SCHEDULE = {
-                          'add-every-30-seconds': {
+                          'resource-checking': {
                               'task': 'mprorp.controller.start.check_sources',
                               'schedule': timedelta(seconds=30),
                           },
                       }
-CELERY_TIMEZONE = 'UTC'
-CELERYD_CONCURRENCY = 1
+# to using server time:
+CELERY_ENABLE_UTC = False
+# CELERY_TIMEZONE = 'UTC'
+# number of parallel processes:
+CELERYD_CONCURRENCY = 3
+# for normal working):
 CELERYD_FORCE_EXECV = True
