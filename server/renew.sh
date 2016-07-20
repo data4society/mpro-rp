@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# script for renewing project code base and restart celery based application
+# code renewing from dev branch!
 cd /home/mprorp
 #C_FAKEFORK=1 sh -x /etc/init.d/celeryd stop
 /etc/init.d/celeryd stop

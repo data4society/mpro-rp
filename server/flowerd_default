@@ -1,3 +1,4 @@
+# custom flower daemon's params
 ENV_MY="/home/mprorp/mprorpenv"
 # Absolute or relative path to the 'flower' command:
 FLOWERD_BIN="$ENV_MY/bin/flower"

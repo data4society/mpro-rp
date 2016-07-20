@@ -1,4 +1,4 @@
-"""main entry point"""
+"""start celery task (checking sources)"""
 from __future__ import absolute_import
 from mprorp.celery_app import app
 
@@ -7,19 +7,13 @@ from mprorp.db.models import *
 
 import datetime
 
-#from mprorp.crawler.vk import *
-#from mprorp.crawler.google_news import *
 from .logic import regular_gn_start_parsing, regular_vk_start_parsing
 
-if "worker" in sys.argv:
-    celery = True
-else:
-    celery = False
 
 @app.task(ignore_result=True)
 def check_sources():
-    #vk_start_parsing.delay('2c00848d-dc19-4de0-a076-8d89c414a4fd')
-    #return
+    #  vk_start_parsing.delay('2c00848d-dc19-4de0-a076-8d89c414a4fd')
+    # return
     sources = select([Source.source_id,Source.source_type_id], (Source.parse_period != -1) &
                      (Source.next_crawling_time < datetime.datetime.now()) &
                      (Source.wait == True)).fetchall()

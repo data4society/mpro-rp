@@ -1,3 +1,4 @@
+# custom celery daemon's params
 # Names of nodes to start
 #   most people will only start one node:
 CELERYD_NODES="w1"
