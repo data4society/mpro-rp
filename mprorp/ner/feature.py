@@ -44,7 +44,7 @@ def create_gazetteer_feature(doc_id, gaz_id):
         db.put_ner_feature(doc_id, values, ner_feature_types['gazetteer'], gaz_id)
 
 
-def create_answers_feature(set_id, new_status=0):
+def create_answers_feature(set_id):
 
     results = db.get_references_for_set(set_id)
     # print(results)
@@ -105,7 +105,7 @@ def create_answers_feature(set_id, new_status=0):
                     #                'value': value, 'feature': i[2] + '_answer'})
 
         if len(values) > 0:
-            db.put_ner_feature_dict(doc_id, values, ner_feature_types['answer'], new_status=new_status)
+            db.put_ner_feature_dict(doc_id, values, ner_feature_types['answer'])
 
 
 def stronger_value(old_value, value):
