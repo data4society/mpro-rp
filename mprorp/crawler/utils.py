@@ -23,7 +23,7 @@ def send_get_request(url, encoding = '', gen_useragent = False):
 
 
 def strip_tags(html):
-    html = re.sub(r'(<br ?/?>|</p>|</div>)',r'\n\1',html,0,re.IGNORECASE)
+    html = re.sub(r'(<br ?/?>|</p>|</div>)',r'\n\1', html, 0, re.IGNORECASE)
     s = MLStripper()
     s.feed(html)
     return s.get_data()
@@ -31,7 +31,7 @@ def strip_tags(html):
 
 def to_plain_text(txt):
     lines = txt.split("\n")
-    lines = [line.strip(' \t\n\r') for line in lines]
+    lines = [line.strip('\t\n\r').strip() for line in lines]
     lines = [line for line in lines if line]
     return "\n".join(lines)
 
