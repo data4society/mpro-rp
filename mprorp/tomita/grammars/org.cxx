@@ -1,9 +1,9 @@
 #encoding "utf-8"
 // Дополнительные терминалы
-quot -> Word+;
+quot -> Word {count = 3}| UnknownPOS {count = 3};
 lat -> AnyWord<lat, h-reg1>+;
 Q -> quot<quoted>;
-Words -> Word<~lat, ~l-quoted> {count = 4};
+Words -> Word<~lat, ~l-quoted, ~r-quoted> {count = 3};
 
 // Суды
 Trial -> Word<kwtype='trial'>;
@@ -14,7 +14,7 @@ SIZO -> 'сизо' AnyWord<wfl="[0-9]+"> | 'сизо' '№' AnyWord<wfl="[0-9]+"
 Jail -> Jail1 | SIZO;
 
 // ОАО
-OOO -> Word<kwtype='OOO'> Word<h-reg2>+ | Word<kwtype='OOO'> Q | Word<kwtype='OOO'> Word<lat>;
+OOO -> Word<kwtype='OOO'> Q | Word<kwtype='OOO'> lat+;
 
 // Международные организации
 International -> Word<kwtype='inter'>;
