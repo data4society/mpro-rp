@@ -32,11 +32,18 @@ def list_make(text, source_name):
                 last_symbol = first_symbol + len(fact)
                 symbols = str(first_symbol + len_of_line) + ':' + str(last_symbol + len_of_line)
             else:
-                #print('change')
-                fact = re.sub(' ', '', fact)
+                #print('change1')
+                fact = re.sub('\\. ', '.', fact)
                 first_symbol = sourse.find(fact)
-                last_symbol = first_symbol + len(fact)
-                symbols = str(first_symbol + len_of_line) + ':' + str(last_symbol + len_of_line)
+                if first_symbol != -1:
+                    last_symbol = first_symbol + len(fact)
+                    symbols = str(first_symbol + len_of_line) + ':' + str(last_symbol + len_of_line)
+                else:
+                    #print('change2')
+                    fact = re.sub(' ', '', fact)
+                    first_symbol = sourse.find(fact)
+                    last_symbol = first_symbol + len(fact)
+                    symbols = str(first_symbol + len_of_line) + ':' + str(last_symbol + len_of_line)
 
             #print(sourse[:20])
             #print('the last version of fact: ' + fact)
