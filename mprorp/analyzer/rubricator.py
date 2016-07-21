@@ -1,3 +1,4 @@
+"""functions for prepare documents, learning rubrication model and compute rubric """
 import mprorp.analyzer.db as db
 from mprorp.analyzer.pymystem3_w import Mystem
 import numpy as np
@@ -5,9 +6,11 @@ import math
 import tensorflow as tf
 import random
 
-
+# initialization mystem
 mystem_analyzer = Mystem(disambiguation=False)
+# words number for tf-idf model
 optimal_features_number = 1000
+# words to exclude from model
 stop_lemmas = ['в', 'на', 'из', 'он', 'что', 'и', 'это', 'по', 'быть', 'этот', 'она', 'они', 'так', 'как', 'тогда',
                'те', 'также', 'же', 'то', 'за', 'который', 'после', 'оно', 'с', 'к', 'у', 'о', 'об', 'его', 'а',
                'не', 'год', 'во', 'весь', 'было', 'свой', 'тот', 'все', 'если', 'тогда', 'от', 'уже', 'д', 'м', 'при',
@@ -23,13 +26,7 @@ stop_lemmas = ['в', 'на', 'из', 'он', 'что', 'и', 'это', 'по', '
 # one document morphological analysis regular
 
 def is_word(mystem_element):
-    # if 'analysis' in mystem_element.keys():
-    #     if len(mystem_element['analysis']):
-    #         return True
-    #     else:
-    #         word = mystem_element.get('text', '')
-    #         if len(word) > 0:
-    #             return True
+    """True if element is not space and have length """
     word = mystem_element.get('text', '')
     if len(word.strip()) > 0:
         return True
@@ -37,50 +34,22 @@ def is_word(mystem_element):
 
 
 def is_sentence_end(mystem_element):
+    """True if element is \\s or \n"""
     word = mystem_element.get('text', '')
     return word == '\\s' or word == '\n'
 
 
-# one document morphological analysis
-# def morpho_doc_old(doc_id, change_status=0):
-#     doc_text = db.get_doc(doc_id)
-#     mystem_analyzer.start()
-#     new_morpho = mystem_analyzer.analyze(doc_text)
-#     word_index = 0
-#     sentence_index = 0
-#     start_offset = 0
-#     for element in new_morpho:
-#         if 'text' in element.keys():
-#             text_len = len(element['text'])
-#         else:
-#             text_len = 0
-#         if is_sentence_end(element):
-#             text_len = 0
-#             if word_index != 0:
-#                 sentence_index += 1
-#                 word_index = 0
-#         elif is_word(element):
-#             element['word_index'] = word_index
-#             element['sentence_index'] = sentence_index
-#             word_index += 1
-#             element['start_offset'] = start_offset
-#             element['end_offset'] = start_offset + text_len - 1
-#         start_offset += text_len
-#     db.put_morpho(doc_id, new_morpho, change_status)
-#     mystem_analyzer.close()
-
-
-def morpho_doc2(doc_id, change_status=0):
+def morpho_doc2(doc_id):
+    """wrap for morpho_doc with local session"""
     db.doc_apply(doc_id, morpho_doc)
 
 
 def morpho_doc(doc):
-
+    """morphological analysis for document """
     doc_text = doc.stripped
     mystem_analyzer.start()
     # new_morpho = mystem_analyzer.analyze(doc_text)
     new_morpho = mystem_analyzer.analyze(doc_text.replace('\n',''))
-
 
     morpho_list = []
 
@@ -213,10 +182,12 @@ def morpho_doc(doc):
 
 # counting lemmas frequency for one document
 def lemmas_freq_doc2(doc_id):
+    """wrap for lemmas_freq_doc with local session"""
     db.doc_apply(doc_id, lemmas_freq_doc)
 
 
 def lemmas_freq_doc(doc):
+    """ extraction lemmas from morpho """
     lemmas = {}
     morpho = doc.morpho
     for i in morpho:
@@ -236,12 +207,19 @@ def lemmas_freq_doc(doc):
                     lemmas[word] = lemmas.get(word, 0) + 1
     doc.lemmas = lemmas
 
+
 # compute idf and object-features matrix for training set
 # idf for calc features of new docs
 # object-features for learning model
 # doc_index links doc_id and row index in object-features
 # lemma_index links lemmas and column index in object-features
 def idf_object_features_set(set_id):
+    """ compute idf and object-features matrix for training set """
+    # idf for calc features of new docs
+    # object-features for learning model
+    # doc_index links doc_id and row index in object-features
+    # lemma_index links lemmas and column index in object-features
+
     # get lemmas of all docs in set
     docs = db.get_lemmas_freq(set_id)
 
@@ -309,17 +287,20 @@ def idf_object_features_set(set_id):
 
 
 def sigmoid_array(x):
+    """sigmoid for every value of array x"""
     for l in range(len(x)):
         x[l] = 1/(1 + math.exp(-x[l]))
     return x
 
 
 def sigmoid(x):
+    """sigmoid for value x"""
     return 1/(1 + math.exp(-x))
 
 
 # bigger value is worse
 def entropy_difference(feature, answers, num_lemma):
+    """compute entropy criteria for feature and answers"""
     f_max = np.max(feature)
     f_min = np.min(feature)
     # check is it unsound feature
@@ -358,12 +339,12 @@ def entropy_difference(feature, answers, num_lemma):
 
 
 # print lemmas with index in numbers, its index and idf
-def print_lemmas(set_id, numbers, lemmas=None, idf=None):
-    if idf is None:
-        idf = {}
-    if lemmas is None:
-        lemmas = db.get_lemma_index(set_id)
-    my_lemmas = [k for k in lemmas if lemmas[k] in numbers]
+# def print_lemmas(set_id, numbers, lemmas=None, idf=None):
+#     if idf is None:
+#         idf = {}
+#     if lemmas is None:
+#         lemmas = db.get_lemma_index(set_id)
+#     my_lemmas = [k for k in lemmas if lemmas[k] in numbers]
     # print(numbers)
     # print(my_lemmas)
     # print([idf.get(k, '') for k in my_lemmas])
@@ -374,7 +355,7 @@ def print_lemmas(set_id, numbers, lemmas=None, idf=None):
 
 # learn model for rubrication
 def learning_rubric_model(set_id, rubric_id):
-
+    """learn model for rubrication"""
     # get answers for rubric
     answers = db.get_rubric_answers(set_id, rubric_id)
     # get object_features, lemma_index, doc_index
@@ -411,7 +392,7 @@ def learning_rubric_model(set_id, rubric_id):
         for i in range(optimal_features_number):
             # mif[good_numbers[i]] = i
             mif_indexes.append(int(good_numbers[i]))
-        print_lemmas(set_id, good_numbers[0:100])
+        # print_lemmas(set_id, good_numbers[0:100])
         # print(feature_entropy[good_numbers[0:100]])
     else:
         for i in range(features_number):
@@ -472,10 +453,12 @@ def learning_rubric_model(set_id, rubric_id):
 # rubrics is a dict. key = rubric_id, value = None or set_id
 # value = set_id: use model, learned with this trainingSet
 def spot_doc_rubrics2(doc_id, rubrics):
+    """wrap for spot_doc_rubrics with local session"""
     db.doc_apply(doc_id, spot_doc_rubrics, rubrics)
 
 
 def spot_doc_rubrics(doc, rubrics, session=None, commit_session=True):
+    """spot rubrics for document"""
     # get lemmas by doc_id
     lemmas = doc.lemmas
     # compute document size
@@ -537,6 +520,7 @@ def spot_doc_rubrics(doc, rubrics, session=None, commit_session=True):
 # take 1 rubric and all doc from test_set
 # save in DB doc_id, rubric_id and YES or NO
 def spot_test_set_rubric(test_set_id, rubric_id):
+    """spot rubrics for all documents from test_set"""
     # get lemmas
     docs = db.get_lemmas_freq(test_set_id)
     docs_size = {}
@@ -582,11 +566,12 @@ def spot_test_set_rubric(test_set_id, rubric_id):
 
 # compute TP, FP, TN, FN, Precision, Recall and F-score on data from db
 def f1_score(model_id, test_set_id, rubric_id):
+    """compute TP, FP, TN, FN, Precision, Recall and F-score on data from db"""
     result = {'true_positive': 0, 'false_positive': 0, 'true_negative': 0, 'false_negative': 0}
     # right answers
     answers = db.get_rubric_answers(test_set_id, rubric_id)
     # rubrication results
-    rubrication_result = db.get_rubrication_result2(model_id, test_set_id, rubric_id)
+    rubrication_result = db.get_rubrication_result(model_id, test_set_id, rubric_id)
 
     for key in rubrication_result:
         if rubrication_result[key] == answers[key]:
@@ -614,8 +599,8 @@ def f1_score(model_id, test_set_id, rubric_id):
     return result
 
 
-# compute TP, FP, TN, FN, Precision, Recall and F-score on data from db
 def probabilities_score(model_id, test_set_id, rubric_id):
+    """compute average probability for true and false answers"""
     result = {'true_average_probability': 0, 'false_average_probability': 0}
     # right answers
     answers = db.get_rubric_answers(test_set_id, rubric_id)
