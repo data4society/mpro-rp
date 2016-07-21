@@ -1,4 +1,5 @@
 """database driver for more simple working with sqlalchemy and postgres"""
+
 from sqlalchemy import MetaData
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
@@ -6,10 +7,8 @@ from sqlalchemy.orm import sessionmaker
 import sqlalchemy
 import sys
 from multiprocessing.util import register_after_fork
-
-
-
 from mprorp.config.settings import *
+
 if ("maindb" in sys.argv) or ("worker" in sys.argv):
     db_type = "server"
 else:

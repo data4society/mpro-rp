@@ -3,7 +3,7 @@
 #  flowerd - Starts the Celery flower daemon.
 # ============================================
 #
-# :Usage: /etc/init.d/flowerd {start|stop|force-reload|restart|try-restart|status}
+# :Usage: /etc/init.d/flowerd {start}
 # :Configuration file: /etc/default/celeryd
 
 

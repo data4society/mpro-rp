@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# setup tomita script for vagrant
 cd /home/vagrant
 mkdir tomita
 cd tomita
