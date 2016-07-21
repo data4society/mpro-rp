@@ -1,7 +1,4 @@
 import re
-import sys
-from colorama import init, AnsiToWin32
-stream = AnsiToWin32(sys.stderr).stream
 
 
 def text_make(file_name):
