@@ -119,6 +119,7 @@ def stronger_value(old_value, value):
     else:
         return old_value
 
+
 def create_tomita_feature2(doc_id, feature_grammars):
     db.doc_apply(doc_id, create_tomita_feature, feature_grammars)
 
@@ -196,7 +197,6 @@ def print_tomita_result(doc, feature_grammars, new_status=0):
             print(i, result[i])
             offsets = [int(j) for j in i.split(':')]
             print(mytext[offsets[0]:offsets[1]])
-
 
 
 def create_embedding_feature(doc_id):
