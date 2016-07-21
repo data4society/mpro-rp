@@ -4,9 +4,7 @@ import mprorp.ner.morpho_to_vec as morpho_to_vec
 import numpy as np
 import logging as log
 
-
-ner_feature_types = {'embedding': 1, 'gazetteer': 2, 'tomita': 3, 'morpho': 4, 'answer': 5}
-
+ner_feature_types = {'embedding': 1, 'gazetteer': 2, 'tomita': 3, 'morpho': 4, 'answer': 5, 'OpenCorpora': 6}
 
 def part_of_speech(gr):
     gr = re.findall('^\w*', gr)
@@ -14,7 +12,6 @@ def part_of_speech(gr):
         return gr[0]
     else:
         return ''
-
 
 def create_gazetteer_feature(doc_id, gaz_id):
     # create in db gazetteer feature
@@ -42,7 +39,6 @@ def create_gazetteer_feature(doc_id, gaz_id):
     if len(values) > 0:
         # print(values)
         db.put_ner_feature(doc_id, values, ner_feature_types['gazetteer'], gaz_id)
-
 
 def create_answers_feature(set_id, new_status=0):
 
@@ -107,6 +103,60 @@ def create_answers_feature(set_id, new_status=0):
         if len(values) > 0:
             db.put_ner_feature_dict(doc_id, values, ner_feature_types['answer'], new_status=new_status)
 
+def create_answers_feature_for_doc(doc_id, markup_type, settings, new_status):
+
+    features = settings.get('features')
+    consider_right_symbol = settings.get('consider_right_symbol')
+    references = db.get_references_for_doc(doc_id, markup_type)
+    morpho = db.get_morpho(doc_id)
+
+    values = {}
+
+    for ref in references:
+
+        start_ref = ref[0]
+        end_ref = ref[1]
+        ref_class = ref[2]
+
+        for element in morpho:
+
+            value = None
+            if 'start_offset' in element.keys():
+
+                if element['start_offset'] == start_ref:
+
+                    if (consider_right_symbol == True and element['end_offset'] <= end_ref) or (
+                            consider_right_symbol == False and element['end_offset'] < end_ref):
+
+                        value = features.get(ref_class)
+                    else:
+                        # error
+                        log.info(
+                            'error: word ' + element['text'] + ' ' + str(element['start_offset']) + ':' +
+                            str(element['end_offset']) + ' refs: ' + str(ref))
+
+                elif element['start_offset'] > start_ref:
+
+                    if (consider_right_symbol == True and element['end_offset'] <= end_ref) or (
+                                    consider_right_symbol == False and element['end_offset'] < end_ref):
+
+                        value = features.get(ref_class)
+                    else:
+                        break
+
+                else:
+
+                    if element['end_offset'] >= start_ref:
+                        # error
+                        log.info(
+                            'error: word ' + element['text'] + ' ' + str(element['start_offset']) + ':' +
+                            str(element['end_offset']) + ' refs: ' + str(ref))
+
+            if not (value is None):
+                values[(element['sentence_index'], element['word_index'], value)] = [1]
+
+    if len(values) > 0:
+         db.put_ner_feature_dict(doc_id, values, ner_feature_types['OpenCorpora'], None, new_status)
 
 def stronger_value(old_value, value):
     priority = {'B': 2, 'I': 4, 'E': 3, 'S': 1}
@@ -121,7 +171,6 @@ def stronger_value(old_value, value):
 
 def create_tomita_feature2(doc_id, feature_grammars):
     db.doc_apply(doc_id, create_tomita_feature, feature_grammars)
-
 
 def create_tomita_feature(doc, feature_grammars, session=None, commit_session=True):
     doc_id = str(doc.doc_id)
@@ -179,10 +228,8 @@ def create_tomita_feature(doc, feature_grammars, session=None, commit_session=Tr
         # print(values)
         db.put_ner_feature(doc_id, values, ner_feature_types['tomita'], session=session, commit_session=commit_session)
 
-
 def print_tomita_result2(doc_id, feature_grammars):
     db.doc_apply(doc_id, print_tomita_result, feature_grammars)
-
 
 def print_tomita_result(doc, feature_grammars, new_status=0):
 
@@ -196,8 +243,6 @@ def print_tomita_result(doc, feature_grammars, new_status=0):
             print(i, result[i])
             offsets = [int(j) for j in i.split(':')]
             print(mytext[offsets[0]:offsets[1]])
-
-
 
 def create_embedding_feature(doc_id):
     morpho = db.get_morpho(doc_id)
@@ -223,7 +268,6 @@ def create_embedding_feature(doc_id):
     if len(values) > 0:
         # print(values)
         db.put_ner_feature(doc_id, values, ner_feature_types['embedding'], 'embedding')
-
 
 def create_morpho_feature(doc_id):
     morpho = db.get_morpho(doc_id)

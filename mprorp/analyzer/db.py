@@ -334,6 +334,22 @@ def get_ner_feature(doc_id, session=None):
         result[(i.sentence_index, i.word_index, i.feature)] = i.value
     return result
 
+def get_ner_feature_for_features(doc_id, feature_type, features, session=None):
+
+    if session is None:
+        session = Driver.DBSession()
+
+    query_result = session.query(NERFeature).filter(
+        (NERFeature.doc_id == doc_id) & (NERFeature.feature_type == feature_type) & (
+            NERFeature.feature.in_(features))).order_by(
+        NERFeature.sentence_index, NERFeature.word_index).all()
+
+    result = []
+    for rec in query_result:
+        result.append((rec.sentence_index, rec.word_index, rec.feature))
+
+    return result
+
 
 def get_ner_feature_for_set_dict(set_id, feature=None):
     return get_ner_feature_for_set(set_id, feature, True)
@@ -421,6 +437,18 @@ def get_references_for_set(set_id, markup_type='10', session=None):
         result[doc_id].append((ref[0].start_offset, ref[0].end_offset, ref[0].entity_class))
     return result
 
+def get_references_for_doc(doc_id, markup_type='10', session=None):
+
+    if session is None:
+        session = Driver.DBSession()
+
+    refs = session.query(Reference, Markup).join(Markup).filter(
+        (Markup.document == doc_id) & (Markup.type == markup_type)).order_by(Reference.start_offset).all()
+
+    result = []
+    for ref in refs:
+        result.append((ref[0].start_offset, ref[0].end_offset, ref[0].entity_class))
+    return result
 
 def get_multi_word_embedding(embedding, lemmas, session=None):
     if session is None:

@@ -46,7 +46,7 @@ class SimpleDBTest(unittest.TestCase):
 
         # Проведем морфологический анализ
         doc_id = str(my_doc.doc_id)
-        rb.morpho_doc(doc_id)
+        rb.morpho_doc2(doc_id)
         morpho = db.get_morpho(doc_id)
 
         # Сформируем спаны
@@ -57,6 +57,7 @@ class SimpleDBTest(unittest.TestCase):
             if span_word != None:
                 spans.append(span_word)
 
+        print('test_ention:')
         mention = form_mention_of_span(spans, words_info)
         print(mention)
         turn_list_mention(mention)

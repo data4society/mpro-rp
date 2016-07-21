@@ -394,6 +394,7 @@ class NERFeature(Base):
 
     doc_id = Column(UUIDType(binary=False), ForeignKey('documents.doc_id'))
     # 1 - embedding, 2 - gazetteer, 3 - tomita fact, 4 - syntactic feature: case, 5 - syntactic feature: plural/singular
+    # 6 - OpenCorpora
     feature_type = Column(Integer())
     # fact_id, gaz_id, emb_id, ...
     feature = Column(String(40))
