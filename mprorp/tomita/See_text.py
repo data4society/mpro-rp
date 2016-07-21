@@ -1,4 +1,4 @@
 from mprorp.analyzer.db import get_doc
 
-text = get_doc('a5a0a94f-9d93-4f3b-aaa4-dc8adc11a93a')
+text = get_doc('917e0e15-7c35-4e62-9f0e-e88a7292a159')
 print(text)
