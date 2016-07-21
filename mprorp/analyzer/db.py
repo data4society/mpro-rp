@@ -1,3 +1,5 @@
+"""Functions for read/write in data base"""
+
 from mprorp.db.dbDriver import *
 import mprorp.db.dbDriver as Driver
 from mprorp.db.models import *
@@ -9,6 +11,7 @@ import uuid
 
 
 def doc_apply(doc_id, my_def, *args):
+    """Apply functions my_def to doc_id and other arguments in *args """
     session = Driver.DBSession()
     doc = session.query(Document).filter_by(doc_id=doc_id).first()
     result = my_def(doc, *args)
@@ -26,6 +29,7 @@ def doc_apply(doc_id, my_def, *args):
 
 # reading result of morphological analysis of document from db
 def get_morpho(doc_id, session=None):
+    """reading result of morphological analysis of document from db"""
     if session is None:
         session = Driver.DBSession()
     return session.query(Document.morpho).filter(Document.doc_id == doc_id).one().morpho
@@ -33,6 +37,7 @@ def get_morpho(doc_id, session=None):
 
 # reading lemmas frequently of all documents in training set from db
 def get_lemmas_freq(set_id, session=None):
+    """reading lemmas frequently of all documents in training set from db"""
     if session is None:
         session = Driver.DBSession()
     training_set = session.query(TrainingSet).filter(TrainingSet.set_id == set_id).one()
@@ -47,6 +52,7 @@ def get_lemmas_freq(set_id, session=None):
 
 # compression big disperse vector in 2 small vectors
 def compress(array):
+    """compression big disperse vector in 2 small vectors"""
     indexes = []
     result = []
     size = len(array)
@@ -59,6 +65,7 @@ def compress(array):
 
 # uncompression from 2 small vectors in big disperse vector with 'size' elements
 def uncompress(array, indexes, size):
+    """uncompression from 2 small vectors in big disperse vector with 'size' elements"""
     result = np.zeros(size, dtype=float)
     size_small = len(indexes)
     for i in range(size_small):
@@ -68,6 +75,7 @@ def uncompress(array, indexes, size):
 
 # writing training set parameters (idf, object-features matrix and indexes of lemmas and documents in it) db
 def put_training_set_params(set_id, idf,  doc_index, lemma_index, object_features, session=None, commit_session=True):
+    """writing training set parameters (idf, object-features matrix and indexes of lemmas and documents in it) db"""
     if session is None:
         session = Driver.DBSession()
     some_set = session.query(TrainingSet).filter(TrainingSet.set_id == set_id).one()
@@ -85,6 +93,7 @@ def put_training_set_params(set_id, idf,  doc_index, lemma_index, object_feature
 
 # writing new training set in db
 def put_training_set(doc_id_array, session=None, commit_session=True):
+    """writing new training set in db"""
     if session is None:
         session = Driver.DBSession()
     new_set = TrainingSet()
@@ -97,6 +106,7 @@ def put_training_set(doc_id_array, session=None, commit_session=True):
 
 # reading answers for one rubric and all documents in set
 def get_rubric_answers(set_id, rubric_id, session=None):
+    """reading answers for one rubric and all documents in set"""
     if session is None:
         session = Driver.DBSession()
     # docs = Driver.select(TrainingSet.doc_ids, TrainingSet.set_id == set_id).fetchone()[0]
@@ -114,6 +124,7 @@ def get_rubric_answers(set_id, rubric_id, session=None):
 
 # reading object-features matrix and index of documents in it
 def get_doc_index_object_features(set_id, session=None):
+    """reading object-features matrix and index of documents in it"""
     if session is None:
         session = Driver.DBSession()
     my_set = session.query(TrainingSet).filter(TrainingSet.set_id == set_id).one()
@@ -132,6 +143,7 @@ def get_doc_index_object_features(set_id, session=None):
 
 # reading documents in set
 def get_set_docs(set_id, session=None):
+    """reading documents in set"""
     if session is None:
         session = Driver.DBSession()
     return session.query(TrainingSet.doc_ids).filter(TrainingSet.set_id == set_id).one().doc_ids
@@ -155,7 +167,7 @@ def put_model(rubric_id, set_id, model, features, features_number, session=None,
 
 # reading set_id of last computing model for rubric_id
 def get_set_id_by_rubric_id(rubric_id, session=None):
-    # ...
+    """reading set_id of last computing model for rubric_id"""
     if session is None:
         session = Driver.DBSession()
     res = session.query(RubricationModel.set_id, RubricationModel.learning_date).filter(
@@ -166,6 +178,7 @@ def get_set_id_by_rubric_id(rubric_id, session=None):
 
 # reading last computing model for rubric_id and set_id
 def get_model(rubric_id, set_id, session=None):
+    """reading last computing model for rubric_id and set_id"""
     if session is None:
         session = Driver.DBSession()
     model = session.query(RubricationModel.model,
@@ -181,8 +194,9 @@ def get_model(rubric_id, set_id, session=None):
 
 
 # get dict with idf and lemma_index for each set_id
-# sets[...] is dict: {'idf':..., 'lemma_index': ...}
 def get_idf_lemma_index_by_set_id(sets_id, session=None):
+    """get dict with idf and lemma_index for each set_id in sets_id.
+    return {'set_id1':{'idf': ..., 'lemma_index':...},'set_id_2':...}"""
     if session is None:
         session = Driver.DBSession()
     few_things = session.query(TrainingSet.set_id, TrainingSet.idf, TrainingSet.lemma_index).filter(
@@ -195,6 +209,7 @@ def get_idf_lemma_index_by_set_id(sets_id, session=None):
 
 # get lemma_index for one set_id
 def get_lemma_index(set_id, session=None):
+    """get lemma_index for one set_id"""
     if session is None:
         session = Driver.DBSession()
     return session.query(TrainingSet.lemma_index).filter(TrainingSet.set_id == set_id).one()[0]
@@ -202,6 +217,7 @@ def get_lemma_index(set_id, session=None):
 
 # writing result of rubrication for one document
 def put_rubrics(answers, session=None, commit_session=True):
+    """writing result of rubrication for one document"""
     if session is None:
         session = Driver.DBSession()
     for ans in answers:
@@ -216,15 +232,18 @@ def put_rubrics(answers, session=None, commit_session=True):
 
 # reading result of rubrication (probability) for model, training set and rubric
 def get_rubrication_probability(model_id, set_id, rubric_id):
+    """reading result of rubrication (probability) for model, training set and rubric"""
     return get_rubrication_result_probability(model_id, set_id, rubric_id, 2)
 
 
 # reading result of rubrication (answers) for model, training set and rubric
 def get_rubrication_result(model_id, set_id, rubric_id):
+    """reading result of rubrication (answers) for model, training set and rubric"""
     return get_rubrication_result_probability(model_id, set_id, rubric_id, 1)
 
 
-def get_rubrication_result2(model_id, set_id, rubric_id, session=None):
+def get_rubrication_result_from_doc(set_id, rubric_id, session=None):
+    """reading result of rubrication (answers) for set and rubric from documents"""
     if session is None:
         session = Driver.DBSession()
     # docs = Driver.select(TrainingSet.doc_ids, TrainingSet.set_id == set_id).fetchone()[0]
@@ -244,6 +263,7 @@ def get_rubrication_result2(model_id, set_id, rubric_id, session=None):
 
 # reading result of rubrication (result_type - 1 or 2) for model, training set and rubric
 def get_rubrication_result_probability(model_id, set_id, rubric_id, result_type, session=None):
+    """reading result of rubrication (result_type - 1 or 2) for model, training set and rubric"""
     if session is None:
         session = Driver.DBSession()
     # docs = Driver.select(TrainingSet.doc_ids, TrainingSet.set_id == set_id).fetchone()[0]
@@ -261,23 +281,27 @@ def get_rubrication_result_probability(model_id, set_id, rubric_id, result_type,
 
 
 def put_gazetteer(name, lemmas, short_name='', session=None, commit_session=True):
+    """write gazetteer in db"""
     if session is None:
         session = Driver.DBSession()
     new_gaz = Gazetteer(name=name)
     new_gaz.lemmas = lemmas
     new_gaz.gaz_id = name if short_name == '' else short_name
     session.add(new_gaz)
-    session.commit()
+    if commit_session:
+        session.commit()
     return new_gaz.gaz_id
 
 
 def get_gazetteer(gaz_id, session=None):
+    """read gazetteer from db"""
     if session is None:
         session = Driver.DBSession()
     return session.query(Gazetteer.lemmas).filter(Gazetteer.gaz_id == gaz_id).one().lemmas
 
 
 def put_ner_feature(doc_id, records, feature_type, feature=None, session=None, commit_session=True):
+    """write features of lemmas of document doc_id in db. records is list"""
     if session is None:
         session = Driver.DBSession()
     if feature is None:
@@ -300,6 +324,7 @@ def put_ner_feature(doc_id, records, feature_type, feature=None, session=None, c
 
 
 def put_ner_feature_dict(doc_id, records, feature_type, feature=None, session=None, commit_session=True):
+    """write features of lemmas of document doc_id in db. records is dictionary"""
     if session is None:
         session = Driver.DBSession()
     if feature is None:
@@ -322,6 +347,7 @@ def put_ner_feature_dict(doc_id, records, feature_type, feature=None, session=No
 
 
 def get_ner_feature(doc_id, session=None):
+    """read lemmas features for document"""
     if session is None:
         session = Driver.DBSession()
     result_query = session.query(NERFeature).filter((NERFeature.doc_id == doc_id)).all()
@@ -334,10 +360,12 @@ def get_ner_feature(doc_id, session=None):
 
 
 def get_ner_feature_for_set_dict(set_id, feature=None):
+    """read lemmas features for documents in set. return {'doc_id_1':{(n,m):value, ...}, ...}"""
     return get_ner_feature_for_set(set_id, feature, True)
 
 
 def get_ner_feature_for_set(set_id, feature=None, return_dict=False, session=None):
+    """read lemmas features for documents in set. return {'doc_id_1':[(n,m,value), ...], ...}"""
     if session is None:
         session = Driver.DBSession()
     training_set = session.query(TrainingSet).filter(TrainingSet.set_id == set_id).one()
@@ -360,6 +388,7 @@ def get_ner_feature_for_set(set_id, feature=None, return_dict=False, session=Non
 
 
 def put_tomita_result(doc_id, grammar, result, session=None, commit_session=True):
+    """write Tomita result with symbol coordinates for document"""
     if session is None:
         session = Driver.DBSession()
     session.query(TomitaResult).filter((TomitaResult.doc_id == doc_id) & (TomitaResult.grammar == grammar)).delete()
@@ -369,6 +398,7 @@ def put_tomita_result(doc_id, grammar, result, session=None, commit_session=True
 
 
 def get_tomita_results(doc_id, grammars, session=None):
+    """read Tomita result with symbol coordinates for document"""
     if session is None:
         session = Driver.DBSession()
     # grammars - list of grammar
@@ -378,13 +408,12 @@ def get_tomita_results(doc_id, grammars, session=None):
 
 
 def put_markup(doc, doc_id, name, classes, markup_type, refs, session=None, commit_session=True):
+    """write markup with references with symbol coordinates in db"""
     if session is None:
         session = Driver.DBSession()
     new_markup = Markup(document=doc_id, name=name, entity_classes=classes, type=markup_type)
     new_markup.markup_id = uuid.uuid4()
     session.add(new_markup)
-
-    # session.commit()
 
     markup_for_doc = {}
     entities = {}
@@ -406,6 +435,7 @@ def put_markup(doc, doc_id, name, classes, markup_type, refs, session=None, comm
 
 
 def get_references_for_set(set_id, markup_type='10', session=None):
+    """read references with symbol coordinates and entity class"""
     if session is None:
         session = Driver.DBSession()
     training_set = session.query(TrainingSet).filter(TrainingSet.set_id == set_id).one()
@@ -421,6 +451,7 @@ def get_references_for_set(set_id, markup_type='10', session=None):
 
 
 def get_multi_word_embedding(embedding, lemmas, session=None):
+    """read embeddings for lemmas"""
     if session is None:
         session = Driver.DBSession()
     res = session.query(WordEmbedding).filter(

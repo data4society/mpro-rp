@@ -41,8 +41,8 @@ def find_full_text(doc):#, failed_status): #, wks):
     """
 
     html_source = urllib.request.urlopen(url, timeout=10).read()
-    doc = Doc(html_source)
-    content = doc.summary()
+    rf_doc = Doc(html_source)
+    content = rf_doc.summary()
 
     if content.strip() == '':
         logging.error("Получен пустой текст url: " + url)
