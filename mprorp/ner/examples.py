@@ -111,7 +111,7 @@ doc_id = '10e24788-b887-4bf8-b9bd-3ec184f2348e'
 
 for gram in grammar_config:
     run_tomita2(gram, str(doc_id))
-ner_feature.print_tomita_result2(doc_id, grammar_config.keys())
+ner_feature.print_tomita_result(doc_id, grammar_config.keys())
 ner_feature.create_tomita_feature2(doc_id, grammar_config.keys())
 tomita_to_markup.convert_tomita_result_to_markup2(doc_id, grammar_config.keys())
 # markup = db.get_markup_from_doc(doc_id)

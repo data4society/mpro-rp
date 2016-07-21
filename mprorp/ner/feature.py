@@ -1,3 +1,5 @@
+"""functions for creating NER features: tomita, gazetteer, morpho, ect."""
+
 import mprorp.analyzer.db as db
 import re
 import mprorp.ner.morpho_to_vec as morpho_to_vec
@@ -17,6 +19,7 @@ def part_of_speech(gr):
 
 
 def create_gazetteer_feature(doc_id, gaz_id):
+    """create gazetteer feature"""
     # create in db gazetteer feature
     # read morpho
     morpho = db.get_morpho(doc_id)
@@ -45,7 +48,7 @@ def create_gazetteer_feature(doc_id, gaz_id):
 
 
 def create_answers_feature(set_id):
-
+    """create answers for NER from OC markup"""
     results = db.get_references_for_set(set_id)
     # print(results)
 
@@ -109,6 +112,7 @@ def create_answers_feature(set_id):
 
 
 def stronger_value(old_value, value):
+    """choose one value from two"""
     priority = {'B': 2, 'I': 4, 'E': 3, 'S': 1}
     if old_value is None:
         return value
@@ -121,10 +125,12 @@ def stronger_value(old_value, value):
 
 
 def create_tomita_feature2(doc_id, feature_grammars):
+    """wrap for create_tomita_feature"""
     db.doc_apply(doc_id, create_tomita_feature, feature_grammars)
 
 
 def create_tomita_feature(doc, feature_grammars, session=None, commit_session=True):
+    """count tomita features - lemmas coordinate using symbol coordinates """
     doc_id = str(doc.doc_id)
     results = db.get_tomita_results(doc_id, feature_grammars, session)
     morpho = doc.morpho
@@ -181,12 +187,8 @@ def create_tomita_feature(doc, feature_grammars, session=None, commit_session=Tr
         db.put_ner_feature(doc_id, values, ner_feature_types['tomita'], session=session, commit_session=commit_session)
 
 
-def print_tomita_result2(doc_id, feature_grammars):
-    db.doc_apply(doc_id, print_tomita_result, feature_grammars)
-
-
-def print_tomita_result(doc, feature_grammars, new_status=0):
-
+def print_tomita_result(doc, feature_grammars):
+    """print tomita results - symbol coordinates from db"""
     doc_id = doc.doc_id
     results = db.get_tomita_results(doc_id, feature_grammars)
     mytext = (doc.stripped).replace('\n','')
@@ -200,6 +202,7 @@ def print_tomita_result(doc, feature_grammars, new_status=0):
 
 
 def create_embedding_feature(doc_id):
+    """create lemmas to look for in embedding"""
     morpho = db.get_morpho(doc_id)
     values = []
     for element in morpho:
@@ -226,6 +229,7 @@ def create_embedding_feature(doc_id):
 
 
 def create_morpho_feature(doc_id):
+    """create feature for NER from morpho features"""
     morpho = db.get_morpho(doc_id)
     values = []
     for element in morpho:
