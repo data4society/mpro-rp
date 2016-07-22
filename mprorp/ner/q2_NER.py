@@ -1,3 +1,5 @@
+"""functions for training NER model"""
+
 import os
 import getpass
 import sys
