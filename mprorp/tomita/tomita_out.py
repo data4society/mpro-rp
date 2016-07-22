@@ -1,7 +1,9 @@
+"""function to create dictionary with coordinates of facts in text"""
 import re
 
 
 def text_make(file_name):
+    """function to create array with text lines"""
     text = []
     f = open(file_name, 'r', encoding='utf-8')
     for line in f:
@@ -11,6 +13,7 @@ def text_make(file_name):
 
 
 def list_make(text, source_name):
+    """function to create dictionary with coordinates"""
     sourse = open(source_name, 'r', encoding='utf-8').read()
     #s = sourse
     sourse = re.sub('\n', ' ', sourse)
@@ -63,6 +66,7 @@ def list_make(text, source_name):
     return out
 
 def tomita_out(file_name, source_name):
+    """function to run all together"""
     out = list_make(text_make(file_name), source_name)
     return out
 

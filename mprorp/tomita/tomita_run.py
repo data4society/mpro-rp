@@ -1,3 +1,4 @@
+"""function to run tomita and extract facts coordinates"""
 import os
 
 import mprorp.analyzer.db as db
@@ -6,6 +7,7 @@ from mprorp.tomita.tomita_start import start_tomita
 
 
 def del_files(doc_id):
+    """function to delete temporal files"""
     file_name1 = doc_id + '.txt'
     file_name2 = 'config_' + doc_id + '.proto'
     file_name3 = 'facts_' + doc_id + '.txt'
@@ -19,6 +21,7 @@ def run_tomita2(grammar, doc_id, status=0):
 
 
 def run_tomita(doc, grammar, session=None, commit_session=True):
+    """the final function to run tomita_start and tomita_run together"""
     output = start_tomita(grammar, doc)
     source_name = str(doc.doc_id) + '.txt'
     out = tomita_out(output, source_name)
