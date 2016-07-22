@@ -41,7 +41,7 @@ if db_type == "server":
 
 def insert(new_object):
     """insert to database with ORM"""
-    session = DBSession()
+    session = db_session
     session.add(new_object)
     session.commit()
     return
@@ -57,7 +57,7 @@ def select(columns, where_clause):
 
 def update(obj):
     """update with ORM"""
-    session = DBSession()
+    session = db_session
     session.merge(obj)
     session.commit()
     return obj;

@@ -22,7 +22,7 @@ class SimpleVKTest(unittest.TestCase):
         s = open(ins_source_url, 'r').read()
 
         # Do we have all docs?
-        session = DBSession()
+        session = db_session
         vk_parse_list(s, ins_source_id, session)
         session.commit()
         session.close()
@@ -30,7 +30,7 @@ class SimpleVKTest(unittest.TestCase):
         self.assertEqual(len(docs), 2)
 
         # Do we have repeated docs?
-        session = DBSession()
+        session = db_session
         vk_parse_list(s, ins_source_id, session)
         session.commit()
         session.close()

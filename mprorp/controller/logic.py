@@ -13,7 +13,7 @@ from mprorp.celery_app import app
 import logging
 from urllib.error import *
 
-from mprorp.db.dbDriver import DBSession
+# from mprorp.db.dbDriver import DBSession
 
 from mprorp.crawler.google_news import gn_start_parsing
 from mprorp.crawler.vk import vk_start_parsing
