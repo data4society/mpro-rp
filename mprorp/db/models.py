@@ -300,17 +300,23 @@ class Reference(Base):
     start_offset = Column(Integer())
     end_offset = Column(Integer())
     length_offset = Column(Integer())
-    # ???
+    # outer id (for example - in Open Corpora)
     outer_id = Column(Integer())
 
 
 class Mention(Base):
+    """table with mentions of entities"""
     __tablename__ = 'mentions'
 
     mention_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
+    # ref to markup in which mention is
     markup = Column(UUIDType(binary=False), ForeignKey('markups.markup_id'))
+    markup_rel = relationship(Markup)
+    # class of ontology
     entity_class = Column(String(40))
+    # ref to references (for examples to OC spans)
     reference_ids = Column(ARRAY(UUIDType(binary=False), ForeignKey('references.reference_id')))
+    # outer id (for example - in Open Corpora)
     outer_id = Column(Integer())
 
 
