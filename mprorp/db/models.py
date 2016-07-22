@@ -416,9 +416,7 @@ class NERFeature(Base):
     __table_args__ = (PrimaryKeyConstraint(doc_id, feature_type, feature, word_index, sentence_index),)
 
 
-# NO USED
-
-
+######################################## NO USED
 class TomitaGrammar(Base):
     __tablename__ = 'tomita_grammars'
 
@@ -446,5 +444,6 @@ class NERModel(Base):
     morpho_features = Column(ARRAY(String(40)))
     hyper_parameters = Column(JSONB())
     parameters = Column(JSONB())
+######################################## NO USED FIN
 
 
