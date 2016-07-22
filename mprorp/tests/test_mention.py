@@ -3,6 +3,7 @@ from mprorp.db.dbDriver import *
 from mprorp.db.models import *
 import mprorp.analyzer.rubricator as rb
 import mprorp.analyzer.db as db
+import mprorp.ner.identification as id
 
 class SimpleDBTest(unittest.TestCase):
 

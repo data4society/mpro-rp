@@ -103,7 +103,7 @@ def create_answers_feature(set_id, new_status=0):
         if len(values) > 0:
             db.put_ner_feature_dict(doc_id, values, ner_feature_types['answer'], new_status=new_status)
 
-def create_answers_feature_for_doc(doc_id, markup_type, settings, new_status):
+def create_answers_feature_for_doc(doc_id, markup_type, settings):
 
     features = settings.get('features')
     consider_right_symbol = settings.get('consider_right_symbol')
@@ -156,7 +156,7 @@ def create_answers_feature_for_doc(doc_id, markup_type, settings, new_status):
                 values[(element['sentence_index'], element['word_index'], value)] = [1]
 
     if len(values) > 0:
-         db.put_ner_feature_dict(doc_id, values, ner_feature_types['OpenCorpora'], None, new_status)
+         db.put_ner_feature_dict(doc_id, values, ner_feature_types['OpenCorpora'])
 
 def stronger_value(old_value, value):
     priority = {'B': 2, 'I': 4, 'E': 3, 'S': 1}
