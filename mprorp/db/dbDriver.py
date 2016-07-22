@@ -26,6 +26,7 @@ register_after_fork(engine, engine.dispose)
 meta = MetaData(bind=engine, reflect=True)
 # session class
 DBSession = sessionmaker(bind=engine)
+DBSession.close_all()
 Base = declarative_base()
 
 if db_type == "server":
