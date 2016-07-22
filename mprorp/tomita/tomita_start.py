@@ -1,3 +1,4 @@
+"""function to create configuration files and run tomita"""
 from os import chdir
 from mprorp.utils import home_dir
 import os.path as path
@@ -5,6 +6,7 @@ import subprocess as sp
 import re
 import os
 
+# dictionary with directions to different tomita grammars
 grammars = {'person.cxx': 'bin',
             'date.cxx': 'bin', #bin2
             'loc.cxx': 'bin', #bin3
@@ -12,7 +14,7 @@ grammars = {'person.cxx': 'bin',
             'org.cxx': 'bin', #bin5
             'norm_act.cxx': 'bin', #bin6
             'prof.cxx': 'bin'} #bin7
-
+# dictionary with dic_names of grammars
 dic = {'person.cxx': '{Name = "FIO"}, {Name = "Персона"}',
        'date.cxx': '{Name = "DATE"}, {Name = "Дата"}',
        'loc.cxx': '{Name = "Локация"}',
@@ -20,7 +22,7 @@ dic = {'person.cxx': '{Name = "FIO"}, {Name = "Персона"}',
        'org.cxx': '{Name = "Организация"}',
        'norm_act.cxx': '{Name = "Нормативный Акт"}',
        'prof.cxx': '{Name = "Профессия"}'}
-
+# dictionary with names of facts to extract
 fact = {'person.cxx': '{ Name = "PersonFact_TOMITA" }',
         'date.cxx': '{ Name = "DateFact_TOMITA" }',
         'loc.cxx': '{ Name = "LocationFact_TOMITA" }',
@@ -31,6 +33,7 @@ fact = {'person.cxx': '{ Name = "PersonFact_TOMITA" }',
 
 
 def create_config(grammar_name, file_name):
+    """function to create configuration file"""
     path1 = os.path.dirname(os.path.realpath(__file__))
     path2 = path1 + '/grammars/dic_'
     grammar = grammar_name + '.cxx'
@@ -60,6 +63,7 @@ TTextMinerConfig {
 
 
 def create_file(doc):
+    """function to create input file"""
     file_name = str(doc.doc_id) + '.txt'
     file = open(file_name, 'w', encoding='utf-8')
     text = doc.stripped
@@ -69,6 +73,7 @@ def create_file(doc):
 
 
 def start_tomita(grammar, doc):
+    """function to run tomita"""
     home_path = home_dir + '/tomita/tomita-parser-master/build'
     tomita_path = path.join(home_path, grammars[grammar])
     grammar_name = re.findall('(.*)\\.cxx', grammar)[0]
