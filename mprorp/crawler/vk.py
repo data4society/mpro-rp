@@ -1,41 +1,37 @@
 """vkontakte list and item parser"""
-from mprorp.db.dbDriver import *
+
 from mprorp.db.models import *
 
-from requests import Request, Session
 import json
 import datetime
+from mprorp.crawler.utils import *
+
+#import logging
+#logging.basicConfig(format = u'%(filename)s[LINE:%(lineno)d]# %(levelname)-8s [%(asctime)s]  %(message)s', level = logging.DEBUG)
 
 
-def send_get_request(url):
-    """accessory function for sending requests"""
-    s = Session()
-    req = Request('GET', url)
-    prepped = req.prepare()
-    r = s.send(prepped)
-    r.encoding = 'utf-8'
-    return r.text
-
-
-def vk_start_parsing(source_id):
+def vk_start_parsing(source_id, session):
     """download vk response and run list parsing function"""
-    # get source url
-    [source_url, parse_period] = select([Source.url,Source.parse_period], Source.source_id == source_id).fetchone()
+    # get source object
+    source = session.query(Source).filter_by(source_id=source_id).first()
+    print('vk start parsing source:' + source.name)
     # download vk response
-    req_result = send_get_request(source_url)
+    req_result = send_get_request(source.url)
     # run list parsing function
-    vk_parse_list(req_result, source_id)
+    docs = vk_parse_list(req_result, source_id, session)
     # change next timestamp crawl start
-    next_crawling_time = datetime.datetime.fromtimestamp(datetime.datetime.now().timestamp() + parse_period)
-    source = Source(source_id = source_id, next_crawling_time = next_crawling_time)
-    update(source)
+    source.next_crawling_time = datetime.datetime.fromtimestamp(datetime.datetime.now().timestamp() + source.parse_period)
+    source.wait = True
+    print("VK CRAWL COMPLETE")
+    return docs
 
 
-def vk_parse_list(req_result, source_id):
+def vk_parse_list(req_result, source_id, session):
     """parses one source, get list and do initial insert"""
 
     # convert to json object
     json_obj = json.loads(req_result)
+    docs = []
     for item in json_obj["response"]:
         if type(item) == dict:  # vk api can give Integer (Number of posts?) at the same level
             post_type = item["post_type"]
@@ -48,20 +44,23 @@ def vk_parse_list(req_result, source_id):
 
             # Skip item if we have any row in Document table with same guid (url)
             # skip all not 'post' items
-            if post_type == 'post' and not select(Document.doc_id, Document.guid == url).fetchone():
+            if post_type == 'post' and session.query(Document).filter_by(guid=url).count() == 0:
                 # initial insert with guid start status and reference to source
                 new_doc = Document(guid=url, source_id=source_id, status=0, type='vk')
-                insert(new_doc)
+                docs.append(new_doc)
                 # further parsing
-                vk_parse_item(item, new_doc.doc_id)
+                vk_parse_item(item, new_doc, session)
+    return docs
 
 
-def vk_parse_item(item, doc_id):
-    new_doc = Document(doc_id=doc_id)
+def vk_parse_item(item, new_doc, session):
+    """parses one item"""
     # main text
     txt = item["text"]
+    stripped = strip_tags('<html><body>' + txt + '</body></html>')
+    stripped = to_plain_text(stripped)
     new_doc.doc_source = txt
-    new_doc.stripped = txt
+    new_doc.stripped = stripped
     # publish date timestamp
     timestamp = item["date"]
     new_doc.published_date = datetime.datetime.fromtimestamp(timestamp)
@@ -79,9 +78,7 @@ def vk_parse_item(item, doc_id):
     meta_json['vk_owner'] = vk_get_user(item["owner_id"])
     new_doc.meta = meta_json # json.dumps(meta_json)
 
-    new_doc.status = 1  # this status mean complete crawler work with this item
-    # update row in database
-    update(new_doc)
+    session.add(new_doc)
 
 
 def vk_get_user(owner_id):

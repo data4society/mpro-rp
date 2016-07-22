@@ -2,17 +2,19 @@ import unittest
 from mprorp.db.dbDriver import *
 from mprorp.db.models import *
 from mprorp.crawler.vk import vk_parse_list
-import json
+import os
+
 
 
 class SimpleVKTest(unittest.TestCase):
 
-    def test_insert_select(self):
+    def test_parse(self):
+        path = os.path.dirname(os.path.realpath(__file__))
         dropall_and_create()
 
-        ins_source_url = 'test_docs/vk_response.txt'
-        if sys.argv[0][-10:] == 'nosetests3':
-            ins_source_url = 'mprorp/tests/'+ins_source_url
+        ins_source_url = path + '/test_docs/vk_response.txt'
+        #if sys.argv[0][-10:] == 'nosetests3':
+        #    ins_source_url = 'mprorp/tests/'+ins_source_url
         ins_source = Source(url=ins_source_url, name='test source')
         insert(ins_source)
         ins_source_id = ins_source.source_id
@@ -20,12 +22,18 @@ class SimpleVKTest(unittest.TestCase):
         s = open(ins_source_url, 'r').read()
 
         # Do we have all docs?
-        vk_parse_list(s, ins_source_id)
+        session = DBSession()
+        vk_parse_list(s, ins_source_id, session)
+        session.commit()
+        session.close()
         docs = select(Document.doc_id, Document.source_id == ins_source_id).fetchall()
         self.assertEqual(len(docs), 2)
 
         # Do we have repeated docs?
-        vk_parse_list(s, ins_source_id)
+        session = DBSession()
+        vk_parse_list(s, ins_source_id, session)
+        session.commit()
+        session.close()
         docs = select(Document.doc_id, Document.source_id == ins_source_id).fetchall()
         self.assertEqual(len(docs), 2)
 

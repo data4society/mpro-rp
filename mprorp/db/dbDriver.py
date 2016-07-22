@@ -1,28 +1,35 @@
 """database driver for more simple working with sqlalchemy and postgres"""
+
 from sqlalchemy import MetaData
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import sqlalchemy
 import sys
-
-
+from multiprocessing.util import register_after_fork
 from mprorp.config.settings import *
 
-if "maindb" in sys.argv:
+if ("maindb" in sys.argv) or ("worker" in sys.argv):
+    db_type = "server"
+else:
+    db_type = "local"
+
+if db_type == "server":
     connection_string = maindb_connection
 else:
     connection_string = testdb_connection
 
 # main object which SQLA uses to connect to database
 engine = create_engine(connection_string)
+register_after_fork(engine, engine.dispose)
 # full meta information about structure of tables
 meta = MetaData(bind=engine, reflect=True)
 # session class
 DBSession = sessionmaker(bind=engine)
+DBSession.close_all()
 Base = declarative_base()
 
-if "maindb" in sys.argv:
+if db_type == "server":
     import mprorp.db.models
     # if any table doesn't exist it will create at this step
     Base.metadata.create_all(engine)
@@ -50,9 +57,9 @@ def update(obj):
     session.merge(obj)
     session.commit()
     return obj;
-    #obj = meta.tables[table_name]
-    #return engine.execute(sqlalchemy.update().where(where_clause).values(values))
-    #return DBDriver.engine.execute(obj.update().values(values).where(where_clause))#obj.c.doc_id == '7a074073-7747-47b9-aba0-1f5990ddbaf9'))
+    #o bj = meta.tables[table_name]
+    # return engine.execute(sqlalchemy.update().where(where_clause).values(values))
+    # return DBDriver.engine.execute(obj.update().values(values).where(where_clause))#obj.c.doc_id == '7a074073-7747-47b9-aba0-1f5990ddbaf9'))
 
 
 def delete(table_name, where_clause):

@@ -3,6 +3,7 @@
 import os
 import os.path
 import sys
+from mprorp.utils import home_dir
 
 
 def _find_mystem(exe):
@@ -15,8 +16,9 @@ def _find_mystem(exe):
         if os.path.isfile(fpath) and os.access(fpath, os.X_OK):
             return dir, fpath
 
-    dir = os.path.expanduser("~/.local/bin")
-    fpath = os.path.join(dir, exe)
+    dir = home_dir + "/.local/bin"
+    fpath = os.path.join(home_dir + "/.local/bin", exe)
+    print(os.path.expanduser("~/.local/bin"), dir, fpath)
 
     return dir, fpath
 

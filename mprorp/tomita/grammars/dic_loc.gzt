@@ -1,0 +1,30 @@
+encoding "utf8";
+import "base.proto";     
+import "articles_base.proto";
+import "keywords.proto";
+import "facttypes.proto";
+
+TAuxDicArticle "Локация"
+{
+    key = { "tomita:loc.cxx" type=CUSTOM }
+}
+
+location_front "ЛокацииF"
+{
+ key = { "loc_front.txt" type=FILE }
+}
+
+location_back "ЛокацииB"
+{
+ key = { "loc_back.txt" type=FILE }
+}
+
+abbreviation "Сокращения"
+{
+ key = { "abbreviations.txt" type=FILE }
+}
+
+lost_loc "lost locations"
+{
+ key = "Астана"|"Алматы"
+}

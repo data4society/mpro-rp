@@ -1,10 +1,19 @@
+"""celery config"""
+
 from datetime import timedelta
-from celery.schedules import crontab
-CELERY_INCLUDE = ['mprorp.controller.start']
+# these files contain celery tasks:
+CELERY_INCLUDE = ['mprorp.controller.start', 'mprorp.controller.logic']
+# we have one shedule-task:
 CELERYBEAT_SCHEDULE = {
-                          'add-every-5-seconds': {
-                              'task': 'mprorp.controller.tasks.add',
-                              'schedule': timedelta(seconds=10),
+                          'resource-checking': {
+                              'task': 'mprorp.controller.start.check_sources',
+                              'schedule': timedelta(seconds=30),
                           },
                       }
-CELERY_TIMEZONE = 'UTC'
+# to using server time:
+CELERY_ENABLE_UTC = False
+# CELERY_TIMEZONE = 'UTC'
+# number of parallel processes:
+CELERYD_CONCURRENCY = 3
+# for normal working):
+CELERYD_FORCE_EXECV = True

@@ -1,0 +1,20 @@
+encoding "utf8";
+import "base.proto";     
+import "articles_base.proto";
+import "keywords.proto";
+import "facttypes.proto";
+
+TAuxDicArticle "Нормативный Акт"
+{
+    key = { "tomita:norm_act.cxx" type=CUSTOM }
+}
+
+uk "Уголовный кодекс"
+{
+ key = "УК"|"уголовный кодекс"
+}
+
+KoAP "КоАП"
+{
+ key = "КоАП"|"Кодекс Российской Федерации об административных правонарушениях"
+}

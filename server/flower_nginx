@@ -1,0 +1,40 @@
+# flower config for nginx
+server {
+    listen 80 default_server;
+    #server_name     flower.oag.cottagelabs.com flower.test.oag.cottagelabs.com;
+
+    access_log /var/log/nginx/celery-flower.access.log;
+    error_log /var/log/nginx/celery-flower.error.log;
+
+
+    # for accessing celery log
+    location /celery_log.txt {
+        root /home/mprorp;
+        charset utf-8;
+    }
+
+    #location /renew {
+    #    content_by_lua '
+    #        if ngx.var.arg_branch == nil then
+    #            ngx.print("please, select branch");
+    #        else
+    #            if ngx.var.arg_branch == "dev" then
+    #                command = "/home/mprorp/renew.sh "..ngx.var.arg_branch
+    #                local handle = io.popen(command);
+    #                local result = handle:read("*a");
+    #                handle:close();
+    #                ngx.print(result);
+    #            else
+    #                ngx.print("wrong branch");
+    #            end
+    #        end';
+    #}
+
+    location / {
+        proxy_pass http://localhost:5555/;
+        proxy_redirect off;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+}

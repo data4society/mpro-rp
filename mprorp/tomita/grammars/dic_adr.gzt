@@ -1,0 +1,25 @@
+encoding "utf8";
+import "base.proto";     
+import "articles_base.proto";
+import "keywords.proto";
+import "facttypes.proto";
+
+TAuxDicArticle "Адрес"
+{
+    key = { "tomita:adr.cxx" type=CUSTOM }
+}
+
+street "Улица"
+{
+ key = "улица"|"ул"|"переулок"|"пер"|"площадь"|"пл"|"проезд"|"пр"|"проспект"|"просп"|"бульвар"|"бл"
+}
+
+house "Дом"
+{
+ key = "дом"|"д"
+}
+
+apartment "Квартира"
+{
+ key = "квартира"|"кв"
+}

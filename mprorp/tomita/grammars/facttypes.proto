@@ -1,0 +1,38 @@
+import "base.proto";
+import "facttypes_base.proto";
+
+
+message DateFact_TOMITA: NFactType.TFact 
+{
+    required string Date_TOMITA = 1;
+}
+
+message PersonFact_TOMITA: NFactType.TFact 
+{
+    required string Person_TOMITA = 1;
+}
+
+message LocationFact_TOMITA: NFactType.TFact 
+{
+    required string Loc_TOMITA = 1;
+}
+
+message AdrFact_TOMITA: NFactType.TFact
+{
+    required string Adr_TOMITA = 1;
+}
+
+message OrgFact_TOMITA: NFactType.TFact
+{
+    required string Org_TOMITA = 1;
+}
+
+message NormFact_TOMITA: NFactType.TFact
+{
+    required string Norm_TOMITA = 1;
+}
+
+message ProfFact_TOMITA: NFactType.TFact
+{
+    required string Prof_TOMITA = 1;
+}

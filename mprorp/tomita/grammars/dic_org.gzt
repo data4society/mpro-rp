@@ -1,0 +1,55 @@
+encoding "utf8";
+import "base.proto";     
+import "articles_base.proto";
+import "keywords.proto";
+import "facttypes.proto";
+
+TAuxDicArticle "Организация"
+{
+    key = { "tomita:org.cxx" type=CUSTOM }
+}
+
+trial "Суд"
+{
+ key = { "trials_rf.txt" type=FILE }
+}
+
+OOO "OOO"
+{
+ key = { "org_ooo.txt" type=FILE }
+}
+
+inter "International"
+{
+ key = { "inter_org.txt" type=FILE }
+}
+
+rusorg "RussOrg"
+{
+ key = { "rus_org.txt" type=FILE }
+}
+
+ministry "Ministry"
+{
+ key = { "ministry.txt" type=FILE }
+}
+
+RF "RF"
+{
+ key = "РФ"|"российская федерация"
+}
+
+jail "Jail"
+{
+ key = { "jail_rf.txt" type=FILE }
+}
+
+ag "Агентство"
+{
+ key = "Агентство"|"Холдинг"|"Фирма"|"Компания"|"Телеканал"|"НКО"
+}
+
+fond "Фонд"
+{
+ key = "Фонд"
+}

@@ -1,3 +1,4 @@
+"""functions for prepare documents, learning rubrication model and compute rubric """
 import mprorp.analyzer.db as db
 from mprorp.analyzer.pymystem3_w import Mystem
 import numpy as np
@@ -5,42 +6,206 @@ import math
 import tensorflow as tf
 import random
 
-
+# initialization mystem
 mystem_analyzer = Mystem(disambiguation=False)
-status = {'morpho': 2, 'lemmas': 3, 'rubrics': 4}
-rubrics_for_regular = {u'd2cf7a5f-f2a7-4e2b-9d3f-fc20ea6504da': None}
-stop_lemmas = ['в', 'на', 'из', 'он', 'что', 'и', 'это', 'по', 'быть', 'этот', 'она', 'они', 'так', 'как', 'тогда', 'те']
+# words number for tf-idf model
+optimal_features_number = 1000
+# words to exclude from model
+stop_lemmas = ['в', 'на', 'из', 'он', 'что', 'и', 'это', 'по', 'быть', 'этот', 'она', 'они', 'так', 'как', 'тогда',
+               'те', 'также', 'же', 'то', 'за', 'который', 'после', 'оно', 'с', 'к', 'у', 'о', 'об', 'его', 'а',
+               'не', 'год', 'во', 'весь', 'было', 'свой', 'тот', 'все', 'если', 'тогда', 'от', 'уже', 'д', 'м', 'при',
+               'под', 'со', 'ее', 'сам', 'ранее', 'для', 'до', 'будет', 'или', 'их', 'я', 'но', 'нужный', 'ул',
+               'время', 'наш', 'самый', 'вы', 'мы', 'любой', 'еще', 'нужно', 'до', 'любая', 'нами', 'такой', 'где',
+               'один', 'рассказывать', 'находиться', 'становиться', 'иметь', 'быль', 'может', 'можно', 'очень', 'чтобы',
+               'раз', 'каждый', 'новый', 'хороший', 'только', 'мочь', 'даже', 'себя', 'приходить', 'два', 'когда',
+               'того', 'кто', 'многий', 'большой', 'маленький', 'первый', 'эта', 'другой',
+               'девать', 'иметь', 'быль', 'рассказывать', 'мочь', 'смочь', 'время', 'ранее']
+                  # , '', '', '', '',
 
 
 # one document morphological analysis regular
-def regular_morpho(doc_id):
-    morpho_doc(doc_id, status['morpho'])
+
+def is_word(mystem_element):
+    """True if element is not space and have length """
+    word = mystem_element.get('text', '')
+    if len(word.strip()) > 0:
+        return True
+    return False
 
 
-# one document morphological analysis
-def morpho_doc(doc_id, change_status=0):
-    text = db.get_doc(doc_id)
+def is_sentence_end(mystem_element):
+    """True if element is \\s or \n"""
+    word = mystem_element.get('text', '')
+    return word == '\\s' or word == '\n'
+
+
+def morpho_doc2(doc_id):
+    """wrap for morpho_doc with local session"""
+    db.doc_apply(doc_id, morpho_doc)
+
+
+def morpho_doc(doc):
+    """morphological analysis for document """
+    doc_text = doc.stripped
     mystem_analyzer.start()
-    new_morpho = mystem_analyzer.analyze(text)
-    db.put_morpho(doc_id, new_morpho, change_status)
+    # new_morpho = mystem_analyzer.analyze(doc_text)
+    new_morpho = mystem_analyzer.analyze(doc_text.replace('\n',''))
+
+    morpho_list = []
+
+    for element in new_morpho: # разрезаем
+
+        if is_sentence_end(element):
+            morpho_list.append(element)
+        else:
+
+            line = element.get('text', '')
+
+            space_len = 0
+
+            word_start = -1
+            word_len = 0
+
+            symbol_number = -1
+            for symbol in line:
+
+                symbol_number+=1
+
+                if symbol == "'" or symbol == '"' or symbol == '»' or symbol == '«':
+
+                    if space_len > 0: # добавим пробелы
+
+                        cur_space = ' ' * space_len
+
+                        new_element = {'text': cur_space}
+                        if 'analysis' in element: new_element['analysis'] = element['analysis']
+                        morpho_list.append(new_element)
+
+                        space_len = 0
+
+                    elif word_start > -1: # добавим слово
+
+                        cur_word = line[word_start:(word_start + word_len)]
+
+                        new_element = {'text': cur_word}
+                        if 'analysis' in element: new_element['analysis'] = element['analysis']
+                        morpho_list.append(new_element)
+
+                        word_start = -1
+                        word_len = 0
+
+                    # добавим кавычку
+                    new_element = {'text': symbol}
+                    if 'analysis' in element: new_element['analysis'] = element['analysis']
+                    morpho_list.append(new_element)
+
+                elif symbol == " ":
+
+                    if word_start > -1: # добавим слово
+
+                        cur_word = line[word_start:(word_start + word_len)]
+
+                        new_element = {'text': cur_word}
+                        if 'analysis' in element: new_element['analysis'] = element['analysis']
+                        morpho_list.append(new_element)
+
+                        word_start = -1
+                        word_len = 0
+
+                    space_len += 1
+
+                else:
+
+                    if space_len > 0: # добавим пробелы
+
+                        cur_space = ' ' * space_len
+
+                        new_element = {'text': cur_space}
+                        if 'analysis' in element: new_element['analysis'] = element['analysis']
+                        morpho_list.append(new_element)
+
+                        space_len = 0
+
+                    if word_start == -1:
+                        word_start = symbol_number
+                        word_len = 1
+                    else:
+                        word_len += 1
+
+            if space_len > 0: # добавим пробелы
+
+                cur_space = ' ' * space_len
+
+                new_element = {'text': cur_space}
+                if 'analysis' in element: new_element['analysis'] = element['analysis']
+
+                morpho_list.append(new_element)
+
+            elif word_start > -1: # добавим слово
+
+                cur_word = line[word_start:(word_start + word_len)]
+
+                new_element = {'text': cur_word}
+                if 'analysis' in element: new_element['analysis'] = element['analysis']
+                morpho_list.append(new_element)
+
+    for i in range(len(morpho_list) - 1): # переставляем
+        if i > 0:
+            if morpho_list[i - 1]['text'] == ' ' and morpho_list[i]['text'] == '"' and morpho_list[i + 1]['text'] == '\\s':
+                morpho_list[i], morpho_list[i + 1] = morpho_list[i + 1], morpho_list[i]
+
+    sentence_index = 0
+    word_index = 0
+    start_offset = 0
+
+    for element in morpho_list: # нумеруем
+        if is_sentence_end(element):
+            if word_index != 0:
+                sentence_index += 1
+                word_index = 0
+        else:
+            line = element.get('text', '')
+            line_len = len(line)
+
+            if(line[0]!=' '):
+                element['start_offset'] = start_offset
+                element['end_offset'] = start_offset + line_len - 1
+                element['word_index'] = word_index
+                element['sentence_index'] = sentence_index
+
+                word_index += 1
+            start_offset += line_len
+
+    doc.morpho = morpho_list
     mystem_analyzer.close()
 
 
 # counting lemmas frequency for one document
-def regular_lemmas(doc_id):
-    lemmas_freq_doc(doc_id, status['lemmas'])
+def lemmas_freq_doc2(doc_id):
+    """wrap for lemmas_freq_doc with local session"""
+    db.doc_apply(doc_id, lemmas_freq_doc)
 
 
-# counting lemmas frequency for one document
-def lemmas_freq_doc(doc_id, new_status=0):
+def lemmas_freq_doc(doc):
+    """ extraction lemmas from morpho """
     lemmas = {}
-    morpho = db.get_morpho(doc_id)
+    morpho = doc.morpho
     for i in morpho:
-        for l in i.get('analysis', []):
-            if l.get('lex', False):
-                if not l['lex'] in stop_lemmas:
-                    lemmas[l['lex']] = lemmas.get(l['lex'], 0) + l.get('wt', 1)
-    db.put_lemmas(doc_id, lemmas, new_status)
+        # if this is a word
+        if 'analysis' in i.keys():
+            # if there is few lex
+            if len(i['analysis']):
+                for l in i.get('analysis', []):
+                    if l.get('lex', False):
+                        if (not l['lex'] in stop_lemmas) & (l.get('wt', 0) > 0):
+                            lemmas[l['lex']] = lemmas.get(l['lex'], 0) + l.get('wt', 1)
+            else:
+                # english word or number or smth like this
+                word = i.get('text', '')
+                # take word, don't take number
+                if (len(word) > 0) and not word.isdigit():
+                    lemmas[word] = lemmas.get(word, 0) + 1
+    doc.lemmas = lemmas
 
 
 # compute idf and object-features matrix for training set
@@ -49,6 +214,12 @@ def lemmas_freq_doc(doc_id, new_status=0):
 # doc_index links doc_id and row index in object-features
 # lemma_index links lemmas and column index in object-features
 def idf_object_features_set(set_id):
+    """ compute idf and object-features matrix for training set """
+    # idf for calc features of new docs
+    # object-features for learning model
+    # doc_index links doc_id and row index in object-features
+    # lemma_index links lemmas and column index in object-features
+
     # get lemmas of all docs in set
     docs = db.get_lemmas_freq(set_id)
 
@@ -83,8 +254,7 @@ def idf_object_features_set(set_id):
     for lemma in doc_freq:
         idf[lemma] = - math.log(doc_freq[lemma]/doc_counter)
 
-    # choose most important lemmas and add in overall list by giving index
-
+    # and lemmas add in overall list by giving index
     for lemma in idf:
         if idf[lemma] != 0:
             lemma_index[lemma] = lemma_counter
@@ -101,9 +271,12 @@ def idf_object_features_set(set_id):
                 object_features[doc_index[doc_id], lemma_index[lemma]] = \
                     doc_lemmas[lemma] / doc_size[doc_id] * idf[lemma]
 
+    # check features with 0 for all documents
     feat_max = np.sum(object_features, axis=0)
-    print_lemmas(set_id, [k for k, v in enumerate(feat_max) if v == 0], idf)
-    print(np.min(np.sum(object_features, axis=1)))
+    # print_lemmas(set_id, [k for k, v in enumerate(feat_max) if v == 0], lemma_index, idf)
+    # check documents with 0 for all lemmas
+    # print(np.min(np.sum(object_features, axis=1)))
+
     # save to db: idf, indexes and object_features
     db.put_training_set_params(set_id, idf,  doc_index, lemma_index, object_features)
 
@@ -114,21 +287,25 @@ def idf_object_features_set(set_id):
 
 
 def sigmoid_array(x):
+    """sigmoid for every value of array x"""
     for l in range(len(x)):
         x[l] = 1/(1 + math.exp(-x[l]))
     return x
 
 
 def sigmoid(x):
+    """sigmoid for value x"""
     return 1/(1 + math.exp(-x))
 
 
 # bigger value is worse
 def entropy_difference(feature, answers, num_lemma):
+    """compute entropy criteria for feature and answers"""
     f_max = np.max(feature)
     f_min = np.min(feature)
+    # check is it unsound feature
     if f_max == f_min:
-        print('lemma 0: ', num_lemma)
+        # print('lemma 0: ', num_lemma)
         return 10000
     step = (f_max - f_min) / 1000
     p = [[0, 0] for _ in range(1000)]
@@ -138,37 +315,54 @@ def entropy_difference(feature, answers, num_lemma):
         if index == 1000:
             index = 999
         p[index][answers[j]] += 1
+    # difference between entropy feature+answers and just feature
     result = 0
     for i in range(1000):
         if (p[i][0] != 0) & (p[i][1] != 0):
             result += math.log2((p[i][0] + p[i][1]) / sum_p) * (p[i][0] + p[i][1]) / sum_p - \
                       math.log2(p[i][0] / sum_p) * (p[i][0]) / sum_p - \
                       math.log2(p[i][1] / sum_p) * (p[i][1]) / sum_p
-    return result
+    # entropy answers
+    all_answers = len(answers)
+    positive_answers = sum(answers) / all_answers
+    negative_answers = 1 - positive_answers
+    if (positive_answers == 0) or negative_answers == 0:
+        entropy_answers = 0
+    else:
+        entropy_answers = - positive_answers * math.log2(positive_answers) - \
+                          negative_answers * math.log2(negative_answers)
+
+    # difference between (feature entropy + answers entropy) and (feature + answers) entropy
+    if entropy_answers - result < 0:
+        print('negative information', num_lemma, entropy_answers - result)
+    return - (entropy_answers - result)
 
 
-def print_lemmas(set_id, numbers, idf=None):
-    if idf is None:
-        idf = {}
-    lemmas = db.get_lemma_index(set_id)
-    my_lemmas = [k for k in lemmas if lemmas[k] in numbers]
-    print(numbers)
-    print(my_lemmas)
-    print([idf.get(k, '') for k in my_lemmas])
+# print lemmas with index in numbers, its index and idf
+# def print_lemmas(set_id, numbers, lemmas=None, idf=None):
+#     if idf is None:
+#         idf = {}
+#     if lemmas is None:
+#         lemmas = db.get_lemma_index(set_id)
+#     my_lemmas = [k for k in lemmas if lemmas[k] in numbers]
+    # print(numbers)
+    # print(my_lemmas)
+    # print([idf.get(k, '') for k in my_lemmas])
     # for i in numbers:
     #     m
     #     print(i, [k for k in lemmas if lemmas[k] == i])
 
 
+# learn model for rubrication
 def learning_rubric_model(set_id, rubric_id):
-
+    """learn model for rubrication"""
     # get answers for rubric
-    answers = db.get_answers(set_id, rubric_id)
+    answers = db.get_rubric_answers(set_id, rubric_id)
     # get object_features, lemma_index, doc_index
     doc_index, object_features = db.get_doc_index_object_features(set_id)
 
-    print(np.min(np.sum(object_features, axis=0)))
-    print(np.min(np.sum(object_features, axis=1)))
+    # print(np.min(np.sum(object_features, axis=0)))
+    # print(np.min(np.sum(object_features, axis=1)))
 
     doc_number = len(doc_index)
     # answers_index - answers by indexes, answers_array - array for compute cross_entropy in tensorflow
@@ -183,25 +377,30 @@ def learning_rubric_model(set_id, rubric_id):
     # feature k from object_features is used in position l, if l >= 0
     # if feature k ins not most important, l = -1
     features_number = len(object_features[0])
-    mif = np.empty(features_number)
-    mif.fill(-1)
-    if features_number > 300:
+    # mif = np.empty(features_number)
+    # mif.fill(-1)
+    mif_number = features_number
+    mif_indexes = []
+    use_mif = features_number > optimal_features_number
+    if use_mif:
+        mif_number = optimal_features_number
         feature_entropy = np.zeros(features_number)
         for i in range(features_number):
             # compute Entropic Criterion for feature i
             feature_entropy[i] = entropy_difference(object_features[:, i], answers_index, i)
         good_numbers = np.argsort(feature_entropy)
-        for i in range(300):
-            mif[good_numbers[i]] = i
-        print_lemmas(set_id, good_numbers[0:30])
-        print(feature_entropy[good_numbers[0:30]])
+        for i in range(optimal_features_number):
+            # mif[good_numbers[i]] = i
+            mif_indexes.append(int(good_numbers[i]))
+        # print_lemmas(set_id, good_numbers[0:100])
+        # print(feature_entropy[good_numbers[0:100]])
     else:
         for i in range(features_number):
-            mif[i] = i
+            mif_indexes.append(i)
 
-    x = tf.placeholder(tf.float32, shape=[None, features_number])
+    x = tf.placeholder(tf.float32, shape=[None, mif_number])
     y_ = tf.placeholder(tf.float32, shape=[None, 1])
-    w = tf.Variable(tf.truncated_normal([features_number, 1], stddev=0.1))
+    w = tf.Variable(tf.truncated_normal([mif_number, 1], stddev=0.1))
     b = tf.Variable(0.00001)
 
     y = tf.matmul(x, w) + b
@@ -223,10 +422,17 @@ def learning_rubric_model(set_id, rubric_id):
         #     print(i)
         if doc_number > 150:
             local_answers = answers_array[indexes[0:100], :]
-            sess.run(train_step, feed_dict={x: object_features[indexes[0:100], :], y_: local_answers})
+            if use_mif:
+                sess.run(train_step,
+                         feed_dict={x: object_features[indexes[0:100], :][:, mif_indexes], y_: local_answers})
+            else:
+                sess.run(train_step, feed_dict={x: object_features[indexes[0:100], :], y_: local_answers})
             random.shuffle(indexes)
         else:
-            sess.run(train_step, feed_dict={x: object_features, y_: answers_array})
+            if use_mif:
+                sess.run(train_step, feed_dict={x: object_features[:, mif_indexes], y_: answers_array})
+            else:
+                sess.run(train_step, feed_dict={x: object_features, y_: answers_array})
         # my_cea = cross_entropy_array.eval(sess)
         # print(my_cea)
         # my_w = w.eval(sess)
@@ -236,24 +442,25 @@ def learning_rubric_model(set_id, rubric_id):
     model = w.eval(sess)[:, 0]
     model = model.tolist()
     model.append(float(b.eval(sess)))
-    db.put_model(rubric_id, set_id, model, mif, features_number)
+    db.put_model(rubric_id, set_id, model, mif_indexes, mif_number)
 
     # print(W.eval(sess))
     # print(b.eval(sess))
-
-
-# regular ribrication
-def regular_rubrication(doc_id):
-    spot_doc_rubrics(doc_id, rubrics_for_regular, status['rubrics'])
 
 
 # take 1 doc and few rubrics
 # save in DB doc_id, rubric_id and YES or NO
 # rubrics is a dict. key = rubric_id, value = None or set_id
 # value = set_id: use model, learned with this trainingSet
-def spot_doc_rubrics(doc_id, rubrics, new_status=0):
+def spot_doc_rubrics2(doc_id, rubrics):
+    """wrap for spot_doc_rubrics with local session"""
+    db.doc_apply(doc_id, spot_doc_rubrics, rubrics)
+
+
+def spot_doc_rubrics(doc, rubrics, session=None, commit_session=True):
+    """spot rubrics for document"""
     # get lemmas by doc_id
-    lemmas = db.get_lemmas(doc_id)
+    lemmas = doc.lemmas
     # compute document size
     doc_size = 0
     for lemma in lemmas:
@@ -261,17 +468,17 @@ def spot_doc_rubrics(doc_id, rubrics, new_status=0):
     # models for rubrics
     models = {}
 
-    correct_answers = {}
+    # correct_answers = {}
 
     # fill set_id in rubrics and data in models
     for rubric_id in rubrics:
-        correct_answers[rubric_id] = db.get_answer_doc(doc_id, rubric_id)
+        # correct_answers[rubric_id] = db.get_rubric_answer_doc(doc_id, rubric_id)
         if rubrics[rubric_id] is None:
-            rubrics[rubric_id] = db.get_set_id_by_rubric_id(rubric_id)
-        models[rubric_id] = db.get_model(rubric_id, rubrics[rubric_id])
+            rubrics[rubric_id] = db.get_set_id_by_rubric_id(rubric_id, session)
+        models[rubric_id] = db.get_model(rubric_id, rubrics[rubric_id], session)
     # get dict with idf and lemma_index for each set_id
     # sets[...] is dict: {'idf':..., 'lemma_index': ...}
-    sets = db.get_idf_lemma_index_by_set_id(rubrics.values())
+    sets = db.get_idf_lemma_index_by_set_id(rubrics.values(), session)
     for set_id in sets:
         # compute idf for doc_id (lemmas) and set_id
         idf_doc = {}
@@ -279,36 +486,90 @@ def spot_doc_rubrics(doc_id, rubrics, new_status=0):
             idf_doc[lemma] = lemmas[lemma] * sets[set_id]['idf'].get(lemma, 0) / doc_size
         sets[set_id]['idf_doc'] = idf_doc
     # for each rubric
-    answers = {}
+    answers = []
+    result = []
     for rubric_id in rubrics:
         set_id = rubrics[rubric_id]
-        features_num = models[rubric_id]['features_num']
-        features_array = np.zeros(features_num + 1, dtype=float)
+        mif_number = models[rubric_id]['features_num']
         lemma_index = sets[set_id]['lemma_index']
+        features_array = np.zeros(len(lemma_index), dtype=float)
+        # form features row with size and order like in object_features of training set
         for lemma in lemmas:
             # lemma index in lemmas of set
             ind_lemma = lemma_index.get(lemma, -1)
             # if lemma from doc is in lemmas for training set
             if ind_lemma > -1:
-                index = models[rubric_id]['features'][ind_lemma]
-                if index > -1:
-                    features_array[index] = sets[set_id]['idf_doc'][lemma]
-        features_array[features_num] = 1
-        probability = sigmoid(np.dot(features_array, models[rubric_id]['model']))
-        answers[rubric_id] = {'result': round(probability), 'model_id': models[rubric_id]['model_id']}
-        # if answers[rubric_id]['result'] == correct_answers[rubric_id]:
-        #     res = 'correct'
-        # else:
-        #     res = 'incorrect'
-        # print(doc_id, answers[rubric_id]['result'],  res)
-    db.put_rubrics(doc_id, answers, new_status)
+                features_array[ind_lemma] = sets[set_id]['idf_doc'][lemma]
+        # take most important features of model
+        mif = features_array[models[rubric_id]['features']]
+        # add 1 for coefficient b in model
+        # mif[mif_number] = 1
+        mif.resize(mif_number + 1)
+        mif[mif_number] = 1
+        probability = sigmoid(np.dot(mif, models[rubric_id]['model']))
+        if probability > 0.5:
+            answers.append(rubric_id)
+        result.append(
+                {'rubric_id': rubric_id, 'result': round(probability), 'model_id': models[rubric_id]['model_id'],
+                 'doc_id': doc.doc_id, 'probability': probability})
+
+    db.put_rubrics(result, session, commit_session)
+    doc.rubric_ids = answers
+
+
+# take 1 rubric and all doc from test_set
+# save in DB doc_id, rubric_id and YES or NO
+def spot_test_set_rubric(test_set_id, rubric_id):
+    """spot rubrics for all documents from test_set"""
+    # get lemmas
+    docs = db.get_lemmas_freq(test_set_id)
+    docs_size = {}
+
+    # compute document size
+    for doc_id in docs:
+        lemmas = docs[doc_id]
+        docs_size[doc_id] = 0
+        for lemma in lemmas:
+            docs_size[doc_id] += lemmas[lemma]
+
+    # models for rubrics
+    training_set_id = db.get_set_id_by_rubric_id(rubric_id)
+    model = db.get_model(rubric_id, training_set_id)
+    mif_number = model['features_num']
+    idf_lemma_index = db.get_idf_lemma_index_by_set_id([training_set_id])[training_set_id]
+    lemma_index = idf_lemma_index['lemma_index']
+    training_idf = idf_lemma_index['idf']
+
+    answers = []
+    for doc_id in docs:
+        if docs_size[doc_id]:
+            features_array = np.zeros(len(lemma_index), dtype=float)
+            lemmas = docs[doc_id]
+            for lemma in lemmas:
+                # lemma index in lemmas of training set
+                ind_lemma = lemma_index.get(lemma, -1)
+                # if lemma from doc is in lemmas for training set
+                if ind_lemma > -1:
+                    features_array[ind_lemma] = lemmas[lemma] * training_idf[lemma] / docs_size[doc_id]
+            mif = features_array[model['features']]
+            mif.resize(mif_number + 1)
+            mif[mif_number] = 1
+            probability = sigmoid(np.dot(mif, model['model']))
+            answers.append({'result': round(probability), 'model_id': model['model_id'],
+                            'rubric_id': rubric_id, 'doc_id': doc_id, 'probability': probability})
+        else:
+            answers.append({'result': 0, 'model_id': model['model_id'],
+                            'rubric_id': rubric_id, 'doc_id': doc_id, 'probability': 0})
+
+    db.put_rubrics(answers)
 
 
 # compute TP, FP, TN, FN, Precision, Recall and F-score on data from db
 def f1_score(model_id, test_set_id, rubric_id):
+    """compute TP, FP, TN, FN, Precision, Recall and F-score on data from db"""
     result = {'true_positive': 0, 'false_positive': 0, 'true_negative': 0, 'false_negative': 0}
     # right answers
-    answers = db.get_answers(test_set_id, rubric_id)
+    answers = db.get_rubric_answers(test_set_id, rubric_id)
     # rubrication results
     rubrication_result = db.get_rubrication_result(model_id, test_set_id, rubric_id)
 
@@ -335,4 +596,34 @@ def f1_score(model_id, test_set_id, rubric_id):
         result['f1'] = 2 * result['precision'] * result['recall'] / (result['precision'] + result['recall'])
     else:
         result['f1'] = 0
+    return result
+
+
+def probabilities_score(model_id, test_set_id, rubric_id):
+    """compute average probability for true and false answers"""
+    result = {'true_average_probability': 0, 'false_average_probability': 0}
+    # right answers
+    answers = db.get_rubric_answers(test_set_id, rubric_id)
+    # rubrication results
+    rubrication_result = db.get_rubrication_probability(model_id, test_set_id, rubric_id)
+
+    true_number = 0
+    true_probability = 0
+    false_number = 0
+    false_probability = 0
+
+    for key in rubrication_result:
+        if answers[key]:
+            true_number += 1
+            true_probability += rubrication_result[key]
+        else:
+            false_number +=1
+            false_probability += rubrication_result[key]
+
+    if true_number:
+        result['true_average_probability'] = true_probability / true_number
+
+    if false_number:
+        result['false_average_probability'] = false_probability / false_number
+
     return result

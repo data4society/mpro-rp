@@ -1,0 +1,36 @@
+encoding "utf8";
+import "base.proto";     
+import "articles_base.proto";
+import "keywords.proto";
+import "facttypes.proto";
+
+TAuxDicArticle "Персона"
+{
+    key = { "tomita:person.cxx" type=CUSTOM }
+}
+
+TAuxDicArticle "FIO"
+{
+ key = {"alg:fio" type = CUSTOM}
+}
+
+street "Улица"
+{
+ key = "улица"|"ул"|"переулок"|"пер"|"площадь"|"пл"|"проезд"|"пр"|"проспект"|"просп"|"бульвар"|"бл"
+}
+
+location_front "ЛокацииF"
+{
+ key = { "loc_front.txt" type=FILE }
+}
+
+location_back "ЛокацииB"
+{
+ key = { "loc_back.txt" type=FILE }
+}
+
+wrong_pers "Wrong Persons"
+{
+ key = { "wrong_pers.txt" type=FILE }
+}
+
