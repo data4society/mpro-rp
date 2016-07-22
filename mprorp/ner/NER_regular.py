@@ -1,3 +1,4 @@
+"""functions for regular NER"""
 import os
 import getpass
 import sys

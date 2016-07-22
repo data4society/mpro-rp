@@ -1,3 +1,4 @@
+"""function for convert tomita result to markup: symbol to symbol coordinates"""
 import mprorp.analyzer.db as db
 
 # keys - fact fields in tomita, values - entity class
@@ -11,13 +12,14 @@ fact_entities = {'Person': 'person',
 
 
 def convert_tomita_result_to_markup2(doc_id, grammars):
+    """wrap for convert_tomita_result_to_markup with local session"""
     return db.doc_apply(doc_id, convert_tomita_result_to_markup, grammars)
 
 
 def convert_tomita_result_to_markup(doc, grammars,
                                     markup_name='another markup from tomita facts',
                                     entity=None, session=None, commit_session=True):
-
+    """convert tomita result to markup: symbol to symbol coordinates"""
     if entity is None:
         entity = '0057375a-8242-1c6d-bf64-d5cb5a7ad7dd'
     doc_id = doc.doc_id

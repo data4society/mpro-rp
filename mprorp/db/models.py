@@ -426,7 +426,6 @@ class TomitaFact(Base):
     grammar = Column(String(40))
 
 
-
 class NERModel(Base):
     __tablename__ = 'ner_models'
 
