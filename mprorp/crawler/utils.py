@@ -1,3 +1,4 @@
+"""some extra functions"""
 from requests import Request, Session
 from html.parser import HTMLParser
 import re
@@ -23,6 +24,7 @@ def send_get_request(url, encoding = '', gen_useragent = False):
 
 
 def strip_tags(html):
+    """strips text from tags"""
     html = re.sub(r'(<br ?/?>|</p>|</div>)',r'\n\1', html, 0, re.IGNORECASE)
     s = MLStripper()
     s.feed(html)
@@ -30,12 +32,14 @@ def strip_tags(html):
 
 
 def to_plain_text(txt):
+    """trims and strips text from empty strings"""
     lines = txt.split("\n")
     lines = [line.strip('\t\n\r').strip() for line in lines]
     lines = [line for line in lines if line]
     return "\n".join(lines)
 
 class MLStripper(HTMLParser):
+    """accessory class for stripping"""
     def __init__(self):
         self.reset()
         self.strict = False

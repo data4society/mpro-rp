@@ -1,24 +1,13 @@
 """vkontakte list and item parser"""
-from mprorp.celery_app import app
 
 from mprorp.db.models import *
 
-from requests import Request, Session
 import json
 import datetime
 from mprorp.crawler.utils import *
 
 #import logging
 #logging.basicConfig(format = u'%(filename)s[LINE:%(lineno)d]# %(levelname)-8s [%(asctime)s]  %(message)s', level = logging.DEBUG)
-
-def send_get_request(url):
-    """accessory function for sending requests"""
-    s = Session()
-    req = Request('GET', url)
-    prepped = req.prepare()
-    r = s.send(prepped)
-    r.encoding = 'utf-8'
-    return r.text
 
 
 def vk_start_parsing(source_id, session):
@@ -55,7 +44,6 @@ def vk_parse_list(req_result, source_id, session):
 
             # Skip item if we have any row in Document table with same guid (url)
             # skip all not 'post' items
-            #if post_type == 'post' and not select(Document.doc_id, Document.guid == url).fetchone():
             if post_type == 'post' and session.query(Document).filter_by(guid=url).count() == 0:
                 # initial insert with guid start status and reference to source
                 new_doc = Document(guid=url, source_id=source_id, status=0, type='vk')
@@ -66,6 +54,7 @@ def vk_parse_list(req_result, source_id, session):
 
 
 def vk_parse_item(item, new_doc, session):
+    """parses one item"""
     # main text
     txt = item["text"]
     stripped = strip_tags('<html><body>' + txt + '</body></html>')
@@ -89,10 +78,7 @@ def vk_parse_item(item, new_doc, session):
     meta_json['vk_owner'] = vk_get_user(item["owner_id"])
     new_doc.meta = meta_json # json.dumps(meta_json)
 
-    #.status = VK_COMPLETE_STATUS  # this status mean complete crawler work with this item
-
     session.add(new_doc)
-    #router(doc_id, VK_COMPLETE_STATUS)
 
 
 def vk_get_user(owner_id):

@@ -47,6 +47,7 @@ def gn_start_parsing(source_id, session):
 
 
 def parseItem(item, source_id, session, docs):
+    """parses one news item and create new Document object"""
     title = item.find("title").text
     gnews_link = item.find("link").text
     url = urlparse.parse_qs(urlparse.urlparse(gnews_link).query)['url'][0]
@@ -54,7 +55,6 @@ def parseItem(item, source_id, session, docs):
 
     date = datetime.datetime.strptime(date_text, "%a, %d %b %Y %H:%M:%S %Z") #Mon, 13 Jun 2016 14:54:42 GMT
     desc_html = etree.HTML('<html><head></head><body>'+item.find("description").text+'</body></html>')#.replace('<br>','<br />')
-    #print(etree.tostring(desc_html, pretty_print=True, method="html"))
     desc_div = desc_html.find("body").find("table").find("tr").find('td[@class="j"]').find("font").find('div[@class="lh"]')
     publisher = desc_div.find("font").find("b").find("font").text
     desc = desc_div.findall("font")[1].text
@@ -62,14 +62,6 @@ def parseItem(item, source_id, session, docs):
     pos = title.find(' - '+publisher)
     title = title[:pos]
 
-    """
-    if not select(Document.doc_id, Document.guid == url).fetchone():
-        print(title)
-        print(url)
-        print(publisher)
-        print(desc)
-        print(date)
-    """
     if session.query(Document).filter_by(guid=url).count() == 0:
         # initial insert with guid, start status and reference to source
         new_doc = Document(guid=url, source_id=source_id, status=0, type='article')
