@@ -31,6 +31,10 @@ def vk_parse_list(req_result, source_id, session):
 
     # convert to json object
     json_obj = json.loads(req_result)
+    if not "response" in json_obj:
+        print("RESPONSE ERROR")
+        print(source_id)
+        print(json_obj)
     docs = []
     for item in json_obj["response"]:
         if type(item) == dict:  # vk api can give Integer (Number of posts?) at the same level
@@ -86,12 +90,20 @@ def vk_get_user(owner_id):
     if owner_id > 0:
         req_result = send_get_request('https://api.vk.com/method/users.get?user_ids='+str(owner_id))
         json_obj = json.loads(req_result)
+        if not "response" in json_obj:
+            print("RESPONSE ERROR")
+            print('https://api.vk.com/method/users.get?user_ids='+str(owner_id))
+            print(json_obj)
         json_obj = json_obj["response"][0]
         json_obj["owner_type"] = "user"
         json_obj["owner_url"] = "https://vk.com/id"+str(owner_id)
     else:
         req_result = send_get_request('https://api.vk.com/method/groups.getById?group_ids=' + str(-owner_id))
         json_obj = json.loads(req_result)
+        if not "response" in json_obj:
+            print("RESPONSE ERROR")
+            print('https://api.vk.com/method/users.get?user_ids='+str(-owner_id))
+            print(json_obj)
         json_obj = json_obj["response"][0]
         json_obj["owner_type"] = "group"
         json_obj["owner_url"] = "https://vk.com/club"+str(-owner_id)
