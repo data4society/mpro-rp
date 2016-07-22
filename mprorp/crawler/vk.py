@@ -54,6 +54,7 @@ def vk_parse_list(req_result, source_id, session):
 
 
 def vk_parse_item(item, new_doc, session):
+    """parses one item"""
     # main text
     txt = item["text"]
     stripped = strip_tags('<html><body>' + txt + '</body></html>')
@@ -77,10 +78,7 @@ def vk_parse_item(item, new_doc, session):
     meta_json['vk_owner'] = vk_get_user(item["owner_id"])
     new_doc.meta = meta_json # json.dumps(meta_json)
 
-    #.status = VK_COMPLETE_STATUS  # this status mean complete crawler work with this item
-
     session.add(new_doc)
-    #router(doc_id, VK_COMPLETE_STATUS)
 
 
 def vk_get_user(owner_id):
