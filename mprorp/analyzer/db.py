@@ -9,7 +9,6 @@ import numpy as np
 import uuid
 
 
-
 def doc_apply(doc_id, my_def, *args):
     """Apply functions my_def to doc_id and other arguments in *args """
     session = Driver.DBSession()

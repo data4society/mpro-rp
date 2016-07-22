@@ -380,7 +380,9 @@ class TomitaResult(Base):
     __tablename__ = 'tomita_results'
 
     doc_id = Column(UUIDType(binary=False), ForeignKey('documents.doc_id'))
+    # grammar identifier
     grammar = Column(String(40))
+    # symbol coordinates of tomita results
     result = Column(JSONB())
 
     __table_args__ = (PrimaryKeyConstraint(doc_id, grammar),)
@@ -395,6 +397,7 @@ class NERFeature(Base):
     feature_type = Column(Integer())
     # fact_id, gaz_id, emb_id, ...
     feature = Column(String(40))
+    # lemma coordinates
     word_index = Column(Integer)
     sentence_index = Column(Integer)
     # value = Column(ARRAY(item_type=Float, dimensions=1))
