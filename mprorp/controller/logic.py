@@ -85,33 +85,33 @@ def router(doc_id, status):
 @app.task(ignore_result=True)
 def regular_gn_start_parsing(source_id):
     """parsing google news request"""
-    session = DBSession()
+    session = db_session
     docs = gn_start_parsing(source_id, session)
     for doc in docs:
         doc.status = GOOGLE_NEWS_INIT_STATUS
     session.commit()
     for doc in docs:
         router(doc.doc_id, GOOGLE_NEWS_INIT_STATUS)
-    session.close()
+    session.remove()
 
 
 @app.task(ignore_result=True)
 def regular_vk_start_parsing(source_id):
     """parsing vk request"""
-    session = DBSession()
+    session = db_session
     docs = vk_start_parsing(source_id, session)
     for doc in docs:
         doc.status = VK_COMPLETE_STATUS
     session.commit()
     for doc in docs:
         router(doc.doc_id, VK_COMPLETE_STATUS)
-    session.close()
+    session.remove()
 
 
 @app.task(ignore_result=True)
 def regular_find_full_text(doc_id, new_status):
     """parsing HTML page to find full text"""
-    session = DBSession()
+    session = db_session
     doc = session.query(Document).filter_by(doc_id=doc_id).first()
     try:
         find_full_text(doc)
@@ -131,78 +131,78 @@ def regular_find_full_text(doc_id, new_status):
 
     doc.status = new_status
     session.commit()
-    session.close()
+    session.remove()
     router(doc_id, new_status)
 
 
 @app.task(ignore_result=True)
 def regular_morpho(doc_id, new_status):
     """morphologia"""
-    session = DBSession()
+    session = db_session
     doc = session.query(Document).filter_by(doc_id=doc_id).first()
     rb.morpho_doc(doc)
     doc.status = new_status
     session.commit()
-    session.close()
+    session.remove()
     router(doc_id, new_status)
 
 
 @app.task(ignore_result=True)
 def regular_lemmas(doc_id, new_status):
     """counting lemmas frequency for one document"""
-    session = DBSession()
+    session = db_session
     doc = session.query(Document).filter_by(doc_id=doc_id).first()
     rb.lemmas_freq_doc(doc)
     doc.status = new_status
     session.commit()
-    session.close()
+    session.remove()
     router(doc_id, new_status)
 
 
 @app.task(ignore_result=True)
 def regular_rubrication(doc_id, new_status):
     """regular rubrication"""
-    session = DBSession()
+    session = db_session
     doc = session.query(Document).filter_by(doc_id=doc_id).first()
     # rb.spot_doc_rubrics2(doc_id, rubrics_for_regular, new_status)
     doc.rubric_ids = ['19848dd0-436a-11e6-beb8-9e71128cae50']
     doc.status = new_status
     session.commit()
-    session.close()
+    session.remove()
     router(doc_id, new_status)
 
 
 @app.task(ignore_result=True)
 def regular_tomita(grammar_index, doc_id, new_status):
     """tomita"""
-    session = DBSession()
+    session = db_session
     doc = session.query(Document).filter_by(doc_id=doc_id).first()
     run_tomita(doc, grammars[grammar_index], session, False)
     doc.status = new_status
     session.commit()
-    session.close()
+    session.remove()
     router(doc_id, new_status)
 
 
 @app.task(ignore_result=True)
 def regular_tomita_features(doc_id, new_status):
     """tomita features"""
-    session = DBSession()
+    session = db_session
     doc = session.query(Document).filter_by(doc_id=doc_id).first()
     ner_feature.create_tomita_feature(doc, grammars, session, False)
     doc.status = new_status
     session.commit()
-    session.close()
+    session.remove()
     router(doc_id, new_status)
 
 
 @app.task(ignore_result=True)
 def regular_entities(doc_id, new_status):
     """ner entities"""
-    session = DBSession()
+    session = db_session
     doc = session.query(Document).filter_by(doc_id=doc_id).first()
     convert_tomita_result_to_markup(doc, grammars, session=session, commit_session=False)
     doc.status = new_status
     session.commit()
-    session.close()
+    session.remove()
     router(doc_id, new_status)

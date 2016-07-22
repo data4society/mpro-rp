@@ -4,6 +4,7 @@ from sqlalchemy import MetaData
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import scoped_session
 import sqlalchemy
 import sys
 from multiprocessing.util import register_after_fork
@@ -20,14 +21,17 @@ else:
     connection_string = testdb_connection
 
 # main object which SQLA uses to connect to database
-engine = create_engine(connection_string)
+engine = create_engine(connection_string, convert_unicode=True,pool_recycle=3600, pool_size=10)
 register_after_fork(engine, engine.dispose)
 # full meta information about structure of tables
 meta = MetaData(bind=engine, reflect=True)
 # session class
-DBSession = sessionmaker(bind=engine)
-DBSession.close_all()
+#DBSession = sessionmaker(bind=engine)
+#DBSession.close_all()
 Base = declarative_base()
+
+db_session = scoped_session(sessionmaker(
+    autocommit=False, autoflush=False, bind=engine))
 
 if db_type == "server":
     import mprorp.db.models
