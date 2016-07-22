@@ -38,6 +38,7 @@ class Source(Base):
 
 
 class User(Base):
+    """contains users data"""
     __tablename__ = 'users'
 
     user_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
@@ -95,6 +96,7 @@ class Document(Base):
 
 
 class Record(Base):
+    """contains converted documents for exposing to client"""
     __tablename__ = 'records'
 
     # document id
@@ -321,6 +323,7 @@ class Mention(Base):
 
 
 class Change(Base):
+    """document changes made in client"""
     __tablename__ = 'changes'
 
     # id of document
@@ -338,6 +341,7 @@ class Change(Base):
 
 
 class SessionData(Base):
+    """contains user sessions"""
     __tablename__ = 'sessions'
 
     # session token
