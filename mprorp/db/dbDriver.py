@@ -30,18 +30,19 @@ meta = MetaData(bind=engine, reflect=True)
 #DBSession.close_all()
 Base = declarative_base()
 
-db_session = scoped_session(sessionmaker(
-    autocommit=False, autoflush=False, bind=engine))
-
 if db_type == "server":
     import mprorp.db.models
     # if any table doesn't exist it will create at this step
     Base.metadata.create_all(engine)
 
 
+def db_session():
+    return scoped_session(sessionmaker(
+    autocommit=False, autoflush=False, bind=engine))
+
 def insert(new_object):
     """insert to database with ORM"""
-    session = db_session
+    session = db_session()
     session.add(new_object)
     session.commit()
     return
@@ -57,7 +58,7 @@ def select(columns, where_clause):
 
 def update(obj):
     """update with ORM"""
-    session = db_session
+    session = db_session()
     session.merge(obj)
     session.commit()
     return obj;
@@ -74,6 +75,7 @@ def delete(table_name, where_clause):
 def dropall_and_create():
     """drop all tables and create all them again"""
     # close sessions
+    DBSession = sessionmaker(bind=engine)
     DBSession.close_all()
     #drop all which exist
     for tbl in reversed(meta.sorted_tables):

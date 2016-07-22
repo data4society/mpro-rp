@@ -13,7 +13,7 @@ from mprorp.controller.logic import regular_gn_start_parsing, regular_vk_start_p
 @app.task(ignore_result=True)
 def check_sources():
     """check sources and start crawling if need"""
-    session = db_session
+    session = db_session()
     sources = session.query(Source)\
         .filter(Source.parse_period != -1, Source.next_crawling_time < datetime.datetime.now(), Source.wait == True).all()
     for source in sources:
