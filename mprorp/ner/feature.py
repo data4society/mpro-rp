@@ -187,6 +187,11 @@ def create_tomita_feature(doc, feature_grammars, session=None, commit_session=Tr
         db.put_ner_feature(doc_id, values, ner_feature_types['tomita'], session=session, commit_session=commit_session)
 
 
+def print_tomita_result2(doc_id, feature_grammars):
+    """wrap for print_tomita_result"""
+    db.doc_apply(doc_id, print_tomita_result, feature_grammars)
+
+
 def print_tomita_result(doc, feature_grammars):
     """print tomita results - symbol coordinates from db"""
     doc_id = doc.doc_id
