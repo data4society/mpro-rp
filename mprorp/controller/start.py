@@ -16,9 +16,15 @@ def check_sources():
     session = db_session()
     sources = session.query(Source)\
         .filter(Source.parse_period != -1, Source.next_crawling_time < datetime.datetime.now(), Source.wait == True).all()
+    print("check_sources: commit")
+    session.query(Source) \
+        .filter(Source.parse_period != -1, Source.next_crawling_time < datetime.datetime.now(),
+                Source.wait == True).update({"wait":False})
+    #session.commit()
+    session.remove()
     for source in sources:
         print("NEED CRAWL: ", source.source_id)
-        source.wait=False
+        # source.wait=False
         source_type = str(source.source_type_id)
         if source_type in ['0cc76b0c-531e-4a90-ab0b-078695336df5','81518bd0-9aef-4899-84c5-c1839e155963']: #  vk
             regular_vk_start_parsing.delay(source.source_id)
@@ -26,10 +32,6 @@ def check_sources():
             print("START GOOGLE NEWS CRAWL")
             regular_gn_start_parsing.delay(source.source_id)
         print("NEED CRAWL1: ", source.source_id)
-    session.commit()
-    print("check_sources: commit")
-    session.remove()
-
 
 
 
