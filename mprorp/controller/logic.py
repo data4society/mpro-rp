@@ -103,6 +103,7 @@ def regular_vk_start_parsing(source_id):
     for doc in docs:
         doc.status = VK_COMPLETE_STATUS
     session.commit()
+    print("regular_vk_start_parsing commit", source_id)
     for doc in docs:
         router(doc.doc_id, VK_COMPLETE_STATUS)
     session.remove()

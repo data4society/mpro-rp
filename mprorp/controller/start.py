@@ -25,7 +25,9 @@ def check_sources():
         if source_type in ['1d6210b2-5ff3-401c-b0ba-892d43e0b741', '62cf1ff2-c860-40db-92e6-c3a3898fea48']: #  google_news
             print("START GOOGLE NEWS CRAWL")
             regular_gn_start_parsing.delay(source.source_id)
+        print("NEED CRAWL1: ", source.source_id)
     session.commit()
+    print("check_sources: commit")
     session.remove()
 
 
