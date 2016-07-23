@@ -14,14 +14,14 @@ from mprorp.controller.logic import regular_gn_start_parsing, regular_vk_start_p
 def check_sources():
     """check sources and start crawling if need"""
     session = db_session()
-    sources = session.query(Source)\
-        .filter(Source.parse_period != -1, Source.next_crawling_time < datetime.datetime.now(), Source.wait == True).all()
-    print("check_sources: commit")
     session.query(Source) \
-        .filter(Source.parse_period != -1, Source.next_crawling_time < datetime.datetime.now(),
-                Source.wait == True).update({"wait":False})
-    #session.commit()
-    session.remove()
+        .filter(Source.parse_period != -1, Source.next_crawling_time < datetime.datetime.now(), Source.wait == True)\
+        .update({"wait":False})
+    session.commit()
+    print("check_sources: commit")
+    sources = session.query(Source)\
+        .filter(Source.parse_period != -1, Source.next_crawling_time < datetime.datetime.now(), Source.wait == True)\
+        .all()
     for source in sources:
         print("NEED CRAWL: ", source.source_id)
         # source.wait=False
@@ -32,6 +32,7 @@ def check_sources():
             print("START GOOGLE NEWS CRAWL")
             regular_gn_start_parsing.delay(source.source_id)
         print("NEED CRAWL1: ", source.source_id)
+    session.remove()
 
 
 
