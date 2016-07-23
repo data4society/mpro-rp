@@ -35,6 +35,7 @@ if db_type == "server":
     # if any table doesn't exist it will create at this step
     Base.metadata.create_all(engine)
 
+print("INIT DB")
 
 def db_session():
     return scoped_session(sessionmaker(

@@ -3,6 +3,7 @@ from celery import Celery
 import mprorp.celeryconfig as celeryconfig
 
 # create Celery instance and load config
+print("STARTING CELERY APP")
 app = Celery('mprorp',
              broker='amqp://',
              # backend='amqp://',

@@ -17,10 +17,12 @@ def check_sources():
     sources = session.query(Source)\
         .filter(Source.parse_period != -1, Source.next_crawling_time < datetime.datetime.now(), Source.wait == True)\
         .all()
+    """
     session.query(Source) \
         .filter(Source.parse_period != -1, Source.next_crawling_time < datetime.datetime.now(), Source.wait == True)\
         .update({"wait":False})
     session.commit()
+    """
     print("check_sources: commit")
     for source in sources:
         print("NEED CRAWL: ", source.source_id)
