@@ -50,24 +50,26 @@ def vk_parse_list(req_result, source_id, session):
             # skip all not 'post' items
             if post_type == 'post' and session.query(Document).filter_by(guid=url).count() == 0:
                 # initial insert with guid start status and reference to source
-                new_doc = Document(guid=url, source_id=source_id, status=0, type='vk')
+                new_doc = Document(guid=url, source_id=source_id, type='vk', meta=item)
                 docs.append(new_doc)
+                session.add(new_doc)
                 # further parsing
-                vk_parse_item(item, new_doc, session)
+                #vk_parse_item(item, new_doc, session)
     return docs
 
 
-def vk_parse_item(item, new_doc, session):
+def vk_parse_item(doc):
     """parses one item"""
+    item = doc.meta  # json from main list
     # main text
     txt = item["text"]
     stripped = strip_tags('<html><body>' + txt + '</body></html>')
     stripped = to_plain_text(stripped)
-    new_doc.doc_source = txt
-    new_doc.stripped = stripped
+    doc.doc_source = txt
+    doc.stripped = stripped
     # publish date timestamp
     timestamp = item["date"]
-    new_doc.published_date = datetime.datetime.fromtimestamp(timestamp)
+    doc.published_date = datetime.datetime.fromtimestamp(timestamp)
 
     # additional information
     meta_json = dict()
@@ -80,9 +82,7 @@ def vk_parse_item(item, new_doc, session):
         meta_json['vk_attachments'] = attachments
     # owner info
     meta_json['vk_owner'] = vk_get_user(item["owner_id"])
-    new_doc.meta = meta_json # json.dumps(meta_json)
-
-    session.add(new_doc)
+    doc.meta = meta_json # json.dumps(meta_json)
 
 
 def vk_get_user(owner_id):

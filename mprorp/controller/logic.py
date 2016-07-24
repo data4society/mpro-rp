@@ -16,12 +16,13 @@ from urllib.error import *
 # from mprorp.db.dbDriver import DBSession
 
 from mprorp.crawler.google_news import gn_start_parsing
-from mprorp.crawler.vk import vk_start_parsing
+from mprorp.crawler.vk import vk_start_parsing, vk_parse_item
 
 # statuses
+VK_INIT_STATUS = 10
 VK_COMPLETE_STATUS = 19
 GOOGLE_NEWS_INIT_STATUS = 20
-GOOGLE_NEWS_INIT_STATUS = 21
+#GOOGLE_NEWS_COMPLETE_STATUS = 21
 SITE_PAGE_LOADING_FAILED = 91
 SITE_PAGE_COMPLETE_STATUS = 99
 
@@ -56,6 +57,8 @@ def router(doc_id, status):
     logging.info("route doc: " + str(doc_id) + " status: " + str(status))
     if status == GOOGLE_NEWS_INIT_STATUS:  # to find full text of HTML page
         regular_find_full_text.delay(doc_id, SITE_PAGE_COMPLETE_STATUS)
+    elif status == VK_INIT_STATUS:  # to complete vk item parsing
+        regular_vk_parse_item.delay(doc_id, VK_COMPLETE_STATUS)
     elif status < 100 and status%10 == 9:  # to morpho
         source_id = select([Document.source_id], Document.doc_id == doc_id).fetchone()[0]
         source_type = select([Source.source_type_id], Source.source_id == source_id).fetchone()[0]
@@ -101,12 +104,24 @@ def regular_vk_start_parsing(source_id):
     session = db_session()
     docs = vk_start_parsing(source_id, session)
     for doc in docs:
-        doc.status = VK_COMPLETE_STATUS
+        doc.status = VK_INIT_STATUS
     session.commit()
     print("regular_vk_start_parsing commit", source_id)
     for doc in docs:
-        router(doc.doc_id, VK_COMPLETE_STATUS)
+        router(doc.doc_id, VK_INIT_STATUS)
     session.remove()
+
+
+@app.task(ignore_result=True)
+def regular_vk_parse_item(doc_id, new_status):
+    """parsing vk request"""
+    session = db_session()
+    doc = session.query(Document).filter_by(doc_id=doc_id).first()
+    vk_parse_item(doc)
+    doc.status = new_status
+    session.commit()
+    session.remove()
+    router(doc_id, new_status)
 
 
 @app.task(ignore_result=True)
