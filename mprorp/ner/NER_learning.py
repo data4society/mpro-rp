@@ -13,6 +13,9 @@ from mprorp.ner.utils import data_iterator
 from mprorp.ner.model import LanguageModel
 import mprorp.analyzer.db as db
 from mprorp.ner.config import features_size
+from mprorp.ner.feature import ner_feature_types
+import pickle as pickle
+
 
 class Config(object):
     """Holds model hyperparams and data information.
@@ -21,16 +24,17 @@ class Config(object):
     information parameters. Model objects are passed a Config() object at
     instantiation.
     """
+    new_model = True
     embed_size = 300
     batch_size = 64
     label_size = 5
     hidden_size = 500
     max_epochs = 24
-    early_stopping = 5
+    early_stopping = 2
     dropout = 0.9
     lr = 0.001
     l2 = 0.001
-    window_size = 7
+    window_size = 5
     training_set = u'199698a2-e3f4-48a8-aaaa-09778161c8c4'
     dev_set = u'074c809b-208c-4fb4-851c-1e71d7f01b60'
     pre_embedding = True
@@ -99,7 +103,9 @@ class NERModel(LanguageModel):
 
         # Create word_to_num and LookUp table (wv)
 
-        wv_array = [np.random.uniform(-0.1, 0.1, 300)]
+        # If word not in wv_dict (in embedding) we change it with 'UUUNKKK' = 0
+        # We can append random array for such word
+        wv_array = [np.random.uniform(-0.1, 0.1, Config.embed_size)]
 
         word_to_num = {'UUUNKKK': 0}
         count = 1
@@ -108,16 +114,7 @@ class NERModel(LanguageModel):
             wv_array.append(wv_dict[word])
             count += 1
 
-        # If word not in wv_dict (in embedding) we change it with 'UUUNKKK' = 0
-        # We can append random array for such word
-
         self.wv = np.array(wv_array, dtype=np.float32)
-        # refs[doc_if] = [(start_offset, end_offset, entity_class)]
-        # refs = db.get_references_for_set(training_set)
-
-        # refs -> answers:
-        # for doc_id in refs:
-        #     for word in train_set_words[doc_id]:
 
         answers = db.get_ner_feature_for_set_dict(training_set, self.config.feature_answer)
 
@@ -130,8 +127,6 @@ class NERModel(LanguageModel):
                     tagnames.append(ans_tuple)
 
         self.config.label_size = len(tagnames)
-        # tagnames = [0, ('person', 'B'), ('person', 'I'), ('person', 'E'), ('person', 'S'),
-        #                ('org', 'B'), ('org', 'I'), ('org', 'E'), ('org', 'S')]
         self.num_to_tag = dict(enumerate(tagnames))
         tag_to_num = {v: k for k, v in iter(self.num_to_tag.items())}
 
@@ -158,7 +153,33 @@ class NERModel(LanguageModel):
                                                          features_set, features_size, self.config.features_length,
                                                          wsize=self.config.window_size)
 
+        self.word_to_num = word_to_num
+        self.tag_to_num = tag_to_num
         print("Размер учебной выборки: ", len(self.X_train))
+
+        # self.tagnames = tagnames
+
+    def load_data_file(self, doc_id, session, debug=False):
+        """Loads starter word-vectors and train/dev/test data."""
+        # Load the starter word vectors
+        # training_set = self.config.training_set
+        #  train_set_words[doc_id] = [(sentence, word, [lemma1, lemma2]), ... (...)]
+        doc_set_words = {}
+        doc_set_words[doc_id] = db.get_ner_feature_one_feature(doc_id, 'embedding', session=session)
+
+        self.config.label_size = len(self.tag_to_num)
+
+        features_set = {}
+        for feat in self.config.features:
+            features_set[feat] = db.get_ner_feature_one_feature_dict(doc_id, feat, session=session)
+
+        self.feat_test, self.X_test, self.y_test, _ = du.docs_to_windows2(doc_set_words, self.word_to_num,
+                                                                             self.tag_to_num, {},
+                                                                             self.config.features,
+                                                                             features_set, features_size,
+                                                                             self.config.features_length,
+                                                                             wsize=self.config.window_size)
+
 
         # self.tagnames = tagnames
 
@@ -298,7 +319,7 @@ class NERModel(LanguageModel):
             if pre_embedding:
                 embedding = tf.Variable(self.wv, name='Embedding')
             else:
-                embedding = tf.get_variable('Embedding', [len(self.wv), self.config.embed_size])
+                embedding = tf.get_variable('Embedding', [len(self.word_to_num), self.config.embed_size])
             # embedding = tf.Variable(self.wv, name='Embedding')
             window = tf.nn.embedding_lookup(embedding, self.input_placeholder)
             window = tf.reshape(
@@ -404,13 +425,20 @@ class NERModel(LanguageModel):
         ### END YOUR CODE
         return train_op
 
-    def __init__(self, config):
+    def __init__(self, params, session=None):
         """Constructs the network using the helper functions defined above."""
-        self.config = config
+        self.config = params['config']
         # self.load_data(debug=False)
-        self.load_data_db(debug=False)
+        if self.config.new_model:
+            self.load_data_db(debug=False)
+
+        else:
+            self.word_to_num = params['words']
+            self.tag_to_num = params['tags']
+            self.load_data_file(self.config.doc.doc_id, session, debug=False)
+
         self.add_placeholders()
-        window = self.add_embedding(config.pre_embedding)
+        window = self.add_embedding(self.config.pre_embedding if self.config.new_model else False)
         y = self.add_model(window)
 
         self.loss = self.add_loss_op(y)
@@ -503,17 +531,16 @@ def calculate_confusion(config, predicted_indices, y_indices):
     return confusion
 
 
-def NER_learning(filename):
-    """Test NER model implementation.
-
-    You can use this function to test your implementation of the Named Entity
-    Recognition network. When debugging, set max_epochs in the Config object to 1
-    so you can rapidly iterate.
+def NER_learning(filename_params, filename_tf):
+    """NER model implementation.
     """
     config = Config()
     with tf.Graph().as_default():
-        model = NERModel(config)
-
+        model = NERModel({'config': config})
+        output_file = open(filename_params, 'wb')
+        pickle.dump({'words':model.word_to_num, 'tags':model.tag_to_num, 'config': model.config},
+                    output_file, protocol=3)
+        output_file.close()
         init = tf.initialize_all_variables()
         saver = tf.train.Saver()
 
@@ -536,7 +563,7 @@ def NER_learning(filename):
                     best_val_loss = val_loss
                     best_val_epoch = epoch
 
-                    saver.save(session, filename)
+                    saver.save(session, filename_tf)
                 if epoch - best_val_epoch > config.early_stopping:
                     break
                 ###
@@ -545,32 +572,28 @@ def NER_learning(filename):
                 print('Total time: {}'.format(time.time() - start))
 
 
-def NER_predict(filename):
-
-    config = Config()
+def NER_predict(doc, session_db, filename_params, filename_tf):
+    input_file = open(filename_params, 'rb')
+    params = pickle.load(input_file)
+    input_file.close()
+    params['config'].doc = doc
+    params['config'].new_model = False
     with tf.Graph().as_default():
-        model = NERModel(config)
+        model = NERModel(params, session=session_db)
 
+        init = tf.initialize_all_variables()
         saver = tf.train.Saver()
 
         with tf.Session() as session:
 
-            saver.restore(session, filename)
+            saver.restore(session, filename_tf)
             print('dev: lemma, answer, ner answer')
             print('=-=-=')
-            _, predictions = model.predict(session, model.X_dev, model.y_dev, model.feat_dev)
-            for i in range(len(model.w_dev)):
-                print(model.w_dev[i], model.num_to_tag[model.y_dev[i]], model.num_to_tag[predictions[i]])
+            _, predictions = model.predict(session, model.X_test, features=model.feat_test)
+            num_to_word = {v: k for k, v in model.word_to_num.items()}
+            num_to_tag = {v: k for k, v in model.tag_to_num.items()}
+            for i in range(len(predictions)):
+                print([num_to_word[j] for j in model.X_test[i]], num_to_tag[predictions[i]])
 
 
 
-
-if __name__ == "__main__":
-
-    if not os.path.exists("./weights"):
-        os.makedirs("./weights")
-
-    filename = './weights/ner.weights'
-    NER_learning(filename)
-
-    NER_predict(filename)

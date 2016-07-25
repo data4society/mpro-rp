@@ -15,7 +15,7 @@ def doc_apply(doc_id, my_def, *args):
     doc = session.query(Document).filter_by(doc_id=doc_id).first()
     result = my_def(doc, *args)
     session.commit()
-    return  result
+    return result
 
 
 # writing result of morphological analysis of document in db
@@ -357,6 +357,32 @@ def get_ner_feature(doc_id, session=None):
         result[(i.sentence_index, i.word_index, i.feature)] = i.value
     return result
 
+
+def get_ner_feature_one_feature_dict(doc_id, feature, session=None):
+    return get_ner_feature_one_feature(doc_id, feature, return_dict=True, session=session)
+
+
+def get_ner_feature_one_feature(doc_id, feature, return_dict=False, session=None):
+
+    if session is None:
+        session = Driver.db_session()
+
+    query_result = session.query(NERFeature).filter(
+        (NERFeature.doc_id == doc_id) & (
+            NERFeature.feature == feature)).order_by(
+        NERFeature.sentence_index, NERFeature.word_index).all()
+    if return_dict:
+        result = {}
+    else:
+        result = []
+    for rec in query_result:
+        if return_dict:
+            result[(rec.sentence_index, rec.word_index)] = rec.value
+        else:
+            result.append((rec.sentence_index, rec.word_index, rec.value))
+    return result
+
+
 def get_ner_feature_for_features(doc_id, feature_type, features, session=None):
 
     if session is None:
@@ -372,6 +398,8 @@ def get_ner_feature_for_features(doc_id, feature_type, features, session=None):
         result.append((rec.sentence_index, rec.word_index, rec.feature))
 
     return result
+
+
 
 
 def get_ner_feature_for_set_dict(set_id, feature=None):
@@ -478,6 +506,7 @@ def get_references_for_doc(doc_id, markup_type='10', session=None):
     for ref in refs:
         result.append((ref[0].start_offset, ref[0].end_offset, ref[0].entity_class))
     return result
+
 
 def get_multi_word_embedding(embedding, lemmas, session=None):
     """read embeddings for lemmas"""
