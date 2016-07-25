@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# base setup tomita script
 cd $1
 mkdir tomita
 cd tomita

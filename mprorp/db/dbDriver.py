@@ -1,15 +1,16 @@
 """database driver for more simple working with sqlalchemy and postgres"""
+
 from sqlalchemy import MetaData
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import scoped_session
+from sqlalchemy.pool import NullPool
 import sqlalchemy
 import sys
 from multiprocessing.util import register_after_fork
-
-
-
 from mprorp.config.settings import *
+
 if ("maindb" in sys.argv) or ("worker" in sys.argv):
     db_type = "server"
 else:
@@ -21,12 +22,13 @@ else:
     connection_string = testdb_connection
 
 # main object which SQLA uses to connect to database
-engine = create_engine(connection_string)
+engine = create_engine(connection_string, convert_unicode=True, poolclass=NullPool)  # pool_recycle=3600, pool_size=10)
 register_after_fork(engine, engine.dispose)
 # full meta information about structure of tables
 meta = MetaData(bind=engine, reflect=True)
 # session class
-DBSession = sessionmaker(bind=engine)
+#DBSession = sessionmaker(bind=engine)
+#DBSession.close_all()
 Base = declarative_base()
 
 if db_type == "server":
@@ -34,10 +36,15 @@ if db_type == "server":
     # if any table doesn't exist it will create at this step
     Base.metadata.create_all(engine)
 
+print("INIT DB")
+
+def db_session():
+    return scoped_session(sessionmaker(
+    autocommit=False, autoflush=False, bind=engine))
 
 def insert(new_object):
     """insert to database with ORM"""
-    session = DBSession()
+    session = db_session()
     session.add(new_object)
     session.commit()
     return
@@ -53,7 +60,7 @@ def select(columns, where_clause):
 
 def update(obj):
     """update with ORM"""
-    session = DBSession()
+    session = db_session()
     session.merge(obj)
     session.commit()
     return obj;
@@ -70,6 +77,7 @@ def delete(table_name, where_clause):
 def dropall_and_create():
     """drop all tables and create all them again"""
     # close sessions
+    DBSession = sessionmaker(bind=engine)
     DBSession.close_all()
     #drop all which exist
     for tbl in reversed(meta.sorted_tables):

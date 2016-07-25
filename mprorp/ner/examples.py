@@ -77,7 +77,7 @@ from mprorp.tomita.grammars.config import config as grammar_config
 #
 # import mprorp.db.dbDriver as Driver
 # from mprorp.db.models import *
-# session = Driver.DBSession()
+# session = Driver.db_session()
 # tr_set = []
 # dev_set = []
 # res = session.query(Document.doc_id).filter(Document.type == 'oc').all()

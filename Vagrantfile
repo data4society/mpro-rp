@@ -8,10 +8,10 @@
 Vagrant.configure(2) do |config|
   # ubuntu 14.04 image
   config.vm.box = "modcloth/trusty64"
-  # setup script for vagrant and travis
+  # main setup script for vagrant or travis
   config.vm.provision "shell", path: "scripts/setup.sh"
-  # setup postgres script for vagrant
+  # setup postgres script
   config.vm.provision "shell", path: "scripts/postgres.sh"
-  # setup tomita script for vagrant
+  # setup tomita for vagrant script
   config.vm.provision "shell", path: "scripts/tomita_vagrant.sh"
 end

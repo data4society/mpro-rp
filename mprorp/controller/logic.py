@@ -1,3 +1,4 @@
+"""main processes controller: statuses, route function and tasks"""
 from mprorp.db.dbDriver import *
 from mprorp.db.models import *
 
@@ -12,28 +13,35 @@ from mprorp.celery_app import app
 import logging
 from urllib.error import *
 
-from mprorp.db.dbDriver import DBSession
+# from mprorp.db.dbDriver import DBSession
 
 from mprorp.crawler.google_news import gn_start_parsing
-from mprorp.crawler.vk import vk_start_parsing
+from mprorp.crawler.vk import vk_start_parsing, vk_parse_item
 
+# statuses
+VK_INIT_STATUS = 10
 VK_COMPLETE_STATUS = 19
 GOOGLE_NEWS_INIT_STATUS = 20
-GOOGLE_NEWS_INIT_STATUS = 21
+#GOOGLE_NEWS_COMPLETE_STATUS = 21
 SITE_PAGE_LOADING_FAILED = 91
 SITE_PAGE_COMPLETE_STATUS = 99
+
 MORPHO_COMPLETE_STATUS = 100
 LEMMAS_COMPLETE_STATUS = 101
 RUBRICATION_COMPLETE_STATUS = 102
+
 TOMITA_FIRST_COMPLETE_STATUS = 200
 NER_TOMITA_FEATURES_COMPLETE_STATUS = 300
 NER_ENTITIES_COMPLETE_STATUS = 350
 REGULAR_PROCESSES_FINISH_STATUS = 1000
-VALIDATION_AND_CONVERTING_COMPLETE = 1001
+
+VALIDATION_AND_CONVERTING_COMPLETE = 1001  # mpro redactor sets this and next status
 VALIDATION_FAILED = 1002
 FROM_OPEN_CORPORA = 1100
 FROM_MANUAL_SOURCES_FOR_LEARNING = 1101
 FOR_TRAINING = 1000
+FOR_RUBRICS_TRAINING = 1200  # Normal documents from crawler that marked in redactor as for training
+
 EMPTY_TEXT = 2000
 
 
@@ -44,16 +52,18 @@ facts = ['Person']
 
 
 def router(doc_id, status):
+    """route function, that adds new tasks by incoming result (document's status)"""
     doc_id = str(doc_id)
     logging.info("route doc: " + str(doc_id) + " status: " + str(status))
     if status == GOOGLE_NEWS_INIT_STATUS:  # to find full text of HTML page
         regular_find_full_text.delay(doc_id, SITE_PAGE_COMPLETE_STATUS)
+    elif status == VK_INIT_STATUS:  # to complete vk item parsing
+        regular_vk_parse_item.delay(doc_id, VK_COMPLETE_STATUS)
     elif status < 100 and status%10 == 9:  # to morpho
         source_id = select([Document.source_id], Document.doc_id == doc_id).fetchone()[0]
         source_type = select([Source.source_type_id], Source.source_id == source_id).fetchone()[0]
         source_type = str(source_type)
         if source_type in ['0cc76b0c-531e-4a90-ab0b-078695336df5','1d6210b2-5ff3-401c-b0ba-892d43e0b741']:
-            #doc_id = str(doc_id)
             regular_morpho.delay(doc_id, MORPHO_COMPLETE_STATUS)
         else:
             doc = Document(doc_id=doc_id, status=FOR_TRAINING, type='tng')
@@ -75,35 +85,49 @@ def router(doc_id, status):
         update(doc)
 
 
-# parsing google news request
 @app.task(ignore_result=True)
 def regular_gn_start_parsing(source_id):
-    session = DBSession()
+    """parsing google news request"""
+    session = db_session()
     docs = gn_start_parsing(source_id, session)
     for doc in docs:
         doc.status = GOOGLE_NEWS_INIT_STATUS
     session.commit()
     for doc in docs:
         router(doc.doc_id, GOOGLE_NEWS_INIT_STATUS)
-    session.close()
+    session.remove()
 
-# parsing vk request
+
 @app.task(ignore_result=True)
 def regular_vk_start_parsing(source_id):
-    session = DBSession()
+    """parsing vk request"""
+    session = db_session()
     docs = vk_start_parsing(source_id, session)
     for doc in docs:
-        doc.status = VK_COMPLETE_STATUS
+        doc.status = VK_INIT_STATUS
     session.commit()
+    print("regular_vk_start_parsing commit", source_id)
     for doc in docs:
-        router(doc.doc_id, VK_COMPLETE_STATUS)
-    session.close()
+        router(doc.doc_id, VK_INIT_STATUS)
+    session.remove()
 
 
-# parsing HTML page to find full text
+@app.task(ignore_result=True)
+def regular_vk_parse_item(doc_id, new_status):
+    """parsing vk request"""
+    session = db_session()
+    doc = session.query(Document).filter_by(doc_id=doc_id).first()
+    vk_parse_item(doc)
+    doc.status = new_status
+    session.commit()
+    session.remove()
+    router(doc_id, new_status)
+
+
 @app.task(ignore_result=True)
 def regular_find_full_text(doc_id, new_status):
-    session = DBSession()
+    """parsing HTML page to find full text"""
+    session = db_session()
     doc = session.query(Document).filter_by(doc_id=doc_id).first()
     try:
         find_full_text(doc)
@@ -123,78 +147,78 @@ def regular_find_full_text(doc_id, new_status):
 
     doc.status = new_status
     session.commit()
-    session.close()
+    session.remove()
     router(doc_id, new_status)
 
 
-# morphologia
 @app.task(ignore_result=True)
 def regular_morpho(doc_id, new_status):
-    session = DBSession()
+    """morphologia"""
+    session = db_session()
     doc = session.query(Document).filter_by(doc_id=doc_id).first()
     rb.morpho_doc(doc)
     doc.status = new_status
     session.commit()
-    session.close()
+    session.remove()
     router(doc_id, new_status)
 
 
-# counting lemmas frequency for one document
 @app.task(ignore_result=True)
 def regular_lemmas(doc_id, new_status):
-    session = DBSession()
+    """counting lemmas frequency for one document"""
+    session = db_session()
     doc = session.query(Document).filter_by(doc_id=doc_id).first()
     rb.lemmas_freq_doc(doc)
     doc.status = new_status
     session.commit()
-    session.close()
+    session.remove()
     router(doc_id, new_status)
 
 
-# regular rubrication
 @app.task(ignore_result=True)
 def regular_rubrication(doc_id, new_status):
-    session = DBSession()
+    """regular rubrication"""
+    session = db_session()
     doc = session.query(Document).filter_by(doc_id=doc_id).first()
     # rb.spot_doc_rubrics2(doc_id, rubrics_for_regular, new_status)
     doc.rubric_ids = ['19848dd0-436a-11e6-beb8-9e71128cae50']
     doc.status = new_status
     session.commit()
-    session.close()
+    session.remove()
     router(doc_id, new_status)
 
 
-# tomita
 @app.task(ignore_result=True)
 def regular_tomita(grammar_index, doc_id, new_status):
-    session = DBSession()
+    """tomita"""
+    session = db_session()
     doc = session.query(Document).filter_by(doc_id=doc_id).first()
     run_tomita(doc, grammars[grammar_index], session, False)
     doc.status = new_status
     session.commit()
-    session.close()
+    session.remove()
     router(doc_id, new_status)
 
 
-# tomita features
 @app.task(ignore_result=True)
 def regular_tomita_features(doc_id, new_status):
-    session = DBSession()
+    """tomita features"""
+    session = db_session()
     doc = session.query(Document).filter_by(doc_id=doc_id).first()
     ner_feature.create_tomita_feature(doc, grammars, session, False)
     doc.status = new_status
     session.commit()
-    session.close()
+    session.remove()
     router(doc_id, new_status)
 
 
-# ner entities
 @app.task(ignore_result=True)
 def regular_entities(doc_id, new_status):
-    session = DBSession()
+    """ner entities"""
+    session = db_session()
     doc = session.query(Document).filter_by(doc_id=doc_id).first()
     convert_tomita_result_to_markup(doc, grammars, session=session, commit_session=False)
     doc.status = new_status
     session.commit()
-    session.close()
+    session.remove()
     router(doc_id, new_status)

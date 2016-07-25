@@ -33,6 +33,7 @@ def compaire (source1,source2):
     return same*2/float(len(source1) + len(source2))*100
 
 def get_compare_estimate(text1, text2):
+    """get comparing results (between 0 and 1)"""
 
     cmp1 = genshingle(canonize(text1))
     cmp2 = genshingle(canonize(text2))

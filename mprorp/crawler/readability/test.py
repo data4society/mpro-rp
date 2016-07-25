@@ -1,4 +1,4 @@
-"""script for testing algorithms"""
+"""script for testing readability algorithms"""
 import mprorp.crawler.readability.readability_com as read_com
 import mprorp.crawler.readability.lxml_readability as read_lxml
 import mprorp.crawler.readability.readability2 as read2
@@ -12,7 +12,7 @@ from urllib.error import *
 from readability.encoding import get_encoding
 import html
 
-
+# links whick blocked by cloudflare firewall
 cloudflare_links = ['http://podrobnosti.ua/2115445-frantsuzy-edut-rassledovat-zaderzhanie-sbu-terrorista.html', 'http://ryb.ru/2016/06/21/348972',
     'http://ryb.ru/2016/06/21/348890', 'http://ryb.ru/2016/06/21/349088',
     'http://www.aysor.am/ru/news/2016/06/21/%D1%81%D0%B5%D1%84%D0%B8%D0%BB%D1%8F%D0%BD/1100847',
@@ -26,6 +26,7 @@ bad_links = ['http://pskov.riasv.ru/news/vo_frantsii_arestovali_krupnogo_pskovsk
 
 
 def create_table(func, out_path):
+    """create table with results of some algorithm which worked through function func"""
     with open(out_path, 'w') as csvnewfile:
         spamwriter = csv.writer(csvnewfile)
         with open('corpus/readability_corpus.csv', 'r') as csvfile:
@@ -41,6 +42,7 @@ def create_table(func, out_path):
                 ind += 1
 
 def create_table_with_confidence(func, out_path):
+    """create table with results and confidences of some algorithm which worked through function func"""
     with open(out_path, 'w') as csvnewfile:
         spamwriter = csv.writer(csvnewfile)
         with open('corpus/readability_corpus.csv', 'r') as csvfile:
@@ -57,6 +59,7 @@ def create_table_with_confidence(func, out_path):
                 ind += 1
 
 def create_table_remote(func, out_path):
+    """create table with results from remote pages"""
     with open(out_path, 'w') as csvnewfile:
         spamwriter = csv.writer(csvnewfile)
         with open('corpus/readability_corpus.csv', 'r') as csvfile:
@@ -69,6 +72,7 @@ def create_table_remote(func, out_path):
 
 
 def create_estimates_table(in_path, out_path):
+    """create table with estimates of current algorithm (specified by in_path - path of csv table)"""
     with open(out_path, 'w') as csvnewfile:
         spamwriter = csv.writer(csvnewfile)
         with open(in_path, 'r') as csvfile:
@@ -80,6 +84,7 @@ def create_estimates_table(in_path, out_path):
 
 
 def get_final_estimate(in_path):
+    """print final estimate of algorithm"""
     estimates = list()
     estimates1 = list()
     estimates90 = 0
@@ -115,6 +120,7 @@ def get_final_estimate(in_path):
 
 
 def find_errors():
+    """accessory function for finding errors"""
     with open('corpus/readability_lxml_estimates.csv', 'r') as csvfile:
         spamreader = csv.reader(csvfile)
         for row in spamreader:
@@ -122,22 +128,8 @@ def find_errors():
                 print(row[0])
 
 
-def estimate_estimate():
-    with open('corpus/readability_lxml_estimates.csv', 'r') as csvfile:
-        spamreader = csv.reader(csvfile)
-
-        for row in spamreader:
-            if row[0] == 'http://echospb.ru/2016/06/22/v-sb-ukraini-soobschili-chto-v-gosudarstve-net-baz-po/':
-                source = row[1]
-                #source = strip_tags(source)
-                source = to_plain_text(source)
-                res = read_lxml.find_full_text('http://echospb.ru/2016/06/22/v-sb-ukraini-soobschili-chto-v-gosudarstve-net-baz-po/')
-                print(source)
-                print(res)
-                print(get_compare_estimate(source,res))
-
-
 def create_corpus():
+    """creating local corpus by csv with links and ideal readability results"""
     with open('corpus/readability_corpus.csv', 'r') as csvfile:
         spamreader = csv.reader(csvfile)
         ind = 1
@@ -174,6 +166,7 @@ def create_corpus():
 
 
 if __name__ == '__main__':
+    """start testing from here"""
     """
     with open('corpus/test.html', 'rb') as f:
         html_source = f.read()

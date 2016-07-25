@@ -38,6 +38,7 @@ class Source(Base):
 
 
 class User(Base):
+    """contains users data"""
     __tablename__ = 'users'
 
     user_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
@@ -95,6 +96,7 @@ class Document(Base):
 
 
 class Record(Base):
+    """contains converted documents for exposing to client"""
     __tablename__ = 'records'
 
     # document id
@@ -135,6 +137,7 @@ class Record(Base):
 
 
 class TrainingSet(Base):
+    """sets of document for train and test models"""
     __tablename__ = 'trainingsets'
 
     set_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
@@ -157,6 +160,7 @@ class TrainingSet(Base):
 
 
 class Rubric(Base):
+    """rubrics for document rubrication"""
     __tablename__ = 'rubrics'
 
     rubric_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
@@ -171,15 +175,19 @@ class Rubric(Base):
 
 
 class DocumentRubric(Base):
-    # Row in table means document associated with rubric by user
+    """result of rubrication by users"""
     __tablename__ = 'documentrubrics'
 
+    # document identificator
     doc_id = Column(UUIDType(binary=False), ForeignKey('documents.doc_id'))
+    # document identifier
     rubric_id = Column(UUIDType(binary=False), ForeignKey('rubrics.rubric_id'))
+    # rubric identifier
     __table_args__ = (PrimaryKeyConstraint(doc_id, rubric_id),)
 
 
 class RubricationModel(Base):
+    """models for rubrication"""
     __tablename__ = 'rubricationmodels'
 
     model_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
@@ -199,11 +207,13 @@ class RubricationModel(Base):
 
 
 class RubricationResult(Base):
-    # Row in table means rubric (rubric_id) for document (doc_id) was compute with model (model_id)
+    """result of rubrication  (rubric_id) for document (doc_id) was compute with model (model_id)"""
     __tablename__ = 'rubricationresults'
-
+    # model
     model_id = Column(UUIDType(binary=False), ForeignKey('rubricationmodels.model_id'))
+    # rubric
     rubric_id = Column(UUIDType(binary=False), ForeignKey('rubrics.rubric_id'))
+    # document
     doc_id = Column(UUIDType(binary=False), ForeignKey('documents.doc_id'))
     # 1 - document associated with rubric, 0 - document not associated with rubric
     result = Column(Integer())
@@ -215,6 +225,7 @@ class RubricationResult(Base):
 
 
 class ObjectFeatures(Base):
+    """object-features matrix for training set of documents. One record is one  row corresponding document doc_id"""
     __tablename__ = 'objectfeatures'
 
     # Training set id
@@ -232,6 +243,7 @@ class ObjectFeatures(Base):
 
 
 class EntityClass(Base):
+    """Classes of ontology"""
     __tablename__ = 'entity_classes'
 
     class_id = Column(String(40), primary_key=True)
@@ -239,6 +251,7 @@ class EntityClass(Base):
 
 
 class Entity(Base):
+    """ examples of class of ontology """
     __tablename__ = 'entities'
 
     entity_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
@@ -259,40 +272,58 @@ class Entity(Base):
 
 
 class Markup(Base):
+    """ markups for document: symbol coordinates"""
     __tablename__ = 'markups'
 
     markup_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
+    # document
     document = Column(UUIDType(binary=False), ForeignKey('documents.doc_id'))
     name = Column(String(255))
+    # data
     data = Column(JSONB())
+    # class of ontology
     entity_classes = Column(ARRAY(String(40), dimensions=1))
+    # type: "10", "20", ...
     type = Column(String(255))
 
 
 class Reference(Base):
+    """symbol coordinates of spans linked with entity class and, possible, entity"""
     __tablename__ = 'references'
 
     reference_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
     markup = Column(UUIDType(binary=False), ForeignKey('markups.markup_id'))
     markup_rel = relationship(Markup)
+    # class of ontology
     entity_class = Column(String(40))
+    # example of class of ontology
     entity = Column(UUIDType(binary=False), ForeignKey('entities.entity_id'))
+    # symbol coordinates
     start_offset = Column(Integer())
     end_offset = Column(Integer())
     length_offset = Column(Integer())
+    # outer id (for example - in Open Corpora)
     outer_id = Column(Integer())
 
+
 class Mention(Base):
+    """table with mentions of entities"""
     __tablename__ = 'mentions'
 
     mention_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
+    # ref to markup in which mention is
     markup = Column(UUIDType(binary=False), ForeignKey('markups.markup_id'))
+    markup_rel = relationship(Markup)
+    # class of ontology
     entity_class = Column(String(40))
+    # ref to references (for examples to OC spans)
     reference_ids = Column(ARRAY(UUIDType(binary=False), ForeignKey('references.reference_id')))
+    # outer id (for example - in Open Corpora)
     outer_id = Column(Integer())
 
 
 class Change(Base):
+    """document changes made in client"""
     __tablename__ = 'changes'
 
     # id of document
@@ -310,6 +341,7 @@ class Change(Base):
 
 
 class SessionData(Base):
+    """contains user sessions"""
     __tablename__ = 'sessions'
 
     # session token
@@ -322,6 +354,7 @@ class SessionData(Base):
 
 
 class Embedding(Base):
+    """ embedding for words of language"""
     __tablename__ = 'embeddings'
 
     emb_id = Column(String(40), primary_key=True)
@@ -330,6 +363,7 @@ class Embedding(Base):
 
 
 class WordEmbedding(Base):
+    """embedding vector for lemma"""
     __tablename__ = 'word_embeddings'
 
     lemma = Column(String(100))
@@ -341,6 +375,7 @@ class WordEmbedding(Base):
 
 
 class Gazetteer(Base):
+    """gazetteer"""
     __tablename__ = 'gazetteers'
 
     gaz_id = Column(String(40), primary_key=True)
@@ -350,6 +385,38 @@ class Gazetteer(Base):
     lemmas = Column(ARRAY(item_type=String, dimensions=1))
 
 
+class TomitaResult(Base):
+    """tomita result for document: symbol coordinates"""
+    __tablename__ = 'tomita_results'
+
+    doc_id = Column(UUIDType(binary=False), ForeignKey('documents.doc_id'))
+    # grammar identifier
+    grammar = Column(String(40))
+    # symbol coordinates of tomita results
+    result = Column(JSONB())
+
+    __table_args__ = (PrimaryKeyConstraint(doc_id, grammar),)
+
+
+class NERFeature(Base):
+    """features, using for NER: lemmas coordinates"""
+    __tablename__ = 'ner_features'
+
+    doc_id = Column(UUIDType(binary=False), ForeignKey('documents.doc_id'))
+    # 1 - embedding, 2 - gazetteer, 3 - tomita fact, 4 - syntactic feature: case, 5 - syntactic feature: plural/singular
+    feature_type = Column(Integer())
+    # fact_id, gaz_id, emb_id, ...
+    feature = Column(String(40))
+    # lemma coordinates
+    word_index = Column(Integer)
+    sentence_index = Column(Integer)
+    # value = Column(ARRAY(item_type=Float, dimensions=1))
+    value = Column(JSONB())
+
+    __table_args__ = (PrimaryKeyConstraint(doc_id, feature_type, feature, word_index, sentence_index),)
+
+
+######################################## NO USED
 class TomitaGrammar(Base):
     __tablename__ = 'tomita_grammars'
 
@@ -367,16 +434,6 @@ class TomitaFact(Base):
     grammar = Column(String(40))
 
 
-class TomitaResult(Base):
-    __tablename__ = 'tomita_results'
-
-    doc_id = Column(UUIDType(binary=False),  ForeignKey('documents.doc_id'))
-    grammar = Column(String(40))
-    result = Column(JSONB())
-
-    __table_args__ = (PrimaryKeyConstraint(doc_id, grammar),)
-
-
 class NERModel(Base):
     __tablename__ = 'ner_models'
 
@@ -387,22 +444,6 @@ class NERModel(Base):
     morpho_features = Column(ARRAY(String(40)))
     hyper_parameters = Column(JSONB())
     parameters = Column(JSONB())
-
-
-class NERFeature(Base):
-    __tablename__ = 'ner_features'
-
-    doc_id = Column(UUIDType(binary=False), ForeignKey('documents.doc_id'))
-    # 1 - embedding, 2 - gazetteer, 3 - tomita fact, 4 - syntactic feature: case, 5 - syntactic feature: plural/singular
-    # 6 - OpenCorpora
-    feature_type = Column(Integer())
-    # fact_id, gaz_id, emb_id, ...
-    feature = Column(String(40))
-    word_index = Column(Integer)
-    sentence_index = Column(Integer)
-    # value = Column(ARRAY(item_type=Float, dimensions=1))
-    value = Column(JSONB())
-
-    __table_args__ = (PrimaryKeyConstraint(doc_id, feature_type, feature, word_index, sentence_index),)
+######################################## NO USED FIN
 
 
