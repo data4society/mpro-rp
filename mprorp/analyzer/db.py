@@ -360,7 +360,7 @@ def get_ner_feature(doc_id, session=None):
 def get_ner_feature_for_features(doc_id, feature_type, features, session=None):
 
     if session is None:
-        session = Driver.DBSession()
+        session = Driver.db_session()
 
     query_result = session.query(NERFeature).filter(
         (NERFeature.doc_id == doc_id) & (NERFeature.feature_type == feature_type) & (
@@ -421,12 +421,14 @@ def get_tomita_results(doc_id, grammars, session=None):
         (TomitaResult.doc_id == doc_id) & (TomitaResult.grammar.in_(grammars))).all()
     return [i[0] for i in res]
 
+def put_markup_2(doc_id, name, classes, markup_type, refs):
+    doc_apply(doc_id, put_markup, name, classes, markup_type, refs)
 
-def put_markup(doc, doc_id, name, classes, markup_type, refs, session=None, commit_session=True):
+def put_markup(doc, name, classes, markup_type, refs, session=None, commit_session=True):
     """write markup with references with symbol coordinates in db"""
     if session is None:
         session = Driver.db_session()
-    new_markup = Markup(document=doc_id, name=name, entity_classes=classes, type=markup_type)
+    new_markup = Markup(document=doc.doc_id, name=name, entity_classes=classes, type=markup_type)
     new_markup.markup_id = uuid.uuid4()
     session.add(new_markup)
 
@@ -467,7 +469,7 @@ def get_references_for_set(set_id, markup_type='10', session=None):
 def get_references_for_doc(doc_id, markup_type='10', session=None):
 
     if session is None:
-        session = Driver.DBSession()
+        session = Driver.db_session()
 
     refs = session.query(Reference, Markup).join(Markup).filter(
         (Markup.document == doc_id) & (Markup.type == markup_type)).order_by(Reference.start_offset).all()
@@ -600,9 +602,10 @@ def get_ner_model(model_id, session=None):
 def put_entity(name, entity_class, data, session=None):
 
     if session is None:
-        session = Driver.DBSession()
+        session = Driver.db_session()
 
     new_entity = Entity(name=name, entity_class=entity_class, data=data)
     new_entity.entity_id = uuid.uuid4()
     session.add(new_entity)
     session.commit()
+    return new_entity.entity_id

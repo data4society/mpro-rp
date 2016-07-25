@@ -26,6 +26,10 @@ def identification_for_doc_id (doc_id, settings):
     spans_info = form_spans_info(spans, doc_properties_info)
     print('Информация о спанах:', spans_info)
 
+    # Сформируем символную информацию о спанах
+    spans_morpho_info = form_spans_morpho_info(doc_id, spans)
+    print('Символьная информация о спанах', spans_morpho_info)
+
     # Сформируем оценки связей спанов
     evaluations = form_evaluations(spans, spans_info)
     print('Оценки связей:', evaluations)
@@ -35,7 +39,7 @@ def identification_for_doc_id (doc_id, settings):
     print('Цепочки спанов:', list_chain_spans)
 
     # Запишем цепочки в таблицу entities
-    form_entity_for_chain_spans(doc_id, list_chain_spans, spans_info, settings)
+    form_entity_for_chain_spans(doc_id, list_chain_spans, spans_info, spans_morpho_info, settings)
 
 def form_doc_properties_info(doc_id, doc_properties):
     # Формирует информацию о словах документа
@@ -139,6 +143,25 @@ def form_spans_info(spans, doc_properties_info):
         spans_info[span] = {'list_lex': list_lex, 'case': array_case, 'numeric': array_numeric}
 
     return spans_info
+
+def form_spans_morpho_info(doc_id, spans):
+
+    morpho = db.get_morpho(doc_id)
+
+    spans_morpho_info = {}
+    for span in spans:
+        start_offset = 0
+        end_offset = 0
+        for element in morpho:
+            if 'start_offset' in element.keys():
+                if element['sentence_index'] == span[0]:
+                    if element['word_index'] == span[1]:
+                        start_offset = element['start_offset']
+                    if element['word_index'] == span[2]:
+                        end_offset = element['end_offset']
+        spans_morpho_info[span] = {'start_offset': start_offset, 'end_offset':end_offset}
+
+    return spans_morpho_info
 
 def form_evaluations(spans, spans_info):
     # Формирует оценки связей спанов
@@ -384,8 +407,9 @@ def combine_chains(one_span, two_span, list_chain_spans, evaluations):
 
                 list_chain_spans.append(new_chain)
 
-def form_entity_for_chain_spans(doc_id, list_chain_spans, spans_info, settings):
+def form_entity_for_chain_spans(doc_id, list_chain_spans, spans_info, spans_morpho_info, settings):
 
+    morpho = db.get_morpho(doc_id)
     for chain_spans in list_chain_spans:
 
         name = ''
@@ -433,11 +457,22 @@ def form_entity_for_chain_spans(doc_id, list_chain_spans, spans_info, settings):
                 'position': position,
                 'role': role}
 
-        print(name, data)
-        db.put_entity(name, settings.get('entity_class'), data)
+        entity_class = settings.get('entity_class')
+        entity_id = db.put_entity(name, entity_class, data)
 
-        # if settings.get('put_markup_references', False):
-        #      db.put_markup(, doc_id)
-        # if settings.get('put_documents', False):
+        if settings.get('put_markup_references', False):
+            refs = []
+            for span in chain_spans:
+                span_morpho_info = spans_morpho_info.get(span)
+                if not span_morpho_info is None:
+                    start_offset = span_morpho_info.get('start_offset', 0)
+                    end_offset = span_morpho_info.get('end_offset', 0)
+                    refs.append({'start_offset': start_offset, 'end_offset': end_offset,
+                             'len_offset': int(end_offset) - int(start_offset),
+                             'entity': str(entity_id), 'entity_class': entity_class})
+            db.put_markup_2(doc_id, 'another markup from tomita facts', settings.get('entity_class'), '20', refs)
+
+
+
 
 
