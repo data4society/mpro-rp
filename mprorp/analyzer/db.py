@@ -463,7 +463,7 @@ def put_markup(doc, name, classes, markup_type, refs, session=None, commit_sessi
     markup_for_doc = {}
     entities = {}
     for ref in refs:
-        ref_id = str(uuid.uuid1())
+        ref_id = str(uuid.uuid4())
         markup_for_doc[ref_id] = {'set': str(new_markup.markup_id),
                                   'class': ref['entity_class'],
                                   'entity': ref['entity'],
@@ -494,6 +494,7 @@ def get_references_for_set(set_id, markup_type='10', session=None):
         result[doc_id].append((ref[0].start_offset, ref[0].end_offset, ref[0].entity_class))
     return result
 
+
 def get_references_for_doc(doc_id, markup_type='10', session=None):
 
     if session is None:
@@ -520,7 +521,20 @@ def get_multi_word_embedding(embedding, lemmas, session=None):
         return {i.lemma: np.array(i.vector) for i in res}
 
 
-# NO USED
+def put_entity(name, entity_class, data, session=None, commit_session=True):
+
+    if session is None:
+        session = Driver.db_session()
+
+    new_entity = Entity(name=name, entity_class=entity_class, data=data)
+    new_entity.entity_id = uuid.uuid4()
+    session.add(new_entity)
+    if commit_session:
+        session.commit()
+    return new_entity.entity_id
+
+
+########################################### NO USED
 
 # reading document plain text from db
 def get_doc(doc_id, session=None):
@@ -589,7 +603,8 @@ def del_markup(markup_id=None, markup_type=None, session=None, commit_session=Tr
     for m_id in markup_ids:
         session.query(Reference).filter(Reference.markup == m_id).delete()
         session.query(Markup).filter(Markup.markup_id == m_id).delete()
-    session.commit()
+    if commit_session:
+        session.commit()
 
 
 def get_word_embedding(embedding, lemma, session=None):
@@ -608,7 +623,8 @@ def put_tomita_grammar(name, files, config_file, session=None, commit_session=Tr
         session = Driver.db_session()
     new_grammar = TomitaGrammar(name=name, files=files, config_file=config_file)
     session.add(new_grammar)
-    session.commit()
+    if commit_session:
+        session.commit()
 
 
 def put_ner_model(embedding, gazetteers, tomita_facts, morpho_features, hyper_parameters, session=None, commit_session=True):
@@ -617,7 +633,8 @@ def put_ner_model(embedding, gazetteers, tomita_facts, morpho_features, hyper_pa
     new_model = NERModel(embedding=embedding, gazetteers=gazetteers, tomita_facts=tomita_facts,
                          morpho_features=morpho_features, hyper_parameters=hyper_parameters)
     session.add(new_model)
-    session.commit()
+    if commit_session:
+        session.commit()
     return new_model.ner_id
 
 

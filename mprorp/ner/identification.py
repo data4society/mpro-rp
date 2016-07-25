@@ -3,6 +3,7 @@ import mprorp.ner.feature as feature
 import mprorp.ner.morpho_to_vec as morpho_to_vec
 import numpy as np
 
+
 def identification_for_doc_id (doc_id, settings):
 
     feature_type = feature.ner_feature_types['OpenCorpora']
@@ -40,6 +41,7 @@ def identification_for_doc_id (doc_id, settings):
 
     # Запишем цепочки в таблицу entities
     form_entity_for_chain_spans(doc_id, list_chain_spans, spans_info, spans_morpho_info, settings)
+
 
 def form_doc_properties_info(doc_id, doc_properties):
     # Формирует информацию о словах документа
