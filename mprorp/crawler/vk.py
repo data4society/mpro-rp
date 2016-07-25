@@ -98,7 +98,8 @@ def vk_get_user(owner_id):
         json_obj["owner_type"] = "user"
         json_obj["owner_url"] = "https://vk.com/id"+str(owner_id)
     else:
-        req_result = send_get_request('https://api.vk.com/method/groups.getById?group_ids=' + str(-owner_id))
+        #print('https://api.vk.com/method/groups.getById?group_ids=' + str(-owner_id))
+        req_result = send_get_request('https://api.vk.com/method/groups.getById?group_ids=' + str(-owner_id), gen_useragent=True)
         json_obj = json.loads(req_result)
         if not "response" in json_obj:
             print("RESPONSE ERROR")

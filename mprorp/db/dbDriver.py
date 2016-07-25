@@ -5,6 +5,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import scoped_session
+from sqlalchemy.pool import NullPool
 import sqlalchemy
 import sys
 from multiprocessing.util import register_after_fork
@@ -21,7 +22,7 @@ else:
     connection_string = testdb_connection
 
 # main object which SQLA uses to connect to database
-engine = create_engine(connection_string, convert_unicode=True,pool_recycle=3600, pool_size=10)
+engine = create_engine(connection_string, convert_unicode=True, poolclass=NullPool)  # pool_recycle=3600, pool_size=10)
 register_after_fork(engine, engine.dispose)
 # full meta information about structure of tables
 meta = MetaData(bind=engine, reflect=True)

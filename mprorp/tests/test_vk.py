@@ -1,7 +1,7 @@
 import unittest
 from mprorp.db.dbDriver import *
 from mprorp.db.models import *
-from mprorp.crawler.vk import vk_parse_list
+from mprorp.crawler.vk import vk_parse_list, vk_parse_item
 import os
 
 
@@ -23,8 +23,12 @@ class SimpleVKTest(unittest.TestCase):
 
         # Do we have all docs?
         session = db_session()
-        vk_parse_list(s, ins_source_id, session)
+        documents = vk_parse_list(s, ins_source_id, session)
         session.commit()
+        doc_ids = []
+        for doc in documents:
+            doc_ids.append(doc.doc_id)
+        print(doc_ids)
         session.close()
         docs = select(Document.doc_id, Document.source_id == ins_source_id).fetchall()
         self.assertEqual(len(docs), 2)
@@ -40,7 +44,15 @@ class SimpleVKTest(unittest.TestCase):
         docs = select(Document.doc_id, Document.guid == 'https://vk.com/wall-114326084_4472').fetchall()
         self.assertEqual(len(docs), 1)
 
+        session = db_session()
+        for doc_id in doc_ids:
+            doc = session.query(Document).filter_by(doc_id=doc_id).first()
+            vk_parse_item(doc)
+        session.commit()
+        session.remove()
+
         doc_source = select(Document.doc_source, Document.guid == 'https://vk.com/wall-114326084_4472').fetchone()[0]
+        print("doc_source", doc_source)
         self.assertEqual(doc_source, 'тест fulltext 4472')
 
         stripped = select(Document.stripped, Document.guid == 'https://vk.com/wall-114326084_4472').fetchone()[0]
