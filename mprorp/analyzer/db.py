@@ -568,3 +568,13 @@ def get_ner_model(model_id, session=None):
     model = session.query(NERModel).filter(NERModel.ner_id == model_id).one()
     return {'embedding': model.embedding, 'gazetteers': model.gazetteers, 'tomita_facts': model.tomita_facts,
             'morpho_features': model.morpho_features, 'hyper_parameters': model.hyper_parameters}
+
+def put_entity(name, entity_class, data, session=None):
+
+    if session is None:
+        session = Driver.DBSession()
+
+    new_entity = Entity(name=name, entity_class=entity_class, data=data)
+    new_entity.entity_id = uuid.uuid4()
+    session.add(new_entity)
+    session.commit()

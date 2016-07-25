@@ -60,7 +60,10 @@ settings = {'features': {'oc_span_last_name': 'oc_feature_last_name',
             'oc_span_post': 'oc_feature_post',
             'oc_span_role': 'oc_feature_role',
             'oc_span_status': 'oc_feature_status'},
-            'consider_right_symbol': False}
+            'consider_right_symbol': False,
+            'entity_class': 'person',
+            'put_markup_references': True,
+            'put_documents': True}
 
 # doc_id = 'eadd9485-7d29-69fd-cb0d-b96cf2153ab2'
 doc_id = '45807db3-27ad-47aa-0ae9-2c177ceabd2b'
@@ -76,4 +79,4 @@ print(doc_stripped)
 
 feature.create_answers_feature_for_doc(doc_id, '30', settings)
 
-id.identification_for_doc_id(doc_id)
+id.identification_for_doc_id(doc_id, settings)

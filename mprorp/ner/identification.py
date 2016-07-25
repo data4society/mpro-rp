@@ -3,7 +3,7 @@ import mprorp.ner.feature as feature
 import mprorp.ner.morpho_to_vec as morpho_to_vec
 import numpy as np
 
-def identification_for_doc_id (doc_id):
+def identification_for_doc_id (doc_id, settings):
 
     feature_type = feature.ner_feature_types['OpenCorpora']
 
@@ -33,6 +33,9 @@ def identification_for_doc_id (doc_id):
     # Сформируем список цепочек спанов
     list_chain_spans = form_list_chain_spans(spans, evaluations)
     print('Цепочки спанов:', list_chain_spans)
+
+    # Запишем цепочки в таблицу entities
+    form_entity_for_chain_spans(doc_id, list_chain_spans, spans_info, settings)
 
 def form_doc_properties_info(doc_id, doc_properties):
     # Формирует информацию о словах документа
@@ -171,7 +174,7 @@ def form_evaluations(spans, spans_info):
                                                                                      'oc_feature_first_name',
                                                                                      'oc_feature_middle_name']):
                 if not same_meanings_spans(first_span, second_span, spans_info):
-                    evaluations.append([i, j, -1])
+                    evaluations.append([first_span, second_span, -1])
                     continue
 
             if first_span_sentence_index == second_span_sentence_index: # Спаны находятся в одном предложении
@@ -183,7 +186,7 @@ def form_evaluations(spans, spans_info):
                     (first_span_word_index_start <= second_span_word_index_start <= first_span_word_index_end and
                      first_span_word_index_start <= second_span_word_index_end <= first_span_word_index_end)):
 
-                    evaluations.append([i, j, -1])
+                    evaluations.append([first_span, second_span, -1])
                     continue
 
                 # Стоящие рядом слова
@@ -192,35 +195,35 @@ def form_evaluations(spans, spans_info):
                     if first_span_feature == 'oc_feature_last_name' and second_span_feature == 'oc_feature_first_name': # Фамилия, Имя
 
                         if same_case_numeric(first_span, second_span, spans_info): # Одинаковый падеж, число
-                            evaluations.append([i, j, 5])
+                            evaluations.append([first_span, second_span, 5])
                             continue
                         elif subjective_case(first_span, spans_info) or subjective_case(second_span, spans_info): # Фамилия или Имя в им.падеже
-                            evaluations.append([i, j, 3])
+                            evaluations.append([first_span, second_span, 3])
                             continue
 
                     if first_span_feature == 'oc_feature_first_name' and second_span_feature == 'oc_feature_last_name':  # Имя, Фамилия
 
                         if same_case_numeric(first_span, second_span, spans_info):  # Одинаковый падеж, число
-                            evaluations.append([i, j, 5])
+                            evaluations.append([first_span, second_span, 5])
                             continue
                         elif subjective_case(first_span, spans_info) or subjective_case(second_span, spans_info): # Фамилия или Имя в им.падеже
-                            evaluations.append([i, j, 3])
+                            evaluations.append([first_span, second_span, 3])
                             continue
 
                     if first_span_feature == 'oc_feature_first_name' and second_span_feature == 'oc_feature_middle_name':  # Имя, Отчество
 
                         if same_case_numeric(first_span, second_span, spans_info):  # Одинаковый падеж, число
-                            evaluations.append([i, j, 5])
+                            evaluations.append([first_span, second_span, 5])
                             continue
                         elif subjective_case(first_span, spans_info):  # Имя в им.падеже
-                            evaluations.append([i, j, 3])
+                            evaluations.append([first_span, second_span, 3])
                             continue
 
                     # Роль, статус, должность перед именем, фамилией, иностр.именем, ником
                     if (first_span_feature in ['oc_feature_role', 'oc_feature_post', 'oc_feature_status'] and
                                 second_span_feature in ['oc_feature_first_name', 'oc_feature_last_name',
                                                         'oc_feature_foreign_name', 'oc_feature_nickname']):
-                        evaluations.append([i, j, 4])
+                        evaluations.append([first_span, second_span, 4])
                         continue
 
                 # Стоящие рядом спаны
@@ -235,13 +238,13 @@ def form_evaluations(spans, spans_info):
                                                            'oc_feature_middle_name',
                                                            'oc_feature_foreign_name', 'oc_feature_nickname'] and
                                     second_span_feature in ['oc_feature_role', 'oc_feature_post', 'oc_feature_status']):
-                        evaluations.append([i, j, 2])
+                        evaluations.append([first_span, second_span, 2])
                         continue
 
             else: # Спаны находятся в разных предложениях
                 if first_span_feature == second_span_feature: # Спаны одного типа
                     if same_meanings_spans(first_span, second_span, spans_info):
-                        evaluations.append([i, j, 1])
+                        evaluations.append([first_span, second_span, 1])
                         continue
 
     return evaluations
@@ -301,22 +304,140 @@ def form_list_chain_spans(spans, evaluations):
 
     list_chain_spans = []
     for span in spans:
-        list_chain_spans.append([(span[0], span[1], span[2])])
+        list_chain_spans.append([span])
 
-    # form_list_chain_spans_recursion(list_chain_spans, spans, evaluations)
+    form_list_chain_spans_recursion(list_chain_spans, evaluations)
 
     return list_chain_spans
 
-# def form_list_chain_spans_recursion(list_chain_spans, spans, evaluations):
+def form_list_chain_spans_recursion(list_chain_spans, evaluations):
 
-    # max_evaluations = 0
-    # for evaluation in evaluations:
-    #     max_evaluations = max(max_evaluations, evaluation[2])
-    #
-    # if max_evaluations == 0:
-    #     return
+    max_evaluations = 0
+    for evaluation in evaluations:
+        max_evaluations = max(max_evaluations, evaluation[2])
 
-    # for evaluation in evaluations:
-    #     if evaluation[2] == max_evaluations:
+    if max_evaluations == 0:
+        return
+
+    for evaluation in evaluations:
+
+        if len(list_chain_spans) == 1:
+            break
+
+        if evaluation[2] == max_evaluations:
+            combine_chains(evaluation[0], evaluation[1], list_chain_spans, evaluations)
+            evaluation[2] = 0
+            form_list_chain_spans_recursion(list_chain_spans, evaluations)
+
+def combine_chains(one_span, two_span, list_chain_spans, evaluations):
+
+    list_chain_spans_for_one_spans = []
+    list_chain_spans_for_two_spans = []
+
+    for chain_spans in list_chain_spans:
+        for element_chain_spans in chain_spans:
+            if element_chain_spans == one_span:
+                list_chain_spans_for_one_spans.append(chain_spans)
+            if element_chain_spans == two_span:
+                list_chain_spans_for_two_spans.append(chain_spans)
+
+    Flag = True
+    for chain_spans_for_one_spans in list_chain_spans_for_one_spans:
+        for chain_spans_for_two_spans in list_chain_spans_for_two_spans:
+            for element_chain_spans_for_one_spans in chain_spans_for_one_spans:
+                for element_chain_spans_for_two_spans in chain_spans_for_two_spans:
+                    for evaluation in evaluations:
+                        if ((evaluation[0] == element_chain_spans_for_one_spans
+                            and evaluation[1] == element_chain_spans_for_two_spans
+                            and evaluation[2] < 0) or
+                            (evaluation[0] == element_chain_spans_for_two_spans
+                             and evaluation[1] == element_chain_spans_for_one_spans
+                             and evaluation[2] < 0)):
+                            Flag = False
+                            break
+                    if not Flag:
+                        break
+                if not Flag:
+                    break
+            if not Flag:
+                break
+        if not Flag:
+            break
+
+    if Flag:
+
+        i = 0
+        while i < len(list_chain_spans):
+            if list_chain_spans[i] in list_chain_spans_for_one_spans or list_chain_spans[i] in list_chain_spans_for_two_spans:
+                list_chain_spans.remove(list_chain_spans[i])
+            else:
+                i += 1
+
+        for chain_spans_for_one_spans in list_chain_spans_for_one_spans:
+            for chain_spans_for_two_spans in list_chain_spans_for_two_spans:
+
+                new_chain = []
+                for element_chain_spans_for_one_spans in chain_spans_for_one_spans:
+                    new_chain.append(element_chain_spans_for_one_spans)
+                for element_chain_spans_for_two_spans in chain_spans_for_two_spans:
+                    new_chain.append(element_chain_spans_for_two_spans)
+
+                list_chain_spans.append(new_chain)
+
+def form_entity_for_chain_spans(doc_id, list_chain_spans, spans_info, settings):
+
+    for chain_spans in list_chain_spans:
+
+        name = ''
+        first_name = ''
+        last_name = ''
+        middle_name = ''
+        nick_name = ''
+        foreign_name = ''
+        status = ''
+        position = []
+        role = []
+
+        for span in chain_spans:
+
+            span_feature = span[3]
+            span_info = spans_info.get(span)
+            span_info_lex = span_info.get('list_lex')
+
+            if not span_info_lex is None:
+                if span_feature in ['oc_feature_last_name', 'oc_feature_first_name', 'oc_feature_middle_name']:
+                    name = ' '.join(span_info_lex)if(name == '')else name + ' ' + ' '.join(span_info_lex)
+                if span_feature == 'oc_feature_first_name':
+                    first_name = ' '.join(span_info_lex) if (first_name == '')else first_name + ' ' + ' '.join(span_info_lex)
+                if span_feature == 'oc_feature_last_name':
+                    last_name = ' '.join(span_info_lex) if (last_name == '')else last_name + ' ' + ' '.join(span_info_lex)
+                if span_feature == 'oc_feature_middle_name':
+                    middle_name = ' '.join(span_info_lex) if (middle_name == '')else middle_name + ' ' + ' '.join(span_info_lex)
+                if span_feature == 'oc_feature_nickname':
+                    nick_name = ' '.join(span_info_lex) if (nick_name == '')else nick_name + ' ' + ' '.join(span_info_lex)
+                if span_feature == 'oc_feature_foreign_name':
+                    foreign_name = ' '.join(span_info_lex) if (foreign_name == '')else foreign_name + ' ' + ' '.join(span_info_lex)
+                if span_feature == 'oc_feature_status':
+                    if status == '':
+                        status = ' '.join(span_info_lex)
+                if span_feature == 'oc_feature_post':
+                    position.append(span_info_lex)
+                if span_feature == 'oc_feature_role':
+                    role.append(span_info_lex)
+
+        data = {'firstname': first_name,
+                'lastname': last_name,
+                'middlename': middle_name,
+                'nickname': nick_name if nick_name != '' else foreign_name,
+                'status': status,
+                'position': position,
+                'role': role}
+
+        print(name, data)
+        db.put_entity(name, settings.get('entity_class'), data)
+
+        # if settings.get('put_markup_references', False):
+        #      db.put_markup(, doc_id)
+        # if settings.get('put_documents', False):
 
 
