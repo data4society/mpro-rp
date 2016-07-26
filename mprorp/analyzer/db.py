@@ -520,7 +520,6 @@ def get_multi_word_embedding(embedding, lemmas, session=None):
     else:
         return {i.lemma: np.array(i.vector) for i in res}
 
-
 def put_entity(name, entity_class, data, session=None, commit_session=True):
 
     if session is None:
@@ -529,10 +528,25 @@ def put_entity(name, entity_class, data, session=None, commit_session=True):
     new_entity = Entity(name=name, entity_class=entity_class, data=data)
     new_entity.entity_id = uuid.uuid4()
     session.add(new_entity)
+
     if commit_session:
         session.commit()
+
     return new_entity.entity_id
 
+def get_entity(firstname, lastname, session=None):
+
+    if session is None:
+        session = Driver.db_session()
+
+    # res = session.query(Entity.entity_id).filter(Entity.data.firstname == firstname).first()
+    # print(res)
+    res = None
+
+    if res is None:
+        return None
+    else:
+        return res[0]
 
 ########################################### NO USED
 
