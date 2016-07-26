@@ -35,6 +35,7 @@ def strip_tags(html):
 
 def to_plain_text(txt):
     """trims and strips text from empty strings"""
+    txt = txt.replace(u'\xa0', u' ')  # kill non-breaking space
     lines = txt.split("\n")
     lines = [line.strip('\t\n\r').strip() for line in lines]
     lines = [line for line in lines if line]

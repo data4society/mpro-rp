@@ -15,7 +15,7 @@ def doc_apply(doc_id, my_def, *args):
     doc = session.query(Document).filter_by(doc_id=doc_id).first()
     result = my_def(doc, *args)
     session.commit()
-    return  result
+    return result
 
 
 # writing result of morphological analysis of document in db
@@ -357,13 +357,39 @@ def get_ner_feature(doc_id, session=None):
         result[(i.sentence_index, i.word_index, i.feature)] = i.value
     return result
 
-def get_ner_feature_for_features(doc, feature_type, features, session=None):
+
+def get_ner_feature_one_feature_dict(doc_id, feature, session=None):
+    return get_ner_feature_one_feature(doc_id, feature, return_dict=True, session=session)
+
+
+def get_ner_feature_one_feature(doc_id, feature, return_dict=False, session=None):
 
     if session is None:
         session = Driver.db_session()
 
     query_result = session.query(NERFeature).filter(
-        (NERFeature.doc_id == doc.doc_id) & (NERFeature.feature_type == feature_type) & (
+        (NERFeature.doc_id == doc_id) & (
+            NERFeature.feature == feature)).order_by(
+        NERFeature.sentence_index, NERFeature.word_index).all()
+    if return_dict:
+        result = {}
+    else:
+        result = []
+    for rec in query_result:
+        if return_dict:
+            result[(rec.sentence_index, rec.word_index)] = rec.value
+        else:
+            result.append((rec.sentence_index, rec.word_index, rec.value))
+    return result
+
+
+def get_ner_feature_for_features(doc_id, feature_type, features, session=None):
+
+    if session is None:
+        session = Driver.db_session()
+
+    query_result = session.query(NERFeature).filter(
+        (NERFeature.doc_id == doc_id) & (NERFeature.feature_type == feature_type) & (
             NERFeature.feature.in_(features))).order_by(
         NERFeature.sentence_index, NERFeature.word_index).all()
 
@@ -372,6 +398,8 @@ def get_ner_feature_for_features(doc, feature_type, features, session=None):
         result.append((rec.sentence_index, rec.word_index, rec.feature))
 
     return result
+
+
 
 
 def get_ner_feature_for_set_dict(set_id, feature=None):
@@ -435,7 +463,7 @@ def put_markup(doc, name, classes, markup_type, refs, session=None, commit_sessi
     markup_for_doc = {}
     entities = {}
     for ref in refs:
-        ref_id = str(uuid.uuid1())
+        ref_id = str(uuid.uuid4())
         markup_for_doc[ref_id] = {'set': str(new_markup.markup_id),
                                   'class': ref['entity_class'],
                                   'entity': ref['entity'],
@@ -466,6 +494,7 @@ def get_references_for_set(set_id, markup_type='10', session=None):
         result[doc_id].append((ref[0].start_offset, ref[0].end_offset, ref[0].entity_class))
     return result
 
+
 def get_references_for_doc(doc_id, markup_type='10', session=None):
 
     if session is None:
@@ -479,6 +508,7 @@ def get_references_for_doc(doc_id, markup_type='10', session=None):
         result.append((ref[0].start_offset, ref[0].end_offset, ref[0].entity_class))
     return result
 
+
 def get_multi_word_embedding(embedding, lemmas, session=None):
     """read embeddings for lemmas"""
     if session is None:
@@ -491,7 +521,20 @@ def get_multi_word_embedding(embedding, lemmas, session=None):
         return {i.lemma: np.array(i.vector) for i in res}
 
 
-# NO USED
+def put_entity(name, entity_class, data, session=None, commit_session=True):
+
+    if session is None:
+        session = Driver.db_session()
+
+    new_entity = Entity(name=name, entity_class=entity_class, data=data)
+    new_entity.entity_id = uuid.uuid4()
+    session.add(new_entity)
+    if commit_session:
+        session.commit()
+    return new_entity.entity_id
+
+
+########################################### NO USED
 
 # reading document plain text from db
 def get_doc(doc_id, session=None):
@@ -560,7 +603,8 @@ def del_markup(markup_id=None, markup_type=None, session=None, commit_session=Tr
     for m_id in markup_ids:
         session.query(Reference).filter(Reference.markup == m_id).delete()
         session.query(Markup).filter(Markup.markup_id == m_id).delete()
-    session.commit()
+    if commit_session:
+        session.commit()
 
 
 def get_word_embedding(embedding, lemma, session=None):
@@ -579,7 +623,8 @@ def put_tomita_grammar(name, files, config_file, session=None, commit_session=Tr
         session = Driver.db_session()
     new_grammar = TomitaGrammar(name=name, files=files, config_file=config_file)
     session.add(new_grammar)
-    session.commit()
+    if commit_session:
+        session.commit()
 
 
 def put_ner_model(embedding, gazetteers, tomita_facts, morpho_features, hyper_parameters, session=None, commit_session=True):
@@ -588,7 +633,8 @@ def put_ner_model(embedding, gazetteers, tomita_facts, morpho_features, hyper_pa
     new_model = NERModel(embedding=embedding, gazetteers=gazetteers, tomita_facts=tomita_facts,
                          morpho_features=morpho_features, hyper_parameters=hyper_parameters)
     session.add(new_model)
-    session.commit()
+    if commit_session:
+        session.commit()
     return new_model.ner_id
 
 
