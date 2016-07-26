@@ -357,13 +357,13 @@ def get_ner_feature(doc_id, session=None):
         result[(i.sentence_index, i.word_index, i.feature)] = i.value
     return result
 
-def get_ner_feature_for_features(doc_id, feature_type, features, session=None):
+def get_ner_feature_for_features(doc, feature_type, features, session=None):
 
     if session is None:
         session = Driver.db_session()
 
     query_result = session.query(NERFeature).filter(
-        (NERFeature.doc_id == doc_id) & (NERFeature.feature_type == feature_type) & (
+        (NERFeature.doc_id == doc.doc_id) & (NERFeature.feature_type == feature_type) & (
             NERFeature.feature.in_(features))).order_by(
         NERFeature.sentence_index, NERFeature.word_index).all()
 
@@ -599,7 +599,7 @@ def get_ner_model(model_id, session=None):
     return {'embedding': model.embedding, 'gazetteers': model.gazetteers, 'tomita_facts': model.tomita_facts,
             'morpho_features': model.morpho_features, 'hyper_parameters': model.hyper_parameters}
 
-def put_entity(name, entity_class, data, session=None):
+def put_entity(name, entity_class, data, session=None, commit_session=True):
 
     if session is None:
         session = Driver.db_session()
@@ -607,5 +607,22 @@ def put_entity(name, entity_class, data, session=None):
     new_entity = Entity(name=name, entity_class=entity_class, data=data)
     new_entity.entity_id = uuid.uuid4()
     session.add(new_entity)
-    session.commit()
+
+    if commit_session:
+        session.commit()
+
     return new_entity.entity_id
+
+def get_entity(firstname, lastname, session=None):
+
+    if session is None:
+        session = Driver.db_session()
+
+    # res = session.query(Entity.entity_id).filter(Entity.data.firstname == firstname).first()
+    # print(res)
+    res = None
+
+    if res is None:
+        return None
+    else:
+        return res[0]

@@ -108,61 +108,6 @@ def create_answers_feature(set_id):
         if len(values) > 0:
             db.put_ner_feature_dict(doc_id, values, ner_feature_types['answer'])
 
-def create_answers_feature_for_doc(doc_id, markup_type, settings):
-
-    features = settings.get('features')
-    consider_right_symbol = settings.get('consider_right_symbol')
-    references = db.get_references_for_doc(doc_id, markup_type)
-    morpho = db.get_morpho(doc_id)
-
-    values = {}
-
-    for ref in references:
-
-        start_ref = ref[0]
-        end_ref = ref[1]
-        ref_class = ref[2]
-
-        for element in morpho:
-
-            value = None
-            if 'start_offset' in element.keys():
-
-                if element['start_offset'] == start_ref:
-
-                    if (consider_right_symbol == True and element['end_offset'] <= end_ref) or (
-                            consider_right_symbol == False and element['end_offset'] < end_ref):
-
-                        value = features.get(ref_class)
-                    else:
-                        # error
-                        log.info(
-                            'error: word ' + element['text'] + ' ' + str(element['start_offset']) + ':' +
-                            str(element['end_offset']) + ' refs: ' + str(ref))
-
-                elif element['start_offset'] > start_ref:
-
-                    if (consider_right_symbol == True and element['end_offset'] <= end_ref) or (
-                                    consider_right_symbol == False and element['end_offset'] < end_ref):
-
-                        value = features.get(ref_class)
-                    else:
-                        break
-
-                else:
-
-                    if element['end_offset'] >= start_ref:
-                        # error
-                        log.info(
-                            'error: word ' + element['text'] + ' ' + str(element['start_offset']) + ':' +
-                            str(element['end_offset']) + ' refs: ' + str(ref))
-
-            if not (value is None):
-                values[(element['sentence_index'], element['word_index'], value)] = [1]
-
-    if len(values) > 0:
-         db.put_ner_feature_dict(doc_id, values, ner_feature_types['OpenCorpora'])
-
 def stronger_value(old_value, value):
     """choose one value from two"""
     priority = {'B': 2, 'I': 4, 'E': 3, 'S': 1}
