@@ -38,6 +38,6 @@ def write_training_set(rubric_id, session=None):
  session.add(new_set)
  session.commit()
 
-#write_training_set('19848dd0-436a-11e6-beb8-9e71128cae02')
+#write_training_set('19848dd0-436a-11e6-beb8-9e71128cae02') не работает
 
-#put_training_set(create_training_set('19848dd0-436a-11e6-beb8-9e71128cae02'))
+#put_training_set(create_training_set('19848dd0-436a-11e6-beb8-9e71128cae02')) так тоже
