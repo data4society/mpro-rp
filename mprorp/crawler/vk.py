@@ -31,6 +31,10 @@ def vk_parse_list(req_result, source_id, session):
 
     # convert to json object
     json_obj = json.loads(req_result)
+    if not "response" in json_obj:
+        print("RESPONSE ERROR")
+        print(source_id)
+        print(json_obj)
     docs = []
     for item in json_obj["response"]:
         if type(item) == dict:  # vk api can give Integer (Number of posts?) at the same level
@@ -46,24 +50,26 @@ def vk_parse_list(req_result, source_id, session):
             # skip all not 'post' items
             if post_type == 'post' and session.query(Document).filter_by(guid=url).count() == 0:
                 # initial insert with guid start status and reference to source
-                new_doc = Document(guid=url, source_id=source_id, status=0, type='vk')
+                new_doc = Document(guid=url, source_id=source_id, type='vk', meta=item)
                 docs.append(new_doc)
+                session.add(new_doc)
                 # further parsing
-                vk_parse_item(item, new_doc, session)
+                #vk_parse_item(item, new_doc, session)
     return docs
 
 
-def vk_parse_item(item, new_doc, session):
+def vk_parse_item(doc):
     """parses one item"""
+    item = doc.meta  # json from main list
     # main text
     txt = item["text"]
     stripped = strip_tags('<html><body>' + txt + '</body></html>')
     stripped = to_plain_text(stripped)
-    new_doc.doc_source = txt
-    new_doc.stripped = stripped
+    doc.doc_source = txt
+    doc.stripped = stripped
     # publish date timestamp
     timestamp = item["date"]
-    new_doc.published_date = datetime.datetime.fromtimestamp(timestamp)
+    doc.published_date = datetime.datetime.fromtimestamp(timestamp)
 
     # additional information
     meta_json = dict()
@@ -76,9 +82,7 @@ def vk_parse_item(item, new_doc, session):
         meta_json['vk_attachments'] = attachments
     # owner info
     meta_json['vk_owner'] = vk_get_user(item["owner_id"])
-    new_doc.meta = meta_json # json.dumps(meta_json)
-
-    session.add(new_doc)
+    doc.meta = meta_json # json.dumps(meta_json)
 
 
 def vk_get_user(owner_id):
@@ -86,12 +90,21 @@ def vk_get_user(owner_id):
     if owner_id > 0:
         req_result = send_get_request('https://api.vk.com/method/users.get?user_ids='+str(owner_id))
         json_obj = json.loads(req_result)
+        if not "response" in json_obj:
+            print("RESPONSE ERROR")
+            print('https://api.vk.com/method/users.get?user_ids='+str(owner_id))
+            print(json_obj)
         json_obj = json_obj["response"][0]
         json_obj["owner_type"] = "user"
         json_obj["owner_url"] = "https://vk.com/id"+str(owner_id)
     else:
-        req_result = send_get_request('https://api.vk.com/method/groups.getById?group_ids=' + str(-owner_id))
+        #print('https://api.vk.com/method/groups.getById?group_ids=' + str(-owner_id))
+        req_result = send_get_request('https://api.vk.com/method/groups.getById?group_ids=' + str(-owner_id), gen_useragent=True)
         json_obj = json.loads(req_result)
+        if not "response" in json_obj:
+            print("RESPONSE ERROR")
+            print('https://api.vk.com/method/users.get?user_ids='+str(-owner_id))
+            print(json_obj)
         json_obj = json_obj["response"][0]
         json_obj["owner_type"] = "group"
         json_obj["owner_url"] = "https://vk.com/club"+str(-owner_id)

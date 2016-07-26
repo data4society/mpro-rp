@@ -6,9 +6,7 @@ import mprorp.ner.morpho_to_vec as morpho_to_vec
 import numpy as np
 import logging as log
 
-
-ner_feature_types = {'embedding': 1, 'gazetteer': 2, 'tomita': 3, 'morpho': 4, 'answer': 5}
-
+ner_feature_types = {'embedding': 1, 'gazetteer': 2, 'tomita': 3, 'morpho': 4, 'answer': 5, 'OpenCorpora': 6}
 
 def part_of_speech(gr):
     gr = re.findall('^\w*', gr)
@@ -110,7 +108,6 @@ def create_answers_feature(set_id):
         if len(values) > 0:
             db.put_ner_feature_dict(doc_id, values, ner_feature_types['answer'])
 
-
 def stronger_value(old_value, value):
     """choose one value from two"""
     priority = {'B': 2, 'I': 4, 'E': 3, 'S': 1}
@@ -204,7 +201,6 @@ def print_tomita_result(doc, feature_grammars):
             print(i, result[i])
             offsets = [int(j) for j in i.split(':')]
             print(mytext[offsets[0]:offsets[1]])
-
 
 def create_embedding_feature(doc_id):
     """create lemmas to look for in embedding"""

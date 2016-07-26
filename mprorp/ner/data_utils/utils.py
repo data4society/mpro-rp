@@ -4,7 +4,7 @@ from collections import Counter
 import time
 from numpy import *
 
-import pandas as pd
+# import pandas as pd
 
 
 def invert_dict(d):
@@ -13,8 +13,8 @@ def invert_dict(d):
 def flatten1(lst):
     return list(itertools.chain.from_iterable(lst))
 
-def load_wv_pandas(fname):
-    return pd.read_hdf(fname, 'data')
+# def load_wv_pandas(fname):
+    # return pd.read_hdf(fname, 'data')
 
 def extract_wv(df):
     num_to_word = dict(enumerate(df.index))
@@ -50,11 +50,11 @@ def prune_wv(df, vocab, extra=["UUUNKKK"]):
     items = set(vocab).union(set(extra))
     return df.filter(items=items, axis='index')
 
-def load_wv_raw(fname):
-    return pd.read_table(fname, sep="\s+",
-                         header=None,
-                         index_col=0,
-                         quoting=3)
+# def load_wv_raw(fname):
+#     return pd.read_table(fname, sep="\s+",
+#                          header=None,
+#                          index_col=0,
+#                          quoting=3)
 
 def load_dataset(fname):
     docs = []
