@@ -85,7 +85,7 @@ def create_markup(doc, session = None, commit_session = True):
                 'oc_feature_foreign_name', 'oc_feature_post', 'oc_feature_role', 'oc_feature_status']
 
     # Получим свойства слов документа из БД
-    doc_properties = db.get_ner_feature_for_features(doc, feature_type, features, session)
+    doc_properties = db.get_ner_feature_for_features(doc.doc_id, feature_type, features, session)
     print('Свойства слов документа:', doc_properties)
 
     # Сформируем информацию о словах документа (падеж, число, нормальная форма)
