@@ -2,8 +2,82 @@ import mprorp.analyzer.db as db
 import mprorp.ner.feature as feature
 import mprorp.ner.morpho_to_vec as morpho_to_vec
 import numpy as np
+import logging as log
 
-def identification_for_doc_id (doc_id, settings):
+settings = {'features': {'oc_span_last_name': 'oc_feature_last_name',
+                         'oc_span_first_name': 'oc_feature_first_name',
+                         'oc_span_middle_name': 'oc_feature_middle_name',
+                         'oc_span_nickname': 'oc_feature_nickname',
+                         'oc_span_foreign_name': 'oc_feature_foreign_name',
+                         'oc_span_post': 'oc_feature_post',
+                         'oc_span_role': 'oc_feature_role',
+                         'oc_span_status': 'oc_feature_status'},
+            'markup_type': '30',
+            'consider_right_symbol': False,
+            'entity_class': 'person',
+            'put_markup_references': True,
+            'put_documents': True}
+
+def create_answers_feature_for_doc(doc, session = None, commit_session = True):
+
+    features = settings.get('features')
+    consider_right_symbol = settings.get('consider_right_symbol')
+
+    references = db.get_references_for_doc(doc.doc_id, settings.get('markup_type'), session)
+    morpho = db.get_morpho(doc.doc_id, session)
+
+    values = {}
+
+    for ref in references:
+
+        start_ref = ref[0]
+        end_ref = ref[1]
+        ref_class = ref[2]
+
+        for element in morpho:
+
+            value = None
+            if 'start_offset' in element.keys():
+
+                if element['start_offset'] == start_ref:
+
+                    if (consider_right_symbol == True and element['end_offset'] <= end_ref) or (
+                            consider_right_symbol == False and element['end_offset'] < end_ref):
+
+                        value = features.get(ref_class)
+                    else:
+                        # error
+                        log.info(
+                            'error: word ' + element['text'] + ' ' + str(element['start_offset']) + ':' +
+                            str(element['end_offset']) + ' refs: ' + str(ref))
+
+                elif element['start_offset'] > start_ref:
+
+                    if (consider_right_symbol == True and element['end_offset'] <= end_ref) or (
+                                    consider_right_symbol == False and element['end_offset'] < end_ref):
+
+                        value = features.get(ref_class)
+                    else:
+                        break
+
+                else:
+
+                    if element['end_offset'] >= start_ref:
+                        # error
+                        log.info(
+                            'error: word ' + element['text'] + ' ' + str(element['start_offset']) + ':' +
+                            str(element['end_offset']) + ' refs: ' + str(ref))
+
+            if not (value is None):
+                values[(element['sentence_index'], element['word_index'], value)] = [1]
+
+    if len(values) > 0:
+         db.put_ner_feature_dict(doc.doc_id, values, feature.ner_feature_types['OpenCorpora'], None, session, commit_session)
+
+def create_answers_feature_for_doc_2(doc_id):
+    db.doc_apply(doc_id, create_answers_feature_for_doc)
+
+def create_markup(doc, session = None, commit_session = True):
 
     feature_type = feature.ner_feature_types['OpenCorpora']
 
@@ -11,11 +85,11 @@ def identification_for_doc_id (doc_id, settings):
                 'oc_feature_foreign_name', 'oc_feature_post', 'oc_feature_role', 'oc_feature_status']
 
     # Получим свойства слов документа из БД
-    doc_properties = db.get_ner_feature_for_features(doc_id, feature_type, features)
+    doc_properties = db.get_ner_feature_for_features(doc.doc_id, feature_type, features, session)
     print('Свойства слов документа:', doc_properties)
 
     # Сформируем информацию о словах документа (падеж, число, нормальная форма)
-    doc_properties_info = form_doc_properties_info(doc_id, doc_properties)
+    doc_properties_info = form_doc_properties_info(doc, doc_properties, session)
     print('Информация о словах документа:', doc_properties_info)
 
     # Сформиреум спаны
@@ -27,7 +101,7 @@ def identification_for_doc_id (doc_id, settings):
     print('Информация о спанах:', spans_info)
 
     # Сформируем символную информацию о спанах
-    spans_morpho_info = form_spans_morpho_info(doc_id, spans)
+    spans_morpho_info = form_spans_morpho_info(doc, spans, session)
     print('Символьная информация о спанах', spans_morpho_info)
 
     # Сформируем оценки связей спанов
@@ -38,13 +112,16 @@ def identification_for_doc_id (doc_id, settings):
     list_chain_spans = form_list_chain_spans(spans, evaluations)
     print('Цепочки спанов:', list_chain_spans)
 
-    # Запишем цепочки в таблицу entities
-    form_entity_for_chain_spans(doc_id, list_chain_spans, spans_info, spans_morpho_info, settings)
+    # Запишем цепочки
+    form_entity_for_chain_spans(doc, list_chain_spans, spans_info, spans_morpho_info, session, commit_session)
 
-def form_doc_properties_info(doc_id, doc_properties):
+def create_markup_2(doc_id):
+    db.doc_apply(doc_id, create_markup)
+
+def form_doc_properties_info(doc, doc_properties, session):
     # Формирует информацию о словах документа
 
-    doc_morpho = db.get_morpho(doc_id)
+    doc_morpho = db.get_morpho(doc.doc_id, session)
 
     doc_properties_info = {}
 
@@ -144,9 +221,9 @@ def form_spans_info(spans, doc_properties_info):
 
     return spans_info
 
-def form_spans_morpho_info(doc_id, spans):
+def form_spans_morpho_info(doc, spans, session):
 
-    morpho = db.get_morpho(doc_id)
+    morpho = db.get_morpho(doc.doc_id, session)
 
     spans_morpho_info = {}
     for span in spans:
@@ -407,9 +484,8 @@ def combine_chains(one_span, two_span, list_chain_spans, evaluations):
 
                 list_chain_spans.append(new_chain)
 
-def form_entity_for_chain_spans(doc_id, list_chain_spans, spans_info, spans_morpho_info, settings):
+def form_entity_for_chain_spans(doc, list_chain_spans, spans_info, spans_morpho_info, session, commit_session):
 
-    morpho = db.get_morpho(doc_id)
     for chain_spans in list_chain_spans:
 
         name = ''
@@ -457,8 +533,9 @@ def form_entity_for_chain_spans(doc_id, list_chain_spans, spans_info, spans_morp
                 'position': position,
                 'role': role}
 
-        entity_class = settings.get('entity_class')
-        entity_id = db.put_entity(name, entity_class, data)
+        entity_id = db.get_entity(first_name, last_name, session)
+        if entity_id is None:
+            entity_id = db.put_entity(name, settings.get('entity_class'), data, session, commit_session)
 
         if settings.get('put_markup_references', False):
             refs = []
@@ -469,8 +546,10 @@ def form_entity_for_chain_spans(doc_id, list_chain_spans, spans_info, spans_morp
                     end_offset = span_morpho_info.get('end_offset', 0)
                     refs.append({'start_offset': start_offset, 'end_offset': end_offset,
                              'len_offset': int(end_offset) - int(start_offset),
-                             'entity': str(entity_id), 'entity_class': entity_class})
-            db.put_markup_2(doc_id, 'another markup from tomita facts', settings.get('entity_class'), '20', refs)
+                             'entity': str(entity_id), 'entity_class': settings.get('entity_class')})
+
+            name = 'another markup from tomita facts'
+            db.put_markup(doc, name, settings.get('entity_class'), '20', refs, session, commit_session)
 
 
 

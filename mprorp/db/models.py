@@ -444,6 +444,7 @@ class NERModel(Base):
     morpho_features = Column(ARRAY(String(40)))
     hyper_parameters = Column(JSONB())
     parameters = Column(JSONB())
+
 ######################################## NO USED FIN
 
 
