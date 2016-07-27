@@ -23,6 +23,8 @@ from lxml.html import HtmlElement
 
 from lxml import etree
 
+from mprorp.analyzer.pymystem3_w import Mystem
+
 
 log = logging.getLogger("readability.readability")
 
@@ -93,9 +95,9 @@ class Document:
         :param input: string of the html content.
         :param positive_keywords: regex or list of patterns in classes and ids
         :param negative_keywords: regex or list of patterns in classes and ids
-        :param min_text_length: 
+        :param min_text_length:
         :param retry_length:
-        
+
         Example:
             positive_keywords=["news-item", "block"]
             negative_keywords=["mysidebar", "related", "ads"]
@@ -150,17 +152,26 @@ class Document:
     def get_clean_html(self):
          return clean_attributes(tounicode(self.html))
 
-    def summary(self, html_partial=False):
+    def summary(self, html_partial=False, title=''):
         """Generate the summary of the html docuemnt
 
         :param html_partial: return only the div of the document, don't wrap
         in html and body tags.
 
+        :param title: title of page.
+
         """
+        self.title = title
+        self.mystem = Mystem()
         try:
             ruthless = True
             while True:
                 self._html(True)
+                if self.title == '':
+                    self.title = self.html.find(".//title").text_content()
+                self.title_lemmas = self.mystem.lemmatize(self.title)
+                self.title_lemmas = [word for word in self.title_lemmas if len(word.strip())>2]
+                print(self.title_lemmas)
                 for i in self.tags(self.html, 'script', 'style'):
                     i.drop_tree()
                 for i in self.tags(self.html, 'body'):
@@ -348,7 +359,7 @@ class Document:
             return None
 
         sorted_candidates = sorted(
-            candidates.values(), 
+            candidates.values(),
             key=lambda x: x['content_score'],
             reverse=True
         )
@@ -578,6 +589,16 @@ class Document:
         for tag_name in tag_names:
             for e in node.findall('.//%s' % tag_name):
                 yield e
+
+
+    def score_title_rate(self, text):
+        text_lemmas = self.mystem.lemmatize(text)
+        rate = 0
+        for lemma in text_lemmas:
+            if lemma in self.title_lemmas:
+                rate += 1
+        return rate / len(text)
+
 
     def reverse_tags(self, node, *tag_names):
         for tag_name in tag_names:
