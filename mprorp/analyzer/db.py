@@ -534,14 +534,20 @@ def put_entity(name, entity_class, data, session=None, commit_session=True):
 
     return new_entity.entity_id
 
-def get_entity(firstname, lastname, session=None):
+def get_entity(dict_search, session=None):
 
     if session is None:
         session = Driver.db_session()
 
-    # res = session.query(Entity.entity_id).filter(Entity.data.firstname == firstname).first()
-    # print(res)
-    res = None
+    res = session.query(Entity.entity_id)
+
+    for attr, value in dict_search.items():
+        if attr in ['position', 'role']:
+            res = res.filter(Entity.data[attr].astext.in_(value))
+        else:
+            res = res.filter(Entity.data[attr].astext == value)
+
+    res = res.first()
 
     if res is None:
         return None
@@ -658,31 +664,3 @@ def get_ner_model(model_id, session=None):
     model = session.query(NERModel).filter(NERModel.ner_id == model_id).one()
     return {'embedding': model.embedding, 'gazetteers': model.gazetteers, 'tomita_facts': model.tomita_facts,
             'morpho_features': model.morpho_features, 'hyper_parameters': model.hyper_parameters}
-
-def put_entity(name, entity_class, data, session=None, commit_session=True):
-
-    if session is None:
-        session = Driver.db_session()
-
-    new_entity = Entity(name=name, entity_class=entity_class, data=data)
-    new_entity.entity_id = uuid.uuid4()
-    session.add(new_entity)
-
-    if commit_session:
-        session.commit()
-
-    return new_entity.entity_id
-
-def get_entity(firstname, lastname, session=None):
-
-    if session is None:
-        session = Driver.db_session()
-
-    # res = session.query(Entity.entity_id).filter(Entity.data.firstname == firstname).first()
-    # print(res)
-    res = None
-
-    if res is None:
-        return None
-    else:
-        return res[0]
