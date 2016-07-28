@@ -43,8 +43,8 @@ REGEXES = {
     'videoRe': re.compile('https?:\/\/(www\.)?(youtube|vimeo)\.com', re.I),
     #skipFootnoteLink:      /^\s*(\[?[a-z0-9]{1,2}\]?|^|edit|citation needed)\s*$/i,
 }
-THRESHOLD_RATIO = 0.666
-
+THRESHOLD_RATIO = 0.2# ++++++++0.666
+mystem = Mystem()
 
 
 class Unparseable(ValueError):
@@ -161,17 +161,22 @@ class Document:
         :param title: title of page.
 
         """
-        self.title = title
-        self.mystem = Mystem()
+
         try:
             ruthless = True
             while True:
                 self._html(True)
-                if self.title == '':
-                    self.title = self.html.find(".//title").text_content()
-                self.title_lemmas = self.mystem.lemmatize(self.title)
+                if title == '':
+                    #print(self.html)
+                    #print(self.html.find(".//title"))
+                    title_text = self.html.find(".//title").text_content()  #self.title()
+                else:
+                    title_text = title
+                print(title_text)
+                self.title_lemmas = mystem.lemmatize(title_text)
+                mystem.close()
                 self.title_lemmas = [word for word in self.title_lemmas if len(word.strip())>2]
-                print(self.title_lemmas)
+                #print(self.title_lemmas)
                 for i in self.tags(self.html, 'script', 'style'):
                     i.drop_tree()
                 for i in self.tags(self.html, 'body'):
@@ -376,15 +381,23 @@ class Document:
                 if candidate['content_score']/best_candidate_score < THRESHOLD_RATIO:
                     break;
                 n += 1
-        for candidate in sorted_candidates[:n]:
-            elem = candidate['elem']
-            #print("BEST", describe(elem), candidate['content_score'])
-            from mprorp.crawler.readability.shingling import get_compare_estimate
-            #print(get_compare_estimate(, title)
-        title = self.title()
-        #print(title)
-        if best_candidate['content_score']:
-            self.confidence = 1-sorted_candidates[1]['content_score']/best_candidate['content_score']
+        if n ==1:
+            self.confidence = 1
+        else:
+            best_candidates = sorted_candidates[:n]
+            best_final_score = 0
+            for candidate in best_candidates:
+                elem = candidate['elem']
+                # print("BEST", describe(elem), candidate['content_score'], self.score_title_rate(elem))
+                final_score = self.score_title_rate(elem)*candidate['content_score']
+                if final_score>best_final_score:
+                    best_final_score = final_score
+                    best_candidate = candidate
+                #from mprorp.crawler.readability.shingling import get_compare_estimate
+                #print(get_compare_estimate(, title)
+            #print(title)
+            if best_candidate['content_score']:
+                self.confidence = 1-sorted_candidates[1]['content_score']/best_candidate['content_score']
 
         return best_candidate
 
@@ -591,8 +604,10 @@ class Document:
                 yield e
 
 
-    def score_title_rate(self, text):
-        text_lemmas = self.mystem.lemmatize(text)
+    def score_title_rate(self, elem):
+        text = elem.text_content()
+        text_lemmas = mystem.lemmatize(text)
+        mystem.close()
         rate = 0
         for lemma in text_lemmas:
             if lemma in self.title_lemmas:
