@@ -18,7 +18,8 @@ settings = {'features': {'oc_span_last_name': 'oc_feature_last_name',
             'put_markup_references': True,
             'put_documents': True}
 
-def create_answers_feature_for_doc(doc, session = None, commit_session = True):
+
+def create_answers_feature_for_doc(doc, session=None, commit_session=True):
 
     features = settings.get('features')
     consider_right_symbol = settings.get('consider_right_symbol')
@@ -72,12 +73,15 @@ def create_answers_feature_for_doc(doc, session = None, commit_session = True):
                 values[(element['sentence_index'], element['word_index'], value)] = [1]
 
     if len(values) > 0:
-         db.put_ner_feature_dict(doc.doc_id, values, feature.ner_feature_types['OpenCorpora'], None, session, commit_session)
+         db.put_ner_feature_dict(doc.doc_id, values, feature.ner_feature_types['OpenCorpora'],
+                                 None, session, commit_session)
+
 
 def create_answers_feature_for_doc_2(doc_id):
     db.doc_apply(doc_id, create_answers_feature_for_doc)
 
-def create_markup(doc, session = None, commit_session = True):
+
+def create_markup(doc, session=None, commit_session=True):
 
     feature_type = feature.ner_feature_types['OpenCorpora']
 
@@ -100,7 +104,7 @@ def create_markup(doc, session = None, commit_session = True):
     spans_info = form_spans_info(spans, doc_properties_info)
     print('Информация о спанах:', spans_info)
 
-    # Сформируем символную информацию о спанах
+    # Сформируем символьную информацию о спанах
     spans_morpho_info = form_spans_morpho_info(doc, spans, session)
     print('Символьная информация о спанах', spans_morpho_info)
 
@@ -114,6 +118,7 @@ def create_markup(doc, session = None, commit_session = True):
 
     # Запишем цепочки
     form_entity_for_chain_spans(doc, list_chain_spans, spans_info, spans_morpho_info, session, commit_session)
+
 
 def create_markup_2(doc_id):
     db.doc_apply(doc_id, create_markup)

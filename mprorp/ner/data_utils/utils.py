@@ -120,7 +120,7 @@ def max_key(mydict):
 
 
 def appendXY(words, words_text, words_feature, pad, zero_feature, doc_answers, sent_length, sent_index, tag_to_num,
-             feature_window_size, X_feature, X, y, W):
+             feature_window_size, X_feature, X, y, W, indexes):
     for i in range(pad):
         words.append(0)
         words_feature.append(zero_feature)
@@ -129,7 +129,7 @@ def appendXY(words, words_text, words_feature, pad, zero_feature, doc_answers, s
         if answer is None:
             tagn = 0
         else:
-            tagn = tag_to_num[(answer[0], answer[1])]
+            tagn = tag_to_num[answer]
         idxs = [words[ii] for ii in range(i - pad, i + pad + 1)]
         feat_vec = [words_feature[ii] for ii in range(i - pad, i + pad + 1)]
 
@@ -138,6 +138,7 @@ def appendXY(words, words_text, words_feature, pad, zero_feature, doc_answers, s
         X.append(idxs)
         y.append(tagn)
         W.append(words_text[i])
+        indexes.append((sent_index, i - pad))
 
 
 def docs_to_windows2(train_set_words, word_to_num, tag_to_num, answers,
@@ -147,6 +148,7 @@ def docs_to_windows2(train_set_words, word_to_num, tag_to_num, answers,
     y = []
     X_feature = []
     W = []
+    indexes = []
     for doc_id in train_set_words:
         # print(doc_id)
         sent_index = -1
@@ -160,7 +162,7 @@ def docs_to_windows2(train_set_words, word_to_num, tag_to_num, answers,
             if not (word[0] == sent_index):
                 if not (words is None):
                     appendXY(words, words_text, words_feature, pad, zero_feature, answers.get(doc_id,{}), word_index + 1,
-                             sent_index, tag_to_num, wsize * feature_length, X_feature, X, y, W)
+                             sent_index, tag_to_num, wsize * feature_length, X_feature, X, y, W, indexes)
                 words = [0 for i in range(pad)]
                 words_text = ['' for i in range(pad)]
                 words_feature = [zero_feature for i in range(pad)]
@@ -181,8 +183,8 @@ def docs_to_windows2(train_set_words, word_to_num, tag_to_num, answers,
             words_feature.append(feature_word)
         if not (words is None):
             appendXY(words, words_text, words_feature, pad, zero_feature, answers.get(doc_id, {}), word_index + 1,
-                     sent_index, tag_to_num, wsize * feature_length, X_feature, X, y, W)
-    return array(X_feature), array(X), array(y), array(W)
+                     sent_index, tag_to_num, wsize * feature_length, X_feature, X, y, W, indexes)
+    return array(X_feature), array(X), array(y), array(W), array(indexes)
 
 
 def window_to_vec(window, L):

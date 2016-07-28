@@ -30,7 +30,7 @@ class Config(object):
     label_size = 5
     hidden_size = 500
     max_epochs = 24
-    early_stopping = 2
+    early_stopping = 1
     dropout = 0.9
     lr = 0.001
     l2 = 0.001
@@ -39,7 +39,7 @@ class Config(object):
     dev_set = u'074c809b-208c-4fb4-851c-1e71d7f01b60'
     pre_embedding = True
     embedding = 'first_test_embedding'
-    feature_answer = 'person_answer'
+    feature_answer = ['person_answer']
     # feature_answer = 'org_answer'
     features = []
     # features = ['Org', 'Person', 'morpho']
@@ -116,16 +116,18 @@ class NERModel(LanguageModel):
 
         self.wv = np.array(wv_array, dtype=np.float32)
 
-        answers = db.get_ner_feature_for_set_dict(training_set, self.config.feature_answer)
+        answers = db.get_ner_feature_for_set_dict(training_set, feature_list=self.config.feature_answer)
 
         tagnames = [0]
         for doc_id in answers:
             for key in answers[doc_id]:
                 ans = answers[doc_id][key]
-                ans_tuple = (ans[0], ans[1])
+                # ans_tuple = (ans[0], ans[1])
+                ans_tuple = ans
                 if not (ans_tuple in tagnames):
                     tagnames.append(ans_tuple)
 
+        print(tagnames)
         self.config.label_size = len(tagnames)
         self.num_to_tag = dict(enumerate(tagnames))
         tag_to_num = {v: k for k, v in iter(self.num_to_tag.items())}
@@ -134,7 +136,7 @@ class NERModel(LanguageModel):
         for feat in self.config.features:
             features_set[feat] = db.get_ner_feature_for_set_dict(training_set, feat)
 
-        self.feat_train, self.X_train, self.y_train, _ = du.docs_to_windows2(train_set_words, word_to_num,
+        self.feat_train, self.X_train, self.y_train, _, _ = du.docs_to_windows2(train_set_words, word_to_num,
                                                         tag_to_num, answers,
                                                         self.config.features,
                                                         features_set, features_size, self.config.features_length,
@@ -143,11 +145,11 @@ class NERModel(LanguageModel):
         dev_set = self.config.dev_set
         #  train_set_words[doc_id] = [(sentence, word, [lemma1, lemma2]), ... (...)]
         dev_set_words = db.get_ner_feature_for_set(dev_set, 'embedding')
-        answers = db.get_ner_feature_for_set_dict(dev_set, self.config.feature_answer)
+        answers = db.get_ner_feature_for_set_dict(dev_set, feature_list=self.config.feature_answer)
         features_set = {}
         for feat in self.config.features:
             features_set[feat] = db.get_ner_feature_for_set_dict(dev_set, feat)
-        self.feat_dev, self.X_dev, self.y_dev, self.w_dev = du.docs_to_windows2(dev_set_words, word_to_num,
+        self.feat_dev, self.X_dev, self.y_dev, self.w_dev, _ = du.docs_to_windows2(dev_set_words, word_to_num,
                                                          tag_to_num, answers,
                                                          self.config.features,
                                                          features_set, features_size, self.config.features_length,
@@ -173,7 +175,7 @@ class NERModel(LanguageModel):
         for feat in self.config.features:
             features_set[feat] = db.get_ner_feature_one_feature_dict(doc_id, feat, session=session)
 
-        self.feat_test, self.X_test, self.y_test, _ = du.docs_to_windows2(doc_set_words, self.word_to_num,
+        self.feat_test, self.X_test, self.y_test, _, self.indexes = du.docs_to_windows2(doc_set_words, self.word_to_num,
                                                                              self.tag_to_num, {},
                                                                              self.config.features,
                                                                              features_set, features_size,
@@ -531,10 +533,11 @@ def calculate_confusion(config, predicted_indices, y_indices):
     return confusion
 
 
-def NER_learning(filename_params, filename_tf):
+def NER_learning(filename_params, filename_tf, config=None):
     """NER model implementation.
     """
-    config = Config()
+    if config is None:
+        config = Config()
     with tf.Graph().as_default():
         model = NERModel({'config': config})
         output_file = open(filename_params, 'wb')
@@ -572,7 +575,18 @@ def NER_learning(filename_params, filename_tf):
                 print('Total time: {}'.format(time.time() - start))
 
 
-def NER_predict(doc, session_db, filename_params, filename_tf):
+def NER_predict(doc, settings, session_db=None, commit_session=True):
+    values = {}
+    for i in settings:
+        NER_predict_set(doc, i[0], i[1], values, session_db, commit_session)
+
+    if len(values) > 0:
+        db.put_ner_feature_dict(doc.doc_id, values, ner_feature_types['OpenCorpora'],
+                                None, session_db, commit_session)
+
+
+def NER_predict_set(doc, filename_params, filename_tf, values, session_db, commit_session):
+
     input_file = open(filename_params, 'rb')
     params = pickle.load(input_file)
     input_file.close()
@@ -590,10 +604,41 @@ def NER_predict(doc, session_db, filename_params, filename_tf):
             print('dev: lemma, answer, ner answer')
             print('=-=-=')
             _, predictions = model.predict(session, model.X_test, features=model.feat_test)
-            num_to_word = {v: k for k, v in model.word_to_num.items()}
-            num_to_tag = {v: k for k, v in model.tag_to_num.items()}
-            for i in range(len(predictions)):
-                print([num_to_word[j] for j in model.X_test[i]], num_to_tag[predictions[i]])
+
+        # num_to_word = {v: k for k, v in model.word_to_num.items()}
+        num_to_tag = {v: k for k, v in model.tag_to_num.items()}
+        # for i in range(len(predictions)):
+        #     print([num_to_word[j] for j in model.X_test[i]], num_to_tag[predictions[i]])
+
+        for i in range(len(predictions)):
+            if not (predictions[i] == 0):
+                values[(int(model.indexes[i][0]), int(model.indexes[i][1]), num_to_tag[predictions[i]])] = [1]
 
 
+def NER_person_learning():
+
+    training_set = u'1fe7391a-c5b9-4a07-bb6a-e6e4c5211008'
+    dev_set = u'97106298-d85e-4602-803f-a3c54685ada6'
+
+    if not os.path.exists("./weights"):
+        os.makedirs("./weights")
+
+    NER_config = Config()
+    NER_config.training_set = training_set
+    NER_config.dev_set = dev_set
+
+    NER_config.feature_answer = ['oc_feature_last_name', 'oc_feature_first_name', 'oc_feature_middle_name',
+                                 'oc_feature_nickname', 'oc_feature_foreign_name']
+
+    filename_tf = './weights/ner_oc1.weights'
+    filename_params = './weights/ner_oc1.params'
+
+    NER_learning(filename_params, filename_tf, NER_config)
+
+    NER_config.feature_answer = ['oc_feature_post', 'oc_feature_role', 'oc_feature_status']
+
+    filename_tf = './weights/ner_oc2.weights'
+    filename_params = './weights/ner_oc2.params'
+
+    NER_learning(filename_params, filename_tf, NER_config)
 
