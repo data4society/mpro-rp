@@ -1,6 +1,8 @@
 import mprorp.db.dbDriver as Driver
 from mprorp.db.models import *
+import mprorp.analyzer.db as db
 from mprorp.analyzer.db import put_training_set
+import mprorp.analyzer.rubricator as rb
 
 def create_training_set(rubric_id, session=None):
     if session is None:
@@ -41,3 +43,20 @@ def write_training_set(rubric_id, session=None):
 #write_training_set('19848dd0-436a-11e6-beb8-9e71128cae02') не работает
 
 #put_training_set(create_training_set('19848dd0-436a-11e6-beb8-9e71128cae02')) так тоже
+
+def test_rubricator(set_id, rubric_id):
+
+    rb.idf_object_features_set(set_id)
+    rb.learning_rubric_model(set_id, rubric_id)
+
+    for doc_id in db.get_set_docs(set_id):
+        rb.spot_doc_rubrics2(doc_id, {rubric_id: None})
+        # check we can overwrite rubrication results:
+        rb.spot_doc_rubrics2(doc_id, {rubric_id: None})
+
+    model_id = db.get_model(rubric_id, set_id)["model_id"]
+
+    result = rb.f1_score(model_id, set_id, rubric_id)
+    return result
+
+print(test_rubricator('0cbf3533-cb40-43f0-96bb-943152a877e1','91a6a3c7-a7c9-42bc-8fb4-0e5707af3b52'))
