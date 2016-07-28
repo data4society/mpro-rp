@@ -64,7 +64,6 @@ doc_id = u'1e9ffd80-a2c2-8432-1c36-6205737998d5'
 session = Driver.db_session()
 doc = session.query(Document).filter_by(doc_id=doc_id).first()
 
-
 settings = [['./weights/ner_oc1.params', './weights/ner_oc1.weights'],
             ['./weights/ner_oc2.params', './weights/ner_oc2.weights']]
 
