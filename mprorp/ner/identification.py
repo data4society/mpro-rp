@@ -90,31 +90,31 @@ def create_markup(doc, session=None, commit_session=True):
 
     # Получим свойства слов документа из БД
     doc_properties = db.get_ner_feature_for_features(doc.doc_id, feature_type, features, session)
-    print('Свойства слов документа:', doc_properties)
+    # print('Свойства слов документа:', doc_properties)
 
     # Сформируем информацию о словах документа (падеж, число, нормальная форма)
     doc_properties_info = form_doc_properties_info(doc, doc_properties, session)
-    print('Информация о словах документа:', doc_properties_info)
+    # print('Информация о словах документа:', doc_properties_info)
 
     # Сформиреум спаны
     spans = form_spans(doc_properties)
-    print('Спаны:', spans)
+    # print('Спаны:', spans)
 
     # Сформируем информацию о спанах (падеж, число, нормальная форма)
     spans_info = form_spans_info(spans, doc_properties_info)
-    print('Информация о спанах:', spans_info)
+    # print('Информация о спанах:', spans_info)
 
     # Сформируем символьную информацию о спанах
     spans_morpho_info = form_spans_morpho_info(doc, spans, session)
-    print('Символьная информация о спанах', spans_morpho_info)
+    # print('Символьная информация о спанах', spans_morpho_info)
 
     # Сформируем оценки связей спанов
     evaluations = form_evaluations(spans, spans_info)
-    print('Оценки связей:', evaluations)
+    # print('Оценки связей:', evaluations)
 
     # Сформируем список цепочек спанов
     list_chain_spans = form_list_chain_spans(spans, evaluations)
-    print('Цепочки спанов:', list_chain_spans)
+    # print('Цепочки спанов:', list_chain_spans)
 
     # Запишем цепочки
     form_entity_for_chain_spans(doc, list_chain_spans, spans_info, spans_morpho_info, session, commit_session)
@@ -538,7 +538,29 @@ def form_entity_for_chain_spans(doc, list_chain_spans, spans_info, spans_morpho_
                 'position': position,
                 'role': role}
 
-        entity_id = db.get_entity(first_name, last_name, session)
+        field_count = 0
+
+        dict_search = {}
+        if first_name != '':
+            dict_search['firstname'] = first_name
+            field_count += 1
+        if last_name != '':
+            dict_search['lastname'] = last_name
+            field_count += 1
+        if middle_name != '':
+            dict_search['middlename'] = middle_name
+
+        if field_count < 2:
+            if nick_name != '' or foreign_name != '':
+                dict_search['nickname'] = nick_name if nick_name != '' else foreign_name
+            elif status != '':
+                dict_search['status'] = status
+            elif len(position) > 0:
+                dict_search['position'] = position
+            elif len(role) > 0:
+                dict_search['role'] = role
+
+        entity_id = db.get_entity(dict_search, session)
         if entity_id is None:
             entity_id = db.put_entity(name, settings.get('entity_class'), data, session, commit_session)
 
