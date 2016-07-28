@@ -60,13 +60,15 @@ NER_config = NER.Config()
 # NER.NER_learning(filename_params, filename_tf, NER_config)
 
 # 5. NER + identification
-doc_id = u'1e9ffd80-a2c2-8432-1c36-6205737998d5'
-session = Driver.db_session()
-doc = session.query(Document).filter_by(doc_id=doc_id).first()
+# doc_id = u'1e9ffd80-a2c2-8432-1c36-6205737998d5'
+# session = Driver.db_session()
+# doc = session.query(Document).filter_by(doc_id=doc_id).first()
+#
+# settings = [['./weights/ner_oc1.params', './weights/ner_oc1.weights'],
+#             ['./weights/ner_oc2.params', './weights/ner_oc2.weights']]
+#
+# NER.NER_predict(doc, settings, session)
+#
+# create_markup(doc)
 
-settings = [['./weights/ner_oc1.params', './weights/ner_oc1.weights'],
-            ['./weights/ner_oc2.params', './weights/ner_oc2.weights']]
-
-NER.NER_predict(doc, settings, session)
-
-create_markup(doc)
+NER.NER_person_learning()
