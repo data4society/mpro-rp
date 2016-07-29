@@ -345,17 +345,17 @@ def put_ner_feature_dict(doc_id, records, feature_type, feature=None, session=No
         session.commit()
 
 
-def get_ner_feature(doc_id, session=None):
-    """read lemmas features for document"""
-    if session is None:
-        session = Driver.db_session()
-    result_query = session.query(NERFeature).filter((NERFeature.doc_id == doc_id)).all()
-    result = {}
-    for i in result_query:
-        # result.append({'sentence_index': i.sentence_index, 'word_index': i.word_index,
-        #                'feature': i.feature, 'value': i.value})
-        result[(i.sentence_index, i.word_index, i.feature)] = i.value
-    return result
+# def get_ner_feature(doc_id, session=None):
+#     """read lemmas features for document"""
+#     if session is None:
+#         session = Driver.db_session()
+#     result_query = session.query(NERFeature).filter((NERFeature.doc_id == doc_id)).all()
+#     result = {}
+#     for i in result_query:
+#         # result.append({'sentence_index': i.sentence_index, 'word_index': i.word_index,
+#         #                'feature': i.feature, 'value': i.value})
+#         result[(i.sentence_index, i.word_index, i.feature)] = i.value
+#     return result
 
 
 def get_ner_feature_one_feature_dict(doc_id, feature, session=None):
@@ -400,32 +400,56 @@ def get_ner_feature_for_features(doc_id, feature_type, features, session=None):
     return result
 
 
-
-
-def get_ner_feature_for_set_dict(set_id, feature=None):
+def get_ner_feature_dict(set_id=None, doc_id=None, feature=None, feature_list=None, session=None):
     """read lemmas features for documents in set. return {'doc_id_1':{(n,m):value, ...}, ...}"""
-    return get_ner_feature_for_set(set_id, feature, True)
+    return get_ner_feature(set_id=set_id, feature=feature, feature_list=feature_list, return_dict=True, session=session)
 
 
-def get_ner_feature_for_set(set_id, feature=None, return_dict=False, session=None):
+def get_ner_feature(set_id=None, doc_id=None, feature=None, feature_list=None, return_dict=False, session=None):
     """read lemmas features for documents in set. return {'doc_id_1':[(n,m,value), ...], ...}"""
     if session is None:
         session = Driver.db_session()
-    training_set = session.query(TrainingSet).filter(TrainingSet.set_id == set_id).one()
-    all_words = session.query(NERFeature).filter(
-        NERFeature.doc_id.in_(training_set.doc_ids) & (NERFeature.feature == feature)).order_by(
-        NERFeature.sentence_index, NERFeature.word_index).all()
+    if not(set_id is None):
+        training_set = session.query(TrainingSet).filter(TrainingSet.set_id == set_id).one()
+    if set_id is None:
+        if feature is None:
+            all_words = session.query(NERFeature).filter(
+                (NERFeature.doc_id == doc_id) & (NERFeature.feature.in_(feature_list))).order_by(
+                NERFeature.sentence_index, NERFeature.word_index).all()
+        else:
+            all_words = session.query(NERFeature).filter(
+                (NERFeature.doc_id == doc_id) & (NERFeature.feature == feature)).order_by(
+                NERFeature.sentence_index, NERFeature.word_index).all()
+    else:
+        if feature is None:
+            all_words = session.query(NERFeature).filter(
+                NERFeature.doc_id.in_(training_set.doc_ids) & (NERFeature.feature.in_(feature_list))).order_by(
+                NERFeature.sentence_index, NERFeature.word_index).all()
+        else:
+            all_words = session.query(NERFeature).filter(
+                NERFeature.doc_id.in_(training_set.doc_ids) & (NERFeature.feature == feature)).order_by(
+                NERFeature.sentence_index, NERFeature.word_index).all()
     result = {}
     for word in all_words:
         doc_id = str(word.doc_id)
-        if return_dict:
-            if result.get(doc_id, None) is None:
-                result[doc_id] = {}
-            result[doc_id][(word.sentence_index, word.word_index)] = word.value
+        if feature is None:
+            if return_dict:
+                if result.get(doc_id, None) is None:
+                    result[doc_id] = {}
+                result[doc_id][(word.sentence_index, word.word_index)] = word.feature
+            else:
+                if result.get(doc_id, None) is None:
+                    result[doc_id] = []
+                result[doc_id].append((word.sentence_index, word.word_index, word.feature))
         else:
-            if result.get(doc_id, None) is None:
-                result[doc_id] = []
-            result[doc_id].append((word.sentence_index, word.word_index, word.value))
+            if return_dict:
+                if result.get(doc_id, None) is None:
+                    result[doc_id] = {}
+                result[doc_id][(word.sentence_index, word.word_index)] = word.value
+            else:
+                if result.get(doc_id, None) is None:
+                    result[doc_id] = []
+                result[doc_id].append((word.sentence_index, word.word_index, word.value))
 
     return result
 
@@ -520,6 +544,15 @@ def get_multi_word_embedding(embedding, lemmas, session=None):
     else:
         return {i.lemma: np.array(i.vector) for i in res}
 
+
+def get_docs_with_markup(markup_type, session=None):
+    """return list of doc_id having markup of type markup_type"""
+    if session is None:
+        session = Driver.db_session()
+    res = session.query(Markup).filter((Markup.type == markup_type)).all()
+    return [str(r.document) for r in res]
+
+
 def put_entity(name, entity_class, data, session=None, commit_session=True):
 
     if session is None:
@@ -534,6 +567,7 @@ def put_entity(name, entity_class, data, session=None, commit_session=True):
 
     return new_entity.entity_id
 
+
 def get_entity(dict_search, session=None):
 
     if session is None:
@@ -547,12 +581,12 @@ def get_entity(dict_search, session=None):
         else:
             res = res.filter(Entity.data[attr].astext == value)
 
-    res = res.first()
-
-    if res is None:
+    try:
+        res = res.all()
+        return res[0][0]
+    except Exception:
         return None
-    else:
-        return res[0]
+
 
 ########################################### NO USED
 
@@ -561,6 +595,13 @@ def get_doc(doc_id, session=None):
     if session is None:
         session = Driver.db_session()
     return session.query(Document.stripped).filter(Document.doc_id == doc_id).one().stripped
+
+
+
+
+
+
+
 
 
 # writing lemmas frequently of document in db

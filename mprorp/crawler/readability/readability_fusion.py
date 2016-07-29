@@ -43,8 +43,10 @@ REGEXES = {
     'videoRe': re.compile('https?:\/\/(www\.)?(youtube|vimeo)\.com', re.I),
     #skipFootnoteLink:      /^\s*(\[?[a-z0-9]{1,2}\]?|^|edit|citation needed)\s*$/i,
 }
-THRESHOLD_RATIO = 0.666
-
+THRESHOLD_RATIO = 0.1# ++++++++0.666
+TITLE_DENSITY_THRESHOLD = 0.005
+MAX_TITLE_CHECKING = 10
+mystem = Mystem()
 
 
 class Unparseable(ValueError):
@@ -161,17 +163,22 @@ class Document:
         :param title: title of page.
 
         """
-        self.title = title
-        self.mystem = Mystem()
+
+        mystem.start()
         try:
             ruthless = True
             while True:
                 self._html(True)
-                if self.title == '':
-                    self.title = self.html.find(".//title").text_content()
-                self.title_lemmas = self.mystem.lemmatize(self.title)
+                if title == '':
+                    #print(self.html)
+                    #print(self.html.find(".//title"))
+                    title_text = self.html.find(".//title").text_content()  #self.title()
+                else:
+                    title_text = title
+                print(title_text)
+                self.title_lemmas = mystem.lemmatize(title_text)
+                #mystem.close()
                 self.title_lemmas = [word for word in self.title_lemmas if len(word.strip())>2]
-                print(self.title_lemmas)
                 for i in self.tags(self.html, 'script', 'style'):
                     i.drop_tree()
                 for i in self.tags(self.html, 'body'):
@@ -192,7 +199,6 @@ class Document:
 
                 self.compute(self.html, res, candidates)
                 best_candidate = self.select_best_candidate(candidates)
-
                 #print(res)
 
                 if best_candidate:
@@ -228,6 +234,7 @@ class Document:
             else:
                 from readability.compat.three import raise_with_traceback
             raise_with_traceback(Unparseable, sys.exc_info()[2], str_(e))
+        mystem.close()
 
     def get_article(self, candidates, best_candidate, html_partial=False):
         # Now that we have the top candidate, look through its siblings for
@@ -373,18 +380,30 @@ class Document:
         if best_candidate_score > 0:
             n = 0
             for candidate in sorted_candidates:
-                if candidate['content_score']/best_candidate_score < THRESHOLD_RATIO:
+                if candidate['content_score']/best_candidate_score < THRESHOLD_RATIO or n == MAX_TITLE_CHECKING:
                     break;
                 n += 1
-        for candidate in sorted_candidates[:n]:
-            elem = candidate['elem']
-            #print("BEST", describe(elem), candidate['content_score'])
-            from mprorp.crawler.readability.shingling import get_compare_estimate
-            #print(get_compare_estimate(, title)
-        title = self.title()
-        #print(title)
-        if best_candidate['content_score']:
-            self.confidence = 1-sorted_candidates[1]['content_score']/best_candidate['content_score']
+        if n == 1:
+            self.confidence = 1
+        else:
+            best_candidates = sorted_candidates[:n]
+            best_final_score = -1
+            for candidate in best_candidates:
+                elem = candidate['elem']
+                strate = self.score_title_rate(elem)
+                if strate > TITLE_DENSITY_THRESHOLD:
+                    best_candidate = candidate
+                    break
+                # print("BEST", describe(elem), candidate['content_score'], strate)
+                final_score = strate*candidate['content_score']
+                if final_score>best_final_score:
+                    best_final_score = final_score
+                    best_candidate = candidate
+                #from mprorp.crawler.readability.shingling import get_compare_estimate
+                #print(get_compare_estimate(, title)
+            #print(title)
+            if best_candidate['content_score']:
+                self.confidence = 1-sorted_candidates[1]['content_score']/best_candidate['content_score']
 
         return best_candidate
 
@@ -591,13 +610,15 @@ class Document:
                 yield e
 
 
-    def score_title_rate(self, text):
-        text_lemmas = self.mystem.lemmatize(text)
+    def score_title_rate(self, elem):
+        text = elem.text_content()
+        text_lemmas = mystem.lemmatize(text)
+        mystem.close()
         rate = 0
         for lemma in text_lemmas:
             if lemma in self.title_lemmas:
                 rate += 1
-        return rate / len(text)
+        return rate / len(text_lemmas)
 
 
     def reverse_tags(self, node, *tag_names):

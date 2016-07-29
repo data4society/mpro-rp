@@ -18,6 +18,10 @@ from urllib.error import *
 from mprorp.crawler.google_news import gn_start_parsing
 from mprorp.crawler.vk import vk_start_parsing, vk_parse_item
 
+from mprorp.utils import home_dir
+from mprorp.ner.NER import NER_predict
+from mprorp.ner.identification import create_markup
+
 # statuses
 VK_INIT_STATUS = 10
 VK_COMPLETE_STATUS = 19
@@ -32,7 +36,11 @@ RUBRICATION_COMPLETE_STATUS = 102
 
 TOMITA_FIRST_COMPLETE_STATUS = 200
 NER_TOMITA_FEATURES_COMPLETE_STATUS = 300
-NER_ENTITIES_COMPLETE_STATUS = 350
+NER_TOMITA_EMBEDDING_FEATURES_COMPLETE_STATUS = 301
+NER_TOMITA_MORPHO_FEATURES_COMPLETE_STATUS = 302
+NER_PREDICT_COMPLETE_STATUS = 350
+MARKUP_COMPLETE_STATUS = 400
+NER_ENTITIES_COMPLETE_STATUS = 850
 REGULAR_PROCESSES_FINISH_STATUS = 1000
 
 VALIDATION_AND_CONVERTING_COMPLETE = 1001  # mpro redactor sets this and next status
@@ -49,6 +57,8 @@ EMPTY_TEXT = 2000
 rubrics_for_regular = {u'76819d19-d3f7-43f1-bc7f-b10ec5a2e2cc': u'404f1c89-53bd-4313-842d-d4a417c88d67'}  # 404f1c89-53bd-4313-842d-d4a417c88d67
 grammars = list(tomita_config.keys()) #  ['date.cxx', 'person.cxx']
 facts = ['Person']
+ner_settings = [[home_dir + '/weights/ner_oc1.params', home_dir + '/weights/ner_oc1.weights'],
+           [home_dir + '/weights/ner_oc2.params', home_dir + '/weights/ner_oc2.weights']]
 
 
 def router(doc_id, status):
@@ -78,11 +88,24 @@ def router(doc_id, status):
         regular_tomita.delay(status-TOMITA_FIRST_COMPLETE_STATUS+1, doc_id, status+1)
     elif status == TOMITA_FIRST_COMPLETE_STATUS+len(grammars)-1:  # to ner tomita
         regular_tomita_features.delay(doc_id, NER_TOMITA_FEATURES_COMPLETE_STATUS)
-    elif status == NER_TOMITA_FEATURES_COMPLETE_STATUS:  # to ner entities
+    elif status == NER_TOMITA_FEATURES_COMPLETE_STATUS:  # to preparing lemmas
+        regular_embedding_features.delay(doc_id, NER_TOMITA_EMBEDDING_FEATURES_COMPLETE_STATUS)
+    elif status == NER_TOMITA_EMBEDDING_FEATURES_COMPLETE_STATUS:  # to preparing morpho
+        regular_morpho_features.delay(doc_id, NER_TOMITA_MORPHO_FEATURES_COMPLETE_STATUS)
+    elif status == NER_TOMITA_MORPHO_FEATURES_COMPLETE_STATUS:  # to NER
+        regular_NER_predict.delay(doc_id, NER_PREDICT_COMPLETE_STATUS)
+    elif status == NER_PREDICT_COMPLETE_STATUS:  # to createb markup
+        regular_create_markup.delay(doc_id, MARKUP_COMPLETE_STATUS)
+    elif status == MARKUP_COMPLETE_STATUS:  # fin regular processes
+        doc = Document(doc_id=doc_id, status=REGULAR_PROCESSES_FINISH_STATUS)
+        update(doc)
+    """
+    elif status == MARKUP_COMPLETE_STATUS:  # to ner entities
         regular_entities.delay(doc_id, NER_ENTITIES_COMPLETE_STATUS)
     elif status == NER_ENTITIES_COMPLETE_STATUS:  # fin regular processes
         doc = Document(doc_id = doc_id, status = REGULAR_PROCESSES_FINISH_STATUS)
         update(doc)
+    """
 
 
 @app.task(ignore_result=True)
@@ -202,10 +225,58 @@ def regular_tomita(grammar_index, doc_id, new_status):
 
 @app.task(ignore_result=True)
 def regular_tomita_features(doc_id, new_status):
-    """tomita features"""
+    """tomita features (transform coordinates for ner)"""
     session = db_session()
     doc = session.query(Document).filter_by(doc_id=doc_id).first()
     ner_feature.create_tomita_feature(doc, grammars, session, False)
+    doc.status = new_status
+    session.commit()
+    session.remove()
+    router(doc_id, new_status)
+
+
+@app.task(ignore_result=True)
+def regular_embedding_features(doc_id, new_status):
+    """lemmas preparation for NER"""
+    session = db_session()
+    doc = session.query(Document).filter_by(doc_id=doc_id).first()
+    ner_feature.create_embedding_feature(doc, session, False)
+    doc.status = new_status
+    session.commit()
+    session.remove()
+    router(doc_id, new_status)
+
+
+@app.task(ignore_result=True)
+def regular_morpho_features(doc_id, new_status):
+    """morpho preparation for NER"""
+    session = db_session()
+    doc = session.query(Document).filter_by(doc_id=doc_id).first()
+    ner_feature.create_morpho_feature(doc, session, False)
+    doc.status = new_status
+    session.commit()
+    session.remove()
+    router(doc_id, new_status)
+
+
+@app.task(ignore_result=True)
+def regular_NER_predict(doc_id, new_status):
+    """NER computing"""
+    session = db_session()
+    doc = session.query(Document).filter_by(doc_id=doc_id).first()
+    NER_predict(doc, ner_settings, session, False)
+    doc.status = new_status
+    session.commit()
+    session.remove()
+    router(doc_id, new_status)
+
+
+@app.task(ignore_result=True)
+def regular_create_markup(doc_id, new_status):
+    """create entities if it needs and create markup"""
+    session = db_session()
+    doc = session.query(Document).filter_by(doc_id=doc_id).first()
+    create_markup(doc, session, False)
     doc.status = new_status
     session.commit()
     session.remove()
@@ -217,7 +288,8 @@ def regular_entities(doc_id, new_status):
     """ner entities"""
     session = db_session()
     doc = session.query(Document).filter_by(doc_id=doc_id).first()
-    convert_tomita_result_to_markup(doc, grammars, session=session, commit_session=False)
+    grammars_without_persons = [i for i in grammars if not (i == 'person.cxx') ]
+    convert_tomita_result_to_markup(doc, grammars_without_persons, session=session, commit_session=False)
     doc.status = new_status
     session.commit()
     session.remove()

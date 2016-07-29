@@ -202,8 +202,15 @@ def print_tomita_result(doc, feature_grammars):
             offsets = [int(j) for j in i.split(':')]
             print(mytext[offsets[0]:offsets[1]])
 
-def create_embedding_feature(doc_id):
+
+def create_embedding_feature2(doc_id):
+    """wrap for create_embedding_feature"""
+    db.doc_apply(doc_id, create_embedding_feature)
+
+
+def create_embedding_feature(doc, session=None, commit_session=True):
     """create lemmas to look for in embedding"""
+    doc_id = doc.doc_id
     morpho = db.get_morpho(doc_id)
     values = []
     for element in morpho:
@@ -226,11 +233,16 @@ def create_embedding_feature(doc_id):
                                'value': feats})
     if len(values) > 0:
         # print(values)
-        db.put_ner_feature(doc_id, values, ner_feature_types['embedding'], 'embedding')
+        db.put_ner_feature(doc_id, values, ner_feature_types['embedding'], 'embedding', session, commit_session)
 
 
-def create_morpho_feature(doc_id):
+def create_morpho_feature2(doc_id):
+    """wrap for create_morpho_feature"""
+    db.doc_apply(doc_id, create_morpho_feature)
+
+def create_morpho_feature(doc, session=None, commit_session=True):
     """create feature for NER from morpho features"""
+    doc_id = doc.doc_id
     morpho = db.get_morpho(doc_id)
     values = []
     for element in morpho:
@@ -251,4 +263,4 @@ def create_morpho_feature(doc_id):
                            'value': res.tolist()})
     if len(values) > 0:
         # print(values)
-        db.put_ner_feature(doc_id, values, ner_feature_types['morpho'], 'morpho')
+        db.put_ner_feature(doc_id, values, ner_feature_types['morpho'], 'morpho', session, commit_session)

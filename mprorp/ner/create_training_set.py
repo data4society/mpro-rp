@@ -36,7 +36,7 @@ def write_training_set(rubric_id, session=None):
   training_set.append(doc_id)
  if session is None:
   session = Driver.db_session()
- new_set = TrainingSet(doc_ids=set(training_set), doc_num=len(training_set))
+ new_set = TrainingSet(doc_ids=training_set, doc_num=len(training_set))
  session.add(new_set)
  session.commit()
 

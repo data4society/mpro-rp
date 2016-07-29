@@ -149,7 +149,7 @@ class TrainingSet(Base):
     doc_num = Column(Integer())
     # id of all documents in set
     doc_ids = Column(ARRAY(UUIDType(binary=False), ForeignKey('documents.doc_id')))
-    # inverse doument frequency for all lemmas of set
+    # inverse document frequency for all lemmas of set
     idf = Column(JSONB())
     # index of documents in object_features: key - doc_id, value - row number
     doc_index = Column(JSONB())

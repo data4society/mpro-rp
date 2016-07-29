@@ -7,6 +7,7 @@ CELERY_INCLUDE = ['mprorp.controller.start', 'mprorp.controller.logic']
 CELERYBEAT_SCHEDULE = {
                           'resource-checking': {
                               'task': 'mprorp.controller.start.check_sources',
+                              #'task': 'mprorp.controller.start.ner_learning',
                               'schedule': timedelta(seconds=30),
                           },
                       }
