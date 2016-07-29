@@ -1,8 +1,8 @@
 #encoding "utf-8"
 // Дополнительные терминалы
 quot -> Word {count = 3}| UnknownPOS {count = 3};
-lat -> AnyWord<lat, h-reg1>+;
-Q -> quot<quoted>;
+lat -> AnyWord<lat, h-reg1>+ interp(OrgFact_TOMITA.Org_TOMITA::not_norm);
+Q -> quot<quoted> interp(OrgFact_TOMITA.Org_TOMITA::not_norm);
 Words -> Word<~lat, ~l-quoted, ~r-quoted> {count = 3};
 
 // Суды
@@ -43,9 +43,9 @@ Org_lat -> lat;
 
 // Агентство|Холдинг
 Org2_NoWords -> Word<kwtype='ag'> Q | Word<kwtype='ag'> lat;
-Org2_Words -> Word<kwtype='ag'> interp(OrgFact_TOMITA.Org_TOMITA::not_norm) Words Q interp(+OrgFact_TOMITA.Org_TOMITA::not_norm) | Word<kwtype='ag'> interp(OrgFact_TOMITA.Org_TOMITA::not_norm) Words lat interp(+OrgFact_TOMITA.Org_TOMITA::not_norm);
-Org2 -> Org2_NoWords interp(OrgFact_TOMITA.Org_TOMITA::not_norm) | Org2_Words;
+Org2_Words -> Word<kwtype='ag'> Q | Word<kwtype='ag'> Words lat;
+Org2 -> Org2_NoWords | Org2_Words;
 
-Org -> Trial | OOO | International | Fonds | RusOrg | Min | Jail | Org1<kwtype=~'KoAP'> | Org3 | Org_lat;
+Org -> Trial | International | Fonds | RusOrg | Min | Jail | Org1<kwtype=~'KoAP'> | Org3 | Org_lat;
 Organisation1 -> Org interp(OrgFact_TOMITA.Org_TOMITA::not_norm);
-Organisation -> Organisation1 | Org2;
+Organisation -> Organisation1 | Org2 | OOO;
