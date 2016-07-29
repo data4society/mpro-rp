@@ -19,7 +19,7 @@ settings = {'features': {'oc_span_last_name': 'oc_feature_last_name',
             'put_documents': True}
 
 
-def create_answers_feature_for_doc(doc, session=None, commit_session=True):
+def create_answers_feature_for_doc(doc, session=None, commit_session=True, verbose=False):
 
     features = settings.get('features')
     consider_right_symbol = settings.get('consider_right_symbol')
@@ -34,28 +34,33 @@ def create_answers_feature_for_doc(doc, session=None, commit_session=True):
         start_ref = ref[0]
         end_ref = ref[1]
         ref_class = ref[2]
+        if verbose:
+            print('coordinates: ', start_ref, end_ref)
 
         for element in morpho:
 
             value = None
-            if 'start_offset' in element.keys():
+            if 'start_offset2' in element.keys():
 
-                if element['start_offset'] == start_ref:
+                if element['start_offset2'] == start_ref:
 
-                    if (consider_right_symbol == True and element['end_offset'] <= end_ref) or (
-                            consider_right_symbol == False and element['end_offset'] < end_ref):
+                    if (consider_right_symbol and element['end_offset2'] <= end_ref) or (
+                            not consider_right_symbol and element['end_offset2'] < end_ref):
 
                         value = features.get(ref_class)
                     else:
                         # error
                         log.info(
-                            'error: word ' + element['text'] + ' ' + str(element['start_offset']) + ':' +
-                            str(element['end_offset']) + ' refs: ' + str(ref))
+                            'error: word ' + element['text'] + ' ' + str(element['start_offset2']) + ':' +
+                            str(element['end_offset2']) + ' refs: ' + str(ref))
+                        if verbose:
+                            print('error: word ', element['text'], ' ', str(element['start_offset2']), ':', str(
+                                element['end_offset2']), ' refs: ', str(ref))
 
-                elif element['start_offset'] > start_ref:
+                elif element['start_offset2'] > start_ref:
 
-                    if (consider_right_symbol == True and element['end_offset'] <= end_ref) or (
-                                    consider_right_symbol == False and element['end_offset'] < end_ref):
+                    if (consider_right_symbol and element['end_offset2'] <= end_ref) or (
+                                    not consider_right_symbol and element['end_offset2'] < end_ref):
 
                         value = features.get(ref_class)
                     else:
@@ -63,22 +68,27 @@ def create_answers_feature_for_doc(doc, session=None, commit_session=True):
 
                 else:
 
-                    if element['end_offset'] >= start_ref:
+                    if element['end_offset2'] >= start_ref:
                         # error
                         log.info(
-                            'error: word ' + element['text'] + ' ' + str(element['start_offset']) + ':' +
-                            str(element['end_offset']) + ' refs: ' + str(ref))
+                            'error: word ' + element['text'] + ' ' + str(element['start_offset2']) + ':' +
+                            str(element['end_offset2']) + ' refs: ' + str(ref))
+                        if verbose:
+                            print('error: word ', element['text'], ' ', str(element['start_offset2']), ':', str(
+                                element['end_offset2']), ' refs: ', str(ref))
 
             if not (value is None):
                 values[(element['sentence_index'], element['word_index'], value)] = [1]
+                if verbose:
+                    print(element['text'], value)
 
     if len(values) > 0:
-         db.put_ner_feature_dict(doc.doc_id, values, feature.ner_feature_types['OpenCorpora'],
+        db.put_ner_feature_dict(doc.doc_id, values, feature.ner_feature_types['OpenCorpora'],
                                  None, session, commit_session)
 
 
 def create_answers_feature_for_doc_2(doc_id):
-    db.doc_apply(doc_id, create_answers_feature_for_doc)
+    db.doc_apply(doc_id,  create_answers_feature_for_doc)
 
 
 def create_markup(doc, session=None, commit_session=True, verbose=False):

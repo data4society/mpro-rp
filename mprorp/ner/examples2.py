@@ -7,7 +7,7 @@ import mprorp.analyzer.rubricator as rb
 from mprorp.tomita.grammars.config import config as grammar_config
 from mprorp.tomita.tomita_run import run_tomita2
 import mprorp.ner.feature as ner_feature
-from mprorp.ner.identification import create_answers_feature_for_doc_2
+from mprorp.ner.identification import create_answers_feature_for_doc
 from mprorp.ner.identification import create_markup
 
 # 1. Create sets: training and dev
@@ -31,23 +31,45 @@ dev_set = u'97106298-d85e-4602-803f-a3c54685ada6'
 #         ner_feature.create_morpho_feature2(str(doc_id))
 
 # 3. Create answers for docs
+# session = Driver.db_session()
+# # doc = session.query(Document).filter_by(doc_id=doc_id).first()
 # for set_doc in [training_set, dev_set]:
 #     for doc_id in db.get_set_docs(set_doc):
-#         create_answers_feature_for_doc_2(doc_id)
+#         doc = session.query(Document).filter_by(doc_id=doc_id).first()
+#         rb.morpho_doc(doc)
+# session.commit()
+#
+# for set_doc in [training_set, dev_set]:
+#     for doc_id in db.get_set_docs(set_doc):
+#         doc = session.query(Document).filter_by(doc_id=doc_id).first()
+#         print(doc_id)
+#         create_answers_feature_for_doc(doc, verbose=True)
+# session.commit()
 
 # 4. NER Learning
 
 # NER.NER_person_learning()
 
 # 5. NER + identification
-doc_id = u'65057219-65b1-4f58-ba1d-907f54a69280'
+doc_id = u'61204298-ac64-4a86-bc72-c37cdd153b94'
 session = Driver.db_session()
 doc = session.query(Document).filter_by(doc_id=doc_id).first()
+rb.morpho_doc(doc)
+session.commit()
 
 settings = [['./weights/ner_oc1.params', './weights/ner_oc1.weights'],
             ['./weights/ner_oc2.params', './weights/ner_oc2.weights']]
 
-# NER.NER_predict(doc, settings, session)
+NER.NER_predict(doc, settings, session)
 
 print(doc.stripped)
 create_markup(doc, verbose=True)
+
+# doc_id = u'00d5387b-7ff4-dbc5-9d47-1800cb395718'
+# session = Driver.db_session()
+# doc = session.query(Document).filter_by(doc_id=doc_id).first()
+# print(doc.stripped)
+# rb.morpho_doc(doc)
+# session.commit()
+# print(doc.morpho)
+# create_answers_feature_for_doc(doc, session=session, verbose=True)
