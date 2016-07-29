@@ -37,38 +37,17 @@ dev_set = u'97106298-d85e-4602-803f-a3c54685ada6'
 
 # 4. NER Learning
 
-if not os.path.exists("./weights"):
-    os.makedirs("./weights")
-
-NER_config = NER.Config()
-# NER_config.training_set = training_set
-# NER_config.dev_set = dev_set
-#
-# NER_config.feature_answer = ['oc_feature_last_name', 'oc_feature_first_name', 'oc_feature_middle_name',
-#                              'oc_feature_nickname', 'oc_feature_foreign_name']
-#
-# filename_tf = './weights/ner_oc1.weights'
-# filename_params = './weights/ner_oc1.params'
-#
-# NER.NER_learning(filename_params, filename_tf, NER_config)
-#
-# NER_config.feature_answer = ['oc_feature_post', 'oc_feature_role', 'oc_feature_status']
-#
-# filename_tf = './weights/ner_oc2.weights'
-# filename_params = './weights/ner_oc2.params'
-#
-# NER.NER_learning(filename_params, filename_tf, NER_config)
+# NER.NER_person_learning()
 
 # 5. NER + identification
-# doc_id = u'1e9ffd80-a2c2-8432-1c36-6205737998d5'
-# session = Driver.db_session()
-# doc = session.query(Document).filter_by(doc_id=doc_id).first()
+doc_id = u'dd5454b6-70a7-4963-894d-1c4b89e6dab6'
+session = Driver.db_session()
+doc = session.query(Document).filter_by(doc_id=doc_id).first()
 #
 # settings = [['./weights/ner_oc1.params', './weights/ner_oc1.weights'],
 #             ['./weights/ner_oc2.params', './weights/ner_oc2.weights']]
 #
 # NER.NER_predict(doc, settings, session)
 #
-# create_markup(doc)
+create_markup(doc)
 
-NER.NER_person_learning()
