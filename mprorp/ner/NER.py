@@ -42,6 +42,7 @@ class Config(object):
     feature_answer = ['person_answer']
     # feature_answer = 'org_answer'
     features = []
+    # features = ['Org']
     # features = ['Org', 'Person', 'morpho']
     print(features)
     features_length = 0
@@ -88,7 +89,7 @@ class NERModel(LanguageModel):
         # Load the starter word vectors
         training_set = self.config.training_set
         #  train_set_words[doc_id] = [(sentence, word, [lemma1, lemma2]), ... (...)]
-        train_set_words = db.get_ner_feature_for_set(training_set, 'embedding')
+        train_set_words = db.get_ner_feature(set_id=training_set, feature='embedding')
 
         # collect words from set
 
@@ -116,7 +117,7 @@ class NERModel(LanguageModel):
 
         self.wv = np.array(wv_array, dtype=np.float32)
 
-        answers = db.get_ner_feature_for_set_dict(training_set, feature_list=self.config.feature_answer)
+        answers = db.get_ner_feature_dict(set_id=training_set, feature_list=self.config.feature_answer)
 
         tagnames = [0]
         for doc_id in answers:
@@ -134,7 +135,7 @@ class NERModel(LanguageModel):
 
         features_set = {}
         for feat in self.config.features:
-            features_set[feat] = db.get_ner_feature_for_set_dict(training_set, feat)
+            features_set[feat] = db.get_ner_feature_dict(set_id=training_set, feature=feat)
 
         self.feat_train, self.X_train, self.y_train, _, _ = du.docs_to_windows2(train_set_words, word_to_num,
                                                         tag_to_num, answers,
@@ -144,11 +145,11 @@ class NERModel(LanguageModel):
 
         dev_set = self.config.dev_set
         #  train_set_words[doc_id] = [(sentence, word, [lemma1, lemma2]), ... (...)]
-        dev_set_words = db.get_ner_feature_for_set(dev_set, 'embedding')
-        answers = db.get_ner_feature_for_set_dict(dev_set, feature_list=self.config.feature_answer)
+        dev_set_words = db.get_ner_feature(set_id=dev_set, feature='embedding')
+        answers = db.get_ner_feature_dict(set_id=dev_set, feature_list=self.config.feature_answer)
         features_set = {}
         for feat in self.config.features:
-            features_set[feat] = db.get_ner_feature_for_set_dict(dev_set, feat)
+            features_set[feat] = db.get_ner_feature_dict(set_id=dev_set, feature=feat)
         self.feat_dev, self.X_dev, self.y_dev, self.w_dev, _ = du.docs_to_windows2(dev_set_words, word_to_num,
                                                          tag_to_num, answers,
                                                          self.config.features,
@@ -166,14 +167,15 @@ class NERModel(LanguageModel):
         # Load the starter word vectors
         # training_set = self.config.training_set
         #  train_set_words[doc_id] = [(sentence, word, [lemma1, lemma2]), ... (...)]
-        doc_set_words = {}
-        doc_set_words[doc_id] = db.get_ner_feature_one_feature(doc_id, 'embedding', session=session)
+        # doc_set_words = {}
+        # doc_set_words[doc_id] = db.get_ner_feature_one_feature(doc_id=doc_id, feature='embedding', session=session)
+        doc_set_words = db.get_ner_feature(doc_id=doc_id, feature='embedding', session=session)
 
         self.config.label_size = len(self.tag_to_num)
 
         features_set = {}
         for feat in self.config.features:
-            features_set[feat] = db.get_ner_feature_one_feature_dict(doc_id, feat, session=session)
+            features_set[feat] = db.get_ner_feature_dict(doc_id=doc_id, feature=feat, session=session)
 
         self.feat_test, self.X_test, self.y_test, _, self.indexes = du.docs_to_windows2(doc_set_words, self.word_to_num,
                                                                              self.tag_to_num, {},
