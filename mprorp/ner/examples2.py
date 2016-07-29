@@ -9,6 +9,7 @@ from mprorp.tomita.tomita_run import run_tomita2
 import mprorp.ner.feature as ner_feature
 from mprorp.ner.identification import create_answers_feature_for_doc
 from mprorp.ner.identification import create_markup
+from mprorp.utils import home_dir
 
 # 1. Create sets: training and dev
 # docs = db.get_docs_with_markup('30')
@@ -44,9 +45,9 @@ for set_doc in [training_set, dev_set]:
         print(doc_id)
         create_answers_feature_for_doc(doc, verbose=True)
 session.commit()
-
+#
 # 4. NER Learning
-
+#
 NER.NER_person_learning()
 
 # 5. NER + identification
@@ -56,8 +57,8 @@ NER.NER_person_learning()
 # rb.morpho_doc(doc)
 # session.commit()
 #
-# settings = [['./weights/ner_oc1.params', './weights/ner_oc1.weights'],
-#             ['./weights/ner_oc2.params', './weights/ner_oc2.weights']]
+# settings = [[home_dir + '/weights/ner_oc1.params', home_dir + '/weights/ner_oc1.weights'],
+#             [home_dir + '/weights/ner_oc2.params', home_dir + '/weights/ner_oc2.weights']]
 #
 # NER.NER_predict(doc, settings, session)
 #
