@@ -33,19 +33,26 @@ def add_rubric_to_doc(rubrics_dic, rubric_id, session=None):
 def write_training_set(rubric_id, session=None):
  training_set = []
  for doc_id in create_training_set(rubric_id):
-  training_set.append(str(doc_id))
+  training_set.append(doc_id)
  if session is None:
   session = Driver.db_session()
  new_set = TrainingSet(doc_ids=set(training_set), doc_num=len(training_set))
  session.add(new_set)
  session.commit()
 
-#write_training_set('19848dd0-436a-11e6-beb8-9e71128cae02') не работает
-
+#write_training_set('19848dd0-436a-11e6-beb8-9e71128cae02')
+#print('Done')
+#write_training_set('19848dd0-436a-11e6-beb8-9e71128cae21')
+#print('Done')
 #put_training_set(create_training_set('19848dd0-436a-11e6-beb8-9e71128cae02')) так тоже
 
-def test_rubricator(set_id, rubric_id):
-
+def test_rubricator(set_id, rubric_id, session=None):
+    if session is None:
+        session = Driver.db_session()
+    docs = session.query(TrainingSet.doc_ids).filter_by(set_id=set_id)
+    for doc_id in docs:
+        rb.morpho_doc2(str(doc_id))
+        rb.lemmas_freq_doc2(str(doc_id))
     rb.idf_object_features_set(set_id)
     rb.learning_rubric_model(set_id, rubric_id)
 
@@ -59,4 +66,15 @@ def test_rubricator(set_id, rubric_id):
     result = rb.f1_score(model_id, set_id, rubric_id)
     return result
 
-print(test_rubricator('0cbf3533-cb40-43f0-96bb-943152a877e1','91a6a3c7-a7c9-42bc-8fb4-0e5707af3b52'))
+#print(test_rubricator('7784ced1-7520-4e16-99f6-c6fd656311b9','19848dd0-436a-11e6-beb8-9e71128cae21'))
+
+#print(db.get_model('19848dd0-436a-11e6-beb8-9e71128cae21', '91a6a3c7-a7c9-42bc-8fb4-0e5707af3b52')["model_id"])
+
+session = Driver.db_session()
+a = session.query(TrainingSet.doc_ids).filter_by(set_id='9460c953-a5f8-4c55-97cc-f1ed3905c89f')
+b = session.query(TrainingSet.doc_ids).filter_by(set_id='0cbf3533-cb40-43f0-96bb-943152a877e1')
+
+for i in a:
+    print(i)
+for i in b:
+    print(b)
