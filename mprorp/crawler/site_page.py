@@ -21,7 +21,7 @@ def find_full_text(doc):
 
     html_source = urllib.request.urlopen(url, timeout=10).read()
     rf_doc = Doc(html_source)
-    content = rf_doc.summary()
+    content = rf_doc.summary(title=doc.title)
 
     if content.strip() == '':
         logging.error("Получен пустой текст url: " + url)
