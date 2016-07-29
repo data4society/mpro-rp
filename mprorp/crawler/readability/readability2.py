@@ -5,9 +5,9 @@ from mprorp.crawler.readability.readability_fusion import Document as Doc
 import urllib.request
 
 
-def find_full_text(html_source):
+def find_full_text(html_source, title=""):
     doc = Doc(html_source)
-    content = doc.summary()
+    content = doc.summary(title=title)
     confidence = doc.get_confidence()
     #print(confidence)
 

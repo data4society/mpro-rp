@@ -43,7 +43,9 @@ REGEXES = {
     'videoRe': re.compile('https?:\/\/(www\.)?(youtube|vimeo)\.com', re.I),
     #skipFootnoteLink:      /^\s*(\[?[a-z0-9]{1,2}\]?|^|edit|citation needed)\s*$/i,
 }
-THRESHOLD_RATIO = 0.2# ++++++++0.666
+THRESHOLD_RATIO = 0.1# ++++++++0.666
+TITLE_DENSITY_THRESHOLD = 0.005
+MAX_TITLE_CHECKING = 10
 mystem = Mystem()
 
 
@@ -162,6 +164,7 @@ class Document:
 
         """
 
+        mystem.start()
         try:
             ruthless = True
             while True:
@@ -174,9 +177,8 @@ class Document:
                     title_text = title
                 print(title_text)
                 self.title_lemmas = mystem.lemmatize(title_text)
-                mystem.close()
+                #mystem.close()
                 self.title_lemmas = [word for word in self.title_lemmas if len(word.strip())>2]
-                #print(self.title_lemmas)
                 for i in self.tags(self.html, 'script', 'style'):
                     i.drop_tree()
                 for i in self.tags(self.html, 'body'):
@@ -197,7 +199,6 @@ class Document:
 
                 self.compute(self.html, res, candidates)
                 best_candidate = self.select_best_candidate(candidates)
-
                 #print(res)
 
                 if best_candidate:
@@ -233,6 +234,7 @@ class Document:
             else:
                 from readability.compat.three import raise_with_traceback
             raise_with_traceback(Unparseable, sys.exc_info()[2], str_(e))
+        mystem.close()
 
     def get_article(self, candidates, best_candidate, html_partial=False):
         # Now that we have the top candidate, look through its siblings for
@@ -378,18 +380,22 @@ class Document:
         if best_candidate_score > 0:
             n = 0
             for candidate in sorted_candidates:
-                if candidate['content_score']/best_candidate_score < THRESHOLD_RATIO:
+                if candidate['content_score']/best_candidate_score < THRESHOLD_RATIO or n == MAX_TITLE_CHECKING:
                     break;
                 n += 1
-        if n ==1:
+        if n == 1:
             self.confidence = 1
         else:
             best_candidates = sorted_candidates[:n]
-            best_final_score = 0
+            best_final_score = -1
             for candidate in best_candidates:
                 elem = candidate['elem']
-                # print("BEST", describe(elem), candidate['content_score'], self.score_title_rate(elem))
-                final_score = self.score_title_rate(elem)*candidate['content_score']
+                strate = self.score_title_rate(elem)
+                if strate > TITLE_DENSITY_THRESHOLD:
+                    best_candidate = candidate
+                    break
+                # print("BEST", describe(elem), candidate['content_score'], strate)
+                final_score = strate*candidate['content_score']
                 if final_score>best_final_score:
                     best_final_score = final_score
                     best_candidate = candidate
@@ -612,7 +618,7 @@ class Document:
         for lemma in text_lemmas:
             if lemma in self.title_lemmas:
                 rate += 1
-        return rate / len(text)
+        return rate / len(text_lemmas)
 
 
     def reverse_tags(self, node, *tag_names):
