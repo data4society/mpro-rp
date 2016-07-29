@@ -15,6 +15,7 @@ import mprorp.analyzer.db as db
 from mprorp.ner.config import features_size
 from mprorp.ner.feature import ner_feature_types
 import pickle as pickle
+from mprorp.utils import home_dir
 
 
 class Config(object):
@@ -620,8 +621,9 @@ def NER_person_learning():
     training_set = u'1fe7391a-c5b9-4a07-bb6a-e6e4c5211008'
     dev_set = u'97106298-d85e-4602-803f-a3c54685ada6'
 
-    if not os.path.exists("./weights"):
-        os.makedirs("./weights")
+
+    if not os.path.exists(home_dir + "/weights"):
+        os.makedirs(home_dir + "/weights")
 
     NER_config = Config()
     NER_config.training_set = training_set
@@ -630,15 +632,15 @@ def NER_person_learning():
     NER_config.feature_answer = ['oc_feature_last_name', 'oc_feature_first_name', 'oc_feature_middle_name',
                                  'oc_feature_nickname', 'oc_feature_foreign_name']
 
-    filename_tf = './weights/ner_oc1.weights'
-    filename_params = './weights/ner_oc1.params'
+    filename_tf = home_dir + '/weights/ner_oc1.weights'
+    filename_params = home_dir + '/weights/ner_oc1.params'
 
     NER_learning(filename_params, filename_tf, NER_config)
 
     NER_config.feature_answer = ['oc_feature_post', 'oc_feature_role', 'oc_feature_status']
 
-    filename_tf = './weights/ner_oc2.weights'
-    filename_params = './weights/ner_oc2.params'
+    filename_tf = home_dir + '/weights/ner_oc2.weights'
+    filename_params = home_dir + '/weights/ner_oc2.params'
 
     NER_learning(filename_params, filename_tf, NER_config)
 
