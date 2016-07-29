@@ -40,14 +40,14 @@ dev_set = u'97106298-d85e-4602-803f-a3c54685ada6'
 # NER.NER_person_learning()
 
 # 5. NER + identification
-doc_id = u'dd5454b6-70a7-4963-894d-1c4b89e6dab6'
+doc_id = u'65057219-65b1-4f58-ba1d-907f54a69280'
 session = Driver.db_session()
 doc = session.query(Document).filter_by(doc_id=doc_id).first()
-#
-# settings = [['./weights/ner_oc1.params', './weights/ner_oc1.weights'],
-#             ['./weights/ner_oc2.params', './weights/ner_oc2.weights']]
-#
-# NER.NER_predict(doc, settings, session)
-#
-create_markup(doc)
 
+settings = [['./weights/ner_oc1.params', './weights/ner_oc1.weights'],
+            ['./weights/ner_oc2.params', './weights/ner_oc2.weights']]
+
+# NER.NER_predict(doc, settings, session)
+
+print(doc.stripped)
+create_markup(doc, verbose=True)

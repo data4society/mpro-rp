@@ -81,7 +81,7 @@ def create_answers_feature_for_doc_2(doc_id):
     db.doc_apply(doc_id, create_answers_feature_for_doc)
 
 
-def create_markup(doc, session=None, commit_session=True):
+def create_markup(doc, session=None, commit_session=True, verbose=False):
 
     feature_type = feature.ner_feature_types['OpenCorpora']
 
@@ -90,31 +90,38 @@ def create_markup(doc, session=None, commit_session=True):
 
     # Получим свойства слов документа из БД
     doc_properties = db.get_ner_feature_for_features(doc.doc_id, feature_type, features, session)
-    # print('Свойства слов документа:', doc_properties)
+    if verbose:
+        print('Свойства слов документа:', doc_properties)
 
     # Сформируем информацию о словах документа (падеж, число, нормальная форма)
     doc_properties_info = form_doc_properties_info(doc, doc_properties, session)
-    # print('Информация о словах документа:', doc_properties_info)
+    if verbose:
+        print('Информация о словах документа:', doc_properties_info)
 
     # Сформиреум спаны
     spans = form_spans(doc_properties)
-    # print('Спаны:', spans)
+    if verbose:
+        print('Спаны:', spans)
 
     # Сформируем информацию о спанах (падеж, число, нормальная форма)
     spans_info = form_spans_info(spans, doc_properties_info)
-    # print('Информация о спанах:', spans_info)
+    if verbose:
+        print('Информация о спанах:', spans_info)
 
     # Сформируем символьную информацию о спанах
     spans_morpho_info = form_spans_morpho_info(doc, spans, session)
-    # print('Символьная информация о спанах', spans_morpho_info)
+    if verbose:
+        print('Символьная информация о спанах', spans_morpho_info)
 
     # Сформируем оценки связей спанов
     evaluations = form_evaluations(spans, spans_info)
-    # print('Оценки связей:', evaluations)
+    if verbose:
+        print('Оценки связей:', evaluations)
 
     # Сформируем список цепочек спанов
     list_chain_spans = form_list_chain_spans(spans, evaluations)
-    # print('Цепочки спанов:', list_chain_spans)
+    if verbose:
+        print('Цепочки спанов:', list_chain_spans)
 
     # Запишем цепочки
     form_entity_for_chain_spans(doc, list_chain_spans, spans_info, spans_morpho_info, session, commit_session)
@@ -489,6 +496,7 @@ def combine_chains(one_span, two_span, list_chain_spans, evaluations):
 
                 list_chain_spans.append(new_chain)
 
+
 def form_entity_for_chain_spans(doc, list_chain_spans, spans_info, spans_morpho_info, session, commit_session):
 
     for chain_spans in list_chain_spans:
@@ -503,13 +511,15 @@ def form_entity_for_chain_spans(doc, list_chain_spans, spans_info, spans_morpho_
         position = []
         role = []
 
+        refs = []
+
         for span in chain_spans:
 
             span_feature = span[3]
             span_info = spans_info.get(span)
             span_info_lex = span_info.get('list_lex')
 
-            if not span_info_lex is None:
+            if not (span_info_lex is None):
                 if span_feature in ['oc_feature_last_name', 'oc_feature_first_name', 'oc_feature_middle_name']:
                     name = ' '.join(span_info_lex)if(name == '')else name + ' ' + ' '.join(span_info_lex)
                 if span_feature == 'oc_feature_first_name':
@@ -565,18 +575,18 @@ def form_entity_for_chain_spans(doc, list_chain_spans, spans_info, spans_morpho_
             entity_id = db.put_entity(name, settings.get('entity_class'), data, session, commit_session)
 
         if settings.get('put_markup_references', False):
-            refs = []
+
             for span in chain_spans:
                 span_morpho_info = spans_morpho_info.get(span)
                 if not span_morpho_info is None:
                     start_offset = span_morpho_info.get('start_offset', 0)
                     end_offset = span_morpho_info.get('end_offset', 0)
                     refs.append({'start_offset': start_offset, 'end_offset': end_offset,
-                             'len_offset': int(end_offset) - int(start_offset),
+                             'len_offset': int(end_offset) - int(start_offset) + 1,
                              'entity': str(entity_id), 'entity_class': settings.get('entity_class')})
 
-            name = 'another markup from tomita facts'
-            db.put_markup(doc, name, settings.get('entity_class'), '20', refs, session, commit_session)
+        name = 'another markup from tomita facts'
+        db.put_markup(doc, name, settings.get('entity_class'), '20', refs, session, commit_session)
 
 
 
