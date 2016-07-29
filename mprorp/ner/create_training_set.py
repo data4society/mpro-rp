@@ -13,7 +13,7 @@ def create_training_set(rubric_id, session=None):
      if rubric_id in str(doc.rubric_ids):
       ids.append(doc.doc_id)
     tr_set = ids[:100]
-    free_docs = session.query(Document).filter_by(rubric_ids=None)[:100]
+    free_docs = session.query(Document).filter_by(rubric_ids=None, status=1200)[:100]
     for doc in free_docs:
      tr_set.append(doc.doc_id)
     return tr_set
@@ -36,9 +36,10 @@ def write_training_set(rubric_id, session=None):
   training_set.append(doc_id)
  if session is None:
   session = Driver.db_session()
- new_set = TrainingSet(doc_ids=training_set, doc_num=len(training_set))
+ new_set = TrainingSet(doc_ids=training_set, doc_num=len(training_set), name='Matvey_set')
  session.add(new_set)
  session.commit()
+ print(training_set)
 
 #write_training_set('19848dd0-436a-11e6-beb8-9e71128cae02')
 #print('Done')
@@ -49,8 +50,9 @@ def write_training_set(rubric_id, session=None):
 def test_rubricator(set_id, rubric_id, session=None):
     if session is None:
         session = Driver.db_session()
-    docs = session.query(TrainingSet.doc_ids).filter_by(set_id=set_id)
+    docs = session.query(TrainingSet.doc_ids).filter_by(set_id=set_id)[0][0]
     for doc_id in docs:
+        print(doc_id)
         rb.morpho_doc2(str(doc_id))
         rb.lemmas_freq_doc2(str(doc_id))
     rb.idf_object_features_set(set_id)
@@ -66,7 +68,7 @@ def test_rubricator(set_id, rubric_id, session=None):
     result = rb.f1_score(model_id, set_id, rubric_id)
     return result
 
-print(test_rubricator('7784ced1-7520-4e16-99f6-c6fd656311b9','19848dd0-436a-11e6-beb8-9e71128cae21'))
+print(test_rubricator('91a6a3c7-a7c9-42bc-8fb4-0e5707af3b52','19848dd0-436a-11e6-beb8-9e71128cae21'))
 
 
 #session = Driver.db_session()
