@@ -66,15 +66,14 @@ def test_rubricator(set_id, rubric_id, session=None):
     result = rb.f1_score(model_id, set_id, rubric_id)
     return result
 
-#print(test_rubricator('7784ced1-7520-4e16-99f6-c6fd656311b9','19848dd0-436a-11e6-beb8-9e71128cae21'))
+print(test_rubricator('7784ced1-7520-4e16-99f6-c6fd656311b9','19848dd0-436a-11e6-beb8-9e71128cae21'))
 
-#print(db.get_model('19848dd0-436a-11e6-beb8-9e71128cae21', '91a6a3c7-a7c9-42bc-8fb4-0e5707af3b52')["model_id"])
 
-session = Driver.db_session()
-a = session.query(TrainingSet.doc_ids).filter_by(set_id='9460c953-a5f8-4c55-97cc-f1ed3905c89f')
-b = session.query(TrainingSet.doc_ids).filter_by(set_id='0cbf3533-cb40-43f0-96bb-943152a877e1')
+#session = Driver.db_session()
+#a = session.query(TrainingSet.doc_ids).filter_by(set_id='9460c953-a5f8-4c55-97cc-f1ed3905c89f')
+#b = session.query(TrainingSet.doc_ids).filter_by(set_id='0cbf3533-cb40-43f0-96bb-943152a877e1')
 
-for i in a:
-    print(i)
-for i in b:
-    print(b)
+#for i in a:
+#    print(i)
+#for i in b:
+#    print(b)
