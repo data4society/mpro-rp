@@ -7,8 +7,9 @@ import mprorp.analyzer.rubricator as rb
 from mprorp.tomita.grammars.config import config as grammar_config
 from mprorp.tomita.tomita_run import run_tomita2
 import mprorp.ner.feature as ner_feature
-from mprorp.ner.identification import create_answers_feature_for_doc_2
+from mprorp.ner.identification import create_answers_feature_for_doc
 from mprorp.ner.identification import create_markup
+from mprorp.utils import home_dir
 
 # 1. Create sets: training and dev
 # docs = db.get_docs_with_markup('30')
@@ -31,23 +32,44 @@ dev_set = u'97106298-d85e-4602-803f-a3c54685ada6'
 #         ner_feature.create_morpho_feature2(str(doc_id))
 
 # 3. Create answers for docs
-# for set_doc in [training_set, dev_set]:
-#     for doc_id in db.get_set_docs(set_doc):
-#         create_answers_feature_for_doc_2(doc_id)
+session = Driver.db_session()
+for set_doc in [training_set, dev_set]:
+    for doc_id in db.get_set_docs(set_doc):
+        doc = session.query(Document).filter_by(doc_id=doc_id).first()
+        rb.morpho_doc(doc)
+session.commit()
 
+for set_doc in [training_set, dev_set]:
+    for doc_id in db.get_set_docs(set_doc):
+        doc = session.query(Document).filter_by(doc_id=doc_id).first()
+        print(doc_id)
+        create_answers_feature_for_doc(doc, verbose=True)
+session.commit()
+#
 # 4. NER Learning
-
-# NER.NER_person_learning()
+#
+NER.NER_person_learning()
 
 # 5. NER + identification
-doc_id = u'dd5454b6-70a7-4963-894d-1c4b89e6dab6'
-session = Driver.db_session()
-doc = session.query(Document).filter_by(doc_id=doc_id).first()
+# doc_id = u'61204298-ac64-4a86-bc72-c37cdd153b94'
+# session = Driver.db_session()
+# doc = session.query(Document).filter_by(doc_id=doc_id).first()
+# rb.morpho_doc(doc)
+# session.commit()
 #
-# settings = [['./weights/ner_oc1.params', './weights/ner_oc1.weights'],
-#             ['./weights/ner_oc2.params', './weights/ner_oc2.weights']]
+# settings = [[home_dir + '/weights/ner_oc1.params', home_dir + '/weights/ner_oc1.weights'],
+#             [home_dir + '/weights/ner_oc2.params', home_dir + '/weights/ner_oc2.weights']]
 #
 # NER.NER_predict(doc, settings, session)
 #
-create_markup(doc)
+# print(doc.stripped)
+# create_markup(doc, verbose=True)
 
+# doc_id = u'00d5387b-7ff4-dbc5-9d47-1800cb395718'
+# session = Driver.db_session()
+# doc = session.query(Document).filter_by(doc_id=doc_id).first()
+# print(doc.stripped)
+# rb.morpho_doc(doc)
+# session.commit()
+# print(doc.morpho)
+# create_answers_feature_for_doc(doc, session=session, verbose=True)
