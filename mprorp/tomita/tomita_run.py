@@ -2,8 +2,8 @@
 import os
 
 import mprorp.analyzer.db as db
-from mprorp.tomita.tomita_out import tomita_out
-from mprorp.tomita.tomita_start import start_tomita
+from mprorp.tomita.tomita_out import tomita_out, norm_out, find_act
+from mprorp.tomita.tomita_start import start_tomita, create_file
 
 
 def del_files(doc_id):
@@ -22,12 +22,20 @@ def run_tomita2(grammar, doc_id, status=0):
 
 def run_tomita(doc, grammar, session=None, commit_session=True):
     """the final function to run tomita_start and tomita_run together"""
-    output = start_tomita(grammar, doc)
-    source_name = str(doc.doc_id) + '.txt'
-    out = tomita_out(output, source_name)
-    db.put_tomita_result(str(doc.doc_id), grammar, out, session, commit_session)
-    del_files(str(doc.doc_id))
-    return out
+    if grammar != 'norm_act.cxx':
+        output = start_tomita(grammar, doc)
+        source_name = str(doc.doc_id) + '.txt'
+        out = tomita_out(output, source_name)
+        db.put_tomita_result(str(doc.doc_id), grammar, out, session, commit_session)
+        del_files(str(doc.doc_id))
+        return out
+    else:
+        source_name = create_file(doc)
+        out = norm_out(find_act(source_name), source_name)
+        db.put_tomita_result(str(doc.doc_id), grammar, out, session, commit_session)
+        file_name1 = str(doc.doc_id) + '.txt'
+        os.remove(file_name1, dir_fd=None)
+        return out
 
 #start_tomita('date.cxx', '000e82b8-6ea7-41f4-adc6-bc688fbbeeb6')
 #print(run_tomita2('date.cxx', '000e82b8-6ea7-41f4-adc6-bc688fbbeeb6', status=0))

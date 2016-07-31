@@ -31,28 +31,24 @@ def add_rubric_to_doc(rubrics_dic, rubric_id, session=None):
 #add_rubric_to_doc(rubrics, '19848dd0-436a-11e6-beb8-9e71128cae21')
 
 def write_training_set(rubric_id, session=None):
- training_set = []
- for doc_id in create_training_set(rubric_id):
-  training_set.append(doc_id)
- if session is None:
-  session = Driver.db_session()
- new_set = TrainingSet(doc_ids=training_set, doc_num=len(training_set), name='Matvey_set')
- session.add(new_set)
- session.commit()
+ training_set = create_training_set(rubric_id)
  print(training_set)
+ #if session is None:
+  #session = Driver.db_session()
+ #new_set = TrainingSet(doc_ids=training_set, doc_num=len(training_set), name='Matvey_set')
+ #session.add(new_set)
+ #session.commit()
 
-#write_training_set('19848dd0-436a-11e6-beb8-9e71128cae02')
+write_training_set('19848dd0-436a-11e6-beb8-9e71128cae02')
 #print('Done')
 #write_training_set('19848dd0-436a-11e6-beb8-9e71128cae21')
 #print('Done')
-#put_training_set(create_training_set('19848dd0-436a-11e6-beb8-9e71128cae02')) так тоже
 
 def test_rubricator(set_id, rubric_id, session=None):
     if session is None:
         session = Driver.db_session()
     docs = session.query(TrainingSet.doc_ids).filter_by(set_id=set_id)[0][0]
     for doc_id in docs:
-        print(doc_id)
         rb.morpho_doc2(str(doc_id))
         rb.lemmas_freq_doc2(str(doc_id))
     rb.idf_object_features_set(set_id)
@@ -60,21 +56,19 @@ def test_rubricator(set_id, rubric_id, session=None):
 
     for doc_id in db.get_set_docs(set_id):
         rb.spot_doc_rubrics2(doc_id, {rubric_id: None})
-        # check we can overwrite rubrication results:
-        rb.spot_doc_rubrics2(doc_id, {rubric_id: None})
 
     model_id = db.get_model(rubric_id, set_id)["model_id"]
 
     result = rb.f1_score(model_id, set_id, rubric_id)
     return result
 
-print(test_rubricator('91a6a3c7-a7c9-42bc-8fb4-0e5707af3b52','19848dd0-436a-11e6-beb8-9e71128cae21'))
+#print(test_rubricator('707908df-1644-4ea0-8fe1-4f20c6685d57','19848dd0-436a-11e6-beb8-9e71128cae21'))
 
 
 #session = Driver.db_session()
-#a = session.query(TrainingSet.doc_ids).filter_by(set_id='9460c953-a5f8-4c55-97cc-f1ed3905c89f')
+#a = session.query(TrainingSet.doc_ids).filter_by(set_id='707908df-1644-4ea0-8fe1-4f20c6685d57').all()
 #b = session.query(TrainingSet.doc_ids).filter_by(set_id='0cbf3533-cb40-43f0-96bb-943152a877e1')
-
+#print(a)
 #for i in a:
 #    print(i)
 #for i in b:
