@@ -49,7 +49,7 @@ def morpho_doc(doc):
     doc_text = doc.stripped
     mystem_analyzer.start()
     # new_morpho = mystem_analyzer.analyze(doc_text)
-    new_morpho = mystem_analyzer.analyze(doc_text.replace('\n',''))
+    new_morpho = mystem_analyzer.analyze(doc_text)
 
     morpho_list = []
 
@@ -157,24 +157,30 @@ def morpho_doc(doc):
     sentence_index = 0
     word_index = 0
     start_offset = 0
+    start_offset2 = 0
 
     for element in morpho_list: # нумеруем
         if is_sentence_end(element):
             if word_index != 0:
                 sentence_index += 1
                 word_index = 0
+            if element.get('text', '') == '\n':
+                start_offset2 += 1
         else:
             line = element.get('text', '')
             line_len = len(line)
 
-            if(line[0]!=' '):
+            if not (line[0] == ' '):
                 element['start_offset'] = start_offset
                 element['end_offset'] = start_offset + line_len - 1
+                element['start_offset2'] = start_offset2
+                element['end_offset2'] = start_offset2 + line_len - 1
                 element['word_index'] = word_index
                 element['sentence_index'] = sentence_index
 
                 word_index += 1
             start_offset += line_len
+            start_offset2 += line_len
 
     doc.morpho = morpho_list
     mystem_analyzer.close()

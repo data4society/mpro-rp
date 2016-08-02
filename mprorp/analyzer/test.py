@@ -64,5 +64,5 @@ doc_id = '45807db3-27ad-47aa-0ae9-2c177ceabd2b'
 doc_stripped = db.get_doc(doc_id)
 print(doc_stripped)
 
-id.create_answers_feature_for_doc_2(doc_id)
+# id.create_answers_feature_for_doc_2(doc_id)
 id.create_markup_2(doc_id)

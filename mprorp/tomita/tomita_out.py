@@ -65,6 +65,56 @@ def list_make(text, source_name):
     #print('Error count = ' + str(ERROR) + '\n')
     return out
 
+def find_act(file_name):
+    string = open(file_name, 'r', encoding='utf-8').read()
+    numb = '(\d+|[\d\.]+)'
+
+    part = '((ч.|част\w*) ?'+numb+')'
+    parts = '(' + part + '.*)'
+
+    article = '((ст.|стать\w*) ?'+numb+')'
+    articles = '(' + article + '.*)'
+
+    paragraph = '((п.|пункт\w*) ?'+numb+')'
+    paragraphs = '(' + paragraph + '.*)'
+
+    KK = '(УК|КоАП|КОАП|[Уу]головн.* [Кк]одекс.? \w*)'
+    string = re.sub(KK, '\\1@#@', string)
+    strings = string.split('@#@')
+
+    norm_act1 = '(' + parts + '*' + articles + '*' + paragraphs + '*' + KK + ')'
+    norm_act2 = '(' + parts + '*' + paragraphs + '*' + articles + '*' + KK + ')'
+    norm_act3 = '(' + articles + '*' + parts + '*' + paragraphs + '*' + KK + ')'
+    norm_act4 = '(' + articles + '*' + paragraphs + '*' + parts + '*' + KK + ')'
+    norm_act5 = '(' + paragraphs + '*' + articles + '*' + parts + '*' + KK + ')'
+    norm_act6 = '(' + paragraphs + '*' + parts + '*' + articles + '*' + KK + ')'
+
+    norm_act_all = '(' + norm_act1 + '|' + norm_act2 + '|' + norm_act3 + '|' + norm_act4 + '|' + norm_act5 + '|' + norm_act6 + ')'
+
+    out = []
+    for line in strings:
+        norm_act = re.findall(norm_act_all, line)
+        if norm_act != []:
+            norm_act = norm_act[0]
+            if norm_act != '':
+                out.append(max(norm_act))
+    return out
+
+def norm_out(arr, source_name):
+    source = open(source_name, 'r', encoding='utf-8').read()
+    s = source
+    out = {}
+    len_of_line = 0
+    for act in arr:
+        first_symbol = source.find(act)
+        last_symbol = first_symbol + len(act)
+        symbols = str(first_symbol + len_of_line) + ':' + str(last_symbol + len_of_line)
+        #print('string in original text: ' + s[first_symbol + len_of_line:last_symbol + len_of_line])
+        out[symbols] = 'Norm'
+        source = source[last_symbol:]
+        len_of_line += last_symbol
+    return out
+
 def tomita_out(file_name, source_name):
     """function to run all together"""
     out = list_make(text_make(file_name), source_name)
