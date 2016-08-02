@@ -1,7 +1,6 @@
 import mprorp.db.dbDriver as Driver
 from mprorp.db.models import *
 import mprorp.analyzer.db as db
-from mprorp.analyzer.db import put_training_set
 import mprorp.analyzer.rubricator as rb
 
 def create_training_set(rubric_id, session=None):
@@ -13,38 +12,38 @@ def create_training_set(rubric_id, session=None):
      if rubric_id in str(doc.rubric_ids):
       ids.append(doc.doc_id)
     tr_set = ids[:100]
+    print(len(tr_set))
     free_docs = session.query(Document).filter_by(rubric_ids=None, status=1200)[:100]
+    print(len(free_docs))
     for doc in free_docs:
      tr_set.append(doc.doc_id)
     return tr_set
 
 
-def add_rubric_to_doc(rubrics_dic, rubric_id, session=None):
+def add_rubric_to_doc(new_doc_ids, rubric_id, session=None):
     if session is None:
         session = Driver.db_session()
-    for document_id in rubrics_dic[rubric_id]:
-        new_id = DocumentRubric(doc_id = str(document_id), rubric_id = str(rubric_id))
-        session.add(new_id)
+    old_ids = session.query(DocumentRubric.doc_id).all()
+    for new_doc_id in new_doc_ids:
+        if new_doc_id not in old_ids:
+            rubric_id_new = session.query(Document.rubric_ids).filter_by(doc_id=new_doc_id)[0][0]
+            print(rubric_id_new)
+            if rubric_id_new is not None:
+                new_id = DocumentRubric(doc_id = new_doc_id, rubric_id = rubric_id)
+                session.add(new_id)
     session.commit()
 
-#add_rubric_to_doc(rubrics, '19848dd0-436a-11e6-beb8-9e71128cae02')
-#add_rubric_to_doc(rubrics, '19848dd0-436a-11e6-beb8-9e71128cae21')
 
 def write_training_set(rubric_id, session=None):
  training_set = create_training_set(rubric_id)
- print(training_set)
- #if session is None:
-  #session = Driver.db_session()
- #new_set = TrainingSet(doc_ids=training_set, doc_num=len(training_set), name='Matvey_set')
- #session.add(new_set)
- #session.commit()
+ if session is None:
+  session = Driver.db_session()
+ new_set = TrainingSet(doc_ids=training_set, doc_num=len(training_set), name='Matvey_set')
+ session.add(new_set)
+ session.commit()
 
-write_training_set('19848dd0-436a-11e6-beb8-9e71128cae02')
-#print('Done')
-#write_training_set('19848dd0-436a-11e6-beb8-9e71128cae21')
-#print('Done')
 
-def test_rubricator(set_id, rubric_id, session=None):
+def teach_rubricator(set_id, rubric_id, session=None):
     if session is None:
         session = Driver.db_session()
     docs = session.query(TrainingSet.doc_ids).filter_by(set_id=set_id)[0][0]
@@ -54,6 +53,7 @@ def test_rubricator(set_id, rubric_id, session=None):
     rb.idf_object_features_set(set_id)
     rb.learning_rubric_model(set_id, rubric_id)
 
+def test_model(set_id, rubric_id):
     for doc_id in db.get_set_docs(set_id):
         rb.spot_doc_rubrics2(doc_id, {rubric_id: None})
 
@@ -62,14 +62,19 @@ def test_rubricator(set_id, rubric_id, session=None):
     result = rb.f1_score(model_id, set_id, rubric_id)
     return result
 
-#print(test_rubricator('707908df-1644-4ea0-8fe1-4f20c6685d57','19848dd0-436a-11e6-beb8-9e71128cae21'))
 
-
-#session = Driver.db_session()
-#a = session.query(TrainingSet.doc_ids).filter_by(set_id='707908df-1644-4ea0-8fe1-4f20c6685d57').all()
-#b = session.query(TrainingSet.doc_ids).filter_by(set_id='0cbf3533-cb40-43f0-96bb-943152a877e1')
-#print(a)
-#for i in a:
-#    print(i)
-#for i in b:
-#    print(b)
+#1 Создание обучающей выборки
+#print(create_training_set('19848dd0-436a-11e6-beb8-9e71128cae21')) #свобода ассоциаций
+#print(create_training_set('19848dd0-436a-11e6-beb8-9e71128cae02')) #свобода собраний
+#2 Запись в таблицу DocumentRubrics
+#add_rubric_to_doc(create_training_set('19848dd0-436a-11e6-beb8-9e71128cae21'), '19848dd0-436a-11e6-beb8-9e71128cae21') # свобода ассоциаций
+#add_rubric_to_doc(create_training_set('19848dd0-436a-11e6-beb8-9e71128cae21'), '19848dd0-436a-11e6-beb8-9e71128cae02') # свобода собраний
+#3 Запись в таблицу TrainingSet
+#write_training_set('19848dd0-436a-11e6-beb8-9e71128cae21') #свобода ассоциаций
+#write_training_set('19848dd0-436a-11e6-beb8-9e71128cae02') #свобода собраний
+#4 Обучение
+teach_rubricator('bc214f6e-ed53-4fb3-8b3e-96037422d0a7', '19848dd0-436a-11e6-beb8-9e71128cae21') #свобода ассоциаций
+#teach_rubricator(set_id, '19848dd0-436a-11e6-beb8-9e71128cae02') #свобода собраний
+#5 Тест
+test_model("bc214f6e-ed53-4fb3-8b3e-96037422d0a7", '19848dd0-436a-11e6-beb8-9e71128cae21') #свобода ассоциаций
+#teach_rubricator(set_id, '19848dd0-436a-11e6-beb8-9e71128cae02') #свобода собраний
