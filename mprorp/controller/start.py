@@ -37,14 +37,5 @@ def check_sources():
             regular_gn_start_parsing.delay(source_id)
 
 
-@app.task(ignore_result=True)
-def ner_learning():
-    from mprorp.ner.NER import NER_person_learning
-    print("STARTING NER LEARNING")
-    NER_person_learning()
-    print("LEARNING COMPLETE")
-    exit()
-
-
 if __name__ == "__main__":
     check_sources()
