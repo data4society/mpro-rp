@@ -21,15 +21,15 @@ training_set = u'1fe7391a-c5b9-4a07-bb6a-e6e4c5211008'
 dev_set = u'97106298-d85e-4602-803f-a3c54685ada6'
 
 # 2. morpho and other steps for docs from sets
-for set_doc in [training_set, dev_set]:
-    for doc_id in db.get_set_docs(set_doc):
-        rb.morpho_doc2(str(doc_id))
-        rb.lemmas_freq_doc2(str(doc_id))
-        for gram in grammar_config:
-            run_tomita2(gram, str(doc_id))
-            ner_feature.create_tomita_feature2(str(doc_id), grammar_config.keys())
-        ner_feature.create_embedding_feature2(str(doc_id))
-        ner_feature.create_morpho_feature2(str(doc_id))
+# for set_doc in [training_set, dev_set]:
+#     for doc_id in db.get_set_docs(set_doc):
+#         rb.morpho_doc2(str(doc_id))
+#         rb.lemmas_freq_doc2(str(doc_id))
+#         for gram in grammar_config:
+#             run_tomita2(gram, str(doc_id))
+#             ner_feature.create_tomita_feature2(str(doc_id), grammar_config.keys())
+#         ner_feature.create_embedding_feature2(str(doc_id))
+#         ner_feature.create_morpho_feature2(str(doc_id))
 
 # 3. Create answers for docs
 session = Driver.db_session()
