@@ -21,23 +21,33 @@ training_set = u'1fe7391a-c5b9-4a07-bb6a-e6e4c5211008'
 dev_set = u'97106298-d85e-4602-803f-a3c54685ada6'
 
 # 2. morpho and other steps for docs from sets
-# for set_doc in [training_set, dev_set]:
-#     for doc_id in db.get_set_docs(set_doc):
-#         rb.morpho_doc2(str(doc_id))
-#         rb.lemmas_freq_doc2(str(doc_id))
-#         for gram in grammar_config:
-#             run_tomita2(gram, str(doc_id))
-#             ner_feature.create_tomita_feature2(str(doc_id), grammar_config.keys())
-#         ner_feature.create_embedding_feature2(str(doc_id))
-#         ner_feature.create_morpho_feature2(str(doc_id))
+for set_doc in [training_set, dev_set]:
+    for doc_id in db.get_set_docs(set_doc):
+        rb.morpho_doc2(str(doc_id))
+        rb.lemmas_freq_doc2(str(doc_id))
+        for gram in grammar_config:
+            run_tomita2(gram, str(doc_id))
+            ner_feature.create_tomita_feature2(str(doc_id), grammar_config.keys())
+        ner_feature.create_embedding_feature2(str(doc_id))
+        ner_feature.create_morpho_feature2(str(doc_id))
 
 # 3. Create answers for docs
 session = Driver.db_session()
+# for set_doc in [training_set, dev_set]:
+#     for doc_id in db.get_set_docs(set_doc):
+#         doc = session.query(Document).filter_by(doc_id=doc_id).first()
+#         rb.morpho_doc(doc)
+# session.commit()
+#
 for set_doc in [training_set, dev_set]:
     for doc_id in db.get_set_docs(set_doc):
-        doc = session.query(Document).filter_by(doc_id=doc_id).first()
-        rb.morpho_doc(doc)
-session.commit()
+        rb.morpho_doc2(str(doc_id))
+        rb.lemmas_freq_doc2(str(doc_id))
+        for gram in grammar_config:
+            run_tomita2(gram, str(doc_id))
+        ner_feature.create_tomita_feature2(str(doc_id), grammar_config.keys())
+        ner_feature.create_embedding_feature2(str(doc_id))
+        ner_feature.create_morpho_feature2(str(doc_id))
 
 for set_doc in [training_set, dev_set]:
     for doc_id in db.get_set_docs(set_doc):
@@ -51,23 +61,26 @@ session.commit()
 NER.NER_person_learning()
 
 # 5. NER + identification
-# doc_id = u'61204298-ac64-4a86-bc72-c37cdd153b94'
+# doc_id = u'414dc5e3-9508-4890-acf4-85277928097a'
 # session = Driver.db_session()
 # doc = session.query(Document).filter_by(doc_id=doc_id).first()
-# rb.morpho_doc(doc)
-# session.commit()
+# # rb.morpho_doc(doc)
+# # session.commit()
 #
 # settings = [[home_dir + '/weights/ner_oc1.params', home_dir + '/weights/ner_oc1.weights'],
 #             [home_dir + '/weights/ner_oc2.params', home_dir + '/weights/ner_oc2.weights']]
 #
-# NER.NER_predict(doc, settings, session)
+# NER.NER_predict(doc, settings, session, verbose=True)
 #
 # print(doc.stripped)
 # create_markup(doc, verbose=True)
 
-# doc_id = u'00d5387b-7ff4-dbc5-9d47-1800cb395718'
+# doc_id = u'eb9ab64f-6098-4bb2-9fef-17209dc689eb'
 # session = Driver.db_session()
 # doc = session.query(Document).filter_by(doc_id=doc_id).first()
+# print(type(doc.markup))
+# doc.markup.update({'1':1})
+
 # print(doc.stripped)
 # rb.morpho_doc(doc)
 # session.commit()

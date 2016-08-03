@@ -402,7 +402,7 @@ def get_ner_feature_for_features(doc_id, feature_type, features, session=None):
 
 def get_ner_feature_dict(set_id=None, doc_id=None, feature=None, feature_list=None, session=None):
     """read lemmas features for documents in set. return {'doc_id_1':{(n,m):value, ...}, ...}"""
-    return get_ner_feature(set_id=set_id, feature=feature, feature_list=feature_list, return_dict=True, session=session)
+    return get_ner_feature(set_id=set_id, doc_id=doc_id, feature=feature, feature_list=feature_list, return_dict=True, session=session)
 
 
 def get_ner_feature(set_id=None, doc_id=None, feature=None, feature_list=None, return_dict=False, session=None):
@@ -476,7 +476,7 @@ def get_tomita_results(doc_id, grammars, session=None):
 def put_markup_2(doc_id, name, classes, markup_type, refs):
     doc_apply(doc_id, put_markup, name, classes, markup_type, refs)
 
-def put_markup(doc, name, classes, markup_type, refs, session=None, commit_session=True):
+def put_markup(doc, name, classes, markup_type, refs, new_doc_markup=True, session=None, commit_session=True):
     """write markup with references with symbol coordinates in db"""
     if session is None:
         session = Driver.db_session()
@@ -497,7 +497,10 @@ def put_markup(doc, name, classes, markup_type, refs, session=None, commit_sessi
         session.add(Reference(reference_id=ref_id, markup=new_markup.markup_id, entity_class=ref['entity_class'],
                               entity=ref['entity'], start_offset=ref['start_offset'], end_offset=ref['end_offset']))
         entities[ref['entity']] = ''
-    doc.markup = markup_for_doc
+    if new_doc_markup:
+        doc.markup = markup_for_doc
+    else:
+        doc.markup.update(markup_for_doc)
     doc.entity_ids = entities.keys()
     if commit_session:
         session.commit()
