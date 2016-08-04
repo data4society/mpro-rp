@@ -6,18 +6,25 @@ import mprorp.analyzer.rubricator as rb
 def create_training_set(rubric_id, session=None):
     if session is None:
         session = Driver.db_session()
-    new_docs = session.query(Document).filter_by(status=1200)
+    new_docs = session.query(Document).filter_by(status=1200).all()
     ids = []
     for doc in new_docs:
      if rubric_id in str(doc.rubric_ids):
       ids.append(doc.doc_id)
-    tr_set = ids[:100]
+    tr_set = ids[:150]
     print(len(tr_set))
-    free_docs = session.query(Document).filter_by(rubric_ids=None, status=1200)[:100]
-    print(len(free_docs))
+    test_set = ids[150:180]
+    print(len(test_set))
+    free_docs = session.query(Document).filter_by(rubric_ids=None, status=1200)[:150]
     for doc in free_docs:
      tr_set.append(doc.doc_id)
-    return tr_set
+    print(len(tr_set))
+    free_docs = session.query(Document).filter_by(rubric_ids=None, status=1200)[150:180]
+    for doc in free_docs:
+        test_set.append(doc.doc_id)
+    print(len(test_set))
+    return [tr_set, test_set]
+
 
 
 def add_rubric_to_doc(new_doc_ids, rubric_id, session=None):
@@ -47,9 +54,12 @@ def teach_rubricator(set_id, rubric_id, session=None):
     if session is None:
         session = Driver.db_session()
     docs = session.query(TrainingSet.doc_ids).filter_by(set_id=set_id)[0][0]
+    n = len(docs)
     for doc_id in docs:
+        print(str(n) + ' docs left')
         rb.morpho_doc2(str(doc_id))
         rb.lemmas_freq_doc2(str(doc_id))
+        n -= 1
     rb.idf_object_features_set(set_id)
     rb.learning_rubric_model(set_id, rubric_id)
 
@@ -73,8 +83,12 @@ def test_model(set_id, rubric_id):
 #write_training_set('19848dd0-436a-11e6-beb8-9e71128cae21') #свобода ассоциаций
 #write_training_set('19848dd0-436a-11e6-beb8-9e71128cae02') #свобода собраний
 #4 Обучение
-teach_rubricator('bc214f6e-ed53-4fb3-8b3e-96037422d0a7', '19848dd0-436a-11e6-beb8-9e71128cae21') #свобода ассоциаций
+#teach_rubricator('bc214f6e-ed53-4fb3-8b3e-96037422d0a7', '19848dd0-436a-11e6-beb8-9e71128cae21') #свобода ассоциаций
 #teach_rubricator(set_id, '19848dd0-436a-11e6-beb8-9e71128cae02') #свобода собраний
 #5 Тест
-test_model("bc214f6e-ed53-4fb3-8b3e-96037422d0a7", '19848dd0-436a-11e6-beb8-9e71128cae21') #свобода ассоциаций
-#teach_rubricator(set_id, '19848dd0-436a-11e6-beb8-9e71128cae02') #свобода собраний
+#print(test_model("bc214f6e-ed53-4fb3-8b3e-96037422d0a7", '19848dd0-436a-11e6-beb8-9e71128cae21')) #свобода ассоциаций
+#print(test_model(set_id, '19848dd0-436a-11e6-beb8-9e71128cae02')) #свобода собраний
+
+
+a = create_training_set('19848dd0-436a-11e6-beb8-9e71128cae21')[0]
+
