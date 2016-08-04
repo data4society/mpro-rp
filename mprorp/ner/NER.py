@@ -36,8 +36,8 @@ class Config(object):
     lr = 0.001
     l2 = 0.001
     window_size = 5
-    training_set = u'199698a2-e3f4-48a8-aaaa-09778161c8c4'
-    dev_set = u'074c809b-208c-4fb4-851c-1e71d7f01b60'
+    training_set = u'9b395f00-e556-414a-a9c7-3effeb5aa7c8'
+    dev_set = u'4785d9ed-6435-48b5-971d-044fdfcfe678'
     pre_embedding = True
     embedding = 'first_test_embedding'
     feature_answer = ['person_answer']
