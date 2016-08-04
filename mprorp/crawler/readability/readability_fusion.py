@@ -34,10 +34,7 @@ REGEXES = {
     'positiveRe': re.compile('article|body|content|entry|hentry|main|page|pagination|post|text|blog|story', re.I),
     'negativeRe': re.compile('combx|comment|com-|contact|foot|footer|footnote|masthead|media|meta|outbrain|promo|related|scroll|shoutbox|sidebar|sponsor|shopping|tags|tool|widget', re.I),
     'divToPElementsRe': re.compile('<(a|blockquote|dl|div|img|ol|p|pre|table|ul)', re.I),
-    'rfBadContent': re.compile('footer|textarea|comment', re.I),
-    'rfBadStart': re.compile('Читайте|Пишите|Смотрите|Подробнее читайте|Подписывайтесь', re.I),
-    'rfBadSearch': re.compile('Ctrl\+Enter', re.I),
-
+    'r2BadContent': re.compile('footer|textarea|comment', re.I),
     #'replaceBrsRe': re.compile('(<br[^>]*>[ \n\r\t]*){2,}',re.I),
     #'replaceFontsRe': re.compile('<(\/?)font[^>]*>',re.I),
     #'trimRe': re.compile('^\s+|\s+$/'),
@@ -46,9 +43,7 @@ REGEXES = {
     'videoRe': re.compile('https?:\/\/(www\.)?(youtube|vimeo)\.com', re.I),
     #skipFootnoteLink:      /^\s*(\[?[a-z0-9]{1,2}\]?|^|edit|citation needed)\s*$/i,
 }
-THRESHOLD_RATIO = 0.1# ++++++++0.666
-TITLE_DENSITY_THRESHOLD = 0.005
-MAX_TITLE_CHECKING = 10
+THRESHOLD_RATIO = 0.3# ++++++++0.666
 mystem = Mystem()
 
 
@@ -167,8 +162,8 @@ class Document:
 
         """
 
-        mystem.start()
         try:
+            mystem.start()
             ruthless = True
             while True:
                 self._html(True)
@@ -180,8 +175,8 @@ class Document:
                     title_text = title
                 print(title_text)
                 self.title_lemmas = mystem.lemmatize(title_text)
-                #mystem.close()
                 self.title_lemmas = [word for word in self.title_lemmas if len(word.strip())>2]
+                #print(self.title_lemmas)
                 for i in self.tags(self.html, 'script', 'style'):
                     i.drop_tree()
                 for i in self.tags(self.html, 'body'):
@@ -202,6 +197,7 @@ class Document:
 
                 self.compute(self.html, res, candidates)
                 best_candidate = self.select_best_candidate(candidates)
+
                 #print(res)
 
                 if best_candidate:
@@ -237,7 +233,6 @@ class Document:
             else:
                 from readability.compat.three import raise_with_traceback
             raise_with_traceback(Unparseable, sys.exc_info()[2], str_(e))
-        mystem.close()
 
     def get_article(self, candidates, best_candidate, html_partial=False):
         # Now that we have the top candidate, look through its siblings for
@@ -342,7 +337,7 @@ class Document:
         #    exit()
 
         s = "%s %s %s" % (elem.get('class', ''), elem.get('id', ''), elem.tag)
-        if REGEXES['rfBadContent'].search(s):
+        if REGEXES['r2BadContent'].search(s):
             sum = 0.1 * sum
 
         candidates[elem] = {
@@ -383,22 +378,18 @@ class Document:
         if best_candidate_score > 0:
             n = 0
             for candidate in sorted_candidates:
-                if candidate['content_score']/best_candidate_score < THRESHOLD_RATIO or n == MAX_TITLE_CHECKING:
+                if candidate['content_score']/best_candidate_score < THRESHOLD_RATIO:
                     break;
                 n += 1
-        if n == 1:
+        if n ==1:
             self.confidence = 1
         else:
             best_candidates = sorted_candidates[:n]
-            best_final_score = -1
+            best_final_score = 0
             for candidate in best_candidates:
                 elem = candidate['elem']
-                strate = self.score_title_rate(elem)
-                if strate > TITLE_DENSITY_THRESHOLD:
-                    best_candidate = candidate
-                    break
-                # print("BEST", describe(elem), candidate['content_score'], strate)
-                final_score = strate*candidate['content_score']
+                # print("BEST", describe(elem), candidate['content_score'], self.score_title_rate(elem))
+                final_score = self.score_title_rate(elem)*candidate['content_score']
                 if final_score>best_final_score:
                     best_final_score = final_score
                     best_candidate = candidate
@@ -526,7 +517,7 @@ class Document:
         #print(describe(elem), sum)
         s = "%s %s %s" % (elem.get('class', ''), elem.get('id', ''), elem.tag)
         #print(s)
-        if REGEXES['rfBadContent'].search(s):
+        if REGEXES['r2BadContent'].search(s):
             sum = 0.1*sum
         return {
             'content_score': sum,
@@ -621,7 +612,7 @@ class Document:
         for lemma in text_lemmas:
             if lemma in self.title_lemmas:
                 rate += 1
-        return rate / len(text_lemmas)
+        return rate / len(text)
 
 
     def reverse_tags(self, node, *tag_names):
@@ -634,13 +625,6 @@ class Document:
         for header in self.tags(node, "h1", "h2", "h3", "h4", "h5", "h6"):
             if self.class_weight(header) < 0 or self.get_link_density(header) > 0.33:
                 header.drop_tree()
-
-
-        for p in self.tags(node, "p", "div"):
-            txt = p.text_content()
-            if (re.match(REGEXES["rfBadStart"], txt) and self.get_link_density(p) > 0) or re.match(REGEXES["rfBadSearch"], txt):
-                print(describe(p))
-                p.drop_tree()
 
         for elem in self.tags(node, "form", "textarea"):
             elem.drop_tree()
