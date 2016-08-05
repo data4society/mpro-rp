@@ -17,23 +17,27 @@ from mprorp.utils import home_dir
 # train_num = round(len(docs) * 0.8)
 # print(db.put_training_set(docs[:train_num]))
 # print(db.put_training_set(docs[train_num:len(docs)]))
-training_set = u'9b395f00-e556-414a-a9c7-3effeb5aa7c8'
-dev_set = u'4785d9ed-6435-48b5-971d-044fdfcfe678'
+training_set = u'4fb42fd1-a0cf-4f39-9206-029255115d01'
+dev_set = u'f861ee9d-5973-460d-8f50-92fca9910345'
 
-print(len(db.get_set_docs(training_set)))
-print(len(db.get_set_docs(dev_set)))
-exit()
+#print(len(db.get_set_docs(training_set)))
+#print(len(db.get_set_docs(dev_set)))
+#exit()
 # 2. morpho and other steps for docs from sets
 session = Driver.db_session()
+n = 0
 for set_doc in [training_set, dev_set]:
     for doc_id in db.get_set_docs(set_doc):
-        rb.morpho_doc2(str(doc_id))
-        rb.lemmas_freq_doc2(str(doc_id))
-        for gram in grammar_config:
-            run_tomita2(gram, str(doc_id))
-        ner_feature.create_tomita_feature2(str(doc_id), grammar_config.keys())
-        ner_feature.create_embedding_feature2(str(doc_id))
-        ner_feature.create_morpho_feature2(str(doc_id))
+        if n > 54:
+            rb.morpho_doc2(str(doc_id))
+            rb.lemmas_freq_doc2(str(doc_id))
+            for gram in grammar_config:
+                run_tomita2(gram, str(doc_id))
+            ner_feature.create_tomita_feature2(str(doc_id), grammar_config.keys())
+            ner_feature.create_embedding_feature2(str(doc_id))
+            ner_feature.create_morpho_feature2(str(doc_id))
+        n+=1
+        print(doc_id, n, "IN LIST")
 exit()
 # 3. Create answers for docs
 session = Driver.db_session()
