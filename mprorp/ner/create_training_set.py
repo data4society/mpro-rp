@@ -28,10 +28,11 @@ def add_rubric_to_doc(new_doc_ids, rubric_id, session=None):
     if session is None:
         session = Driver.db_session()
     old_ids = session.query(DocumentRubric.doc_id).all()
+    print(old_ids)
     for new_doc_id in new_doc_ids:
+        print(new_doc_id)
         if new_doc_id not in old_ids:
             rubric_id_new = session.query(Document.rubric_ids).filter_by(doc_id=new_doc_id)[0][0]
-            print(rubric_id_new)
             if rubric_id_new is not None:
                 new_id = DocumentRubric(doc_id = new_doc_id, rubric_id = rubric_id)
                 session.add(new_id)
@@ -74,13 +75,17 @@ def test_model(set_id, rubric_id):
 #print(len(create_training_set('19848dd0-436a-11e6-beb8-9e71128cae21')[0]), len(create_training_set('19848dd0-436a-11e6-beb8-9e71128cae21')[1])) #свобода ассоциаций
 #print(len(create_training_set('19848dd0-436a-11e6-beb8-9e71128cae02')[0]), len(create_training_set('19848dd0-436a-11e6-beb8-9e71128cae02')[1])) #свобода собраний
 #2 Запись в таблицу DocumentRubrics
-#add_rubric_to_doc(create_training_set('19848dd0-436a-11e6-beb8-9e71128cae21')[0], '19848dd0-436a-11e6-beb8-9e71128cae21') #свобода ассоциаций
-#add_rubric_to_doc(create_training_set('19848dd0-436a-11e6-beb8-9e71128cae02')[0], '19848dd0-436a-11e6-beb8-9e71128cae02') #свобода собраний
-#add_rubric_to_doc(create_training_set('19848dd0-436a-11e6-beb8-9e71128cae21')[1], '19848dd0-436a-11e6-beb8-9e71128cae21') #свобода ассоциаций
-#add_rubric_to_doc(create_training_set('19848dd0-436a-11e6-beb8-9e71128cae02')[1], '19848dd0-436a-11e6-beb8-9e71128cae02') #свобода собраний
+add_rubric_to_doc(create_training_set('19848dd0-436a-11e6-beb8-9e71128cae21')[0], '19848dd0-436a-11e6-beb8-9e71128cae21') #свобода ассоциаций
+print('Done')
+add_rubric_to_doc(create_training_set('19848dd0-436a-11e6-beb8-9e71128cae02')[0], '19848dd0-436a-11e6-beb8-9e71128cae02') #свобода собраний
+print('Done')
+add_rubric_to_doc(create_training_set('19848dd0-436a-11e6-beb8-9e71128cae21')[1], '19848dd0-436a-11e6-beb8-9e71128cae21') #свобода ассоциаций
+print('Done')
+add_rubric_to_doc(create_training_set('19848dd0-436a-11e6-beb8-9e71128cae02')[1], '19848dd0-436a-11e6-beb8-9e71128cae02') #свобода собраний
+print('Done')
 #3 Запись в таблицу TrainingSet
-#write_training_set('19848dd0-436a-11e6-beb8-9e71128cae21') #свобода ассоциаций
-#write_training_set('19848dd0-436a-11e6-beb8-9e71128cae02') #свобода собраний
+write_training_set('19848dd0-436a-11e6-beb8-9e71128cae21') #свобода ассоциаций
+write_training_set('19848dd0-436a-11e6-beb8-9e71128cae02') #свобода собраний
 #4 Обучение
 #teach_rubricator(training_set_id, '19848dd0-436a-11e6-beb8-9e71128cae21') #свобода ассоциаций
 #teach_rubricator(training_set_id, '19848dd0-436a-11e6-beb8-9e71128cae02') #свобода собраний
