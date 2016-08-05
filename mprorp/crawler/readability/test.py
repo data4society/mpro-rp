@@ -192,10 +192,10 @@ if __name__ == '__main__':
     """
     #url = 'http://www.gazeta.kg/news/important/99343-sud-arestoval-rukovoditeley-lagerya-na-syamozere.html'
     #html_source = urllib.request.urlopen(url, timeout=10).read()
-    with open('corpus/docs/' + str(100) + '.html', 'rb') as f:
-        html_source = f.read()
-    print(read2.find_full_text(html_source, "Источник: по делу о гибели детей могут арестовать вице-премьера Карелии"))
-    exit()
+    #with open('corpus/docs/' + str(100) + '.html', 'rb') as f:
+    #    html_source = f.read()
+    #print(read2.find_full_text(html_source, "Источник: по делу о гибели детей могут арестовать вице-премьера Карелии"))
+    #exit()
 
     #create_corpus()
     #exit()
