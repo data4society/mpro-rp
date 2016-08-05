@@ -34,7 +34,10 @@ REGEXES = {
     'positiveRe': re.compile('article|body|content|entry|hentry|main|page|pagination|post|text|blog|story', re.I),
     'negativeRe': re.compile('combx|comment|com-|contact|foot|footer|footnote|masthead|media|meta|outbrain|promo|related|scroll|shoutbox|sidebar|sponsor|shopping|tags|tool|widget', re.I),
     'divToPElementsRe': re.compile('<(a|blockquote|dl|div|img|ol|p|pre|table|ul)', re.I),
-    'r2BadContent': re.compile('footer|textarea|comment', re.I),
+    'rfBadContent': re.compile('footer|textarea|comment', re.I),
+    'rfBadStart': re.compile('Читайте|Пишите|Смотрите|Подробнее читайте|Подписывайтесь', re.I),
+    'rfBadSearch': re.compile('Ctrl\+Enter', re.I),
+
     #'replaceBrsRe': re.compile('(<br[^>]*>[ \n\r\t]*){2,}',re.I),
     #'replaceFontsRe': re.compile('<(\/?)font[^>]*>',re.I),
     #'trimRe': re.compile('^\s+|\s+$/'),
@@ -339,7 +342,7 @@ class Document:
         #    exit()
 
         s = "%s %s %s" % (elem.get('class', ''), elem.get('id', ''), elem.tag)
-        if REGEXES['r2BadContent'].search(s):
+        if REGEXES['rfBadContent'].search(s):
             sum = 0.1 * sum
 
         candidates[elem] = {
@@ -523,7 +526,7 @@ class Document:
         #print(describe(elem), sum)
         s = "%s %s %s" % (elem.get('class', ''), elem.get('id', ''), elem.tag)
         #print(s)
-        if REGEXES['r2BadContent'].search(s):
+        if REGEXES['rfBadContent'].search(s):
             sum = 0.1*sum
         return {
             'content_score': sum,
@@ -631,6 +634,13 @@ class Document:
         for header in self.tags(node, "h1", "h2", "h3", "h4", "h5", "h6"):
             if self.class_weight(header) < 0 or self.get_link_density(header) > 0.33:
                 header.drop_tree()
+
+
+        for p in self.tags(node, "p", "div"):
+            txt = p.text_content()
+            if (re.match(REGEXES["rfBadStart"], txt) and self.get_link_density(p) > 0) or re.match(REGEXES["rfBadSearch"], txt):
+                print(describe(p))
+                p.drop_tree()
 
         for elem in self.tags(node, "form", "textarea"):
             elem.drop_tree()

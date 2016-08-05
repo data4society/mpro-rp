@@ -36,15 +36,15 @@ class Config(object):
     lr = 0.001
     l2 = 0.001
     window_size = 5
-    training_set = u'199698a2-e3f4-48a8-aaaa-09778161c8c4'
-    dev_set = u'074c809b-208c-4fb4-851c-1e71d7f01b60'
+    training_set = u'9b395f00-e556-414a-a9c7-3effeb5aa7c8'
+    dev_set = u'4785d9ed-6435-48b5-971d-044fdfcfe678'
     pre_embedding = True
     embedding = 'first_test_embedding'
     feature_answer = ['person_answer']
     # feature_answer = 'org_answer'
-    features = []
+    # features = []
     # features = ['Org']
-    # features = ['Org', 'Person', 'morpho']
+    features = ['Org', 'Person', 'Loc', 'Date', 'Prof', 'morpho']
     print(features)
     features_length = 0
     for feat in features:
@@ -578,17 +578,18 @@ def NER_learning(filename_params, filename_tf, config=None):
                 print('Total time: {}'.format(time.time() - start))
 
 
-def NER_predict(doc, settings, session_db=None, commit_session=True):
+def NER_predict(doc, settings, session_db=None, commit_session=True, verbose=False):
     values = {}
     for i in settings:
-        NER_predict_set(doc, i[0], i[1], values, session_db, commit_session)
-
+        NER_predict_set(doc, i[0], i[1], values, session_db, commit_session, verbose=verbose)
+        if verbose:
+            print(values)
     if len(values) > 0:
         db.put_ner_feature_dict(doc.doc_id, values, ner_feature_types['OpenCorpora'],
                                 None, session_db, commit_session)
 
 
-def NER_predict_set(doc, filename_params, filename_tf, values, session_db, commit_session):
+def NER_predict_set(doc, filename_params, filename_tf, values, session_db, commit_session=True, verbose=False):
 
     input_file = open(filename_params, 'rb')
     params = pickle.load(input_file)
@@ -606,7 +607,7 @@ def NER_predict_set(doc, filename_params, filename_tf, values, session_db, commi
             saver.restore(session, filename_tf)
             print('dev: lemma, answer, ner answer')
             print('=-=-=')
-            _, predictions = model.predict(session, model.X_test, features=model.feat_test)
+            _, predictions = model.predict(session, model.X_test, np.ones(len(model.X_test), dtype=int), features=model.feat_test)
 
         # num_to_word = {v: k for k, v in model.word_to_num.items()}
         num_to_tag = {v: k for k, v in model.tag_to_num.items()}
@@ -616,7 +617,8 @@ def NER_predict_set(doc, filename_params, filename_tf, values, session_db, commi
         for i in range(len(predictions)):
             if not (predictions[i] == 0):
                 values[(int(model.indexes[i][0]), int(model.indexes[i][1]), num_to_tag[predictions[i]])] = [1]
-
+    if verbose:
+        print(values)
 
 def NER_person_learning():
 

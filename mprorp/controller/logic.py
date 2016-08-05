@@ -76,8 +76,12 @@ def router(doc_id, status):
         if source_type in ['0cc76b0c-531e-4a90-ab0b-078695336df5','1d6210b2-5ff3-401c-b0ba-892d43e0b741']:
             regular_morpho.delay(doc_id, MORPHO_COMPLETE_STATUS)
         else:
-            doc = Document(doc_id=doc_id, status=FOR_TRAINING, type='tng')
-            update(doc)
+            session = db_session()
+            doc = session.query(Document).filter_by(doc_id=doc_id).first()
+            doc.status = FOR_TRAINING
+            doc.type = 'tng'
+            session.commit()
+            session.remove()
     elif status == MORPHO_COMPLETE_STATUS:  # to lemmas
         regular_lemmas.delay(doc_id, LEMMAS_COMPLETE_STATUS)
     elif status == LEMMAS_COMPLETE_STATUS:  # to rubrication
@@ -97,8 +101,11 @@ def router(doc_id, status):
     elif status == NER_PREDICT_COMPLETE_STATUS:  # to createb markup
         regular_create_markup.delay(doc_id, MARKUP_COMPLETE_STATUS)
     elif status == MARKUP_COMPLETE_STATUS:  # fin regular processes
-        doc = Document(doc_id=doc_id, status=REGULAR_PROCESSES_FINISH_STATUS)
-        update(doc)
+        session = db_session()
+        doc = session.query(Document).filter_by(doc_id=doc_id).first()
+        doc.status = REGULAR_PROCESSES_FINISH_STATUS
+        session.commit()
+        session.remove()
     """
     elif status == MARKUP_COMPLETE_STATUS:  # to ner entities
         regular_entities.delay(doc_id, NER_ENTITIES_COMPLETE_STATUS)
