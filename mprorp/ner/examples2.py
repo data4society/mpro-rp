@@ -8,6 +8,7 @@ from mprorp.tomita.grammars.config import config as grammar_config
 from mprorp.tomita.tomita_run import run_tomita2
 import mprorp.ner.feature as ner_feature
 from mprorp.ner.identification import create_answers_feature_for_doc
+from mprorp.db.models import *
 from mprorp.ner.identification import create_markup
 from mprorp.utils import home_dir
 
@@ -19,25 +20,11 @@ from mprorp.utils import home_dir
 training_set = u'9b395f00-e556-414a-a9c7-3effeb5aa7c8'
 dev_set = u'4785d9ed-6435-48b5-971d-044fdfcfe678'
 
-# 2. morpho and other steps for docs from sets
-for set_doc in [training_set, dev_set]:
-    for doc_id in db.get_set_docs(set_doc):
-        rb.morpho_doc2(str(doc_id))
-        rb.lemmas_freq_doc2(str(doc_id))
-        for gram in grammar_config:
-            run_tomita2(gram, str(doc_id))
-            ner_feature.create_tomita_feature2(str(doc_id), grammar_config.keys())
-        ner_feature.create_embedding_feature2(str(doc_id))
-        ner_feature.create_morpho_feature2(str(doc_id))
+print(len(db.get_set_docs(training_set)))
+print(len(db.get_set_docs(dev_set)))
 exit()
-# 3. Create answers for docs
+# 2. morpho and other steps for docs from sets
 session = Driver.db_session()
-for set_doc in [training_set, dev_set]:
-    for doc_id in db.get_set_docs(set_doc):
-        doc = session.query(Document).filter_by(doc_id=doc_id).first()
-        rb.morpho_doc(doc)
-session.commit()
-#
 for set_doc in [training_set, dev_set]:
     for doc_id in db.get_set_docs(set_doc):
         rb.morpho_doc2(str(doc_id))
@@ -47,11 +34,13 @@ for set_doc in [training_set, dev_set]:
         ner_feature.create_tomita_feature2(str(doc_id), grammar_config.keys())
         ner_feature.create_embedding_feature2(str(doc_id))
         ner_feature.create_morpho_feature2(str(doc_id))
-
+exit()
+# 3. Create answers for docs
+session = Driver.db_session()
 for set_doc in [training_set, dev_set]:
     for doc_id in db.get_set_docs(set_doc):
         doc = session.query(Document).filter_by(doc_id=doc_id).first()
-        print(doc_id)
+        # print(doc_id)
         create_answers_feature_for_doc(doc, verbose=True)
 session.commit()
 exit()
