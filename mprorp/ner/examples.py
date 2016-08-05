@@ -10,6 +10,33 @@ import mprorp.ner.tomita_to_markup as tomita_to_markup
 from mprorp.tomita.tomita_run import run_tomita2
 from mprorp.tomita.grammars.config import config as grammar_config
 
+import mprorp.db.dbDriver as Driver
+from mprorp.db.models import *
+from mprorp.analyzer.db import put_training_set
+
+def create_training_set(rubric1_id, rubric2_id, session=None):
+    if session is None:
+        session = Driver.db_session()
+    new_docs = session.query(Document).filter_by(status=1200)
+    ids1_t = []
+    ids1_f = []
+    ids2_t = []
+    ids2_f = []
+    for doc in new_docs:
+        if rubric1_id in str(doc.rubric_ids):
+            ids1_t.append(doc.doc_id)
+        else:
+            ids1_f.append(doc.doc_id)
+
+        if rubric2_id in str(doc.rubric_ids):
+            ids2_t.append(doc.doc_id)
+        else:
+            ids2_f.append(doc.doc_id)
+
+    print(len(ids1_t), len(ids1_f))
+    print(len(ids2_t), len(ids2_f))
+    # tr_set = ids[:100]
+
 # regular processes with tomita
 # doc_id = '000e82b8-6ea7-41f4-adc6-bc688fbbeeb6'
 # for i in range(grammar_count):
