@@ -106,7 +106,10 @@ def create_markup(doc, session=None, commit_session=True, verbose=False):
     # Сформируем информацию о словах документа (падеж, число, нормальная форма)
     doc_properties_info = form_doc_properties_info(doc, doc_properties, session)
     if verbose:
-        print('Информация о словах документа:', doc_properties_info)
+        for_print = {}
+        for i in doc_properties_info:
+            for_print[i] = doc_properties_info[i].get('list_lex', [])
+        print('Информация о словах документа:', for_print)
 
     # Сформиреум спаны
     spans = form_spans(doc_properties)
@@ -245,7 +248,7 @@ def form_spans_info(spans, doc_properties_info):
 
 def form_spans_morpho_info(doc, spans, session):
 
-    morpho = db.get_morpho(doc.doc_id, session)
+    morpho = doc.morpho
 
     spans_morpho_info = {}
     for span in spans:
@@ -258,7 +261,7 @@ def form_spans_morpho_info(doc, spans, session):
                         start_offset = element['start_offset']
                     if element['word_index'] == span[2]:
                         end_offset = element['end_offset']
-        spans_morpho_info[span] = {'start_offset': start_offset, 'end_offset':end_offset}
+        spans_morpho_info[span] = {'start_offset': start_offset, 'end_offset': end_offset}
 
     return spans_morpho_info
 
@@ -595,8 +598,8 @@ def form_entity_for_chain_spans(doc, list_chain_spans, spans_info, spans_morpho_
                              'len_offset': int(end_offset) - int(start_offset) + 1,
                              'entity': str(entity_id), 'entity_class': settings.get('entity_class')})
 
-        name = 'markup from NER span of person'
-        db.put_markup(doc, name, [settings.get('entity_class')], '20', refs, session=session, commit_session=commit_session)
+    name = 'markup from NER span of person'
+    db.put_markup(doc, name, [settings.get('entity_class')], '20', refs, session=session, commit_session=commit_session)
 
 
 
