@@ -11,6 +11,7 @@ from mprorp.ner.identification import create_answers_feature_for_doc
 from mprorp.db.models import *
 from mprorp.ner.identification import create_markup
 from mprorp.utils import home_dir
+from mprorp.ner.tomita_to_markup import convert_tomita_result_to_markup
 
 # 1. Create sets: training and dev
 # docs = db.get_docs_with_markup('40')
@@ -60,16 +61,19 @@ doc_id = u'414dc5e3-9508-4890-acf4-85277928097a'
 doc_id = u'eb9ab64f-6098-4bb2-9fef-17209dc689eb'
 session = Driver.db_session()
 doc = session.query(Document).filter_by(doc_id=doc_id).first()
-rb.morpho_doc(doc)
-session.commit()
+# rb.morpho_doc(doc)
+# session.commit()
+#
+# settings = [[home_dir + '/weights/ner_oc1.params', home_dir + '/weights/ner_oc1.weights'],
+#             [home_dir + '/weights/ner_oc2.params', home_dir + '/weights/ner_oc2.weights']]
+#
+# NER.NER_predict(doc, settings, session, verbose=True)
+#
+# print(doc.stripped)
+# create_markup(doc, verbose=True)
 
-settings = [[home_dir + '/weights/ner_oc1.params', home_dir + '/weights/ner_oc1.weights'],
-            [home_dir + '/weights/ner_oc2.params', home_dir + '/weights/ner_oc2.weights']]
-
-NER.NER_predict(doc, settings, session, verbose=True)
-
-print(doc.stripped)
-create_markup(doc, verbose=True)
+grammars_of_tomita_classes = ['loc.cxx', 'org.cxx', 'norm_act.cxx']
+convert_tomita_result_to_markup(doc, grammars_of_tomita_classes, session=session, commit_session=False)
 
 # doc_id = u'eb9ab64f-6098-4bb2-9fef-17209dc689eb'
 # session = Driver.db_session()
