@@ -595,8 +595,8 @@ def form_entity_for_chain_spans(doc, list_chain_spans, spans_info, spans_morpho_
                              'len_offset': int(end_offset) - int(start_offset) + 1,
                              'entity': str(entity_id), 'entity_class': settings.get('entity_class')})
 
-        name = 'another markup from tomita facts'
-        db.put_markup(doc, name, settings.get('entity_class'), '20', refs, session=session, commit_session=commit_session)
+        name = 'markup from NER span of person'
+        db.put_markup(doc, name, [settings.get('entity_class')], '20', refs, session=session, commit_session=commit_session)
 
 
 

@@ -59,21 +59,22 @@ n = 0
 # 5. NER + identification
 doc_id = u'414dc5e3-9508-4890-acf4-85277928097a'
 doc_id = u'eb9ab64f-6098-4bb2-9fef-17209dc689eb'
+doc_id = u'5fd76b1f-77d4-4451-9640-fd0981575960'
 session = Driver.db_session()
 doc = session.query(Document).filter_by(doc_id=doc_id).first()
-# rb.morpho_doc(doc)
-# session.commit()
-#
-# settings = [[home_dir + '/weights/ner_oc1.params', home_dir + '/weights/ner_oc1.weights'],
-#             [home_dir + '/weights/ner_oc2.params', home_dir + '/weights/ner_oc2.weights']]
-#
-# NER.NER_predict(doc, settings, session, verbose=True)
-#
-# print(doc.stripped)
-# create_markup(doc, verbose=True)
+rb.morpho_doc(doc)
+session.commit()
 
-grammars_of_tomita_classes = ['loc.cxx', 'org.cxx', 'norm_act.cxx']
-convert_tomita_result_to_markup(doc, grammars_of_tomita_classes, session=session, commit_session=False)
+settings = [[home_dir + '/weights/ner_oc1.params', home_dir + '/weights/ner_oc1.weights'],
+            [home_dir + '/weights/ner_oc2.params', home_dir + '/weights/ner_oc2.weights']]
+
+NER.NER_predict(doc, settings, session, verbose=True)
+
+print(doc.stripped)
+create_markup(doc, verbose=True)
+
+# grammars_of_tomita_classes = ['loc.cxx', 'org.cxx', 'norm_act.cxx']
+# convert_tomita_result_to_markup(doc, grammars_of_tomita_classes, session=session, commit_session=False)
 
 # doc_id = u'eb9ab64f-6098-4bb2-9fef-17209dc689eb'
 # session = Driver.db_session()

@@ -54,7 +54,8 @@ EMPTY_TEXT = 2000
 
 
 
-rubrics_for_regular = {u'76819d19-d3f7-43f1-bc7f-b10ec5a2e2cc': u'404f1c89-53bd-4313-842d-d4a417c88d67'}  # 404f1c89-53bd-4313-842d-d4a417c88d67
+rubrics_for_regular = {u'19848dd0-436a-11e6-beb8-9e71128cae02': None,
+                       u'19848dd0-436a-11e6-beb8-9e71128cae21': None}   # 404f1c89-53bd-4313-842d-d4a417c88d67
 grammars = list(tomita_config.keys()) #  ['date.cxx', 'person.cxx']
 facts = ['Person']
 ner_settings = [[home_dir + '/weights/ner_oc1.params', home_dir + '/weights/ner_oc1.weights'],
