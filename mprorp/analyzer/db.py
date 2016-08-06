@@ -522,7 +522,7 @@ def get_references_for_set(set_id, markup_type='10', session=None):
     return result
 
 
-def get_references_for_doc(doc_id, markup_type='10', session=None):
+def get_references_for_doc(doc_id, markup_type='62', session=None):
 
     if session is None:
         session = Driver.db_session()
