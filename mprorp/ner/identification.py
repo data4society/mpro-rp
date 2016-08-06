@@ -265,6 +265,7 @@ def form_spans_morpho_info(doc, spans, session):
 
     return spans_morpho_info
 
+
 def form_evaluations(spans, spans_info):
     # Формирует оценки связей спанов
 
@@ -374,6 +375,7 @@ def form_evaluations(spans, spans_info):
 
     return evaluations
 
+
 def same_meanings_spans(first_span, second_span, spans_info):
     # Определяет, совпадают ли значения спанов
 
@@ -393,6 +395,7 @@ def same_meanings_spans(first_span, second_span, spans_info):
             return False
 
     return True
+
 
 def same_case_numeric(first_span, second_span, spans_info):
     # Определяет, совпадает ли у спанов падеж и число
@@ -414,6 +417,7 @@ def same_case_numeric(first_span, second_span, spans_info):
 
     return True
 
+
 def subjective_case(span, spans_info):
     # Определяет, находится ли спан в именительном падеже
 
@@ -423,6 +427,7 @@ def subjective_case(span, spans_info):
         return True
 
     return False
+
 
 def form_list_chain_spans(spans, evaluations):
     # Формирует список цепочек спанов
@@ -434,6 +439,7 @@ def form_list_chain_spans(spans, evaluations):
     form_list_chain_spans_recursion(list_chain_spans, evaluations)
 
     return list_chain_spans
+
 
 def form_list_chain_spans_recursion(list_chain_spans, evaluations):
 
@@ -453,6 +459,7 @@ def form_list_chain_spans_recursion(list_chain_spans, evaluations):
             combine_chains(evaluation[0], evaluation[1], list_chain_spans, evaluations)
             evaluation[2] = 0
             form_list_chain_spans_recursion(list_chain_spans, evaluations)
+
 
 def combine_chains(one_span, two_span, list_chain_spans, evaluations):
 
@@ -512,6 +519,8 @@ def combine_chains(one_span, two_span, list_chain_spans, evaluations):
 
 def form_entity_for_chain_spans(doc, list_chain_spans, spans_info, spans_morpho_info, session, commit_session):
 
+    refs = []
+
     for chain_spans in list_chain_spans:
 
         name = ''
@@ -523,8 +532,6 @@ def form_entity_for_chain_spans(doc, list_chain_spans, spans_info, spans_morpho_
         status = ''
         position = []
         role = []
-
-        refs = []
 
         for span in chain_spans:
 
