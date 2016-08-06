@@ -36,6 +36,6 @@ def convert_tomita_result_to_markup(doc, grammars,
                          'len_offset':int(offsets[1])-int(offsets[0]),
                          'entity': entity, 'entity_class': fact_entities[result[i]]})
             classes[fact_entities[result[i]]] = ''
-    db.put_markup(doc, markup_name, classes.keys(), '20', refs, session=session, commit_session=commit_session)
+    db.put_markup(doc, markup_name, classes.keys(), '20', refs, new_doc_markup=False, session=session, commit_session=commit_session)
     # db.put_references(doc_id, markup_id, refs, new_status)
 

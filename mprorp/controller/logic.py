@@ -295,8 +295,8 @@ def regular_entities(doc_id, new_status):
     """ner entities"""
     session = db_session()
     doc = session.query(Document).filter_by(doc_id=doc_id).first()
-    grammars_without_persons = [i for i in grammars if not (i == 'person.cxx') ]
-    convert_tomita_result_to_markup(doc, grammars_without_persons, session=session, commit_session=False)
+    grammars_of_tomita_classes = ['loc.cxx', 'org.cxx', 'norm_act.cxx']
+    convert_tomita_result_to_markup(doc, grammars_of_tomita_classes, session=session, commit_session=False)
     doc.status = new_status
     session.commit()
     session.remove()

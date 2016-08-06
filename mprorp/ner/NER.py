@@ -31,7 +31,7 @@ class Config(object):
     label_size = 5
     hidden_size = 500
     max_epochs = 24
-    early_stopping = 1
+    early_stopping = 2
     dropout = 0.9
     lr = 0.001
     l2 = 0.001
@@ -622,9 +622,10 @@ def NER_predict_set(doc, filename_params, filename_tf, values, session_db, commi
 
 def NER_person_learning():
 
-    training_set = u'1fe7391a-c5b9-4a07-bb6a-e6e4c5211008'
-    dev_set = u'97106298-d85e-4602-803f-a3c54685ada6'
-
+    # training_set = u'1fe7391a-c5b9-4a07-bb6a-e6e4c5211008'
+    # dev_set = u'97106298-d85e-4602-803f-a3c54685ada6'
+    training_set = u'4fb42fd1-a0cf-4f39-9206-029255115d01'
+    dev_set = u'f861ee9d-5973-460d-8f50-92fca9910345'
 
     if not os.path.exists(home_dir + "/weights"):
         os.makedirs(home_dir + "/weights")
