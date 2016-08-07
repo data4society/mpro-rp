@@ -122,7 +122,7 @@ def create_markup(doc, session=None, commit_session=True, verbose=False):
         print('Информация о спанах:', spans_info)
 
     # Сформируем символьную информацию о спанах
-    spans_morpho_info = form_spans_morpho_info(doc, spans, session)
+    spans_morpho_info = form_spans_morpho_info(doc, spans)
     if verbose:
         print('Символьная информация о спанах', spans_morpho_info)
 
@@ -246,7 +246,8 @@ def form_spans_info(spans, doc_properties_info):
 
     return spans_info
 
-def form_spans_morpho_info(doc, spans, session):
+
+def form_spans_morpho_info(doc, spans):
 
     morpho = doc.morpho
 
@@ -254,6 +255,7 @@ def form_spans_morpho_info(doc, spans, session):
     for span in spans:
         start_offset = 0
         end_offset = 0
+        element_text = ''
         for element in morpho:
             if 'start_offset' in element.keys():
                 if element['sentence_index'] == span[0]:
@@ -261,7 +263,9 @@ def form_spans_morpho_info(doc, spans, session):
                         start_offset = element['start_offset']
                     if element['word_index'] == span[2]:
                         end_offset = element['end_offset']
-        spans_morpho_info[span] = {'start_offset': start_offset, 'end_offset': end_offset}
+                    if (element['word_index'] >= span[1]) and (element['word_index'] <= span[2]):
+                        element_text += element.get('text','')
+        spans_morpho_info[span] = {'start_offset': start_offset, 'end_offset': end_offset, 'text': element_text}
 
     return spans_morpho_info
 
@@ -601,7 +605,7 @@ def form_entity_for_chain_spans(doc, list_chain_spans, spans_info, spans_morpho_
                 if not span_morpho_info is None:
                     start_offset = span_morpho_info.get('start_offset', 0)
                     end_offset = span_morpho_info.get('end_offset', 0)
-                    refs.append({'start_offset': start_offset, 'end_offset': end_offset,
+                    refs.append({'start_offset': start_offset, 'end_offset': end_offset + 1,
                              'len_offset': int(end_offset) - int(start_offset) + 1,
                              'entity': str(entity_id), 'entity_class': settings.get('entity_class')})
 
