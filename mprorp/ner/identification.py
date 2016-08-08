@@ -163,9 +163,11 @@ def form_doc_properties_info(doc, doc_properties, session):
             if doc_property[0] == sentence_index and doc_property[1] == word_index:
 
                 analysis = element_doc_morpho.get('analysis')
-                if not analysis is None:
+                if analysis is not None:
 
                     list_lex = []
+                    best_lex = ''
+                    best_wt = 0
                     array_case = np.zeros((9))
                     array_numeric = np.zeros((2))
 
@@ -173,9 +175,13 @@ def form_doc_properties_info(doc, doc_properties, session):
 
                         # Наполняем список лемм
                         current_lex = analyse.get('lex', '')
+                        current_wt = analyse.get('wt', 0)
                         if current_lex != '':
                             if current_lex not in list_lex:
                                 list_lex.append(current_lex)
+                            if current_wt > best_wt:
+                                best_lex = current_lex
+                                best_wt = current_wt
 
                         vectors = morpho_to_vec.analyze(analyse['gr'])
                         len_vectors = len(vectors)
@@ -188,7 +194,7 @@ def form_doc_properties_info(doc, doc_properties, session):
                     array_case /= len_vectors
                     array_numeric /= len_vectors
 
-                    doc_properties_info[doc_property] = {'list_lex': list_lex, 'case': array_case, 'numeric': array_numeric}
+                    doc_properties_info[doc_property] = {'list_lex': list_lex, 'best_lex': best_lex, 'case': array_case, 'numeric': array_numeric}
 
     return doc_properties_info
 
@@ -225,6 +231,7 @@ def form_spans_info(spans, doc_properties_info):
         span_feature = span[3]
 
         list_lex = []
+        best_lex = []
         array_case = np.zeros((9))
         array_numeric = np.zeros((2))
 
@@ -236,13 +243,14 @@ def form_spans_info(spans, doc_properties_info):
             doc_property = doc_properties_info.get((span_sentence_index, word_index, span_feature))
             if not doc_property is None:
                 list_lex.extend(doc_property.get('list_lex'))
+                best_lex.append(doc_property.get('best_lex'))
                 array_case += doc_property.get('case')
                 array_numeric += doc_property.get('numeric')
 
         array_case /= (span_word_end_index - span_word_start_index + 1)
         array_numeric /= (span_word_end_index - span_word_start_index + 1)
 
-        spans_info[span] = {'list_lex': list_lex, 'case': array_case, 'numeric': array_numeric}
+        spans_info[span] = {'list_lex': list_lex, 'best_lex': best_lex, 'case': array_case, 'numeric': array_numeric}
 
     return spans_info
 
@@ -380,14 +388,29 @@ def form_evaluations(spans, spans_info):
     return evaluations
 
 
+def is_sublist(list1, list2):
+    result = True
+    for l1 in list1:
+        if l1 not in list2:
+            result = False
+            break
+    return result
+
+
 def same_meanings_spans(first_span, second_span, spans_info):
     # Определяет, совпадают ли значения спанов
 
     first_span_info = spans_info.get(first_span)
     first_span_info_lex = first_span_info.get('list_lex')
+    first_span_info_best_lex = first_span_info.get('best_lex')
 
     second_span_info = spans_info.get(second_span)
     second_span_info_lex = second_span_info.get('list_lex')
+    second_span_info_best_lex = second_span_info.get('best_lex')
+
+    return is_sublist(
+        first_span_info_best_lex, second_span_info_lex) and is_sublist(
+        second_span_info_best_lex, first_span_info_lex)
 
     first_span_info_lex_len = len(first_span_info_lex)
 
@@ -541,7 +564,7 @@ def form_entity_for_chain_spans(doc, list_chain_spans, spans_info, spans_morpho_
 
             span_feature = span[3]
             span_info = spans_info.get(span)
-            span_info_lex = span_info.get('list_lex')
+            span_info_lex = span_info.get('best_lex')
 
             if not (span_info_lex is None):
                 if span_feature in ['oc_feature_last_name', 'oc_feature_first_name', 'oc_feature_middle_name']:
@@ -560,9 +583,9 @@ def form_entity_for_chain_spans(doc, list_chain_spans, spans_info, spans_morpho_
                     if status == '':
                         status = ' '.join(span_info_lex)
                 if span_feature == 'oc_feature_post':
-                    position.append(span_info_lex)
+                    position.append(' '.join(span_info_lex))
                 if span_feature == 'oc_feature_role':
-                    role.append(span_info_lex)
+                    role.append(' '.join(span_info_lex))
 
         data = {'firstname': first_name,
                 'lastname': last_name,
