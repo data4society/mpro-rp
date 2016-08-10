@@ -127,14 +127,17 @@ def create_markup(doc, session=None, commit_session=True, verbose=False):
         print('Символьная информация о спанах', spans_morpho_info)
 
     # Сформируем оценки связей спанов
-    evaluations = form_evaluations(spans, spans_info)
+    evaluations, eval_dict = form_evaluations(spans, spans_info)
     if verbose:
         print('Оценки связей:', evaluations)
 
     # Сформируем список цепочек спанов
-    list_chain_spans = form_list_chain_spans(doc.doc_id, spans, evaluations)
+    list_chain_spans = form_list_chain_spans(doc.doc_id, spans, evaluations, eval_dict)
     if verbose:
         print('Цепочки спанов:', list_chain_spans)
+
+    # print(len(spans))
+    # print(sum([len(s) for s in list_chain_spans]))
 
     # Запишем цепочки
     form_entity_for_chain_spans(doc, list_chain_spans, spans_info, spans_morpho_info, session, commit_session)
@@ -284,6 +287,7 @@ def form_evaluations(spans, spans_info):
     spans_len = len(spans)
 
     evaluations = []
+    eval_dict = {}
 
     i = -1
     while i < spans_len - 2:
@@ -313,6 +317,7 @@ def form_evaluations(spans, spans_info):
                                                                                      'oc_feature_middle_name']):
                 if not same_meanings_spans(first_span, second_span, spans_info):
                     evaluations.append([first_span, second_span, -1])
+                    eval_dict[(first_span, second_span)] = -1
                     continue
 
             if first_span_sentence_index == second_span_sentence_index: # Спаны находятся в одном предложении
@@ -325,6 +330,7 @@ def form_evaluations(spans, spans_info):
                      first_span_word_index_start <= second_span_word_index_end <= first_span_word_index_end)):
 
                     evaluations.append([first_span, second_span, -1])
+                    eval_dict[(first_span, second_span)] = -1
                     continue
 
                 # Стоящие рядом слова
@@ -334,27 +340,33 @@ def form_evaluations(spans, spans_info):
 
                         if same_case_numeric(first_span, second_span, spans_info): # Одинаковый падеж, число
                             evaluations.append([first_span, second_span, 5])
+                            eval_dict[(first_span, second_span)] = 5
                             continue
                         elif subjective_case(first_span, spans_info) or subjective_case(second_span, spans_info): # Фамилия или Имя в им.падеже
                             evaluations.append([first_span, second_span, 3])
+                            eval_dict[(first_span, second_span)] = 3
                             continue
 
                     if first_span_feature == 'oc_feature_first_name' and second_span_feature == 'oc_feature_last_name':  # Имя, Фамилия
 
                         if same_case_numeric(first_span, second_span, spans_info):  # Одинаковый падеж, число
                             evaluations.append([first_span, second_span, 5])
+                            eval_dict[(first_span, second_span)] = 5
                             continue
                         elif subjective_case(first_span, spans_info) or subjective_case(second_span, spans_info): # Фамилия или Имя в им.падеже
                             evaluations.append([first_span, second_span, 3])
+                            eval_dict[(first_span, second_span)] = 3
                             continue
 
                     if first_span_feature == 'oc_feature_first_name' and second_span_feature == 'oc_feature_middle_name':  # Имя, Отчество
 
                         if same_case_numeric(first_span, second_span, spans_info):  # Одинаковый падеж, число
                             evaluations.append([first_span, second_span, 5])
+                            eval_dict[(first_span, second_span)] = 5
                             continue
                         elif subjective_case(first_span, spans_info):  # Имя в им.падеже
                             evaluations.append([first_span, second_span, 3])
+                            eval_dict[(first_span, second_span)] = 3
                             continue
 
                     # Роль, статус, должность перед именем, фамилией, иностр.именем, ником
@@ -362,6 +374,7 @@ def form_evaluations(spans, spans_info):
                                 second_span_feature in ['oc_feature_first_name', 'oc_feature_last_name',
                                                         'oc_feature_foreign_name', 'oc_feature_nickname']):
                         evaluations.append([first_span, second_span, 4])
+                        eval_dict[(first_span, second_span)] = 4
                         continue
 
                 # Стоящие рядом спаны
@@ -377,15 +390,17 @@ def form_evaluations(spans, spans_info):
                                                            'oc_feature_foreign_name', 'oc_feature_nickname'] and
                                     second_span_feature in ['oc_feature_role', 'oc_feature_post', 'oc_feature_status']):
                         evaluations.append([first_span, second_span, 2])
+                        eval_dict[(first_span, second_span)] = 2
                         continue
 
             else: # Спаны находятся в разных предложениях
                 if first_span_feature == second_span_feature: # Спаны одного типа
                     if same_meanings_spans(first_span, second_span, spans_info):
                         evaluations.append([first_span, second_span, 1])
+                        eval_dict[(first_span, second_span)] = 1
                         continue
 
-    return evaluations
+    return evaluations, eval_dict
 
 
 def is_sublist(list1, list2):
@@ -456,92 +471,139 @@ def subjective_case(span, spans_info):
     return False
 
 
-def form_list_chain_spans(doc_id, spans, evaluations):
+def form_list_chain_spans(doc_id, spans, evaluations, eval_dict):
     # Формирует список цепочек спанов
 
-    list_chain_spans = []
+    num_span = {}
+    i = 1
     for span in spans:
-        list_chain_spans.append([span])
+        num_span[span] = i
+        i += 1
 
-    form_list_chain_spans_recursion(doc_id, list_chain_spans, evaluations)
+    list_chain_spans = form_list_chain_spans_recursion(doc_id, num_span, evaluations, eval_dict)
 
+    print('recursion off')
     return list_chain_spans
 
 
-def form_list_chain_spans_recursion(doc_id, list_chain_spans, evaluations):
+def form_list_chain_spans_recursion(doc_id, num_span, evaluations, eval_dict):
     print("form_list_chain_spans_recursion: " + str(doc_id))
-    max_evaluations = 0
-    for evaluation in evaluations:
-        max_evaluations = max(max_evaluations, evaluation[2])
+    go_on = True
+    eval_number_dict = {}
+    for span1 in num_span:
+        for span2 in num_span:
+            if eval_dict.get((span1, span2), 0) != 0:
+                eval_number_dict[(num_span[span1], num_span[span2])] = eval_dict.get((span1, span2), 0)
 
-    if max_evaluations == 0:
-        return
+    while go_on:
+        # len_list = len(list_chain_spans)
+        # len_eval = len([i for i in evaluations if i[2] > 0])
+        # print(len_list)
+        # print(len_eval)
+        # go_on = False
+        max_evaluations = 0
+        best_pair = None
+        for i in eval_number_dict:
+            if eval_number_dict[i] > max_evaluations:
+                max_evaluations = eval_number_dict[i]
+                best_pair = i
 
-    for evaluation in evaluations:
+        if max_evaluations > 0:
+            print(max_evaluations)
 
-        if len(list_chain_spans) == 1:
+            combine_chains(best_pair[0], best_pair[1], num_span, eval_number_dict)
+        else:
             break
 
-        if evaluation[2] == max_evaluations:
-            combine_chains(evaluation[0], evaluation[1], list_chain_spans, evaluations)
-            evaluation[2] = 0
-            form_list_chain_spans_recursion(doc_id, list_chain_spans, evaluations)
+    list_chain_spans =[]
+    num_chain = {}
+    for i in num_span.values():
+        num_chain[i] = 0
+    for i in num_chain:
+        chain = [s for s in num_span if num_span[s] == i]
+        list_chain_spans.append(chain)
+    return  list_chain_spans
 
 
-def combine_chains(one_span, two_span, list_chain_spans, evaluations):
 
-    list_chain_spans_for_one_spans = []
-    list_chain_spans_for_two_spans = []
+def combine_chains(new_num, old_num, num_span, eval_number_dict):
 
-    for chain_spans in list_chain_spans:
-        for element_chain_spans in chain_spans:
-            if element_chain_spans == one_span:
-                list_chain_spans_for_one_spans.append(chain_spans)
-            if element_chain_spans == two_span:
-                list_chain_spans_for_two_spans.append(chain_spans)
+    for i in num_span.values():
+        if (i != new_num) and (i != new_num):
+            if (eval_number_dict.get((i,new_num), 0) >= 0) and (eval_number_dict.get((new_num, i), 0) >= 0):
+                if eval_number_dict.get((i, old_num), 0) == -1:
+                    eval_number_dict[(i, new_num)] = -1
+                elif eval_number_dict.get((old_num, i), 0) == -1:
+                    eval_number_dict[(new_num, i)] = -1
+                else:
+                    new_eval = max(eval_number_dict.get((i, old_num), 0),
+                                   eval_number_dict.get((i, new_num), 0),
+                                   eval_number_dict.get((old_num, i), 0),
+                                   eval_number_dict.get((new_num, i), 0))
+                    eval_number_dict[(i, new_num)] = new_eval
+                    eval_number_dict[(new_num, i)] = new_eval
+        eval_number_dict[(i, old_num)] = -1
+        eval_number_dict[(old_num, i)] = -1
 
-    Flag = True
-    for chain_spans_for_one_spans in list_chain_spans_for_one_spans:
-        for chain_spans_for_two_spans in list_chain_spans_for_two_spans:
-            for element_chain_spans_for_one_spans in chain_spans_for_one_spans:
-                for element_chain_spans_for_two_spans in chain_spans_for_two_spans:
-                    for evaluation in evaluations:
-                        if ((evaluation[0] == element_chain_spans_for_one_spans
-                            and evaluation[1] == element_chain_spans_for_two_spans
-                            and evaluation[2] < 0) or
-                            (evaluation[0] == element_chain_spans_for_two_spans
-                             and evaluation[1] == element_chain_spans_for_one_spans
-                             and evaluation[2] < 0)):
-                            Flag = False
-                            break
-                    if not Flag:
-                        break
-                if not Flag:
-                    break
-            if not Flag:
-                break
-        if not Flag:
-            break
+    for i in num_span:
+        if num_span[i] == old_num:
+            num_span[i] = new_num
 
-    if Flag:
 
-        i = 0
-        while i < len(list_chain_spans):
-            if list_chain_spans[i] in list_chain_spans_for_one_spans or list_chain_spans[i] in list_chain_spans_for_two_spans:
-                list_chain_spans.remove(list_chain_spans[i])
-            else:
-                i += 1
-
-        for chain_spans_for_one_spans in list_chain_spans_for_one_spans:
-            for chain_spans_for_two_spans in list_chain_spans_for_two_spans:
-
-                new_chain = []
-                for element_chain_spans_for_one_spans in chain_spans_for_one_spans:
-                    new_chain.append(element_chain_spans_for_one_spans)
-                for element_chain_spans_for_two_spans in chain_spans_for_two_spans:
-                    new_chain.append(element_chain_spans_for_two_spans)
-
-                list_chain_spans.append(new_chain)
+    # list_chain_spans_for_one_spans = []
+    # list_chain_spans_for_two_spans = []
+    #
+    # for chain_spans in list_chain_spans:
+    #     print('A')
+    #     for element_chain_spans in chain_spans:
+    #         if element_chain_spans == one_span:
+    #             list_chain_spans_for_one_spans.append(chain_spans)
+    #         if element_chain_spans == two_span:
+    #             list_chain_spans_for_two_spans.append(chain_spans)
+    #
+    #
+    # Flag = True
+    # for chain_spans_for_one_spans in list_chain_spans_for_one_spans:
+    #     print('B1')
+    #     for chain_spans_for_two_spans in list_chain_spans_for_two_spans:
+    #         print('B2')
+    #         for element_chain_spans_for_one_spans in chain_spans_for_one_spans:
+    #             print('B3')
+    #             for element_chain_spans_for_two_spans in chain_spans_for_two_spans:
+    #                 print('B4')
+    #                 if (eval_dict.get((element_chain_spans_for_one_spans,
+    #                              element_chain_spans_for_two_spans), 0) < 0) or (eval_dict.get((
+    #                             element_chain_spans_for_two_spans, element_chain_spans_for_one_spans), 0) < 0):
+    #                     Flag = False
+    #                 if not Flag:
+    #                     break
+    #             if not Flag:
+    #                 break
+    #         if not Flag:
+    #             break
+    #     if not Flag:
+    #         break
+    #
+    # if Flag:
+    #
+    #     i = 0
+    #     while i < len(list_chain_spans):
+    #         print('C')
+    #         if list_chain_spans[i] in list_chain_spans_for_one_spans or list_chain_spans[i] in list_chain_spans_for_two_spans:
+    #             list_chain_spans.remove(list_chain_spans[i])
+    #         else:
+    #             i += 1
+    #
+    #     for chain_spans_for_one_spans in list_chain_spans_for_one_spans:
+    #         for chain_spans_for_two_spans in list_chain_spans_for_two_spans:
+    #             print('D')
+    #             new_chain = []
+    #             for element_chain_spans_for_one_spans in chain_spans_for_one_spans:
+    #                 new_chain.append(element_chain_spans_for_one_spans)
+    #             for element_chain_spans_for_two_spans in chain_spans_for_two_spans:
+    #                 new_chain.append(element_chain_spans_for_two_spans)
+    #
+    #             list_chain_spans.append(new_chain)
 
 
 def form_entity_for_chain_spans(doc, list_chain_spans, spans_info, spans_morpho_info, session, commit_session):
