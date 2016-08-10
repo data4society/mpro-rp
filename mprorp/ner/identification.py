@@ -132,7 +132,7 @@ def create_markup(doc, session=None, commit_session=True, verbose=False):
         print('Оценки связей:', evaluations)
 
     # Сформируем список цепочек спанов
-    list_chain_spans = form_list_chain_spans(spans, evaluations)
+    list_chain_spans = form_list_chain_spans(doc.doc_id, spans, evaluations)
     if verbose:
         print('Цепочки спанов:', list_chain_spans)
 
@@ -456,20 +456,20 @@ def subjective_case(span, spans_info):
     return False
 
 
-def form_list_chain_spans(spans, evaluations):
+def form_list_chain_spans(doc_id, spans, evaluations):
     # Формирует список цепочек спанов
 
     list_chain_spans = []
     for span in spans:
         list_chain_spans.append([span])
 
-    form_list_chain_spans_recursion(list_chain_spans, evaluations)
+    form_list_chain_spans_recursion(doc_id, list_chain_spans, evaluations)
 
     return list_chain_spans
 
 
-def form_list_chain_spans_recursion(list_chain_spans, evaluations):
-
+def form_list_chain_spans_recursion(doc_id, list_chain_spans, evaluations):
+    print("form_list_chain_spans_recursion: " + str(doc_id))
     max_evaluations = 0
     for evaluation in evaluations:
         max_evaluations = max(max_evaluations, evaluation[2])
