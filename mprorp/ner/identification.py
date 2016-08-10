@@ -485,7 +485,7 @@ def form_list_chain_spans_recursion(doc_id, list_chain_spans, evaluations):
         if evaluation[2] == max_evaluations:
             combine_chains(evaluation[0], evaluation[1], list_chain_spans, evaluations)
             evaluation[2] = 0
-            form_list_chain_spans_recursion(list_chain_spans, evaluations)
+            form_list_chain_spans_recursion(doc_id, list_chain_spans, evaluations)
 
 
 def combine_chains(one_span, two_span, list_chain_spans, evaluations):
