@@ -174,6 +174,8 @@ def form_doc_properties_info(doc, doc_properties, session):
                     array_case = np.zeros((9))
                     array_numeric = np.zeros((2))
 
+                    len_vectors = 1
+
                     for analyse in analysis:
 
                         # Наполняем список лемм
