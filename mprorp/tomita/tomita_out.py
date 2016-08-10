@@ -28,25 +28,37 @@ def list_make(text, source_name):
             fact = re.sub(' ,', ',', fact)
             fact = re.sub('«', '', fact)
             fact = re.sub('»', '', fact)
-            fact = re.sub('"', '', fact)
-            #print('fact changed: ' + fact)
-            first_symbol = sourse.find(fact)
-            if first_symbol != -1:
+            fact1 = re.sub('"', '', fact)
+            fact2 = re.sub('\\. ', '.', fact)
+            first_symbol1 = sourse.find(fact1)
+            first_symbol2 = sourse.find(fact2)
+            #print('fact1 : ' + fact1 + ' ' + str(first_symbol1))
+            #print('fact2 : ' + fact2 + ' ' + str(first_symbol2))
+            if first_symbol1 == -1 and first_symbol2 == -1:
+                #print('change', file=stream)
+                fact = re.sub(' ', '', fact)
+                #print('fact changed: ' + fact)
+                first_symbol = sourse.find(fact)
                 last_symbol = first_symbol + len(fact)
                 symbols = str(first_symbol + len_of_line) + ':' + str(last_symbol + len_of_line)
-            else:
-                #print('change1')
-                fact = re.sub('\\. ', '.', fact)
-                first_symbol = sourse.find(fact)
-                if first_symbol != -1:
-                    last_symbol = first_symbol + len(fact)
-                    symbols = str(first_symbol + len_of_line) + ':' + str(last_symbol + len_of_line)
-                else:
-                    #print('change2')
-                    fact = re.sub(' ', '', fact)
-                    first_symbol = sourse.find(fact)
-                    last_symbol = first_symbol + len(fact)
-                    symbols = str(first_symbol + len_of_line) + ':' + str(last_symbol + len_of_line)
+            if first_symbol1 == -1:
+                first_symbol = first_symbol2
+                fact = fact2
+                last_symbol = first_symbol + len(fact)
+                symbols = str(first_symbol + len_of_line) + ':' + str(last_symbol + len_of_line)
+            if first_symbol2 == -1:
+                first_symbol = first_symbol1
+                fact = fact1
+                last_symbol = first_symbol + len(fact)
+                symbols = str(first_symbol + len_of_line) + ':' + str(last_symbol + len_of_line)
+            if first_symbol1 != -1 and first_symbol2 != -1:
+                first_symbol = min(first_symbol1, first_symbol2)
+                if first_symbol == first_symbol1:
+                    fact = fact1
+                if first_symbol == first_symbol2:
+                    fact = fact2
+                last_symbol = first_symbol + len(fact)
+                symbols = str(first_symbol + len_of_line) + ':' + str(last_symbol + len_of_line)
 
             #print(sourse[:20])
             #print('the last version of fact: ' + fact)

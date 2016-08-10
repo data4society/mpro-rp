@@ -20,8 +20,10 @@ def convert_tomita_result_to_markup(doc, grammars,
                                     markup_name='another markup from tomita facts',
                                     entity=None, session=None, commit_session=True):
     """convert tomita result to markup: symbol to symbol coordinates"""
-    if entity is None:
-        entity = '0057375a-8242-1c6d-bf64-d5cb5a7ad7dd'
+    default_entity = '0057375a-8242-1c6d-bf64-d5cb5a7ad7dd'
+    default_entities = {'location': '20b364e7-a5a9-4202-a8ef-4e5e987191fb',
+                        'org':  '20b364e7-a5a9-4202-a8ef-4e5e987191fc',
+                        'norm': '20b364e7-a5a9-4202-a8ef-4e5e987191fd'}
     doc_id = doc.doc_id
     results = db.get_tomita_results(doc_id, grammars)
     print(results)
@@ -32,10 +34,13 @@ def convert_tomita_result_to_markup(doc, grammars,
         for i in result:
             print(i)
             offsets = i.split(':')
-            refs.append({'start_offset': int(offsets[0]), 'end_offset': int(offsets[1]),
-                         'len_offset':int(offsets[1])-int(offsets[0]),
-                         'entity': entity, 'entity_class': fact_entities[result[i]]})
+            refs.append({
+                'start_offset': int(offsets[0]), 'end_offset': int(offsets[1]),
+                'len_offset':int(offsets[1])-int(offsets[0]),
+                'entity': default_entities.get(fact_entities[result[i]], default_entity) if entity is None else entity,
+                'entity_class': fact_entities[result[i]]
+            })
             classes[fact_entities[result[i]]] = ''
-    db.put_markup(doc, markup_name, classes.keys(), '20', refs, session=session, commit_session=commit_session)
+    db.put_markup(doc, markup_name, classes.keys(), '20', refs, new_doc_markup=False, session=session, commit_session=commit_session)
     # db.put_references(doc_id, markup_id, refs, new_status)
 

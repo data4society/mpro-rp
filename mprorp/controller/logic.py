@@ -51,10 +51,12 @@ FOR_TRAINING = 1000
 FOR_RUBRICS_TRAINING = 1200  # Normal documents from crawler that marked in redactor as for training
 
 EMPTY_TEXT = 2000
+WITHOUT_RUBRICS = 2001
 
 
 
-rubrics_for_regular = {u'76819d19-d3f7-43f1-bc7f-b10ec5a2e2cc': u'404f1c89-53bd-4313-842d-d4a417c88d67'}  # 404f1c89-53bd-4313-842d-d4a417c88d67
+rubrics_for_regular = {u'19848dd0-436a-11e6-beb8-9e71128cae02': None,
+                       u'19848dd0-436a-11e6-beb8-9e71128cae21': None}   # 404f1c89-53bd-4313-842d-d4a417c88d67
 grammars = list(tomita_config.keys()) #  ['date.cxx', 'person.cxx']
 facts = ['Person']
 ner_settings = [[home_dir + '/weights/ner_oc1.params', home_dir + '/weights/ner_oc1.weights'],
@@ -85,7 +87,7 @@ def router(doc_id, status):
     elif status == MORPHO_COMPLETE_STATUS:  # to lemmas
         regular_lemmas.delay(doc_id, LEMMAS_COMPLETE_STATUS)
     elif status == LEMMAS_COMPLETE_STATUS:  # to rubrication
-        regular_rubrication.delay(doc_id, RUBRICATION_COMPLETE_STATUS)
+        regular_rubrication.delay(doc_id, RUBRICATION_COMPLETE_STATUS, WITHOUT_RUBRICS)
     elif status == RUBRICATION_COMPLETE_STATUS:  # to tomita
         regular_tomita.delay(0, doc_id, TOMITA_FIRST_COMPLETE_STATUS)
     elif status >= TOMITA_FIRST_COMPLETE_STATUS and status < TOMITA_FIRST_COMPLETE_STATUS+len(grammars)-1:  # to tomita
@@ -206,13 +208,18 @@ def regular_lemmas(doc_id, new_status):
 
 
 @app.task(ignore_result=True)
-def regular_rubrication(doc_id, new_status):
+def regular_rubrication(doc_id, new_status, without_rubrics_status):
     """regular rubrication"""
     session = db_session()
     doc = session.query(Document).filter_by(doc_id=doc_id).first()
     # rb.spot_doc_rubrics2(doc_id, rubrics_for_regular, new_status)
-    doc.rubric_ids = ['19848dd0-436a-11e6-beb8-9e71128cae50']
-    doc.status = new_status
+    # doc.rubric_ids = ['19848dd0-436a-11e6-beb8-9e71128cae50']
+    rb.spot_doc_rubrics(doc, rubrics_for_regular, session, False)
+
+    if len(doc.rubric_ids) == 0:
+        doc.status = without_rubrics_status
+    else:
+        doc.status = new_status
     session.commit()
     session.remove()
     router(doc_id, new_status)
@@ -295,8 +302,8 @@ def regular_entities(doc_id, new_status):
     """ner entities"""
     session = db_session()
     doc = session.query(Document).filter_by(doc_id=doc_id).first()
-    grammars_without_persons = [i for i in grammars if not (i == 'person.cxx') ]
-    convert_tomita_result_to_markup(doc, grammars_without_persons, session=session, commit_session=False)
+    grammars_of_tomita_classes = ['loc.cxx', 'org.cxx', 'norm_act.cxx']
+    convert_tomita_result_to_markup(doc, grammars_of_tomita_classes, session=session, commit_session=False)
     doc.status = new_status
     session.commit()
     session.remove()
