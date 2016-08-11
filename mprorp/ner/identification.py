@@ -132,7 +132,7 @@ def create_markup(doc, session=None, commit_session=True, verbose=False):
         print('Оценки связей:', evaluations)
 
     # Сформируем список цепочек спанов
-    list_chain_spans = form_list_chain_spans(doc.doc_id, spans, evaluations, eval_dict)
+    list_chain_spans = form_list_chain_spans(spans, evaluations, eval_dict)
     if verbose:
         print('Цепочки спанов:', list_chain_spans)
 
@@ -473,7 +473,7 @@ def subjective_case(span, spans_info):
     return False
 
 
-def form_list_chain_spans(doc_id, spans, evaluations, eval_dict):
+def form_list_chain_spans(spans, evaluations, eval_dict):
     # Формирует список цепочек спанов
 
     num_span = {}
@@ -482,14 +482,13 @@ def form_list_chain_spans(doc_id, spans, evaluations, eval_dict):
         num_span[span] = i
         i += 1
 
-    list_chain_spans = form_list_chain_spans_recursion(doc_id, num_span, evaluations, eval_dict)
+    list_chain_spans = form_list_chain_spans_recursion(num_span, evaluations, eval_dict)
 
     print('recursion off')
     return list_chain_spans
 
 
-def form_list_chain_spans_recursion(doc_id, num_span, evaluations, eval_dict):
-    print("form_list_chain_spans_recursion: " + str(doc_id))
+def form_list_chain_spans_recursion(num_span, evaluations, eval_dict):
     go_on = True
     eval_number_dict = {}
     for span1 in num_span:
@@ -524,7 +523,7 @@ def form_list_chain_spans_recursion(doc_id, num_span, evaluations, eval_dict):
     for i in num_chain:
         chain = [s for s in num_span if num_span[s] == i]
         list_chain_spans.append(chain)
-    return  list_chain_spans
+    return list_chain_spans
 
 
 

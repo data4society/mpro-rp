@@ -102,19 +102,15 @@ def router(doc_id, status):
         regular_NER_predict.delay(doc_id, NER_PREDICT_COMPLETE_STATUS)
     elif status == NER_PREDICT_COMPLETE_STATUS:  # to createb markup
         regular_create_markup.delay(doc_id, MARKUP_COMPLETE_STATUS)
-    elif status == MARKUP_COMPLETE_STATUS:  # fin regular processes
+    elif status == MARKUP_COMPLETE_STATUS:  # to ner entities
+        regular_entities.delay(doc_id, NER_ENTITIES_COMPLETE_STATUS)
+    elif status == NER_ENTITIES_COMPLETE_STATUS:  # fin regular processes
         session = db_session()
         doc = session.query(Document).filter_by(doc_id=doc_id).first()
         doc.status = REGULAR_PROCESSES_FINISH_STATUS
         session.commit()
         session.remove()
-    """
-    elif status == MARKUP_COMPLETE_STATUS:  # to ner entities
-        regular_entities.delay(doc_id, NER_ENTITIES_COMPLETE_STATUS)
-    elif status == NER_ENTITIES_COMPLETE_STATUS:  # fin regular processes
-        doc = Document(doc_id = doc_id, status = REGULAR_PROCESSES_FINISH_STATUS)
-        update(doc)
-    """
+
 
 
 @app.task(ignore_result=True)
