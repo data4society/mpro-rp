@@ -24,7 +24,7 @@ from lxml.html import HtmlElement
 from lxml import etree
 
 from mprorp.analyzer.pymystem3_w import Mystem
-
+import datetime
 
 log = logging.getLogger("readability.readability")
 
@@ -157,7 +157,7 @@ class Document:
     def get_clean_html(self):
          return clean_attributes(tounicode(self.html))
 
-    def summary(self, html_partial=False, title=''):
+    def summary(self, html_partial=False, title='', fusion_clearing = True):
         """Generate the summary of the html docuemnt
 
         :param html_partial: return only the div of the document, don't wrap
@@ -219,7 +219,7 @@ class Document:
                         article = self.html.find('body')
                         if article is None:
                             article = self.html
-                cleaned_article = self.sanitize(article, candidates)
+                cleaned_article = self.sanitize(article, candidates, fusion_clearing)
 
                 article_length = len(cleaned_article or '')
                 retry_length = self.retry_length
@@ -615,8 +615,11 @@ class Document:
 
     def score_title_rate(self, elem):
         text = elem.text_content()
+        time = datetime.datetime.now()
         text_lemmas = mystem.lemmatize(text)
         mystem.close()
+        time = datetime.datetime.now() - time
+        print(time)
         rate = 0
         for lemma in text_lemmas:
             if lemma in self.title_lemmas:
@@ -629,18 +632,20 @@ class Document:
             for e in reversed(node.findall('.//%s' % tag_name)):
                 yield e
 
-    def sanitize(self, node, candidates):
+    def sanitize(self, node, candidates, fusion_clearing = True):
         MIN_LEN = self.min_text_length
         for header in self.tags(node, "h1", "h2", "h3", "h4", "h5", "h6"):
             if self.class_weight(header) < 0 or self.get_link_density(header) > 0.33:
                 header.drop_tree()
 
 
-        for p in self.tags(node, "p", "div"):
-            txt = p.text_content()
-            if (re.match(REGEXES["rfBadStart"], txt) and self.get_link_density(p) > 0) or re.match(REGEXES["rfBadSearch"], txt):
-                print(describe(p))
-                p.drop_tree()
+        if fusion_clearing:
+            for p in self.tags(node, "p", "div"):
+                txt = p.text_content()
+                if (re.match(REGEXES["rfBadStart"], txt) and self.get_link_density(p) > 0) or re.match(REGEXES["rfBadSearch"], txt):
+                    print(describe(p))
+                    p.drop_tree()
+
 
         for elem in self.tags(node, "form", "textarea"):
             elem.drop_tree()
