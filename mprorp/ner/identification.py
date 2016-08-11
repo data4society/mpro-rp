@@ -633,16 +633,16 @@ def form_entity_for_chain_spans(doc, list_chain_spans, spans_info, spans_morpho_
             if not (span_info_lex is None):
                 if span_feature in ['oc_feature_last_name', 'oc_feature_first_name', 'oc_feature_middle_name']:
                     name = ' '.join(span_info_lex)if(name == '')else name + ' ' + ' '.join(span_info_lex)
-                if span_feature == 'oc_feature_first_name':
-                    first_name = ' '.join(span_info_lex) if (first_name == '')else first_name + ' ' + ' '.join(span_info_lex)
-                if span_feature == 'oc_feature_last_name':
-                    last_name = ' '.join(span_info_lex) if (last_name == '')else last_name + ' ' + ' '.join(span_info_lex)
-                if span_feature == 'oc_feature_middle_name':
-                    middle_name = ' '.join(span_info_lex) if (middle_name == '')else middle_name + ' ' + ' '.join(span_info_lex)
-                if span_feature == 'oc_feature_nickname':
-                    nick_name = ' '.join(span_info_lex) if (nick_name == '')else nick_name + ' ' + ' '.join(span_info_lex)
-                if span_feature == 'oc_feature_foreign_name':
-                    foreign_name = ' '.join(span_info_lex) if (foreign_name == '')else foreign_name + ' ' + ' '.join(span_info_lex)
+                if span_feature == 'oc_feature_first_name' and first_name == '':
+                    first_name = ' '.join(span_info_lex)
+                if span_feature == 'oc_feature_last_name' and last_name == '':
+                    last_name = ' '.join(span_info_lex)
+                if span_feature == 'oc_feature_middle_name' and middle_name == '':
+                    middle_name = ' '.join(span_info_lex)
+                if span_feature == 'oc_feature_nickname' and nick_name == '':
+                    nick_name = ' '.join(span_info_lex)
+                if span_feature == 'oc_feature_foreign_name' and foreign_name == '':
+                    foreign_name = ' '.join(span_info_lex)
                 if span_feature == 'oc_feature_status':
                     if status == '':
                         status = ' '.join(span_info_lex)
