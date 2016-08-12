@@ -51,10 +51,12 @@ def create_table_with_confidence(func, out_path):
             for row in spamreader:
                 if not row[0] in bad_links:
                     with open('corpus/docs/' + str(ind) + '.html', 'rb') as f:
-                        text = f.read()
-                        text, confidence = func(text)
+                        text0 = f.read()
+                        text, confidence = func(text0)
+                        text1, confidence = func(text0, '', False)
                         row.append(text)
                         row.append(confidence)
+                        row.append(text1)
                         spamwriter.writerow(row)
                 ind += 1
 
@@ -79,6 +81,7 @@ def create_estimates_table(in_path, out_path):
             spamreader = csv.reader(csvfile)
             for row in spamreader:
                 row.append(get_compare_estimate(row[1],row[2]))
+                row.append(get_compare_estimate(row[1],row[4]))
                 # print(row[3])
                 spamwriter.writerow(row)
 
@@ -97,6 +100,44 @@ def get_final_estimate(in_path):
             #if not row[0] in cloudflare_links:
             if row[2] != 'ERROR':
                 estim = float(row[len(row)-1])
+                estim2 = float(row[len(row)-2])
+                if len(row) == 5:
+                    confidence += float(row[3])
+                # print(estim)
+                estimates.append(estim)
+                if estim >= 10:
+                    estimates1.append(estim)
+                else:
+                    bads += 1
+                    print(row[0])
+                if estim >= 90:
+                    estimates90 += 1
+                if estim == 100:
+                    estimates100 += 1
+                if estim2 > estim:
+                    print("GOOD CLEARING: "+row[0])
+                if estim > estim2:
+                    print("BAD CLEARING: "+row[0])
+    print('Размер корпуса: ' + str(len(estimates)))
+    print('Среднее: ' + str(float(sum(estimates))/len(estimates)))
+    print('Среднее без плохих: ' + str(float(sum(estimates1))/len(estimates1)))
+    print('Плохие: ' + str(bads*100/len(estimates)) + '%')
+    print('Уверенность: ' + str(confidence*100/len(estimates)) + '%')
+    print('>=90: ' + str(estimates90*100/len(estimates)) + '%')
+    print('100: ' + str(estimates100*100/len(estimates)) + '%')
+
+    estimates = list()
+    estimates1 = list()
+    estimates90 = 0
+    estimates100 = 0
+    bads = 0
+    confidence = 0
+    with open(in_path, 'r') as csvfile:
+        spamreader = csv.reader(csvfile)
+        for row in spamreader:
+            # if not row[0] in cloudflare_links:
+            if row[2] != 'ERROR':
+                estim = float(row[len(row) - 2])
                 if len(row) == 5:
                     confidence += float(row[3])
                 # print(estim)
@@ -111,12 +152,12 @@ def get_final_estimate(in_path):
                 if estim == 100:
                     estimates100 += 1
     print('Размер корпуса: ' + str(len(estimates)))
-    print('Среднее: ' + str(float(sum(estimates))/len(estimates)))
-    print('Среднее без плохих: ' + str(float(sum(estimates1))/len(estimates1)))
-    print('Плохие: ' + str(bads*100/len(estimates)) + '%')
-    print('Уверенность: ' + str(confidence*100/len(estimates)) + '%')
-    print('>=90: ' + str(estimates90*100/len(estimates)) + '%')
-    print('100: ' + str(estimates100*100/len(estimates)) + '%')
+    print('Среднее: ' + str(float(sum(estimates)) / len(estimates)))
+    print('Среднее без плохих: ' + str(float(sum(estimates1)) / len(estimates1)))
+    print('Плохие: ' + str(bads * 100 / len(estimates)) + '%')
+    print('Уверенность: ' + str(confidence * 100 / len(estimates)) + '%')
+    print('>=90: ' + str(estimates90 * 100 / len(estimates)) + '%')
+    print('100: ' + str(estimates100 * 100 / len(estimates)) + '%')
 
 
 def find_errors():

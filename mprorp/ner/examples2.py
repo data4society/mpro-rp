@@ -62,6 +62,7 @@ doc_id = u'eb9ab64f-6098-4bb2-9fef-17209dc689eb'
 doc_id = u'5fd76b1f-77d4-4451-9640-fd0981575960'
 # doc_id = u'679fe9e0-1581-453e-87cc-a124980c60c5'
 doc_id = u'38a20507-dd29-4c96-a419-aeae892c5d74'
+doc_id = u'888d310d-5e30-4d93-a987-16488010fb55'
 session = Driver.db_session()
 doc = session.query(Document).filter_by(doc_id=doc_id).first()
 rb.morpho_doc(doc)
