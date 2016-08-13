@@ -24,6 +24,9 @@ FLOWERD_DEFAULTS=${FLOWERD_DEFAULTS:-"/etc/default/flowerd"}
 test -f "$FLOWERD_DEFAULTS" && . "$FLOWERD_DEFAULTS"
 
 # Extra start-stop-daemon options, like user/group.
+if [ -n "$FLOWERD_OPTS" ]; then
+    DAEMON_OPTS="$DAEMON_OPTS $FLOWERD_OPTS"
+fi
 if [ -n "$FLOWERD_USER" ]; then
     DAEMON_OPTS="$DAEMON_OPTS --uid=$FLOWERD_USER"
 fi

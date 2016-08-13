@@ -113,7 +113,7 @@ def router(doc_id, status):
 
 
 
-@app.task(ignore_result=True)
+@app.task(ignore_result=True, time_limit=660, soft_timeout_limit=600)
 def regular_gn_start_parsing(source_id):
     """parsing google news request"""
     session = db_session()
@@ -126,7 +126,7 @@ def regular_gn_start_parsing(source_id):
     session.remove()
 
 
-@app.task(ignore_result=True)
+@app.task(ignore_result=True, time_limit=660, soft_timeout_limit=600)
 def regular_vk_start_parsing(source_id):
     """parsing vk request"""
     session = db_session()
