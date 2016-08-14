@@ -18,7 +18,7 @@ def convert_tomita_result_to_markup2(doc_id, grammars):
 
 def convert_tomita_result_to_markup(doc, grammars,
                                     markup_name='another markup from tomita facts',
-                                    entity=None, session=None, commit_session=True):
+                                    entity=None, session=None, commit_session=True, verbose=False):
     """convert tomita result to markup: symbol to symbol coordinates"""
     default_entity = '0057375a-8242-1c6d-bf64-d5cb5a7ad7dd'
     default_entities = {'location': '20b364e7-a5a9-4202-a8ef-4e5e987191fb',
@@ -41,6 +41,8 @@ def convert_tomita_result_to_markup(doc, grammars,
                 'entity_class': fact_entities[result[i]]
             })
             classes[fact_entities[result[i]]] = ''
+    if verbose:
+        print(refs)
     db.put_markup(doc, markup_name, classes.keys(), '20', refs, new_doc_markup=False, session=session, commit_session=commit_session)
     # db.put_references(doc_id, markup_id, refs, new_status)
 

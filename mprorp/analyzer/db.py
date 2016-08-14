@@ -500,7 +500,11 @@ def put_markup(doc, name, classes, markup_type, refs, new_doc_markup=True, sessi
     if new_doc_markup:
         doc.markup = markup_for_doc
     else:
-        doc.markup.update(markup_for_doc)
+        my_markup = doc.markup
+        if my_markup is None:
+            my_markup = {}
+        my_markup.update(markup_for_doc)
+        doc.markup = my_markup
     doc.entity_ids = entities.keys()
     if commit_session:
         session.commit()

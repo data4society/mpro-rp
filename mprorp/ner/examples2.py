@@ -72,9 +72,12 @@ settings = [[home_dir + '/weights/ner_oc1.params', home_dir + '/weights/ner_oc1.
             [home_dir + '/weights/ner_oc2.params', home_dir + '/weights/ner_oc2.weights']]
 
 NER.NER_predict(doc, settings, session, verbose=True)
+create_markup(doc, session, False)
+grammars_of_tomita_classes = ['loc.cxx', 'org.cxx', 'norm_act.cxx']
+convert_tomita_result_to_markup(doc, grammars_of_tomita_classes, session=session, commit_session=False, verbose=True)
 
 print(doc.stripped)
-create_markup(doc, verbose=True)
+# create_markup(doc, verbose=True)
 
 # grammars_of_tomita_classes = ['loc.cxx', 'org.cxx', 'norm_act.cxx']
 # convert_tomita_result_to_markup(doc, grammars_of_tomita_classes, session=session, commit_session=False)
