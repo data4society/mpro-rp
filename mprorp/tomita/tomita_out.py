@@ -11,6 +11,36 @@ def text_make(file_name):
         text.append(line)
     return text
 
+def facts(fact, sourse):
+    fs = []
+    facts = []
+    fact1 = re.sub('"', '', fact)
+    f1 = sourse.find(fact1)
+    if f1 != -1:
+        fs.append(f1)
+        facts.append(fact1)
+    fact2 = re.sub('\\. (\w)\\.', '.\\1.', fact)
+    f2 = sourse.find(fact2)
+    if f2 != -1:
+        fs.append(f2)
+        facts.append(fact2)
+    fact3 = re.sub('\\. ', '.', fact)
+    f3 = sourse.find(fact3)
+    if f3 != -1:
+        fs.append(f3)
+        facts.append(fact3)
+    fact4 = re.sub(' ', '', fact)
+    f4 = sourse.find(fact4)
+    if f4 != -1:
+        fs.append(f4)
+        facts.append(fact4)
+    if fs != []:
+        first_symbol = min(fs)
+        fact = facts[fs.index(first_symbol)]
+    else:
+        first_symbol = 0
+    return fact, first_symbol
+
 
 def list_make(text, source_name):
     """function to create dictionary with coordinates"""
@@ -24,41 +54,15 @@ def list_make(text, source_name):
         if 'TOMITA =' in text[n]:
             fact = re.findall('TOMITA = (.*)', text[n])[0]
             name_fact = re.findall('(.*)_TOMITA', text[n])[0]
-            #print('fact detected: ' + fact)
             fact = re.sub(' ,', ',', fact)
             fact = re.sub('«', '', fact)
             fact = re.sub('»', '', fact)
-            fact1 = re.sub('"', '', fact)
-            fact2 = re.sub('\\. ', '.', fact)
-            first_symbol1 = sourse.find(fact1)
-            first_symbol2 = sourse.find(fact2)
-            #print('fact1 : ' + fact1 + ' ' + str(first_symbol1))
-            #print('fact2 : ' + fact2 + ' ' + str(first_symbol2))
-            if first_symbol1 == -1 and first_symbol2 == -1:
-                #print('change', file=stream)
-                fact = re.sub(' ', '', fact)
-                #print('fact changed: ' + fact)
-                first_symbol = sourse.find(fact)
-                last_symbol = first_symbol + len(fact)
-                symbols = str(first_symbol + len_of_line) + ':' + str(last_symbol + len_of_line)
-            if first_symbol1 == -1:
-                first_symbol = first_symbol2
-                fact = fact2
-                last_symbol = first_symbol + len(fact)
-                symbols = str(first_symbol + len_of_line) + ':' + str(last_symbol + len_of_line)
-            if first_symbol2 == -1:
-                first_symbol = first_symbol1
-                fact = fact1
-                last_symbol = first_symbol + len(fact)
-                symbols = str(first_symbol + len_of_line) + ':' + str(last_symbol + len_of_line)
-            if first_symbol1 != -1 and first_symbol2 != -1:
-                first_symbol = min(first_symbol1, first_symbol2)
-                if first_symbol == first_symbol1:
-                    fact = fact1
-                if first_symbol == first_symbol2:
-                    fact = fact2
-                last_symbol = first_symbol + len(fact)
-                symbols = str(first_symbol + len_of_line) + ':' + str(last_symbol + len_of_line)
+            fact = re.sub('a', 'а', fact)
+            fact = re.sub('і', 'i', fact)
+            fact = re.sub('І', 'I', fact)
+            fact, first_symbol = facts(fact, sourse)
+            last_symbol = first_symbol + len(fact)
+            symbols = str(first_symbol + len_of_line) + ':' + str(last_symbol + len_of_line)
 
             #print(sourse[:20])
             #print('the last version of fact: ' + fact)
