@@ -204,7 +204,7 @@ def regular_lemmas(doc_id, new_status):
 
 
 @app.task(ignore_result=True)
-def regular_rubrication(doc_id, new_status, without_rubrics_status):
+def regular_rubrication(doc_id, with_rubrics_status, without_rubrics_status):
     """regular rubrication"""
     session = db_session()
     doc = session.query(Document).filter_by(doc_id=doc_id).first()
@@ -213,9 +213,10 @@ def regular_rubrication(doc_id, new_status, without_rubrics_status):
     rb.spot_doc_rubrics(doc, rubrics_for_regular, session, False)
 
     if len(doc.rubric_ids) == 0:
-        doc.status = without_rubrics_status
+        new_status = without_rubrics_status
     else:
-        doc.status = new_status
+        new_status = with_rubrics_status
+    doc.status = new_status
     session.commit()
     session.remove()
     router(doc_id, new_status)
