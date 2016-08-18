@@ -11,4 +11,4 @@ FLOWERD_CHDIR="/home/mprorp/mpro-rp-dev/"
 #   a user/group combination that already exists, e.g. nobody).
 FLOWERD_USER="mprorp"
 FLOWERD_GROUP="mprorp"
-FLOWERD_OPTS="--max_tasks=5000 --conf=/home/mprorp/mpro-rp-dev/server/celeryconfig.py"
+FLOWERD_OPTS="--conf=/home/mprorp/mpro-rp-dev/server/flowerconfig.py"
