@@ -214,12 +214,16 @@ def regular_rubrication(doc_id, with_rubrics_status, without_rubrics_status):
 
     if len(doc.rubric_ids) == 0:
         new_status = without_rubrics_status
+        print('if')
     else:
         new_status = with_rubrics_status
+        print('else')
     doc.status = new_status
-    session.commit()
+    print(doc.rubric_ids)
+    print(len(doc.rubric_ids))
+    #session.commit()
     session.remove()
-    router(doc_id, new_status)
+    #router(doc_id, new_status)
 
 
 @app.task(ignore_result=True)

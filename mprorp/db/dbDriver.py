@@ -11,7 +11,7 @@ import sys
 from multiprocessing.util import register_after_fork
 from mprorp.config.settings import *
 
-if ("maindb" in sys.argv) or ("worker" in sys.argv) or ("ner_learning_app.py" in sys.argv):
+if ("maindb" in sys.argv) or ("worker" in sys.argv) or ("ner_learning_app.py" in sys.argv) or ("test_doc_app.py" in sys.argv):
     db_type = "server"
 else:
     db_type = "local"
