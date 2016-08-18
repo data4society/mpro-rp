@@ -463,7 +463,7 @@ def spot_doc_rubrics2(doc_id, rubrics):
     db.doc_apply(doc_id, spot_doc_rubrics, rubrics)
 
 
-def spot_doc_rubrics(doc, rubrics, session=None, commit_session=True):
+def spot_doc_rubrics(doc, rubrics, session=None, commit_session=True, verbose=False):
     """spot rubrics for document"""
     # get lemmas by doc_id
     lemmas = doc.lemmas
@@ -482,6 +482,8 @@ def spot_doc_rubrics(doc, rubrics, session=None, commit_session=True):
         if rubrics[rubric_id] is None:
             rubrics[rubric_id] = db.get_set_id_by_rubric_id(rubric_id, session)
         models[rubric_id] = db.get_model(rubric_id, rubrics[rubric_id], session)
+        if verbose:
+            print('Для рубрики ', rubric_id, ' используется модель ', models[rubric_id]['model_id'])
     # get dict with idf and lemma_index for each set_id
     # sets[...] is dict: {'idf':..., 'lemma_index': ...}
     sets = db.get_idf_lemma_index_by_set_id(rubrics.values(), session)
@@ -513,6 +515,8 @@ def spot_doc_rubrics(doc, rubrics, session=None, commit_session=True):
         mif.resize(mif_number + 1)
         mif[mif_number] = 1
         probability = sigmoid(np.dot(mif, models[rubric_id]['model']))
+        if verbose:
+            print('Вероятность: ', probability)
         if probability > 0.5:
             answers.append(rubric_id)
         result.append(
@@ -520,6 +524,8 @@ def spot_doc_rubrics(doc, rubrics, session=None, commit_session=True):
                  'doc_id': doc.doc_id, 'probability': probability})
 
     db.put_rubrics(result, session, commit_session)
+    if verbose:
+        print(answers)
     doc.rubric_ids = answers
 
 
@@ -568,6 +574,7 @@ def spot_test_set_rubric(test_set_id, rubric_id):
                             'rubric_id': rubric_id, 'doc_id': doc_id, 'probability': 0})
 
     db.put_rubrics(answers)
+    return model['model_id']
 
 
 # compute TP, FP, TN, FN, Precision, Recall and F-score on data from db

@@ -176,10 +176,12 @@ def get_set_id_by_rubric_id(rubric_id, session=None):
 
 
 # reading last computing model for rubric_id and set_id
-def get_model(rubric_id, set_id, session=None):
+def get_model(rubric_id, set_id=None, session=None):
     """reading last computing model for rubric_id and set_id"""
     if session is None:
         session = Driver.db_session()
+    if set_id is None:
+        set_id = get_set_id_by_rubric_id(rubric_id)
     model = session.query(RubricationModel.model,
                           RubricationModel.features,
                           RubricationModel.features_num,
@@ -473,10 +475,13 @@ def get_tomita_results(doc_id, grammars, session=None):
         (TomitaResult.doc_id == doc_id) & (TomitaResult.grammar.in_(grammars))).all()
     return [i[0] for i in res]
 
+
 def put_markup_2(doc_id, name, classes, markup_type, refs):
     doc_apply(doc_id, put_markup, name, classes, markup_type, refs)
 
-def put_markup(doc, name, classes, markup_type, refs, new_doc_markup=True, session=None, commit_session=True):
+
+def put_markup(doc, name, classes, markup_type, refs, new_doc_markup=True, session=None,
+               commit_session=True, verbose=False):
     """write markup with references with symbol coordinates in db"""
     if session is None:
         session = Driver.db_session()
@@ -503,8 +508,19 @@ def put_markup(doc, name, classes, markup_type, refs, new_doc_markup=True, sessi
         my_markup = doc.markup
         if my_markup is None:
             my_markup = {}
+        if verbose:
+            print('my_markup', my_markup)
+            print('markup_for_doc', markup_for_doc)
         my_markup.update(markup_for_doc)
+        if verbose:
+            print('new_my_markup', my_markup)
+
+        doc.markup = None
+        # ЭТО ПОЛНЫЙ ПИЗДЕЦ. ТАК ДЕЛАТЬ НЕЛЬЗЯ. НУЖНО СРОЧНО (ДО 2017 ГОДА) УБРАТЬ ОТСЮДА КОМИТ
+        session.commit()
         doc.markup = my_markup
+        if verbose:
+            print('doc.markup', doc.markup)
     doc.entity_ids = entities.keys()
     if commit_session:
         session.commit()

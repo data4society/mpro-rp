@@ -42,7 +42,7 @@ def convert_tomita_result_to_markup(doc, grammars,
             })
             classes[fact_entities[result[i]]] = ''
     if verbose:
-        print(refs)
-    db.put_markup(doc, markup_name, classes.keys(), '20', refs, new_doc_markup=False, session=session, commit_session=commit_session)
+        print('refs ', refs)
+    db.put_markup(doc, markup_name, classes.keys(), '20', refs, new_doc_markup=False, session=session,
+                  commit_session=commit_session, verbose=verbose)
     # db.put_references(doc_id, markup_id, refs, new_status)
-

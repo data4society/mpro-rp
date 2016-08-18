@@ -60,6 +60,8 @@ doc_id = '45807db3-27ad-47aa-0ae9-2c177ceabd2b'
 # doc_id = '192f9948-3ce5-fc7e-b485-b5fbfa8465db'
 # doc_id = '0d9b0aab-45ca-3974-5f4e-34afabd8183c'
 # rb.morpho_doc2(doc_id)
+doc_id = '1252213c-e609-4e7d-b55d-85f3b2a2421e'
+
 
 doc_stripped = db.get_doc(doc_id)
 print(doc_stripped)

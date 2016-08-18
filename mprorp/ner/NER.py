@@ -620,6 +620,7 @@ def NER_predict_set(doc, filename_params, filename_tf, values, session_db, commi
     if verbose:
         print(values)
 
+
 def NER_person_learning():
 
     # training_set = u'1fe7391a-c5b9-4a07-bb6a-e6e4c5211008'
