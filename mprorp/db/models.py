@@ -37,6 +37,29 @@ class Source(Base):
     wait = Column(Boolean(), server_default="False")
 
 
+class Theme(Base):
+    """theme object"""
+    __tablename__ = 'themes'
+    theme_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
+    # title of last doc associated with theme
+    title = Column(String(511))
+    # created timestamp of last doc associated with theme
+    last_renew_time = Column(TIMESTAMP())
+    # words of docs titles with their reits
+    words = Column(JSONB())
+
+
+class ThemeWord(Base):
+    """words from titles with reits of other words from same titles"""
+    __tablename__ = 'themewords'
+    #
+    word = Column(String(31))
+    # other words from same titles with their reits
+    words = Column(JSONB())
+    # status of this word: 0 - not enough info, 1 - good, -1 - bad
+    status = Column(Integer())
+
+
 class User(Base):
     """contains users data"""
     __tablename__ = 'users'
@@ -93,6 +116,9 @@ class Document(Base):
     markup = Column(JSONB())
     # entities of markup
     entity_ids = Column(ARRAY(UUIDType(binary=False), ForeignKey('entities.entity_id')))
+    # reference to theme
+    theme_id = Column(UUIDType(binary=False), ForeignKey('themes.theme_id'))
+    theme = relationship(Theme)
 
 
 class Record(Base):

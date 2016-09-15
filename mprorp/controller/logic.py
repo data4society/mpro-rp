@@ -225,7 +225,6 @@ def regular_rubrication(doc_id, with_rubrics_status, without_rubrics_status):
     session.remove()
     router(doc_id, new_status)
 
-
 @app.task(ignore_result=True)
 def regular_tomita(grammar_index, doc_id, new_status):
     """tomita"""
@@ -306,6 +305,16 @@ def regular_entities(doc_id, new_status):
     grammars_of_tomita_classes = ['loc.cxx', 'org.cxx', 'norm_act.cxx']
     convert_tomita_result_to_markup(doc, grammars_of_tomita_classes, session=session, commit_session=False)
     doc.status = new_status
+    print(doc.markup)
     session.commit()
     session.remove()
-    router(doc_id, new_status)
+    #router(doc_id, new_status)
+session = db_session()
+doc = session.query(Document).filter_by(doc_id='3f521888-1e9f-4afd-8427-9d353cb842de').first()
+print(doc.markup)
+session.remove()
+regular_entities('3f521888-1e9f-4afd-8427-9d353cb842de',-1)
+session = db_session()
+doc = session.query(Document).filter_by(doc_id='3f521888-1e9f-4afd-8427-9d353cb842de').first()
+print(doc.markup)
+session.remove()
