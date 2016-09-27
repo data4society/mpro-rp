@@ -53,7 +53,7 @@ class ThemeWord(Base):
     """words from titles with reits of other words from same titles"""
     __tablename__ = 'themewords'
     #
-    word = Column(String(31))
+    word = Column(String(31), primary_key=True)
     # other words from same titles with their reits
     words = Column(JSONB())
     # status of this word: 0 - not enough info, 1 - good, -1 - bad
@@ -121,6 +121,16 @@ class Document(Base):
     theme = relationship(Theme)
 
 
+class Variable(Base):
+    """contains some variables with their values"""
+    __tablename__ = 'variables'
+
+    # variable name
+    name = Column(String(40), primary_key=True, unique=True)
+    # value in json format
+    json = Column(JSONB())
+
+
 class Record(Base):
     """contains converted documents for exposing to client"""
     __tablename__ = 'records'
@@ -152,7 +162,7 @@ class Record(Base):
     rubrics = Column(ARRAY(UUIDType(binary=False), ForeignKey('rubrics.rubric_id')))
     # refrence to source document table record
     source = Column(UUIDType(binary=False), ForeignKey('documents.doc_id'))
-    # substnace document
+    # substce document
     content = Column(JSONB())
     # node with metadata
     meta = Column(JSONB())
