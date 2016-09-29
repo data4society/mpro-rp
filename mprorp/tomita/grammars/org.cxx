@@ -38,9 +38,6 @@ Fonds -> Fond | Fond Prep* Dop_Fond1+ | Fond Prep* Dop_Fond1 Dop_Fond2+;
 RF -> Word<kwtype='RF'>;
 Min ->  Word<kwtype='ministry'> RF | Word<kwtype='ministry'>;
 
-// Иностранные организации
-Org_lat -> lat;
-
 // Агентство|Холдинг
 Org2_NoWords -> Word<kwtype='ag'> Q | Word<kwtype='ag'> lat;
 Org2_Words -> Word<kwtype='ag'> Q | Word<kwtype='ag'> Words lat;
