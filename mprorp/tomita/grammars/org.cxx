@@ -43,6 +43,6 @@ Org2_NoWords -> Word<kwtype='ag'> Q | Word<kwtype='ag'> lat;
 Org2_Words -> Word<kwtype='ag'> Q | Word<kwtype='ag'> Words lat;
 Org2 -> Org2_NoWords | Org2_Words;
 
-Org -> Trial | International | Fonds | RusOrg | Min | Jail | Org1<kwtype=~'KoAP'> | Org3 | Org_lat;
+Org -> Trial | International | Fonds | RusOrg | Min | Jail | Org1<kwtype=~'KoAP'> | Org3;
 Organisation1 -> Org interp(OrgFact_TOMITA.Org_TOMITA::not_norm);
 Organisation -> Organisation1 | Org2 | OOO;
