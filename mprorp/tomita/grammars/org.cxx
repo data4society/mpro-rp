@@ -26,7 +26,7 @@ RusOrg -> Word<kwtype='rusorg'>;
 Org1 -> AnyWord<wfl="[А-Я][А-Я][А-Я]+", ~dict> | AnyWord<wfl="[А-Я][а-я]+([А-Я][а-я]+)+", ~dict>;
 
 // Аббревиатура Eng
-Org3 -> AnyWord<wfl="[A-Z][A-Z][A-Z]+", ~dict> | AnyWord<wfl="[A-Z][a-z]+([A-Z][a-z]+)+", ~dict>;
+Org3 -> AnyWord<wfl="[A-Z][A-Z][A-Z]+"> | AnyWord<wfl="[A-Z][a-z]+([A-Z][a-z]+)+"> | AnyWord<wfl="[a-z]+([A-Z][a-z]+)+">;
 
 // Фонды
 Fond -> Word<kwtype='fond'> Word<gram='gen'>+ | Word<kwtype='fond'> Word<gram='gen'>+ SimConjAnd Word<gram='gen'>+ | Word<kwtype='fond'> Prep Dop_Fond1;
@@ -38,11 +38,12 @@ Fonds -> Fond | Fond Prep* Dop_Fond1+ | Fond Prep* Dop_Fond1 Dop_Fond2+;
 RF -> Word<kwtype='RF'>;
 Min ->  Word<kwtype='ministry'> RF | Word<kwtype='ministry'>;
 
+
 // Агентство|Холдинг
 Org2_NoWords -> Word<kwtype='ag'> Q | Word<kwtype='ag'> lat;
 Org2_Words -> Word<kwtype='ag'> Q | Word<kwtype='ag'> Words lat;
 Org2 -> Org2_NoWords | Org2_Words;
 
-Org -> Trial | International | Fonds | RusOrg | Min | Jail | Org1<kwtype=~'KoAP'> | Org3;
+Org -> Trial | Fonds | RusOrg | Min | Jail | Org1<kwtype=~'KoAP'> | Org3 | Q<h-reg1>| International;
 Organisation1 -> Org interp(OrgFact_TOMITA.Org_TOMITA::not_norm);
 Organisation -> Organisation1 | Org2 | OOO;
