@@ -9,7 +9,7 @@ import random
 # initialization mystem
 mystem_analyzer = Mystem(disambiguation=False)
 # words number for tf-idf model
-optimal_features_number = 1000
+optimal_features_number = 300
 # words to exclude from model
 stop_lemmas = ['в', 'на', 'из', 'он', 'что', 'и', 'это', 'по', 'быть', 'этот', 'она', 'они', 'так', 'как', 'тогда',
                'те', 'также', 'же', 'то', 'за', 'который', 'после', 'оно', 'с', 'к', 'у', 'о', 'об', 'его', 'а',
@@ -69,7 +69,7 @@ def morpho_doc(doc):
             symbol_number = -1
             for symbol in line:
 
-                symbol_number+=1
+                symbol_number += 1
 
                 if symbol == "'" or symbol == '"' or symbol == '»' or symbol == '«':
 
@@ -482,6 +482,8 @@ def spot_doc_rubrics(doc, rubrics, session=None, commit_session=True, verbose=Fa
         if rubrics[rubric_id] is None:
             rubrics[rubric_id] = db.get_set_id_by_rubric_id(rubric_id, session)
         models[rubric_id] = db.get_model(rubric_id, rubrics[rubric_id], session)
+        # get_model: return {'model': model[0], 'features': model[1],
+        #                   'features_num': model[2], 'model_id': str(model[3])}
         if verbose:
             print('Для рубрики ', rubric_id, ' используется модель ', models[rubric_id]['model_id'])
     # get dict with idf and lemma_index for each set_id
