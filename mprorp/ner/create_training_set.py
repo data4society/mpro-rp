@@ -122,10 +122,10 @@ def do_exercise(rubric_id):
         print('Используем существующие выборки')
         tr_id, test_id = sets[rubric_id]['train'], sets[rubric_id]['test']
 
-    add_rubric_to_doc(rubric_id)
-    prepare_docs(tr_id)
-    prepare_docs(test_id)
-    print('Предварительная обработка документов из обеих выборок завершена')
+    # add_rubric_to_doc(rubric_id)
+    # prepare_docs(tr_id)
+    # prepare_docs(test_id)
+    # print('Предварительная обработка документов из обеих выборок завершена')
     teach_rubricator(tr_id, rubric_id)
     print('Обучение рубрикатора завершено')
     print('Результаты рубрикатора на учебной выборке')
