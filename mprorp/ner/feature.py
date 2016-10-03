@@ -6,7 +6,7 @@ import mprorp.ner.morpho_to_vec as morpho_to_vec
 import numpy as np
 import logging as log
 
-ner_feature_types = {'embedding': 1, 'gazetteer': 2, 'tomita': 3, 'morpho': 4, 'answer': 5, 'OpenCorpora': 6}
+ner_feature_types = {'embedding': 1, 'gazetteer': 2, 'tomita': 3, 'morpho': 4, 'answer': 5, 'OpenCorpora': 6, 'Capital': 7}
 
 def part_of_speech(gr):
     gr = re.findall('^\w*', gr)
@@ -264,3 +264,22 @@ def create_morpho_feature(doc, session=None, commit_session=True):
     if len(values) > 0:
         # print(values)
         db.put_ner_feature(doc_id, values, ner_feature_types['morpho'], 'morpho', session, commit_session)
+
+def create_capital_feature2(doc_id):
+    """wrap for create_capital_feature"""
+    db.doc_apply(doc_id, create_capital_feature)
+
+def create_capital_feature(doc, session=None, commit_session=True):
+    """create feature for NER from capital features"""
+    doc_id = doc.doc_id
+    values = []
+    morpho = db.get_morpho(doc_id)
+    for element in morpho:
+        if element.get('word_index', -1) != -1:
+            text = element.get('text', '').strip()
+            values.append({'word_index': element['word_index'],
+                           'sentence_index': element['sentence_index'],
+                           'value': [1 if text[0].isupper() else 0, 0 if len(text) == 1 or text[1:].islower() else 1]})
+    if len(values) > 0:
+        db.put_ner_feature(doc_id, values, ner_feature_types['Capital'], 'Capital', session, commit_session)
+
