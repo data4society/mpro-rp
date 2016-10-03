@@ -4,8 +4,8 @@ def save_info(lemm_dic, mif_indexes, model, set_id):
         if lemm_dic[lemma] in mif_indexes:
             lemms_in_use.append(lemma)
 
-    print(len(lemms_in_use))
-    print(len(model))
+    #print(len(lemms_in_use))
+    #print(len(model))
 
     out_dic = {}
     for n in range(len(model) - 1):
