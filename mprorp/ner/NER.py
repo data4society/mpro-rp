@@ -44,7 +44,7 @@ class Config(object):
     # feature_answer = 'org_answer'
     # features = []
     # features = ['Org']
-    features = ['Org', 'Person', 'Loc', 'Date', 'Prof', 'morpho']
+    features = ['Org', 'Person', 'Loc', 'Date', 'Prof', 'morpho', 'Capital']
     print(features)
     features_length = 0
     for feat in features:
