@@ -126,20 +126,24 @@ def do_exercise(rubric_id):
     # prepare_docs(tr_id)
     # prepare_docs(test_id)
     # print('Предварительная обработка документов из обеих выборок завершена')
-    # teach_rubricator(tr_id, rubric_id)
-    # print('Обучение рубрикатора завершено')
-    # print('Результаты рубрикатора на учебной выборке')
-    # print(test_model(tr_id, rubric_id))
+    teach_rubricator(tr_id, rubric_id)
+    print('Обучение рубрикатора завершено')
+    print('Результаты рубрикатора на учебной выборке')
+    print(test_model(tr_id, rubric_id))
     print('Результаты рубрикатора на тестовой выборке')
     print(test_model(test_id, rubric_id))
 
 rubric_1 = '19848dd0-436a-11e6-beb8-9e71128cae21'
 rubric_2 = '19848dd0-436a-11e6-beb8-9e71128cae02'
 
-sets = {rubric_1: {'train': 'ced81603-5621-4391-9c5d-02044075cab8',
-                   'test':  'e51e4995-5c4f-48be-a23a-8b58f6854e2f'},
-        rubric_2: {'train': '5f76733a-e1f6-4ae4-8662-2915455cef53',
-                   'test':  '869df84f-8435-483b-87a0-9043f8703108'}}
+sets = {rubric_1: {'train': 'bcc7f879-8745-459f-8cda-963ae51fa878',
+                   'test':  'c8e1dbac-6a30-47f6-8a64-e383c748d559'},
+        rubric_2: {'train': '17620f74-bf7a-4467-b6cc-e11b8acd727d',
+                   'test':  'c3fabc6e-68c7-4a01-8ead-363dfab7b7e6'}}
+#  sets = {rubric_1: {'train': 'ced81603-5621-4391-9c5d-02044075cab8',
+#                    'test':  'e51e4995-5c4f-48be-a23a-8b58f6854e2f'},
+#         rubric_2: {'train': '5f76733a-e1f6-4ae4-8662-2915455cef53',
+#                    'test':  '869df84f-8435-483b-87a0-9043f8703108'}}
 
 # sets = {rubric_1: None,
 #         rubric_2: None}
@@ -163,10 +167,10 @@ def analyze_rubrics(rubric_1, rubric_2):
 
 
 # analyze_rubrics(rubric_1, rubric_2)
-# print('ассоциации')
-# do_exercise(rubric_1) #свобода ассоциаций
-# print('собрания')
-# do_exercise(rubric_2) #свобода собраний
+print('ассоциации')
+do_exercise(rubric_1) #свобода ассоциаций
+print('собрания')
+do_exercise(rubric_2) #свобода собраний
 
 
 doc_id = '1252213c-e609-4e7d-b55d-85f3b2a2421e'
@@ -182,14 +186,14 @@ doc_id = '7e2904bf-ef62-4bab-b67f-338aa4c8906a'
 # rb.morpho_doc2(doc_id)
 # rb.lemmas_freq_doc2(doc_id)
 
-session = Driver.db_session()
-doc = session.query(Document).filter_by(doc_id=doc_id).first()
-print(doc.stripped)
-print(doc.morpho)
-rubrics = {rubric_1: 'ced81603-5621-4391-9c5d-02044075cab8', rubric_2: '5f76733a-e1f6-4ae4-8662-2915455cef53'}
-rb.spot_doc_rubrics(doc, rubrics, session=session, verbose=True)
-print(doc.rubric_ids)
-session.commit()
+# session = Driver.db_session()
+# doc = session.query(Document).filter_by(doc_id=doc_id).first()
+# print(doc.stripped)
+# print(doc.morpho)
+# rubrics = {rubric_1: 'ced81603-5621-4391-9c5d-02044075cab8', rubric_2: '5f76733a-e1f6-4ae4-8662-2915455cef53'}
+# rb.spot_doc_rubrics(doc, rubrics, session=session, verbose=True)
+# print(doc.rubric_ids)
+# session.commit()
 
 #1 Создание обучающей выборки
 #print(len(create_training_set('19848dd0-436a-11e6-beb8-9e71128cae21')[0]), len(create_training_set('19848dd0-436a-11e6-beb8-9e71128cae21')[1])) #свобода ассоциаций
