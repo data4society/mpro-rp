@@ -5,6 +5,9 @@ import numpy as np
 import math
 import tensorflow as tf
 import random
+import mprorp.db.dbDriver as Driver
+from mprorp.db.models import *
+from mprorp.analyzer.save_info import save_info
 
 # initialization mystem
 mystem_analyzer = Mystem(disambiguation=False)
@@ -360,7 +363,7 @@ def entropy_difference(feature, answers, num_lemma):
 
 
 # learn model for rubrication
-def learning_rubric_model(set_id, rubric_id):
+def learning_rubric_model(set_id, rubric_id, savefiles = False):
     """learn model for rubrication"""
     # get answers for rubric
     answers = db.get_rubric_answers(set_id, rubric_id)
@@ -448,6 +451,19 @@ def learning_rubric_model(set_id, rubric_id):
     model = w.eval(sess)[:, 0]
     model = model.tolist()
     model.append(float(b.eval(sess)))
+    if savefiles is True:
+        session = Driver.db_session()
+        my_set = session.query(TrainingSet).filter(TrainingSet.set_id == set_id).one()
+        lemm_dic = my_set.lemma_index
+        x = open('info_' + str(set_id) + '.py', 'w', encoding='utf-8')
+        x.write("rubric_id = '" + str(rubric_id) + "'\n")
+        x.write("set_id = '" + str(set_id) + "'\n")
+        x.write('lemm_dic = ' + str(my_set.lemma_index) + '\n')
+        x.write('model = ' + str(model) + '\n')
+        x.write('mif_indexes = ' + str(mif_indexes) + '\n')
+        x.write('mif_number = ' + str(mif_number))
+        x.close()
+        save_info(lemm_dic, mif_indexes, model, set_id)
     db.put_model(rubric_id, set_id, model, mif_indexes, mif_number)
 
     # print(W.eval(sess))

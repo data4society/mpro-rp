@@ -121,6 +121,10 @@ def max_key(mydict):
 
 def appendXY(words, words_text, words_feature, pad, zero_feature, doc_answers, sent_length, sent_index, tag_to_num,
              feature_window_size, X_feature, X, y, W, indexes):
+    """Добавляет в начало предложения нулевое слово и нулевые векторы свойств"""
+    """Объединяет векторы и слова в окна, модифицирует размерность, чтобы получить один вектор"""
+    """Добавляет в X_feature - окно из words_feature в X - окна с номерами слов,"""
+    """в y ответы в W - words_text[i], в indexes коодринаты слова"""
     for i in range(pad):
         words.append(0)
         words_feature.append(zero_feature)

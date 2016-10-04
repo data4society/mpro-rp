@@ -85,7 +85,7 @@ class NERModel(LanguageModel):
     the standard Model method.
     """
 
-    def load_data_db(self, debug=False):
+    def load_data_db(self, debug=False, verbose=False):
         """Loads starter word-vectors and train/dev/test data."""
         # Load the starter word vectors
         training_set = self.config.training_set
@@ -100,6 +100,8 @@ class NERModel(LanguageModel):
             for element in doc_words:
                 for word in element[2]:
                     words_for_embedding[word] = ''
+        if verbose:
+            print(words_for_embedding)
 
         wv_dict = db.get_multi_word_embedding(self.config.embedding, words_for_embedding.keys())
 
@@ -115,6 +117,9 @@ class NERModel(LanguageModel):
             word_to_num[word] = count
             wv_array.append(wv_dict[word])
             count += 1
+
+        if verbose:
+            print(word_to_num)
 
         self.wv = np.array(wv_array, dtype=np.float32)
 
@@ -435,7 +440,7 @@ class NERModel(LanguageModel):
         self.config = params['config']
         # self.load_data(debug=False)
         if self.config.new_model:
-            self.load_data_db(debug=False)
+            self.load_data_db(debug=False, verbose=True)
 
         else:
             self.word_to_num = params['words']

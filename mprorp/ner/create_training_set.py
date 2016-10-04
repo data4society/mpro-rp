@@ -167,10 +167,10 @@ def analyze_rubrics(rubric_1, rubric_2):
 
 
 # analyze_rubrics(rubric_1, rubric_2)
-print('ассоциации')
-do_exercise(rubric_1) #свобода ассоциаций
-print('собрания')
-do_exercise(rubric_2) #свобода собраний
+#print('ассоциации')
+#do_exercise(rubric_1) #свобода ассоциаций
+#print('собрания')
+#do_exercise(rubric_2) #свобода собраний
 
 
 doc_id = '1252213c-e609-4e7d-b55d-85f3b2a2421e'
@@ -213,10 +213,10 @@ doc_id = '7e2904bf-ef62-4bab-b67f-338aa4c8906a'
 #write_test_set('19848dd0-436a-11e6-beb8-9e71128cae21') #свобода ассоциаций test
 #write_test_set('19848dd0-436a-11e6-beb8-9e71128cae02') #свобода собраний test
 #4 Обучение и Тест
-#teach_rubricator(tr_set_id, '19848dd0-436a-11e6-beb8-9e71128cae21') #свобода ассоциаций
+#teach_rubricator('bcc7f879-8745-459f-8cda-963ae51fa878', '19848dd0-436a-11e6-beb8-9e71128cae21') #свобода ассоциаций
 #print('Done')
 #print(test_model(test_set_id, '19848dd0-436a-11e6-beb8-9e71128cae21')) #свобода ассоциаций
-#teach_rubricator(tr_set_id, '19848dd0-436a-11e6-beb8-9e71128cae02') #свобода собраний
+#teach_rubricator('17620f74-bf7a-4467-b6cc-e11b8acd727d', '19848dd0-436a-11e6-beb8-9e71128cae02') #свобода собраний
 #print('Done')
 #print(test_model(test_set_id, '19848dd0-436a-11e6-beb8-9e71128cae02')) #свобода собраний
 
