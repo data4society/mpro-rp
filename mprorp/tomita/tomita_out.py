@@ -34,6 +34,13 @@ def facts(fact, sourse):
     if f4 != -1:
         fs.append(f4)
         facts.append(fact4)
+    fact5 = re.sub('a', 'а', fact)
+    fact5 = re.sub('і', 'i', fact5)
+    fact5 = re.sub('І', 'I', fact5)
+    f5 = sourse.find(fact5)
+    if f5 != -1:
+        fs.append(f5)
+        facts.append(fact5)
     if fs != []:
         first_symbol = min(fs)
         fact = facts[fs.index(first_symbol)]
@@ -57,9 +64,6 @@ def list_make(text, source_name):
             fact = re.sub(' ,', ',', fact)
             fact = re.sub('«', '', fact)
             fact = re.sub('»', '', fact)
-            fact = re.sub('a', 'а', fact)
-            fact = re.sub('і', 'i', fact)
-            fact = re.sub('І', 'I', fact)
             fact, first_symbol = facts(fact, sourse)
             last_symbol = first_symbol + len(fact)
             symbols = str(first_symbol + len_of_line) + ':' + str(last_symbol + len_of_line)

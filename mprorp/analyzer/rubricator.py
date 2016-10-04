@@ -5,11 +5,14 @@ import numpy as np
 import math
 import tensorflow as tf
 import random
+import mprorp.db.dbDriver as Driver
+from mprorp.db.models import *
+from mprorp.analyzer.save_info import save_info
 
 # initialization mystem
 mystem_analyzer = Mystem(disambiguation=False)
 # words number for tf-idf model
-optimal_features_number = 1000
+optimal_features_number = 300
 # words to exclude from model
 stop_lemmas = ['в', 'на', 'из', 'он', 'что', 'и', 'это', 'по', 'быть', 'этот', 'она', 'они', 'так', 'как', 'тогда',
                'те', 'также', 'же', 'то', 'за', 'который', 'после', 'оно', 'с', 'к', 'у', 'о', 'об', 'его', 'а',
@@ -69,7 +72,7 @@ def morpho_doc(doc):
             symbol_number = -1
             for symbol in line:
 
-                symbol_number+=1
+                symbol_number += 1
 
                 if symbol == "'" or symbol == '"' or symbol == '»' or symbol == '«':
 
@@ -360,7 +363,7 @@ def entropy_difference(feature, answers, num_lemma):
 
 
 # learn model for rubrication
-def learning_rubric_model(set_id, rubric_id):
+def learning_rubric_model(set_id, rubric_id, savefiles = False):
     """learn model for rubrication"""
     # get answers for rubric
     answers = db.get_rubric_answers(set_id, rubric_id)
@@ -448,6 +451,19 @@ def learning_rubric_model(set_id, rubric_id):
     model = w.eval(sess)[:, 0]
     model = model.tolist()
     model.append(float(b.eval(sess)))
+    if savefiles is True:
+        session = Driver.db_session()
+        my_set = session.query(TrainingSet).filter(TrainingSet.set_id == set_id).one()
+        lemm_dic = my_set.lemma_index
+        x = open('info_' + str(set_id) + '.py', 'w', encoding='utf-8')
+        x.write("rubric_id = '" + str(rubric_id) + "'\n")
+        x.write("set_id = '" + str(set_id) + "'\n")
+        x.write('lemm_dic = ' + str(my_set.lemma_index) + '\n')
+        x.write('model = ' + str(model) + '\n')
+        x.write('mif_indexes = ' + str(mif_indexes) + '\n')
+        x.write('mif_number = ' + str(mif_number))
+        x.close()
+        save_info(lemm_dic, mif_indexes, model, set_id)
     db.put_model(rubric_id, set_id, model, mif_indexes, mif_number)
 
     # print(W.eval(sess))
@@ -482,6 +498,8 @@ def spot_doc_rubrics(doc, rubrics, session=None, commit_session=True, verbose=Fa
         if rubrics[rubric_id] is None:
             rubrics[rubric_id] = db.get_set_id_by_rubric_id(rubric_id, session)
         models[rubric_id] = db.get_model(rubric_id, rubrics[rubric_id], session)
+        # get_model: return {'model': model[0], 'features': model[1],
+        #                   'features_num': model[2], 'model_id': str(model[3])}
         if verbose:
             print('Для рубрики ', rubric_id, ' используется модель ', models[rubric_id]['model_id'])
     # get dict with idf and lemma_index for each set_id

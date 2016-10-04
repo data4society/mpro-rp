@@ -27,8 +27,9 @@ print(len(db.get_set_docs(dev_set)))
 # 2. morpho and other steps for docs from sets
 session = Driver.db_session()
 n = 0
-# for set_doc in [training_set, dev_set]:
-#     for doc_id in db.get_set_docs(set_doc):
+for set_doc in [training_set, dev_set]:
+    for doc_id in db.get_set_docs(set_doc):
+        ner_feature.create_capital_feature2(doc_id)
 #         # if n > 140:
 #         if str(doc_id) == '47d5053e-562f-0e41-e992-93a27289ba6f':
 #             rb.morpho_doc2(str(doc_id))
