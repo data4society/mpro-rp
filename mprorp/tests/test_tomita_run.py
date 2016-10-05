@@ -73,13 +73,15 @@ class SimpleTomitaTest(unittest.TestCase):
 
     def test_tomita_org(self):
         dropall_and_create()
-        my_doc = Document(stripped='В разрешении спора некоторым образом принял участие и Конституционный суд РФ, приняв Определение от 05. 06. 03 N 276-о "Об отказе в принятии к рассмотрению запроса мирового судьи 113-го судебного участка города Санкт-Петербурга.',type='article')
+        my_doc = Document(stripped='В разрешении спора некоторым образом принял участие и Конституционный суд РФ, приняв Определение от 05. 06. 03 N 276-о "Об отказе в принятии к рассмотрению запроса мирового судьи 113-го судебного участка города Санкт-Петербурга. Журнал Forbes оценивает её состояние в 2,7 млрд долларов.',type='article')
         insert(my_doc)
         doc_id = str(my_doc.doc_id)
         dic_out = run_tomita2('org.cxx', doc_id)
         key = '54:73'
+        key2 = '236:242'
         value = 'Org'
         self.assertEqual(dic_out[key], value)
+        self.assertEqual(dic_out[key2], value)
 
     def test_tomita_norm_act(self):
         dropall_and_create()
