@@ -51,7 +51,7 @@ def parse_ga_item(item, source_id, session, docs):
         # initial insert with guid, start status and reference to source
         new_doc = Document(guid="ga_" + url, source_id=source_id, status=0, type='article')
         new_doc.published_date = date
-        new_doc.title = title
+        new_doc.title = "GA:" + title
         meta = dict()
         meta["publisher"] = {"name": publisher}
         meta["abstract"] = desc
