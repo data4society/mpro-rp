@@ -33,13 +33,18 @@ def words_renew():
                 print("NEW")
             words = word_obj.words
             print(word_obj.words)
+            print(type(word_obj.words))
             for word1 in title_lemmas:
                 if word1 in words:
                     words[word1] += 1
                 else:
                     words[word1] = 1
-
-            word_obj.words = json.dumps(words,ensure_ascii=False)
+            print(words)
+            print(json.dumps(words))
+            print(json.dumps(words,ensure_ascii=False).decode('string_escape'))
+            print(json.dumps(words,ensure_ascii=False).encode('utf8'))
+            print(type(json.dumps(words,ensure_ascii=False)))
+            word_obj.words = json.dumps(words,ensure_ascii=False).decode('string_escape')
             word_obj.status = 3
             print(word_obj.words)
             print(word_obj)

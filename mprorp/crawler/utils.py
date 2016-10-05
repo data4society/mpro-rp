@@ -5,7 +5,7 @@ import re
 from user_agent import generate_user_agent, generate_navigator
 
 
-def send_get_request(url, encoding = '', gen_useragent = False):
+def send_get_request(url, encoding = '', gen_useragent = False,has_encoding = False):
     """accessory function for sending requests"""
     s = Session()
     req = Request('GET', url)
@@ -22,7 +22,10 @@ def send_get_request(url, encoding = '', gen_useragent = False):
     r = s.send(prepped)
     if encoding:
         r.encoding = encoding
-    return r.text
+    if has_encoding:
+        return r.content
+    else:
+        return r.text
 
 
 def strip_tags(html):

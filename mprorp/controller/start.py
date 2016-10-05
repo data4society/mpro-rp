@@ -7,7 +7,7 @@ from mprorp.db.models import *
 
 import datetime
 
-from mprorp.controller.logic import regular_gn_start_parsing, regular_vk_start_parsing
+from mprorp.controller.logic import regular_gn_start_parsing, regular_ga_start_parsing, regular_vk_start_parsing
 from sqlalchemy.orm import load_only
 
 
@@ -35,6 +35,9 @@ def check_sources():
         if source_type_id in ['1d6210b2-5ff3-401c-b0ba-892d43e0b741', '62cf1ff2-c860-40db-92e6-c3a3898fea48']: #  google_news
             print("START GOOGLE NEWS CRAWL")
             regular_gn_start_parsing.delay(source_id)
+        if source_type_id in ['ce81b5dc-115c-400b-8886-91f9246926ca']: #  google alerts
+            print("START GOOGLE ALERTS CRAWL")
+            regular_ga_start_parsing.delay(source_id)
 
 
 if __name__ == "__main__":
