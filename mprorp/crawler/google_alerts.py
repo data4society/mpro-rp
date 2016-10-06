@@ -47,7 +47,7 @@ def parse_ga_item(item, source_id, session, docs):
     desc = strip_tags('<html><body>' + item.find("{http://www.w3.org/2005/Atom}content").text + '</body></html>')
 
 
-    if session.query(Document).filter_by(guid=url).count() == 0:
+    if session.query(Document).filter_by(guid="ga_" + url).count() == 0:
         # initial insert with guid, start status and reference to source
         new_doc = Document(guid="ga_" + url, source_id=source_id, status=0, type='article')
         new_doc.published_date = date
