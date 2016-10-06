@@ -16,6 +16,7 @@ from urllib.error import *
 # from mprorp.db.dbDriver import DBSession
 
 from mprorp.crawler.google_news import gn_start_parsing
+from mprorp.crawler.google_alerts import ga_start_parsing
 from mprorp.crawler.vk import vk_start_parsing, vk_parse_item
 
 from mprorp.utils import home_dir
@@ -25,7 +26,8 @@ from mprorp.ner.identification import create_markup
 # statuses
 VK_INIT_STATUS = 10
 VK_COMPLETE_STATUS = 19
-GOOGLE_NEWS_INIT_STATUS = 20
+GOOGLE_NEWS_INIT_STATUS = 30
+GOOGLE_ALERTS_INIT_STATUS = 20
 #GOOGLE_NEWS_COMPLETE_STATUS = 21
 SITE_PAGE_LOADING_FAILED = 91
 SITE_PAGE_COMPLETE_STATUS = 99
@@ -67,7 +69,7 @@ def router(doc_id, status):
     """route function, that adds new tasks by incoming result (document's status)"""
     doc_id = str(doc_id)
     logging.info("route doc: " + str(doc_id) + " status: " + str(status))
-    if status == GOOGLE_NEWS_INIT_STATUS:  # to find full text of HTML page
+    if status == GOOGLE_NEWS_INIT_STATUS or status == GOOGLE_ALERTS_INIT_STATUS:  # to find full text of HTML page
         regular_find_full_text.delay(doc_id, SITE_PAGE_COMPLETE_STATUS)
     elif status == VK_INIT_STATUS:  # to complete vk item parsing
         regular_vk_parse_item.delay(doc_id, VK_COMPLETE_STATUS)
@@ -123,6 +125,19 @@ def regular_gn_start_parsing(source_id):
     session.commit()
     for doc in docs:
         router(doc.doc_id, GOOGLE_NEWS_INIT_STATUS)
+    session.remove()
+
+
+@app.task(ignore_result=True, time_limit=660, soft_timeout_limit=600)
+def regular_ga_start_parsing(source_id):
+    """parsing google alerts request"""
+    session = db_session()
+    docs = ga_start_parsing(source_id, session)
+    for doc in docs:
+        doc.status = GOOGLE_ALERTS_INIT_STATUS
+    session.commit()
+    for doc in docs:
+        router(doc.doc_id, GOOGLE_ALERTS_INIT_STATUS)
     session.remove()
 
 

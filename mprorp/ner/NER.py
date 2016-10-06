@@ -640,18 +640,26 @@ def NER_person_learning():
     NER_config.training_set = training_set
     NER_config.dev_set = dev_set
 
-    NER_config.feature_answer = ['oc_feature_last_name', 'oc_feature_first_name', 'oc_feature_middle_name',
-                                 'oc_feature_nickname', 'oc_feature_foreign_name']
+    #feature_count = 1
+    feature_count = 2
+    for i in range(1, feature_count + 1):
 
-    filename_tf = home_dir + '/weights/ner_oc1.weights'
-    filename_params = home_dir + '/weights/ner_oc1.params'
+        if i == 1:
+            NER_config.feature_answer = ['oc_feature_last_name', 'oc_feature_first_name', 'oc_feature_middle_name',
+                                         'oc_feature_nickname', 'oc_feature_foreign_name']
+            #NER_config.feature_answer = ['name_B', 'name_S', 'name_I', 'name_E']
+            #NER_config.feature_answer = ['person_B', 'person_S', 'person_I', 'person_E']
 
-    NER_learning(filename_params, filename_tf, NER_config)
+            filename_tf = home_dir + '/weights/ner_oc1.weights'
+            filename_params = home_dir + '/weights/ner_oc1.params'
 
-    NER_config.feature_answer = ['oc_feature_post', 'oc_feature_role', 'oc_feature_status']
+        else:
+            NER_config.feature_answer = ['oc_feature_post', 'oc_feature_role', 'oc_feature_status']
+            #NER_config.feature_answer = ['post_role_status_B', 'post_role_status_S',
+            #                             'post_role_status_I', 'post_role_status_E']
 
-    filename_tf = home_dir + '/weights/ner_oc2.weights'
-    filename_params = home_dir + '/weights/ner_oc2.params'
+            filename_tf = home_dir + '/weights/ner_oc2.weights'
+            filename_params = home_dir + '/weights/ner_oc2.params'
 
-    NER_learning(filename_params, filename_tf, NER_config)
+        NER_learning(filename_params, filename_tf, NER_config)
 
