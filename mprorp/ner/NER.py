@@ -16,6 +16,7 @@ from mprorp.ner.config import features_size
 from mprorp.ner.feature import ner_feature_types
 import pickle as pickle
 from mprorp.utils import home_dir
+from mprorp.ner.saver import saver
 
 
 class Config(object):
@@ -100,8 +101,6 @@ class NERModel(LanguageModel):
             for element in doc_words:
                 for word in element[2]:
                     words_for_embedding[word] = ''
-        if verbose:
-            print(words_for_embedding)
 
         wv_dict = db.get_multi_word_embedding(self.config.embedding, words_for_embedding.keys())
 
@@ -118,9 +117,6 @@ class NERModel(LanguageModel):
             wv_array.append(wv_dict[word])
             count += 1
 
-        if verbose:
-            print(word_to_num)
-
         self.wv = np.array(wv_array, dtype=np.float32)
 
         answers = db.get_ner_feature_dict(set_id=training_set, feature_list=self.config.feature_answer)
@@ -135,6 +131,14 @@ class NERModel(LanguageModel):
                     tagnames.append(ans_tuple)
 
         print(tagnames)
+        if verbose:
+            x = open('NER_' + str(training_set) + '_' + str(tagnames[1]) + '.py', 'a', encoding='utf-8')
+            x.write('word_to_num = ' + str(word_to_num) + '\n')
+            x.write('words_for_embedding = ' + str(words_for_embedding) + '\n')
+            x.close()
+            saver(word_to_num, words_for_embedding, training_set, str(tagnames[1]))
+            print('saving done')
+
         self.config.label_size = len(tagnames)
         self.num_to_tag = dict(enumerate(tagnames))
         tag_to_num = {v: k for k, v in iter(self.num_to_tag.items())}
@@ -567,9 +571,11 @@ def NER_learning(filename_params, filename_tf, config=None):
                 train_loss, train_acc = model.run_epoch(session, model.X_train,
                                                     model.y_train, model.feat_train)
                 val_loss, predictions = model.predict(session, model.X_dev, model.y_dev, model.feat_dev)
+                print('--------')
                 print ('Training loss: {}'.format(train_loss))
                 print ('Training acc: {}'.format(train_acc))
                 print ('Validation loss: {}'.format(val_loss))
+                print('--------')
                 if val_loss < best_val_loss:
                     best_val_loss = val_loss
                     best_val_epoch = epoch
