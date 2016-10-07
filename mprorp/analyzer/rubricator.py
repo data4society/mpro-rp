@@ -19,13 +19,13 @@ optimal_features_number = 300
 
 # one document morphological analysis regular
 
-run_stop_lemmas = True #Использование файла для чтения стоп-лемм
+run_stop_lemmas = False #Использование файла для чтения стоп-лемм
 stop_lemmas_filename = home_dir + '/lex_count' # Имя файла, содержащего стоп-леммы
 stop_lemmas_count = 1000 # Порог, при превышении которго лемма считается не интересной и попадает в стоп-леммы
 
 eliminate_once_found_lemma = True # Исключаются те леммы, которые встретились только в одном документе
 
-def get_stop_lemmas(training_set):
+def get_stop_lemmas(training_set=""):
 
     stop_lemmas = []
     if run_stop_lemmas:
@@ -50,23 +50,23 @@ def get_stop_lemmas(training_set):
                'того', 'кто', 'многий', 'большой', 'маленький', 'первый', 'эта', 'другой',
                'девать', 'иметь', 'быль', 'рассказывать', 'мочь', 'смочь', 'время', 'ранее']
 
-    if eliminate_once_found_lemma:
-
-        lex_doc_count = {}
-
-        mystem_analyzer.start()
-        for doc_id in db.get_set_docs(training_set):
-            lex_doc = run_eliminate_once_found_lemma2(doc_id)
-            for lex_doc_key in lex_doc.keys():
-                if lex_doc_key in lex_doc_count:
-                    lex_doc_count[lex_doc_key] += 1
-                else:
-                    lex_doc_count[lex_doc_key] = 1
-        mystem_analyzer.close()
-
-        for key_lex_doc_count in lex_doc_count.keys():
-            if lex_doc_count[key_lex_doc_count] == 1:
-                stop_lemmas.append(key_lex_doc_count)
+    # if eliminate_once_found_lemma:
+    #
+    #     lex_doc_count = {}
+    #
+    #     mystem_analyzer.start()
+    #     for doc_id in db.get_set_docs(training_set):
+    #         lex_doc = run_eliminate_once_found_lemma2(doc_id)
+    #         for lex_doc_key in lex_doc.keys():
+    #             if lex_doc_key in lex_doc_count:
+    #                 lex_doc_count[lex_doc_key] += 1
+    #             else:
+    #                 lex_doc_count[lex_doc_key] = 1
+    #     mystem_analyzer.close()
+    #
+    #     for key_lex_doc_count in lex_doc_count.keys():
+    #         if lex_doc_count[key_lex_doc_count] == 1:
+    #             stop_lemmas.append(key_lex_doc_count)
 
     return stop_lemmas
 
