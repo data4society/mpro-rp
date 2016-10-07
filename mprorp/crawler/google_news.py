@@ -27,7 +27,7 @@ def gn_start_parsing(source_id, session):
         ncls = re.findall(r'ncl=([A-Za-z0-9-_]+)',desc)
         # if no story id was found we parse item from start feed
         if len(ncls) == 0:
-            parseItem(item, source_id, session, docs)
+            parse_gn_item(item, source_id, session, docs)
         else:
             for ncl in ncls:
                 # download google news story feed
@@ -37,7 +37,7 @@ def gn_start_parsing(source_id, session):
                 # print(len(sub_channel.findall("item")))
                 sub_items = sub_channel.findall("item")
                 for sub_item in sub_items:
-                    parseItem(sub_item, source_id, session, docs)
+                    parse_gn_item(sub_item, source_id, session, docs)
 
     source.next_crawling_time = datetime.datetime.fromtimestamp(
         datetime.datetime.now().timestamp() + source.parse_period)
@@ -46,7 +46,7 @@ def gn_start_parsing(source_id, session):
     return docs
 
 
-def parseItem(item, source_id, session, docs):
+def parse_gn_item(item, source_id, session, docs):
     """parses one news item and create new Document object"""
     title = item.find("title").text
     gnews_link = item.find("link").text
