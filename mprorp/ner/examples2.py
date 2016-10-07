@@ -49,8 +49,8 @@ session = Driver.db_session()
 for set_doc in [training_set, dev_set]:
     for doc_id in db.get_set_docs(set_doc):
         doc = session.query(Document).filter_by(doc_id=doc_id).first()
-        print(doc_id)
-        create_answers_feature_for_doc(doc, verbose=True)
+        # print(doc_id)
+        create_answers_feature_for_doc(doc, verbose=False)
 session.commit()
 # exit()
 #
