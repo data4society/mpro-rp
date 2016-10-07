@@ -26,23 +26,24 @@ print(len(db.get_set_docs(dev_set)))
 #exit()
 # 2. morpho and other steps for docs from sets
 session = Driver.db_session()
+stop_lemmas = rb.get_stop_lemmas(training_set)
 n = 0
 for set_doc in [training_set, dev_set]:
     for doc_id in db.get_set_docs(set_doc):
         ner_feature.create_capital_feature2(doc_id)
-#         # if n > 140:
-#         if str(doc_id) == '47d5053e-562f-0e41-e992-93a27289ba6f':
-#             rb.morpho_doc2(str(doc_id))
-#             rb.lemmas_freq_doc2(str(doc_id))
-#             for gram in grammar_config:
-#                 run_tomita2(gram, str(doc_id))
-#             ner_feature.create_tomita_feature2(str(doc_id), grammar_config.keys())
-#             ner_feature.create_embedding_feature2(str(doc_id))
-#             ner_feature.create_morpho_feature2(str(doc_id))
-#             print(n)
-#         n+=1
-#         # print(doc_id, n, "IN LIST")
-# exit()
+        # if n > 140:
+        if str(doc_id) == '47d5053e-562f-0e41-e992-93a27289ba6f':
+            rb.morpho_doc2(str(doc_id))
+            rb.lemmas_freq_doc2(str(doc_id), stop_lemmas)
+            for gram in grammar_config:
+                run_tomita2(gram, str(doc_id))
+            ner_feature.create_tomita_feature2(str(doc_id), grammar_config.keys())
+            ner_feature.create_embedding_feature2(str(doc_id))
+            ner_feature.create_morpho_feature2(str(doc_id))
+            print(n)
+        n+=1
+         # print(doc_id, n, "IN LIST")
+#exit()
 # 3. Create answers for docs
 # session = Driver.db_session()
 # for set_doc in [training_set, dev_set]:

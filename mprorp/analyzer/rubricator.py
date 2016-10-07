@@ -8,13 +8,39 @@ import random
 import mprorp.db.dbDriver as Driver
 from mprorp.db.models import *
 from mprorp.analyzer.save_info import save_info
+import pickle as pickle
+from mprorp.utils import home_dir
 
 # initialization mystem
 mystem_analyzer = Mystem(disambiguation=False)
 # words number for tf-idf model
 optimal_features_number = 300
 # words to exclude from model
-stop_lemmas = ['в', 'на', 'из', 'он', 'что', 'и', 'это', 'по', 'быть', 'этот', 'она', 'они', 'так', 'как', 'тогда',
+
+# one document morphological analysis regular
+
+run_stop_lemmas = True #Использование файла для чтения стоп-лемм
+stop_lemmas_filename = home_dir + '/lex_count' # Имя файла, содержащего стоп-леммы
+stop_lemmas_count = 1000 # Порог, при превышении которго лемма считается не интересной и попадает в стоп-леммы
+
+eliminate_once_found_lemma = True # Исключаются те леммы, которые встретились только в одном документе
+
+def get_stop_lemmas(training_set):
+
+    stop_lemmas = []
+    if run_stop_lemmas:
+
+        input_file = open(stop_lemmas_filename, 'rb')
+        lex_count = pickle.load(input_file)
+        input_file.close()
+
+        for cur_lex_count in lex_count:
+            if cur_lex_count[1] < stop_lemmas_count:
+                break
+            stop_lemmas.append(cur_lex_count[0])
+
+    else:
+        stop_lemmas = ['в', 'на', 'из', 'он', 'что', 'и', 'это', 'по', 'быть', 'этот', 'она', 'они', 'так', 'как', 'тогда',
                'те', 'также', 'же', 'то', 'за', 'который', 'после', 'оно', 'с', 'к', 'у', 'о', 'об', 'его', 'а',
                'не', 'год', 'во', 'весь', 'было', 'свой', 'тот', 'все', 'если', 'тогда', 'от', 'уже', 'д', 'м', 'при',
                'под', 'со', 'ее', 'сам', 'ранее', 'для', 'до', 'будет', 'или', 'их', 'я', 'но', 'нужный', 'ул',
@@ -23,10 +49,33 @@ stop_lemmas = ['в', 'на', 'из', 'он', 'что', 'и', 'это', 'по', '
                'раз', 'каждый', 'новый', 'хороший', 'только', 'мочь', 'даже', 'себя', 'приходить', 'два', 'когда',
                'того', 'кто', 'многий', 'большой', 'маленький', 'первый', 'эта', 'другой',
                'девать', 'иметь', 'быль', 'рассказывать', 'мочь', 'смочь', 'время', 'ранее']
-                  # , '', '', '', '',
 
+    if eliminate_once_found_lemma:
 
-# one document morphological analysis regular
+        lex_doc_count = {}
+
+        mystem_analyzer.start()
+        for doc_id in db.get_set_docs(training_set):
+            lex_doc = run_eliminate_once_found_lemma2(doc_id)
+            for lex_doc_key in lex_doc.keys():
+                if lex_doc_key in lex_doc_count:
+                    lex_doc_count[lex_doc_key] += 1
+                else:
+                    lex_doc_count[lex_doc_key] = 1
+        mystem_analyzer.close()
+
+        for key_lex_doc_count in lex_doc_count.keys():
+            if lex_doc_count[key_lex_doc_count] == 1:
+                stop_lemmas.append(key_lex_doc_count)
+
+    return stop_lemmas
+
+def run_eliminate_once_found_lemma2(doc_id):
+    return db.doc_apply(doc_id, run_eliminate_once_found_lemma)
+
+def run_eliminate_once_found_lemma(doc):
+    return calculate_doc_lemmas(doc.stripped)
+
 
 def is_word(mystem_element):
     """True if element is not space and have length """
@@ -190,13 +239,15 @@ def morpho_doc(doc):
 
 
 # counting lemmas frequency for one document
-def lemmas_freq_doc2(doc_id):
+def lemmas_freq_doc2(doc_id, stop_lemmas = None):
     """wrap for lemmas_freq_doc with local session"""
-    db.doc_apply(doc_id, lemmas_freq_doc)
+    db.doc_apply(doc_id, lemmas_freq_doc, stop_lemmas)
 
 
-def lemmas_freq_doc(doc):
+def lemmas_freq_doc(doc, stop_lemmas = None):
     """ extraction lemmas from morpho """
+    if stop_lemmas is None:
+        stop_lemmas = get_stop_lemmas()
     lemmas = {}
     morpho = doc.morpho
     for i in morpho:
@@ -658,3 +709,77 @@ def probabilities_score(model_id, test_set_id, rubric_id):
         result['false_average_probability'] = false_probability / false_number
 
     return result
+
+
+
+def calculate_indicators_lemmas(session=None):
+
+    if session is None:
+        session = Driver.db_session()
+
+    lex_count = {}
+    lex_count_150 = {}
+    lex_doc_count = {}
+    lex_doc_count_150 = {}
+
+    docs = session.query(Document.stripped).filter(Document.stripped != '').all()
+    mystem_analyzer.start()
+    for doc in docs:
+        doc_text = doc[0]
+        lex_doc = calculate_doc_lemmas(doc_text)
+        for lex_doc_key in lex_doc.keys():
+
+            if lex_doc_key in lex_count:
+                lex_count[lex_doc_key] += lex_doc[lex_doc_key]
+            else:
+                lex_count[lex_doc_key] = lex_doc[lex_doc_key]
+
+            if lex_doc_key in lex_doc_count:
+                lex_doc_count[lex_doc_key] += 1
+            else:
+                lex_doc_count[lex_doc_key] = 1
+
+            if len(doc_text) >= 150:
+                if lex_doc_key in lex_count_150:
+                    lex_count_150[lex_doc_key] += lex_doc[lex_doc_key]
+                else:
+                    lex_count_150[lex_doc_key] = lex_doc[lex_doc_key]
+
+                if lex_doc_key in lex_doc_count_150:
+                    lex_doc_count_150[lex_doc_key] += 1
+                else:
+                    lex_doc_count_150[lex_doc_key] = 1
+
+    mystem_analyzer.close()
+
+    l = lambda x: x[1]
+    #print(sorted(lex_count.items(), key=l, reverse=True))
+    #print(sorted(lex_count_150.items(), key=l, reverse=True))
+    #print(sorted(lex_doc_count.items(), key=l, reverse=True))
+    #print(sorted(lex_doc_count_150.items(), key=l, reverse=True))
+    output_file = open(home_dir + '/lex_count', 'wb')
+    pickle.dump(sorted(lex_count.items(), key=l, reverse=True), output_file, protocol=3)
+    output_file.close()
+    output_file = open(home_dir + '/lex_count_150', 'wb')
+    pickle.dump(sorted(lex_count_150.items(), key=l, reverse=True), output_file, protocol=3)
+    output_file.close()
+    output_file = open(home_dir + '/lex_doc_count', 'wb')
+    pickle.dump(sorted(lex_doc_count.items(), key=l, reverse=True), output_file, protocol=3)
+    output_file.close()
+    output_file = open(home_dir + '/lex_doc_count_150', 'wb')
+    pickle.dump(sorted(lex_doc_count_150.items(), key=l, reverse=True), output_file, protocol=3)
+    output_file.close()
+
+def calculate_doc_lemmas(text):
+    res_list = mystem_analyzer.analyze(text)
+    lex_doc = {}
+    for res in res_list:
+        analysis = res.get('analysis', [])
+        for analys in analysis:
+            lex = analys.get('lex', '')
+            if lex != '':
+                if lex in lex_doc:
+                    lex_doc[lex] += 1
+                else:
+                    lex_doc[lex] = 1
+    return lex_doc

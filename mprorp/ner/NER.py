@@ -38,7 +38,8 @@ class Config(object):
     window_size = 5
     training_set = u'4fb42fd1-a0cf-4f39-9206-029255115d01'
     dev_set = u'f861ee9d-5973-460d-8f50-92fca9910345'
-    pre_embedding = True
+    pre_embedding = False
+    pre_embedding_count = 3
     embedding = 'first_test_embedding'
     feature_answer = ['person_answer']
     # feature_answer = 'org_answer'
@@ -95,11 +96,26 @@ class NERModel(LanguageModel):
         # collect words from set
 
         words_for_embedding = {}
-        for doc_id in train_set_words:
-            doc_words = train_set_words[doc_id]
-            for element in doc_words:
-                for word in element[2]:
+        if Config.pre_embedding:
+            for doc_id in train_set_words:
+                doc_words = train_set_words[doc_id]
+                for element in doc_words:
+                    for word in element[2]:
+                        words_for_embedding[word] = ''
+        else:
+            words_count = {}
+            for doc_id in train_set_words:
+                doc_words = train_set_words[doc_id]
+                for element in doc_words:
+                    for word in element[2]:
+                        if word in words_count:
+                            words_count[word] += 1
+                        else:
+                            words_count[word] = 1
+            for word in words_count:
+                if words_count[word] > Config.pre_embedding_count:
                     words_for_embedding[word] = ''
+
         if verbose:
             print(words_for_embedding)
 
