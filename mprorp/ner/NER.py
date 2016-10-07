@@ -103,6 +103,10 @@ class NERModel(LanguageModel):
                 for element in doc_words:
                     for word in element[2]:
                         words_for_embedding[word] = ''
+                        if verbose:
+                            print(words_for_embedding)
+
+                        wv_dict = db.get_multi_word_embedding(self.config.embedding, words_for_embedding.keys())
         else:
             words_count = {}
             for doc_id in train_set_words:
@@ -113,14 +117,12 @@ class NERModel(LanguageModel):
                             words_count[word] += 1
                         else:
                             words_count[word] = 1
+
+            wv_dict = {}
             for word in words_count:
                 if words_count[word] > Config.pre_embedding_count:
-                    words_for_embedding[word] = ''
+                    wv_dict[word] = ''
 
-        if verbose:
-            print(words_for_embedding)
-
-        wv_dict = db.get_multi_word_embedding(self.config.embedding, words_for_embedding.keys())
 
         # Create word_to_num and LookUp table (wv)
 
