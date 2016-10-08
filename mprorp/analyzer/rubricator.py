@@ -711,7 +711,6 @@ def probabilities_score(model_id, test_set_id, rubric_id):
     return result
 
 
-
 def calculate_indicators_lemmas(session=None):
 
     if session is None:
@@ -770,10 +769,81 @@ def calculate_indicators_lemmas(session=None):
     pickle.dump(sorted(lex_doc_count_150.items(), key=l, reverse=True), output_file, protocol=3)
     output_file.close()
 
+
+def calculate_indicators_lemmas_for_docs_with_ready_lemmas(session=None):
+
+    if session is None:
+        session = Driver.db_session()
+
+    lex_count = {}
+    lex_count_150 = {}
+    lex_doc_count = {}
+    lex_doc_count_150 = {}
+
+    docs = session.query(Document.morpho).all()
+    for doc in docs:
+        doc_morpho = doc[0]
+        lex_doc = calculate_doc_lemmas(doc_morpho)
+        for lex_doc_key in lex_doc.keys():
+
+            if lex_doc_key in lex_count:
+                lex_count[lex_doc_key] += lex_doc[lex_doc_key]
+            else:
+                lex_count[lex_doc_key] = lex_doc[lex_doc_key]
+
+            if lex_doc_key in lex_doc_count:
+                lex_doc_count[lex_doc_key] += 1
+            else:
+                lex_doc_count[lex_doc_key] = 1
+
+            if len(doc_text) >= 150:
+                if lex_doc_key in lex_count_150:
+                    lex_count_150[lex_doc_key] += lex_doc[lex_doc_key]
+                else:
+                    lex_count_150[lex_doc_key] = lex_doc[lex_doc_key]
+
+                if lex_doc_key in lex_doc_count_150:
+                    lex_doc_count_150[lex_doc_key] += 1
+                else:
+                    lex_doc_count_150[lex_doc_key] = 1
+
+    l = lambda x: x[1]
+    #print(sorted(lex_count.items(), key=l, reverse=True))
+    #print(sorted(lex_count_150.items(), key=l, reverse=True))
+    #print(sorted(lex_doc_count.items(), key=l, reverse=True))
+    #print(sorted(lex_doc_count_150.items(), key=l, reverse=True))
+    output_file = open(home_dir + '/lex_count', 'wb')
+    pickle.dump(sorted(lex_count.items(), key=l, reverse=True), output_file, protocol=3)
+    output_file.close()
+    output_file = open(home_dir + '/lex_count_150', 'wb')
+    pickle.dump(sorted(lex_count_150.items(), key=l, reverse=True), output_file, protocol=3)
+    output_file.close()
+    output_file = open(home_dir + '/lex_doc_count', 'wb')
+    pickle.dump(sorted(lex_doc_count.items(), key=l, reverse=True), output_file, protocol=3)
+    output_file.close()
+    output_file = open(home_dir + '/lex_doc_count_150', 'wb')
+    pickle.dump(sorted(lex_doc_count_150.items(), key=l, reverse=True), output_file, protocol=3)
+    output_file.close()
+
+
 def calculate_doc_lemmas(text):
     res_list = mystem_analyzer.analyze(text)
     lex_doc = {}
     for res in res_list:
+        analysis = res.get('analysis', [])
+        for analys in analysis:
+            lex = analys.get('lex', '')
+            if lex != '':
+                if lex in lex_doc:
+                    lex_doc[lex] += 1
+                else:
+                    lex_doc[lex] = 1
+    return lex_doc
+
+
+def calculate_doc_lemmas_morpho(morpho):
+    lex_doc = {}
+    for res in morpho:
         analysis = res.get('analysis', [])
         for analys in analysis:
             lex = analys.get('lex', '')

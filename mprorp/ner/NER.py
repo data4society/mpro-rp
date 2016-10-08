@@ -134,7 +134,10 @@ class NERModel(LanguageModel):
         count = 1
         for word in wv_dict:
             word_to_num[word] = count
-            wv_array.append(wv_dict[word])
+            if Config.pre_embedding:
+                wv_array.append(wv_dict[word])
+            else:
+                wv_array.append(np.random.uniform(-0.1, 0.1, Config.embed_size))
             count += 1
 
         if verbose:

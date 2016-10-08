@@ -81,7 +81,7 @@ def create_training_set(rubric1_id, rubric2_id, session=None):
 # db.del_markup(markup_id='2c9f4e98-b861-4eb0-ab11-11c5e7ebbe6e')
 # db.del_markup(markup_type='0')
 
-rb.calculate_indicators_lemmas()
+rb.calculate_indicators_lemmas_for_docs_with_ready_lemmas()
 
 # Create NER morpho features\
 # mystem = Mystem(disambiguation=False)
