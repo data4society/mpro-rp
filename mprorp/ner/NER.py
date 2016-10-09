@@ -103,10 +103,10 @@ class NERModel(LanguageModel):
                 for element in doc_words:
                     for word in element[2]:
                         words_for_embedding[word] = ''
-                        if verbose:
-                            print(words_for_embedding)
+            # if verbose:
+            #     print(words_for_embedding)
 
-                        wv_dict = db.get_multi_word_embedding(self.config.embedding, words_for_embedding.keys())
+            wv_dict = db.get_multi_word_embedding(self.config.embedding, words_for_embedding.keys())
         else:
             words_count = {}
             for doc_id in train_set_words:
