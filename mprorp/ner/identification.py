@@ -29,34 +29,22 @@ def create_answers_feature_for_doc(doc, session=None, commit_session=True, verbo
 
     values = {}
 
-    previous_ref = None
-    word_list_all = []
+    # previous_ref = None
+    # word_list_all = []
     for ref in references:
 
         start_ref = ref[0]
         end_ref = ref[1]
         ref_class = ref[2]
-        if verbose:
-            print('coordinates: ', start_ref, end_ref)
+        # if verbose:
+        #     print('coordinates: ', start_ref, end_ref)
 
-        word_list_all_len = len(word_list_all)
-        if not previous_ref is None and previous_ref[1] + 1 != start_ref and word_list_all_len > 0:
-            i = 1
-            for word_all in word_list_all:
-                cur_value = None
-                if i == 1:
-                    cur_value = 'person_S' if word_list_all_len == 1 else 'person_B'
-                else:
-                    cur_value = 'person_E' if word_list_all_len == i else 'person_I'
-                if not cur_value is None:
-                    values[(word_all[0], word_all[1], cur_value)] = [1]
-                i += 1
-            word_list_all.clear()
-
-        previous_ref = ref
         ref_class_value = features.get(ref_class)
-
-        word_list = []
+        #
+        # word_list = []
+        sent_dict = {}
+        if verbose:
+            sent_print = {}
         for element in morpho:
 
             value = None
@@ -98,36 +86,82 @@ def create_answers_feature_for_doc(doc, session=None, commit_session=True, verbo
                                 element['end_offset2']), ' refs: ', str(ref))
 
             if not (value is None):
-                word_list.append((element['sentence_index'], element['word_index']))
-                word_list_all.append((element['sentence_index'], element['word_index']))
+                if element['sentence_index'] not in sent_dict:
+                    sent_dict[element['sentence_index']] = {}
+                sent_dict[element['sentence_index']][element['word_index']] = value
+                if verbose:
+                    if element['sentence_index'] not in sent_print:
+                        sent_print[element['sentence_index']] = ""
+                        sent_print[element['sentence_index']] += element.get("text", "") + " "
+
+                # word_list.append((element['sentence_index'], element['word_index']))
+                # word_list_all.append((element['sentence_index'], element['word_index']))
                 values[(element['sentence_index'], element['word_index'], value)] = [1]
                 if verbose:
                     print(element['text'], value)
 
-        word_list_len = len(word_list)
+        # word_list_len = len(word_list)
 
-        i = 1
-        for word in word_list:
-            cur_value = None
-            if i == 1:
-                if ref_class_value in ['oc_feature_last_name', 'oc_feature_first_name', 'oc_feature_middle_name',
+        for sent_index in sent_dict:
+            if verbose:
+                print(sent_print[sent_index])
+
+            words = sent_dict[sent_index]
+            word_indexes = list(words.keys())
+            word_indexes.sort()
+            prev_person_index = -10
+            prev_name_index = -10
+            prev_prs_index = -10
+            person_chain = []
+            name_chain = []
+            prs_chain = []
+            for word_ind in word_indexes:
+                cur_value = None
+                if words[word_ind] in ['oc_feature_last_name', 'oc_feature_first_name', 'oc_feature_middle_name',
                                        'oc_feature_nickname', 'oc_feature_foreign_name']:
-                    cur_value = 'name_S' if word_list_len == 1 else 'name_B'
-                elif ref_class_value in ['oc_feature_post', 'oc_feature_role', 'oc_feature_status']:
-                    cur_value = 'post_role_status_S' if word_list_len == 1 else 'post_role_status_B'
-            else:
-                if ref_class_value in ['oc_feature_last_name', 'oc_feature_first_name', 'oc_feature_middle_name',
-                                       'oc_feature_nickname', 'oc_feature_foreign_name']:
-                    cur_value = 'name_E' if word_list_len == i else 'name_I'
-                elif ref_class_value in ['oc_feature_post', 'oc_feature_role', 'oc_feature_status']:
-                    cur_value = 'post_role_status_E' if word_list_len == i else 'post_role_status_I'
-            if not cur_value is None:
-                values[(word[0], word[1], cur_value)] = [1]
-            i += 1
+                    if prev_name_index > 0 and word_ind != prev_name_index + 1:
+                        create_values(name_chain, "name", values, verbose)
+                    else:
+                        name_chain.append((sent_index, word_ind))
+                elif words[word_ind] in ['oc_feature_post', 'oc_feature_role', 'oc_feature_status']:
+                    if prev_prs_index > 0 and word_ind != prev_prs_index + 1:
+                        create_values(prs_chain, "post_role_status", values, verbose)
+                    else:
+                        prs_chain.append((sent_index, word_ind))
+
+                if prev_person_index > 0 and word_ind != prev_person_index + 1:
+                    create_values(person_chain, "person", values, verbose)
+                else:
+                    person_chain.append((sent_index, word_ind))
+            if len(name_chain) > 0:
+                create_values(name_chain, "name", values, verbose)
+            if len(prs_chain) > 0:
+                create_values(prs_chain, "post_role_status", values, verbose)
+            if len(name_chain) > 0:
+                create_values(person_chain, "person", values, verbose)
+
+            # if not cur_value is None:
+            #     values[(word[0], word[1], cur_value)] = [1]
+            # i += 1
 
     if len(values) > 0:
         db.put_ner_feature_dict(doc.doc_id, values, feature.ner_feature_types['OpenCorpora'],
                                  None, session, commit_session)
+
+
+def create_values(chain, feature_name, values, verbose=False):
+    if verbose:
+        print(feature_name, chain)
+    if len(chain) == 1:
+        values[(chain[0][0], chain[0][1], feature_name + "_S")] = [1]
+    else:
+        end_num = len(chain) - 1
+        values[(chain[0][0], chain[0][1], feature_name + "_B")] = [1]
+        values[(chain[end_num][0], chain[end_num][1], feature_name + "_E")] = [1]
+        if end_num > 1:
+            for i in range(1, end_num):
+                values[(chain[i][0], chain[i][1], feature_name + "_I")] = [1]
+    chain.clear()
 
 
 def create_answers_feature_for_doc_2(doc_id):
