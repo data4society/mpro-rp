@@ -31,6 +31,16 @@ def create_answers_feature_for_doc(doc, session=None, commit_session=True, verbo
 
     # previous_ref = None
     # word_list_all = []
+    sent_dict = {}
+    if verbose:
+        sent_print = {}
+        for element in morpho:
+
+            if 'sentence_index' in element:
+                if element['sentence_index'] not in sent_print:
+                    sent_print[element['sentence_index']] = ""
+                sent_print[element['sentence_index']] += element.get("text", "") + " "
+
     for ref in references:
 
         start_ref = ref[0]
@@ -42,16 +52,7 @@ def create_answers_feature_for_doc(doc, session=None, commit_session=True, verbo
         ref_class_value = features.get(ref_class)
         #
         # word_list = []
-        sent_dict = {}
-        if verbose:
-            sent_print = {}
         for element in morpho:
-
-            if verbose:
-                if 'sentence_index' in element:
-                    if element['sentence_index'] not in sent_print:
-                        sent_print[element['sentence_index']] = ""
-                    sent_print[element['sentence_index']] += element.get("text", "") + " "
 
             value = None
             if 'start_offset2' in element.keys():
@@ -104,47 +105,48 @@ def create_answers_feature_for_doc(doc, session=None, commit_session=True, verbo
 
         # word_list_len = len(word_list)
 
-        for sent_index in sent_dict:
-            if verbose:
-                print(sent_print[sent_index])
+    for sent_index in sent_dict:
+        if verbose:
+            print(sent_index, sent_print[sent_index])
 
-            words = sent_dict[sent_index]
-            word_indexes = list(words.keys())
-            word_indexes.sort()
-            prev_person_index = -10
-            prev_name_index = -10
-            prev_prs_index = -10
-            person_chain = []
-            name_chain = []
-            prs_chain = []
-            for word_ind in word_indexes:
-                cur_value = None
-                if words[word_ind] in ['oc_feature_last_name', 'oc_feature_first_name', 'oc_feature_middle_name',
-                                       'oc_feature_nickname', 'oc_feature_foreign_name']:
-                    if prev_name_index > 0 and word_ind != prev_name_index + 1:
-                        create_values(name_chain, "name", values, verbose)
-                    else:
-                        name_chain.append((sent_index, word_ind))
-                elif words[word_ind] in ['oc_feature_post', 'oc_feature_role', 'oc_feature_status']:
-                    if prev_prs_index > 0 and word_ind != prev_prs_index + 1:
-                        create_values(prs_chain, "post_role_status", values, verbose)
-                    else:
-                        prs_chain.append((sent_index, word_ind))
+        words = sent_dict[sent_index]
+        word_indexes = list(words.keys())
+        word_indexes.sort()
+        prev_person_index = -10
+        prev_name_index = -10
+        prev_prs_index = -10
+        person_chain = []
+        name_chain = []
+        prs_chain = []
+        for word_ind in word_indexes:
+            cur_value = None
+            if words[word_ind] in ['oc_feature_last_name', 'oc_feature_first_name', 'oc_feature_middle_name',
+                                   'oc_feature_nickname', 'oc_feature_foreign_name']:
+                if prev_name_index > 0 and word_ind != prev_name_index + 1:
+                    create_values(name_chain, "name", values, verbose)
+                name_chain.append((sent_index, word_ind))
+                prev_name_index = word_ind
+            elif words[word_ind] in ['oc_feature_post', 'oc_feature_role', 'oc_feature_status']:
+                if prev_prs_index > 0 and word_ind != prev_prs_index + 1:
+                    create_values(prs_chain, "post_role_status", values, verbose)
+                prs_chain.append((sent_index, word_ind))
+                prev_prs_index = word_ind
 
-                if prev_person_index > 0 and word_ind != prev_person_index + 1:
-                    create_values(person_chain, "person", values, verbose)
-                else:
-                    person_chain.append((sent_index, word_ind))
-            if len(name_chain) > 0:
-                create_values(name_chain, "name", values, verbose)
-            if len(prs_chain) > 0:
-                create_values(prs_chain, "post_role_status", values, verbose)
-            if len(name_chain) > 0:
+            if prev_person_index > 0 and word_ind != prev_person_index + 1:
                 create_values(person_chain, "person", values, verbose)
+            person_chain.append((sent_index, word_ind))
+            prev_person_index = word_ind
 
-            # if not cur_value is None:
-            #     values[(word[0], word[1], cur_value)] = [1]
-            # i += 1
+        if len(name_chain) > 0:
+            create_values(name_chain, "name", values, verbose)
+        if len(prs_chain) > 0:
+            create_values(prs_chain, "post_role_status", values, verbose)
+        if len(person_chain) > 0:
+            create_values(person_chain, "person", values, verbose)
+
+        # if not cur_value is None:
+        #     values[(word[0], word[1], cur_value)] = [1]
+        # i += 1
 
     if len(values) > 0:
         db.put_ner_feature_dict(doc.doc_id, values, feature.ner_feature_types['OpenCorpora'],
