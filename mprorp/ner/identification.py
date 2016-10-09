@@ -47,6 +47,12 @@ def create_answers_feature_for_doc(doc, session=None, commit_session=True, verbo
             sent_print = {}
         for element in morpho:
 
+            if verbose:
+                if 'sentence_index' in element:
+                    if element['sentence_index'] not in sent_print:
+                        sent_print[element['sentence_index']] = ""
+                    sent_print[element['sentence_index']] += element.get("text", "") + " "
+
             value = None
             if 'start_offset2' in element.keys():
 
@@ -89,16 +95,12 @@ def create_answers_feature_for_doc(doc, session=None, commit_session=True, verbo
                 if element['sentence_index'] not in sent_dict:
                     sent_dict[element['sentence_index']] = {}
                 sent_dict[element['sentence_index']][element['word_index']] = value
-                if verbose:
-                    if element['sentence_index'] not in sent_print:
-                        sent_print[element['sentence_index']] = ""
-                        sent_print[element['sentence_index']] += element.get("text", "") + " "
 
                 # word_list.append((element['sentence_index'], element['word_index']))
                 # word_list_all.append((element['sentence_index'], element['word_index']))
                 values[(element['sentence_index'], element['word_index'], value)] = [1]
-                if verbose:
-                    print(element['text'], value)
+                # if verbose:
+                #     print(element['text'], value)
 
         # word_list_len = len(word_list)
 
