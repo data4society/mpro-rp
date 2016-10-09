@@ -679,8 +679,13 @@ def NER_person_learning():
         if i == 1:
             NER_config.feature_answer = ['oc_feature_last_name', 'oc_feature_first_name', 'oc_feature_middle_name',
                                          'oc_feature_nickname', 'oc_feature_foreign_name']
+
             #NER_config.feature_answer = ['name_B', 'name_S', 'name_I', 'name_E']
             #NER_config.feature_answer = ['person_B', 'person_S', 'person_I', 'person_E']
+            # NER_config.feature_answer = ['name_BS', 'name_IE']
+            # NER_config.feature_answer = ['name_BI', 'name_ES']
+            # NER_config.feature_answer = ['person_BS', 'person_IE']
+            # NER_config.feature_answer = ['person_BI', 'person_ES']
 
             filename_tf = home_dir + '/weights/ner_oc1.weights'
             filename_params = home_dir + '/weights/ner_oc1.params'

@@ -158,13 +158,23 @@ def create_values(chain, feature_name, values, verbose=False):
         print(feature_name, chain)
     if len(chain) == 1:
         values[(chain[0][0], chain[0][1], feature_name + "_S")] = [1]
+        values[(chain[0][0], chain[0][1], feature_name + "_ES")] = [1]
+        values[(chain[0][0], chain[0][1], feature_name + "_BS")] = [1]
     else:
         end_num = len(chain) - 1
         values[(chain[0][0], chain[0][1], feature_name + "_B")] = [1]
+        values[(chain[0][0], chain[0][1], feature_name + "_BI")] = [1]
+        values[(chain[0][0], chain[0][1], feature_name + "_BS")] = [1]
+
         values[(chain[end_num][0], chain[end_num][1], feature_name + "_E")] = [1]
+        values[(chain[end_num][0], chain[end_num][1], feature_name + "_ES")] = [1]
+        values[(chain[end_num][0], chain[end_num][1], feature_name + "_IE")] = [1]
         if end_num > 1:
             for i in range(1, end_num):
                 values[(chain[i][0], chain[i][1], feature_name + "_I")] = [1]
+                values[(chain[i][0], chain[i][1], feature_name + "_BI")] = [1]
+                values[(chain[i][0], chain[i][1], feature_name + "_IE")] = [1]
+
     chain.clear()
 
 
