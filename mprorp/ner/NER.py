@@ -27,26 +27,29 @@ class Config(object):
     instantiation.
     """
     new_model = True
-    embed_size = 300
+    embed_size = 30
     batch_size = 64
     label_size = 5
-    hidden_size = 500
+    hidden_size = 100
     max_epochs = 24
     early_stopping = 2
-    dropout = 0.9
+    dropout1 = 0.5
+    dropout2 = 0.7
     lr = 0.001
     l2 = 0.001
-    window_size = 5
+    l_feat = 0.0002
+    window_size = 7
     training_set = u'4fb42fd1-a0cf-4f39-9206-029255115d01'
     dev_set = u'f861ee9d-5973-460d-8f50-92fca9910345'
     pre_embedding = False
-    pre_embedding_count = 3
+    pre_embedding_count = 8
     embedding = 'first_test_embedding'
     feature_answer = ['person_answer']
     # feature_answer = 'org_answer'
     # features = []
     # features = ['Org']
-    features = ['Org', 'Person', 'Loc', 'Date', 'Prof', 'morpho', 'Capital']
+    # features = ['Org', 'Person', 'Loc', 'Date', 'Prof', 'morpho', 'Capital']
+    features = ['morpho', 'Capital']
     print(features)
     features_length = 0
     for feat in features:
@@ -288,10 +291,11 @@ class NERModel(LanguageModel):
 
         self.labels_placeholder = tf.placeholder(
             tf.float32, shape=[None, self.config.label_size], name='Target')
-        self.dropout_placeholder = tf.placeholder(tf.float32, name='Dropout')
+        self.dropout1_placeholder = tf.placeholder(tf.float32, name='Dropout1')
+        self.dropout2_placeholder = tf.placeholder(tf.float32, name='Dropout2')
         ### END YOUR CODE
 
-    def create_feed_dict(self, input_batch, dropout, label_batch=None, feat_batch=None):
+    def create_feed_dict(self, input_batch, dropout1, dropout2, label_batch=None, feat_batch=None):
         """Creates the feed_dict for softmax classifier.
 
         A feed_dict takes the form of:
@@ -318,8 +322,10 @@ class NERModel(LanguageModel):
         }
         if label_batch is not None:
             feed_dict[self.labels_placeholder] = label_batch
-        if dropout is not None:
-            feed_dict[self.dropout_placeholder] = dropout
+        if dropout1 is not None:
+            feed_dict[self.dropout1_placeholder] = dropout1
+        if dropout2 is not None:
+            feed_dict[self.dropout2_placeholder] = dropout2
         if feat_batch is not None:
             feed_dict[self.features_placeholder] = feat_batch
         elif self.config.features_length > 0:
@@ -407,17 +413,21 @@ class NERModel(LanguageModel):
                 h = tf.nn.tanh(tf.matmul(window, W) + tf.matmul(self.features_placeholder, Wf) + b1)
             else:
                 h = tf.nn.tanh(tf.matmul(window, W) + b1)
-
+            h_drop = tf.nn.dropout(h, self.dropout1_placeholder)
             if self.config.l2:
                 tf.add_to_collection('total_loss', 0.5 * self.config.l2 * tf.nn.l2_loss(W))
+                if self.config.features_length > 0:
+                    tf.add_to_collection('total_loss', 0.5 * self.config.l_feat * tf.nn.l2_loss(Wf))
+
+
 
         with tf.variable_scope('Layer2', initializer=xavier_weight_init()) as scope:
             U = tf.get_variable('U', [self.config.hidden_size, self.config.label_size])
             b2 = tf.get_variable('b2', [self.config.label_size])
-            y = tf.matmul(h, U) + b2
+            y = tf.matmul(h_drop, U) + b2
             if self.config.l2:
                 tf.add_to_collection('total_loss', 0.5 * self.config.l2 * tf.nn.l2_loss(U))
-        output = tf.nn.dropout(y, self.dropout_placeholder)
+        output = tf.nn.dropout(y, self.dropout2_placeholder)
         ### END YOUR CODE
         return output
 
@@ -491,7 +501,8 @@ class NERModel(LanguageModel):
 
     def run_epoch(self, session, input_data, input_labels, input_features, shuffle=True, verbose=True):
         orig_features, orig_X, orig_y = input_features, input_data, input_labels
-        dp = self.config.dropout
+        dp1 = self.config.dropout1
+        dp2 = self.config.dropout2
         # We're interested in keeping track of the loss and accuracy during training
         total_loss = []
         total_correct_examples = 0
@@ -500,7 +511,7 @@ class NERModel(LanguageModel):
         for step, (x, y, f) in enumerate(
             data_iterator(orig_X, orig_y, orig_features, batch_size=self.config.batch_size,
                        label_size=self.config.label_size, shuffle=shuffle)):
-            feed = self.create_feed_dict(input_batch=x, dropout=dp, label_batch=y, feat_batch=f)
+            feed = self.create_feed_dict(input_batch=x, dropout1=dp1, dropout2=dp2, label_batch=y, feat_batch=f)
             loss, total_correct, _ = session.run(
                 [self.loss, self.correct_predictions, self.train_op],
                 feed_dict=feed)
@@ -534,7 +545,7 @@ class NERModel(LanguageModel):
         #     data = data_iterator(X, batch_size=self.config.batch_size,
         #                          label_size=self.config.label_size, shuffle=False)
         for step, (x, y, f) in enumerate(data):
-            feed = self.create_feed_dict(input_batch=x, feat_batch=f, dropout=dp)
+            feed = self.create_feed_dict(input_batch=x, feat_batch=f, dropout1=dp, dropout2=dp)
             if np.any(y):
                 feed[self.labels_placeholder] = y
                 loss, preds = session.run(
@@ -672,18 +683,18 @@ def NER_person_learning():
     NER_config.training_set = training_set
     NER_config.dev_set = dev_set
 
-    #feature_count = 1
-    feature_count = 2
+    feature_count = 1
+    # feature_count = 2
     for i in range(1, feature_count + 1):
 
         if i == 1:
-            NER_config.feature_answer = ['oc_feature_last_name', 'oc_feature_first_name', 'oc_feature_middle_name',
-                                         'oc_feature_nickname', 'oc_feature_foreign_name']
+            # NER_config.feature_answer = ['oc_feature_last_name', 'oc_feature_first_name', 'oc_feature_middle_name',
+            #                              'oc_feature_nickname', 'oc_feature_foreign_name']
 
             #NER_config.feature_answer = ['name_B', 'name_S', 'name_I', 'name_E']
             #NER_config.feature_answer = ['person_B', 'person_S', 'person_I', 'person_E']
             # NER_config.feature_answer = ['name_BS', 'name_IE']
-            # NER_config.feature_answer = ['name_BI', 'name_ES']
+            NER_config.feature_answer = ['name_BI', 'name_ES']
             # NER_config.feature_answer = ['person_BS', 'person_IE']
             # NER_config.feature_answer = ['person_BI', 'person_ES']
 

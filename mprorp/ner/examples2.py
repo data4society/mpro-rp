@@ -45,13 +45,13 @@ session = Driver.db_session()
          # print(doc_id, n, "IN LIST")
 #exit()
 # 3. Create answers for docs
-session = Driver.db_session()
-for set_doc in [training_set, dev_set]:
-    for doc_id in db.get_set_docs(set_doc):
-        doc = session.query(Document).filter_by(doc_id=doc_id).first()
-        # print(doc_id)
-        create_answers_feature_for_doc(doc, verbose=True)
-session.commit()
+# session = Driver.db_session()
+# for set_doc in [training_set, dev_set]:
+#     for doc_id in db.get_set_docs(set_doc):
+#         doc = session.query(Document).filter_by(doc_id=doc_id).first()
+#         # print(doc_id)
+#         create_answers_feature_for_doc(doc, verbose=True)
+# session.commit()
 # exit()
 #
 # 4. NER Learning
