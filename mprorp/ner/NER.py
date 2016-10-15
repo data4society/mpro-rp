@@ -27,22 +27,23 @@ class Config(object):
     instantiation.
     """
     new_model = True
-    embed_size = 30
+    embed_size = 50
     batch_size = 64
     label_size = 5
     hidden_size = 100
     max_epochs = 24
-    early_stopping = 2
+    early_stopping = 6
     dropout1 = 0.5
-    dropout2 = 0.7
+    dropout2 = 0.65
     lr = 0.001
-    l2 = 0.001
-    l_feat = 0.0002
+    l2_embed = 0.001
+    l2_2lay = 0.00325
+    l2_feat = 0.00015
     window_size = 7
     training_set = u'4fb42fd1-a0cf-4f39-9206-029255115d01'
     dev_set = u'f861ee9d-5973-460d-8f50-92fca9910345'
     pre_embedding = False
-    pre_embedding_count = 8
+    pre_embedding_count = 6
     embedding = 'first_test_embedding'
     feature_answer = ['person_answer']
     # feature_answer = 'org_answer'
@@ -414,10 +415,10 @@ class NERModel(LanguageModel):
             else:
                 h = tf.nn.tanh(tf.matmul(window, W) + b1)
             h_drop = tf.nn.dropout(h, self.dropout1_placeholder)
-            if self.config.l2:
-                tf.add_to_collection('total_loss', 0.5 * self.config.l2 * tf.nn.l2_loss(W))
+            if self.config.l2_embed:
+                tf.add_to_collection('total_loss', 0.5 * self.config.l2_embed * tf.nn.l2_loss(W))
                 if self.config.features_length > 0:
-                    tf.add_to_collection('total_loss', 0.5 * self.config.l_feat * tf.nn.l2_loss(Wf))
+                    tf.add_to_collection('total_loss', 0.5 * self.config.l2_feat * tf.nn.l2_loss(Wf))
 
 
 
@@ -425,8 +426,8 @@ class NERModel(LanguageModel):
             U = tf.get_variable('U', [self.config.hidden_size, self.config.label_size])
             b2 = tf.get_variable('b2', [self.config.label_size])
             y = tf.matmul(h_drop, U) + b2
-            if self.config.l2:
-                tf.add_to_collection('total_loss', 0.5 * self.config.l2 * tf.nn.l2_loss(U))
+            if self.config.l2_2lay:
+                tf.add_to_collection('total_loss', 0.5 * self.config.l2_2lay * tf.nn.l2_loss(U))
         output = tf.nn.dropout(y, self.dropout2_placeholder)
         ### END YOUR CODE
         return output

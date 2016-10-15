@@ -542,18 +542,49 @@ def get_references_for_set(set_id, markup_type='10', session=None):
     return result
 
 
-def get_references_for_doc(doc_id, markup_type='62', session=None):
+def get_references_for_doc(markup_id, session=None):
 
     if session is None:
         session = Driver.db_session()
 
-    refs = session.query(Reference, Markup).join(Markup).filter(
-        (Markup.document == doc_id) & (Markup.type == markup_type)).order_by(Reference.start_offset).all()
+    refs = session.query(Reference).filter(Reference.markup == markup_id).order_by(Reference.start_offset).all()
 
     result = []
     for ref in refs:
         result.append((ref[0].start_offset, ref[0].end_offset, ref[0].entity_class))
     return result
+
+
+def get_docs_for_entity_class(entity_class, markup_type='51', session=None):
+
+    if session is None:
+        session = Driver.db_session()
+
+    res = session.query(Markup.document).join(Mention).filter(
+        (Mention.entity_class == entity_class) & (Markup.type == markup_type)).distinct().all()
+
+    return [str(r.document) for r in res]
+
+
+def get_markup_for_doc_and_class(doc_id, entity_class, markup_type='51', session=None):
+    if session is None:
+        session = Driver.db_session()
+    res = session.query(Mention.markup).join(Markup).filter((Mention.entity_class == entity_class) &
+                                                             (Markup.document == doc_id) &
+                                                             (Markup.type == markup_type)).distinct().all()
+    if len(res) == 0:
+        print('Error: No markups:')
+        print('    class: ' + entity_class)
+        print('    doc_id: ' + doc_id)
+        print('    markup_type: ' + markup_type)
+        return None
+
+    if len(res) > 1:
+        print('Error: too many (' + len(res) + ') markups:')
+        print('    class: ' + entity_class)
+        print('    doc_id: ' + doc_id)
+        print('    markup_type: ' + markup_type)
+    return str(res[0])
 
 
 def get_multi_word_embedding(embedding, lemmas, session=None):
@@ -643,13 +674,6 @@ def get_lemmas(doc_id, session=None):
     if session is None:
         session = Driver.db_session()
     return session.query(Document.lemmas).filter(Document.doc_id == doc_id).one().lemmas
-
-
-# reading lemmas frequently of document from db
-def get_markup_from_doc(doc_id, session=None):
-    if session is None:
-        session = Driver.db_session()
-    return session.query(Document.markup).filter(Document.doc_id == doc_id).one().markup
 
 
 # reading answer for one document and one rubric
