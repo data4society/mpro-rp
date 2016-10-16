@@ -3,3 +3,4 @@ celerybeat-schedule
 .vagrant
 *log.txt
 mprorp/crawler/readability/corpus
+mprorp/analyzer/theming/corpus

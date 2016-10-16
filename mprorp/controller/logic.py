@@ -1,23 +1,25 @@
 """main processes controller: statuses, route function and tasks"""
-from mprorp.db.dbDriver import *
-from mprorp.db.models import *
-
-import mprorp.analyzer.rubricator as rb
-from mprorp.tomita.tomita_run import run_tomita
-from mprorp.ner.tomita_to_markup import convert_tomita_result_to_markup
-from mprorp.crawler.site_page import find_full_text
-import mprorp.ner.feature as ner_feature
-from mprorp.tomita.grammars.config import config as tomita_config
-
-from mprorp.celery_app import app
 import logging
 from urllib.error import *
+
+import mprorp.analyzer.rubricator as rb
+import mprorp.ner.feature as ner_feature
+from mprorp.celery_app import app
+from mprorp.crawler.site_page import find_full_text
+from mprorp.db.dbDriver import *
+from mprorp.db.models import *
+from mprorp.ner.tomita_to_markup import convert_tomita_result_to_markup
+from mprorp.tomita.grammars.config import config as tomita_config
+from mprorp.tomita.tomita_run import run_tomita
 
 # from mprorp.db.dbDriver import DBSession
 
 from mprorp.crawler.google_news import gn_start_parsing
+from mprorp.crawler.yandex_news import yn_start_parsing
 from mprorp.crawler.google_alerts import ga_start_parsing
 from mprorp.crawler.vk import vk_start_parsing, vk_parse_item
+
+from mprorp.analyzer.theming.themer import reg_theming
 
 from mprorp.utils import home_dir
 from mprorp.ner.NER import NER_predict
@@ -28,6 +30,7 @@ VK_INIT_STATUS = 10
 VK_COMPLETE_STATUS = 19
 GOOGLE_NEWS_INIT_STATUS = 30
 GOOGLE_ALERTS_INIT_STATUS = 20
+YANDEX_NEWS_INIT_STATUS = 40
 #GOOGLE_NEWS_COMPLETE_STATUS = 21
 SITE_PAGE_LOADING_FAILED = 91
 SITE_PAGE_COMPLETE_STATUS = 99
@@ -42,6 +45,7 @@ NER_TOMITA_EMBEDDING_FEATURES_COMPLETE_STATUS = 301
 NER_TOMITA_MORPHO_FEATURES_COMPLETE_STATUS = 302
 NER_PREDICT_COMPLETE_STATUS = 350
 MARKUP_COMPLETE_STATUS = 400
+THEMING_COMPLETE_STATUS = 500
 NER_ENTITIES_COMPLETE_STATUS = 850
 REGULAR_PROCESSES_FINISH_STATUS = 1000
 
@@ -69,7 +73,7 @@ def router(doc_id, status):
     """route function, that adds new tasks by incoming result (document's status)"""
     doc_id = str(doc_id)
     logging.info("route doc: " + str(doc_id) + " status: " + str(status))
-    if status == GOOGLE_NEWS_INIT_STATUS or status == GOOGLE_ALERTS_INIT_STATUS:  # to find full text of HTML page
+    if status in [GOOGLE_NEWS_INIT_STATUS, GOOGLE_ALERTS_INIT_STATUS, YANDEX_NEWS_INIT_STATUS]:  # to find full text of HTML page
         regular_find_full_text.delay(doc_id, SITE_PAGE_COMPLETE_STATUS)
     elif status == VK_INIT_STATUS:  # to complete vk item parsing
         regular_vk_parse_item.delay(doc_id, VK_COMPLETE_STATUS)
@@ -77,9 +81,9 @@ def router(doc_id, status):
         source_id = select([Document.source_id], Document.doc_id == doc_id).fetchone()[0]
         source_type = select([Source.source_type_id], Source.source_id == source_id).fetchone()[0]
         source_type = str(source_type)
-        if source_type in ['0cc76b0c-531e-4a90-ab0b-078695336df5','1d6210b2-5ff3-401c-b0ba-892d43e0b741']:
+        if source_type in ['0cc76b0c-531e-4a90-ab0b-078695336df5', '1d6210b2-5ff3-401c-b0ba-892d43e0b741', 'ce81b5dc-115c-400b-8886-91f9246926ca']:
             regular_morpho.delay(doc_id, MORPHO_COMPLETE_STATUS)
-        else:
+        else:  # training
             session = db_session()
             doc = session.query(Document).filter_by(doc_id=doc_id).first()
             doc.status = FOR_TRAINING
@@ -142,6 +146,19 @@ def regular_ga_start_parsing(source_id):
 
 
 @app.task(ignore_result=True, time_limit=660, soft_timeout_limit=600)
+def regular_yn_start_parsing(source_id):
+    """parsing yandex news request"""
+    session = db_session()
+    docs = yn_start_parsing(source_id, session)
+    for doc in docs:
+        doc.status = YANDEX_NEWS_INIT_STATUS
+    session.commit()
+    for doc in docs:
+        router(doc.doc_id, YANDEX_NEWS_INIT_STATUS)
+    session.remove()
+
+
+@app.task(ignore_result=True, time_limit=660, soft_timeout_limit=600)
 def regular_vk_start_parsing(source_id):
     """parsing vk request"""
     session = db_session()
@@ -158,20 +175,15 @@ def regular_vk_start_parsing(source_id):
 @app.task(ignore_result=True)
 def regular_vk_parse_item(doc_id, new_status):
     """parsing vk request"""
-    session = db_session()
-    doc = session.query(Document).filter_by(doc_id=doc_id).first()
+    session, doc = get_doc(doc_id)
     vk_parse_item(doc)
-    doc.status = new_status
-    session.commit()
-    session.remove()
-    router(doc_id, new_status)
+    set_doc(doc, new_status, session)
 
 
 @app.task(ignore_result=True)
 def regular_find_full_text(doc_id, new_status):
     """parsing HTML page to find full text"""
-    session = db_session()
-    doc = session.query(Document).filter_by(doc_id=doc_id).first()
+    session, doc = get_doc(doc_id)
     try:
         find_full_text(doc)
     except Exception as err:
@@ -187,136 +199,97 @@ def regular_find_full_text(doc_id, new_status):
             # print(url, type(err))
             new_status = SITE_PAGE_LOADING_FAILED
             logging.error("Неизвестная ошибка doc_id: " + doc_id)
-
-    doc.status = new_status
-    session.commit()
-    session.remove()
-    router(doc_id, new_status)
+    set_doc(doc, new_status, session)
 
 
 @app.task(ignore_result=True)
 def regular_morpho(doc_id, new_status):
     """morphologia"""
-    session = db_session()
-    doc = session.query(Document).filter_by(doc_id=doc_id).first()
+    session, doc = get_doc(doc_id)
     rb.morpho_doc(doc)
-    doc.status = new_status
-    session.commit()
-    session.remove()
-    router(doc_id, new_status)
+    set_doc(doc, new_status, session)
 
 
 @app.task(ignore_result=True)
 def regular_lemmas(doc_id, new_status):
     """counting lemmas frequency for one document"""
-    session = db_session()
-    doc = session.query(Document).filter_by(doc_id=doc_id).first()
+    session, doc = get_doc(doc_id)
     rb.lemmas_freq_doc(doc)
-    doc.status = new_status
-    session.commit()
-    session.remove()
-    router(doc_id, new_status)
+    set_doc(doc, new_status, session)
 
 
 @app.task(ignore_result=True)
 def regular_rubrication(doc_id, with_rubrics_status, without_rubrics_status):
     """regular rubrication"""
-    session = db_session()
-    doc = session.query(Document).filter_by(doc_id=doc_id).first()
+    session, doc = get_doc(doc_id)
     # rb.spot_doc_rubrics2(doc_id, rubrics_for_regular, new_status)
     # doc.rubric_ids = ['19848dd0-436a-11e6-beb8-9e71128cae50']
     rb.spot_doc_rubrics(doc, rubrics_for_regular, session, False)
 
     if len(doc.rubric_ids) == 0:
         new_status = without_rubrics_status
-        #print('if')
     else:
         new_status = with_rubrics_status
-        #print('else')
-    doc.status = new_status
-    #print(doc.rubric_ids)
-    #print(len(doc.rubric_ids))
-    session.commit()
-    session.remove()
-    router(doc_id, new_status)
+    set_doc(doc, new_status, session)
 
 @app.task(ignore_result=True)
 def regular_tomita(grammar_index, doc_id, new_status):
     """tomita"""
-    session = db_session()
-    doc = session.query(Document).filter_by(doc_id=doc_id).first()
+    session, doc = get_doc(doc_id)
     run_tomita(doc, grammars[grammar_index], session, False)
-    doc.status = new_status
-    session.commit()
-    session.remove()
-    router(doc_id, new_status)
+    set_doc(doc, new_status, session)
 
 
 @app.task(ignore_result=True)
 def regular_tomita_features(doc_id, new_status):
     """tomita features (transform coordinates for ner)"""
-    session = db_session()
-    doc = session.query(Document).filter_by(doc_id=doc_id).first()
+    session, doc = get_doc(doc_id)
     ner_feature.create_tomita_feature(doc, grammars, session, False)
-    doc.status = new_status
-    session.commit()
-    session.remove()
-    router(doc_id, new_status)
+    set_doc(doc, new_status, session)
 
 
 @app.task(ignore_result=True)
 def regular_embedding_features(doc_id, new_status):
     """lemmas preparation for NER"""
-    session = db_session()
-    doc = session.query(Document).filter_by(doc_id=doc_id).first()
+    session, doc = get_doc(doc_id)
     ner_feature.create_embedding_feature(doc, session, False)
-    doc.status = new_status
-    session.commit()
-    session.remove()
-    router(doc_id, new_status)
+    set_doc(doc, new_status, session)
 
 
 @app.task(ignore_result=True)
 def regular_morpho_features(doc_id, new_status):
-    """morpho preparation for NER"""
-    session = db_session()
-    doc = session.query(Document).filter_by(doc_id=doc_id).first()
+    session, doc = get_doc(doc_id)
     ner_feature.create_morpho_feature(doc, session, False)
-    doc.status = new_status
-    session.commit()
-    session.remove()
-    router(doc_id, new_status)
+    set_doc(doc, new_status, session)
 
 
 @app.task(ignore_result=True)
 def regular_NER_predict(doc_id, new_status):
     """NER computing"""
-    session = db_session()
-    doc = session.query(Document).filter_by(doc_id=doc_id).first()
+    session, doc = get_doc(doc_id)
     NER_predict(doc, ner_settings, session, False)
-    doc.status = new_status
-    session.commit()
-    session.remove()
-    router(doc_id, new_status)
+    set_doc(doc, new_status, session)
 
 
 @app.task(ignore_result=True)
 def regular_create_markup(doc_id, new_status):
     """create entities if it needs and create markup"""
-    session = db_session()
-    doc = session.query(Document).filter_by(doc_id=doc_id).first()
+    session, doc = get_doc(doc_id)
     create_markup(doc, session, False)
-    doc.status = new_status
-    session.commit()
-    session.remove()
-    router(doc_id, new_status)
+    set_doc(doc, new_status, session)
+
+
+@app.task(ignore_result=True)
+def regular_theming(doc_id, new_status):
+    """regular theming"""
+    session, doc = get_doc(doc_id)
+    reg_theming(doc, session)
+    set_doc(doc, new_status, session)
 
 
 @app.task(ignore_result=True)
 def regular_entities(doc_id, new_status):
-    """ner entities"""
-    session = db_session()
-    doc = session.query(Document).filter_by(doc_id=doc_id).first()
+    """
     grammars_of_tomita_classes = ['loc.cxx', 'org.cxx', 'norm_act.cxx']
     convert_tomita_result_to_markup(doc, grammars_of_tomita_classes, session=session, commit_session=False)
     doc.status = new_status
@@ -324,6 +297,44 @@ def regular_entities(doc_id, new_status):
     session.commit()
     session.remove()
     #router(doc_id, new_status)
+    """
+    session, doc = get_doc(doc_id)
+    grammars_of_tomita_classes = ['loc.cxx', 'org.cxx', 'norm_act.cxx']
+    convert_tomita_result_to_markup(doc, grammars_of_tomita_classes, session=session, commit_session=False)
+    set_doc(doc, new_status, session)
+
+
+def get_doc(doc_id):
+    """reading doc from db"""
+    session = db_session()
+    doc = session.query(Document).filter_by(doc_id=doc_id).first()
+    return session, doc
+
+
+def set_doc(doc, new_status, session):
+    """writing changes to db"""
+    doc.status = new_status
+    session.commit()
+    doc_id = doc.doc_id
+    session.remove()
+    router(doc_id, new_status)
+
+
+
+"""
+
+regular_find_full_text('7b6428ea-435f-4a40-bdc1-19ffb3f3097a', 7000)
+
+@app.task(ignore_result=True)
+def regular_entities(doc_id, new_status):
+    grammars_of_tomita_classes = ['loc.cxx', 'org.cxx', 'norm_act.cxx']
+    convert_tomita_result_to_markup(doc, grammars_of_tomita_classes, session=session, commit_session=False)
+    doc.status = new_status
+    print(doc.markup)
+    session.commit()
+    session.remove()
+    #router(doc_id, new_status)
+
 session = db_session()
 doc = session.query(Document).filter_by(doc_id='3f521888-1e9f-4afd-8427-9d353cb842de').first()
 print(doc.markup)
@@ -333,3 +344,4 @@ session = db_session()
 doc = session.query(Document).filter_by(doc_id='3f521888-1e9f-4afd-8427-9d353cb842de').first()
 print(doc.markup)
 session.remove()
+"""
