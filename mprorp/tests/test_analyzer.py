@@ -7,9 +7,9 @@ import mprorp.analyzer.db as db
 
 class SimpleDBTest(unittest.TestCase):
 
-    def test_stop_lemmas(self):
-        self.assertEqual(len(rb.stop_lemmas) > 100, True)
-        self.assertEqual('ранее' in rb.stop_lemmas, True)
+    # def test_stop_lemmas(self):
+    #     self.assertEqual(len(rb.stop_lemmas) > 100, True)
+    #     self.assertEqual('ранее' in rb.stop_lemmas, True)
 
     def test_morpho(self):
         # morpho analysis

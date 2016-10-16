@@ -9,6 +9,7 @@ import os
 import mprorp.ner.tomita_to_markup as tomita_to_markup
 from mprorp.tomita.tomita_run import run_tomita2
 from mprorp.tomita.grammars.config import config as grammar_config
+from mprorp.ner.identification import create_answers_feature_for_doc_2
 
 import mprorp.db.dbDriver as Driver
 from mprorp.db.models import *
@@ -57,6 +58,14 @@ def create_training_set(rubric1_id, rubric2_id, session=None):
 # doc_id = '000e82b8-6ea7-41f4-adc6-bc688fbbeeb6'
 # ner_feature.create_embedding_feature(doc_id)
 
+# Create capital feature
+#doc_id = '000e82b8-6ea7-41f4-adc6-bc688fbbeeb6'
+#ner_feature.create_capital_feature2(doc_id)
+
+# Create answers for docs
+#doc_id = '47d5053e-562f-0e41-e992-93a27289ba6f'
+#create_answers_feature_for_doc_2(doc_id)
+
 # regular processes to create markup with references
 # now: person with tomita, later: few classes with NER
 # regular_entities(doc_id)
@@ -71,6 +80,8 @@ def create_training_set(rubric1_id, rubric2_id, session=None):
 # delete markups by id or type
 # db.del_markup(markup_id='2c9f4e98-b861-4eb0-ab11-11c5e7ebbe6e')
 # db.del_markup(markup_type='0')
+
+rb.calculate_indicators_lemmas_for_docs_with_ready_lemmas()
 
 # Create NER morpho features\
 # mystem = Mystem(disambiguation=False)
@@ -136,11 +147,11 @@ doc_id = '0e01603e-0e1e-06c8-21a5-379ccc4dba69'
 doc_id = '3b595187-8e89-4910-80be-b7f8f6dd9022'
 doc_id = '10e24788-b887-4bf8-b9bd-3ec184f2348e'
 
-for gram in grammar_config:
-    run_tomita2(gram, str(doc_id))
-ner_feature.print_tomita_result2(doc_id, grammar_config.keys())
-ner_feature.create_tomita_feature2(doc_id, grammar_config.keys())
-tomita_to_markup.convert_tomita_result_to_markup2(doc_id, grammar_config.keys())
+#for gram in grammar_config:
+#    run_tomita2(gram, str(doc_id))
+#ner_feature.print_tomita_result2(doc_id, grammar_config.keys())
+#ner_feature.create_tomita_feature2(doc_id, grammar_config.keys())
+#tomita_to_markup.convert_tomita_result_to_markup2(doc_id, grammar_config.keys())
 # markup = db.get_markup_from_doc(doc_id)
 # for key in markup:
 #     ref = markup[key]
