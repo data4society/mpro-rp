@@ -27,7 +27,7 @@ class Config(object):
     instantiation.
     """
     classes = ['oc_class_person', 'name', 'oc_class_org', 'oc_class_loc']
-    tag_types = [['B', 'I', 'S', 'E'], ['BS','IE'], ['BI','ES']]
+    tag_types = [['B', 'I', 'S', 'E'], ['BS', 'IE'], ['BI', 'ES']]
     learn_type = {'class': 2, 'tags': 2}
 
     new_model = True
@@ -59,7 +59,7 @@ class Config(object):
     features_length = 0
     for feat in features:
         features_length += features_size[feat]
-
+    feature_type = 0
 
 def xavier_weight_init():
 
@@ -155,7 +155,9 @@ class NERModel(LanguageModel):
 
         if verbose:
             print(self.config.feature_answer)
-        answers = db.get_ner_feature_dict(set_id=training_set, feature_list=self.config.feature_answer)
+            print(self.config.feature_type)
+        answers = db.get_ner_feature_dict(set_id=training_set, feature_type=self.config.feature_type,
+                                          feature_list=self.config.feature_answer)
 
         tagnames = [0]
         for doc_id in answers:
@@ -192,7 +194,8 @@ class NERModel(LanguageModel):
         dev_set = self.config.dev_set
         #  train_set_words[doc_id] = [(sentence, word, [lemma1, lemma2]), ... (...)]
         dev_set_words = db.get_ner_feature(set_id=dev_set, feature='embedding')
-        answers = db.get_ner_feature_dict(set_id=dev_set, feature_list=self.config.feature_answer)
+        answers = db.get_ner_feature_dict(set_id=dev_set, feature_type=self.config.feature_type,
+                                          feature_list=self.config.feature_answer)
         features_set = {}
         for feat in self.config.features:
             features_set[feat] = db.get_ner_feature_dict(set_id=dev_set, feature=feat)

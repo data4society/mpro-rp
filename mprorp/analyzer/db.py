@@ -404,35 +404,65 @@ def get_ner_feature_for_features(doc_id, feature_type, features, session=None):
     return result
 
 
-def get_ner_feature_dict(set_id=None, doc_id=None, feature=None, feature_list=None, session=None):
+def get_ner_feature_dict(set_id=None, doc_id=None, feature_type=None, feature=None, feature_list=None, session=None):
     """read lemmas features for documents in set. return {'doc_id_1':{(n,m):value, ...}, ...}"""
-    return get_ner_feature(set_id=set_id, doc_id=doc_id, feature=feature, feature_list=feature_list, return_dict=True, session=session)
+    return get_ner_feature(set_id=set_id, doc_id=doc_id, feature_type=feature_type, feature=feature,
+                           feature_list=feature_list, return_dict=True, session=session)
 
 
-def get_ner_feature(set_id=None, doc_id=None, feature=None, feature_list=None, return_dict=False, session=None):
+def get_ner_feature(set_id=None, doc_id=None, feature_type=None, feature=None, feature_list=None, return_dict=False, session=None):
     """read lemmas features for documents in set. return {'doc_id_1':[(n,m,value), ...], ...}"""
     if session is None:
         session = Driver.db_session()
-    if not(set_id is None):
+    if not (set_id is None):
         training_set = session.query(TrainingSet).filter(TrainingSet.set_id == set_id).one()
-    if set_id is None:
-        if feature is None:
-            all_words = session.query(NERFeature).filter(
-                (NERFeature.doc_id == doc_id) & (NERFeature.feature.in_(feature_list))).order_by(
-                NERFeature.sentence_index, NERFeature.word_index).all()
+    if feature_type is None:
+        if set_id is None:
+            if feature is None:
+                all_words = session.query(NERFeature).filter(
+                    (NERFeature.doc_id == doc_id) & (NERFeature.feature.in_(feature_list))).order_by(
+                    NERFeature.sentence_index, NERFeature.word_index).all()
+            else:
+                all_words = session.query(NERFeature).filter(
+                    (NERFeature.doc_id == doc_id) & (NERFeature.feature == feature)).order_by(
+                    NERFeature.sentence_index, NERFeature.word_index).all()
         else:
-            all_words = session.query(NERFeature).filter(
-                (NERFeature.doc_id == doc_id) & (NERFeature.feature == feature)).order_by(
-                NERFeature.sentence_index, NERFeature.word_index).all()
+            if feature is None:
+                all_words = session.query(NERFeature).filter(
+                    NERFeature.doc_id.in_(training_set.doc_ids) & (NERFeature.feature.in_(feature_list))).order_by(
+                    NERFeature.sentence_index, NERFeature.word_index).all()
+            else:
+                all_words = session.query(NERFeature).filter(
+                    NERFeature.doc_id.in_(training_set.doc_ids) & (NERFeature.feature == feature)).order_by(
+                    NERFeature.sentence_index, NERFeature.word_index).all()
     else:
-        if feature is None:
-            all_words = session.query(NERFeature).filter(
-                NERFeature.doc_id.in_(training_set.doc_ids) & (NERFeature.feature.in_(feature_list))).order_by(
-                NERFeature.sentence_index, NERFeature.word_index).all()
+        if set_id is None:
+            if feature is None:
+                all_words = session.query(NERFeature).filter(
+                    (NERFeature.doc_id == doc_id) &
+                    (NERFeature.feature.in_(feature_list)) &
+                    (NERFeature.feature_type == feature_type)).order_by(
+                    NERFeature.sentence_index, NERFeature.word_index).all()
+            else:
+                all_words = session.query(NERFeature).filter(
+                    (NERFeature.doc_id == doc_id) &
+                    (NERFeature.feature == feature) &
+                    (NERFeature.feature_type == feature_type)).order_by(
+                    NERFeature.sentence_index, NERFeature.word_index).all()
         else:
-            all_words = session.query(NERFeature).filter(
-                NERFeature.doc_id.in_(training_set.doc_ids) & (NERFeature.feature == feature)).order_by(
-                NERFeature.sentence_index, NERFeature.word_index).all()
+            if feature is None:
+                all_words = session.query(NERFeature).filter(
+                    NERFeature.doc_id.in_(training_set.doc_ids) &
+                    (NERFeature.feature.in_(feature_list)) &
+                    (NERFeature.feature_type == feature_type)).order_by(
+                    NERFeature.sentence_index, NERFeature.word_index).all()
+            else:
+                all_words = session.query(NERFeature).filter(
+                    NERFeature.doc_id.in_(training_set.doc_ids) &
+                    (NERFeature.feature == feature) &
+                    (NERFeature.feature_type == feature_type)).order_by(
+                    NERFeature.sentence_index, NERFeature.word_index).all()
+
     result = {}
     for word in all_words:
         doc_id = str(word.doc_id)

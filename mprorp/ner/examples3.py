@@ -12,6 +12,7 @@ from mprorp.db.models import *
 from mprorp.ner.identification import create_markup
 from mprorp.utils import home_dir
 from mprorp.ner.tomita_to_markup import convert_tomita_result_to_markup
+import mprorp.ner.feature as feature
 
 
 session = Driver.db_session()
@@ -26,7 +27,11 @@ session = Driver.db_session()
 #     sets[cl]['train'] = db.put_training_set(docs[:train_num])
 #     sets[cl]['test'] = db.put_training_set(docs[train_num:len(docs)])
 # print(sets)
-sets = {'oc_class_org': {'train': '78f8c9fb-e385-442e-93b4-aa1a18e952d0',
+sets = {'oc_class_person': {'train': '4fb42fd1-a0cf-4f39-9206-029255115d01',
+                            'dev': 'f861ee9d-5973-460d-8f50-92fca9910345'},
+        'name': {'train': '4fb42fd1-a0cf-4f39-9206-029255115d01',
+                            'dev': 'f861ee9d-5973-460d-8f50-92fca9910345'},
+        'oc_class_org': {'train': '78f8c9fb-e385-442e-93b4-aa1a18e952d0',
                          'dev':  '299c8bd1-4e39-431d-afa9-398b2fb23f69'},
         'oc_class_loc': {'train': '74210e3e-0127-4b21-b4b7-0b55855ca02e',
                          'dev':  '352df6b5-7659-4f8c-a68d-364400a5f0da'}}
@@ -90,6 +95,8 @@ learn_class = NER_config.classes[NER_config.learn_type['class']]
 NER_config.training_set = sets[learn_class]['train']
 NER_config.dev_set = sets[learn_class]['dev']
 
+NER_config.feature_type = feature.ner_feature_types[learn_class + '_answers']
+
 NER_config.feature_answer = [learn_class + '_' + i for i in NER_config.tag_types[NER_config.learn_type['tags']]]
 print(NER_config.feature_answer)
 
@@ -100,3 +107,20 @@ filename_params = home_dir + '/weights/ner_oc' + filename_part + '.params'
 NER.NER_learning(filename_params, filename_tf, NER_config)
 
 # 5. Prediction
+values = {}
+# for doc_id in set_docs[learn_class]['dev']:
+#     doc = session.query(Document).filter_by(doc_id=doc_id).first()
+#     NER.NER_predict_set(doc, filename_params, filename_tf, values, session, verbose=True)
+#     print(values)
+#     if len(values) > 0:
+#         db.put_ner_feature_dict(doc.doc_id, values, feature.ner_feature_types[learn_class + '_predictions'],
+#                                 None, session)
+
+# 6. Comparison
+# dev_set = set_docs[learn_class]['dev']
+# answers_type = feature.ner_feature_types[learn_class + '_answers']
+# predict_type = feature.ner_feature_types[learn_class + '_predictions']
+# answers = db.get_ner_feature_dict(set_id=dev_set, feature_type=answers_type,
+#                                         feature_list=NER_config.feature_answer)
+# predict = db.get_ner_feature_dict(set_id=dev_set, feature_type=predict_type,
+#                                         feature_list=NER_config.feature_answer)
