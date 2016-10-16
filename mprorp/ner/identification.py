@@ -4,259 +4,261 @@ import mprorp.ner.morpho_to_vec as morpho_to_vec
 import numpy as np
 import logging as log
 
-settings = {'features': {'oc_span_last_name': 'oc_feature_last_name',
-                         'oc_span_first_name': 'oc_feature_first_name',
-                         'oc_span_middle_name': 'oc_feature_middle_name',
-                         'oc_span_nickname': 'oc_feature_nickname',
-                         'oc_span_foreign_name': 'oc_feature_foreign_name',
-                         'oc_span_post': 'oc_feature_post',
-                         'oc_span_role': 'oc_feature_role',
-                         'oc_span_status': 'oc_feature_status'},
-            'markup_type': '62',
+settings = {'markup_type': '62',
             'consider_right_symbol': False,
             'entity_class': 'person',
             'put_markup_references': True,
             'put_documents': True}
 
 
+def get_ref_from_morpho(reference, morpho, verbose=False):
+
+    consider_right_symbol = settings.get('consider_right_symbol')
+    start_ref = reference[0]
+    end_ref   = reference[1]
+    sent_index = None
+    span_chain = []
+
+
+    for elem in morpho:
+
+        if 'start_offset2' in elem.keys():
+
+            if elem['start_offset2'] == start_ref:
+
+                if (consider_right_symbol and elem['end_offset2'] <= end_ref) or (
+                            not consider_right_symbol and elem['end_offset2'] < end_ref):
+
+                    sent_index = elem.get('sentence_index', None)
+                    if sent_index is None:
+                        print('element: ', elem)
+                        print('ref: ', reference)
+                        raise Exception('first element in span has no sentence_index')
+                    span_chain.append(elem['word_index'])
+                else:
+                    # error
+                    log.info(
+                        'error: word ' + elem['text'] + ' ' + str(elem['start_offset2']) + ':' +
+                        str(elem['end_offset2']) + ' refs: ' + str(reference))
+                    if verbose:
+                        print('error: word ', elem['text'], ' ', str(elem['start_offset2']), ':', str(
+                            elem['end_offset2']), ' refs: ', str(reference))
+
+            elif elem['start_offset2'] > start_ref:
+
+                if (consider_right_symbol and elem['end_offset2'] <= end_ref) or (
+                            not consider_right_symbol and elem['end_offset2'] < end_ref):
+
+                    if sent_index is None:
+                        sent_index = elem.get('sentence_index', None)
+                    elif sent_index != elem.get('sentence_index', None):
+                        break
+                        # print('sent_index: ', sent_index)
+                        # print('element: ', elem)
+                        # print('ref: ', reference)
+                        # print('text:')
+                        # print(doc.stripped)
+                        # raise Exception('different sent_index in span')
+                    span_chain.append(elem['word_index'])
+
+                else:
+                    break
+
+            else:
+
+                if elem['end_offset2'] >= start_ref:
+                    # error
+                    log.info(
+                        'error: word ' + elem['text'] + ' ' + str(elem['start_offset2']) + ':' +
+                        str(elem['end_offset2']) + ' refs: ' + str(reference))
+                    if verbose:
+                        print('error: word ', elem['text'], ' ', str(elem['start_offset2']), ':', str(
+                            elem['end_offset2']), ' refs: ', str(reference))
+    return span_chain, sent_index
+
+
 def create_answers_feature_for_doc(doc, entity_class='oc_class_person', session=None, commit_session=True, verbose=False):
 
-    features = settings.get('features')
-    consider_right_symbol = settings.get('consider_right_symbol')
-
     # let find markup for entity_class
-    markup_id = db.get_markup_for_doc_and_class(doc_id=doc.doc_id,entity_class=entity_class,session=session)
+    markup_id = db.get_markup_for_doc_and_class(doc_id=doc.doc_id, entity_class=entity_class, session=session)
+
+    if verbose:
+        print('markup_id: ', markup_id)
+
+    references = db.get_references_for_doc(markup_id, session)
+    morpho = doc.morpho
+
+    sent_dict = {}
+    if verbose:
+        sent_print = {}
+        for element in morpho:
+
+            if 'sentence_index' in element:
+                if element['sentence_index'] not in sent_print:
+                    sent_print[element['sentence_index']] = ""
+                sent_print[element['sentence_index']] += element.get("text", "") + " "
+
+    values = {}
+
+    refs = {}
+
+    for ref in references:
+
+        ref_class = ref[2]
+        ref_id    = ref[3]
+        # if verbose:
+            # print(ref_id)
+        span_chain, sent_index_ref = get_ref_from_morpho(ref, morpho, verbose=verbose)
+        # if verbose:
+            # print(span_chain)
+        if len(span_chain) > 0:
+            refs[ref_id] = (sent_index_ref, span_chain, ref_class)
+            if ref_class == 'oc_class_person':
+                if element['sentence_index'] not in sent_dict:
+                    sent_dict[element['sentence_index']] = {}
+
+                for word_index in span_chain:
+                    sent_dict[sent_index_ref][word_index] = ref_class
+
+                # word_list.append((element['sentence_index'], element['word_index']))
+                # word_list_all.append((element['sentence_index'], element['word_index']))
+                # values[(element['sentence_index'], element['word_index'], value)] = [1]
+    # if verbose:
+        # print('refs: ', refs)
+    # Mentions
+    mentions = db.get_mentions(markup_id, entity_class, session)
+    sent_chains = {}
+    for mention in mentions:
+        sent_indexes = set()
+        for ref_id in mention[1]:
+            ref = refs.get(str(ref_id), None)
+            if ref is None:
+                print('Error: ref from mention not found')
+                print('    mention: ', mention[0])
+                print('    reference: ', str(ref_id))
+                print('    text: ')
+                print(doc.stripped)
+                print('    morpho: ')
+                print(doc.morpho)
+                raise Exception('Error: ref from mention not found')
+            sent_indexes |= {ref[0]}
+            if len(sent_indexes) > 1:
+                if verbose:
+                    print('Mystery: refs from mention have difference sentence indexes')
+                    print('    mention: ', mention[0])
+                    print('    refs: ', list((str(r_id), refs[str(r_id)][0]) for r_id in mention[1]))
+                    print('    sent_index: ', sent_indexes)
+        for sent_index in sent_indexes:
+            words = []
+            for ref_id in mention[1]:
+                ref = refs.get(str(ref_id), None)
+                if sent_index == ref[0]:
+                    words.extend(ref[1])
+            words.sort()
+            # if verbose:
+            #     print(sent_index, words)
+            curr_ind = None
+            chain = []
+            if sent_chains.get(sent_index, None) is None:
+                sent_chains[sent_index] = []
+            for ind in words:
+                if curr_ind is not None:
+                    if ind > curr_ind:
+                        if ind > curr_ind + 1:
+                            sent_chains[sent_index].append(chain)
+                            chain = []
+                        curr_ind = ind
+                        chain.append(ind)
+                else:
+                    curr_ind = ind
+                    chain.append(ind)
+
+            if len(chain) > 0:
+                sent_chains[sent_index].append(chain)
+    # Eliminate inserted chains and add rest chains to values
+    if verbose:
+        print(sent_chains)
+    for sent_index in sent_chains:
+        chains = {}
+        for chain in sent_chains[sent_index]:
+            if chains.get(chain[0], None) is None:
+                chains[chain[0]] = chain
+            else:
+                if len(chain) > len(chains[chain[0]]):
+                    chains[chain[0]] = chain
+        # if verbose:
+        #     print(sent_index, chains)
+        chain_indexes = list(chains.keys())
+        chain_indexes.sort()
+        old_chain = []
+        for first_word in chain_indexes:
+            len_old_chain = len(old_chain)
+            if len_old_chain > 0:
+                if first_word <= old_chain[len_old_chain - 1]: # first_word chain starts before chain ends
+                    len_new = len(chains[first_word])
+                    if first_word + len_new - 1 > old_chain[len_old_chain - 1]: # i is not inserted in chain
+                        print('sentence: ', sent_index)
+                        print('chains: ', old_chain, chains[first_word])
+                        raise Exception('Crossing chains')
+                    # else first_word chain is inserted in old_chain
+                else:
+                    create_values(old_chain, sent_index, entity_class, values, verbose=verbose)
+                    old_chain = chains[first_word]
+            else:
+                old_chain = chains[first_word]
+        if len(old_chain) > 0:
+            create_values(old_chain, sent_index, entity_class, values, verbose=verbose)
 
     if entity_class == 'oc_class_person':
-        references = db.get_references_for_doc(markup_id, session)
-        morpho = doc.morpho
-
-        values = {}
-
-        # previous_ref = None
-        # word_list_all = []
-        sent_dict = {}
-        if verbose:
-            sent_print = {}
-            for element in morpho:
-
-                if 'sentence_index' in element:
-                    if element['sentence_index'] not in sent_print:
-                        sent_print[element['sentence_index']] = ""
-                    sent_print[element['sentence_index']] += element.get("text", "") + " "
-
-        for ref in references:
-
-            start_ref = ref[0]
-            end_ref = ref[1]
-            ref_class = ref[2]
-            # if verbose:
-            #     print('coordinates: ', start_ref, end_ref)
-
-            ref_class_value = features.get(ref_class)
-            #
-            # word_list = []
-            for element in morpho:
-
-                value = None
-                if 'start_offset2' in element.keys():
-
-                    if element['start_offset2'] == start_ref:
-
-                        if (consider_right_symbol and element['end_offset2'] <= end_ref) or (
-                                not consider_right_symbol and element['end_offset2'] < end_ref):
-
-                            value = ref_class_value
-                        else:
-                            # error
-                            log.info(
-                                'error: word ' + element['text'] + ' ' + str(element['start_offset2']) + ':' +
-                                str(element['end_offset2']) + ' refs: ' + str(ref))
-                            if verbose:
-                                print('error: word ', element['text'], ' ', str(element['start_offset2']), ':', str(
-                                    element['end_offset2']), ' refs: ', str(ref))
-
-                    elif element['start_offset2'] > start_ref:
-
-                        if (consider_right_symbol and element['end_offset2'] <= end_ref) or (
-                                        not consider_right_symbol and element['end_offset2'] < end_ref):
-
-                            value = ref_class_value
-                        else:
-                            break
-
-                    else:
-
-                        if element['end_offset2'] >= start_ref:
-                            # error
-                            log.info(
-                                'error: word ' + element['text'] + ' ' + str(element['start_offset2']) + ':' +
-                                str(element['end_offset2']) + ' refs: ' + str(ref))
-                            if verbose:
-                                print('error: word ', element['text'], ' ', str(element['start_offset2']), ':', str(
-                                    element['end_offset2']), ' refs: ', str(ref))
-
-                if not (value is None):
-                    if element['sentence_index'] not in sent_dict:
-                        sent_dict[element['sentence_index']] = {}
-                    sent_dict[element['sentence_index']][element['word_index']] = value
-
-                    # word_list.append((element['sentence_index'], element['word_index']))
-                    # word_list_all.append((element['sentence_index'], element['word_index']))
-                    values[(element['sentence_index'], element['word_index'], value)] = [1]
-                    # if verbose:
-                    #     print(element['text'], value)
-
-            # word_list_len = len(word_list)
+        # create 'name_XX'
 
         for sent_index in sent_dict:
-            if verbose:
-                print(sent_index, sent_print[sent_index])
+            # if verbose:
+            #     print(sent_index, sent_print[sent_index])
 
             words = sent_dict[sent_index]
             word_indexes = list(words.keys())
             word_indexes.sort()
-            prev_person_index = -10
             prev_name_index = -10
-            prev_prs_index = -10
-            person_chain = []
             name_chain = []
-            prs_chain = []
             for word_ind in word_indexes:
-                cur_value = None
-                if words[word_ind] in ['oc_feature_last_name', 'oc_feature_first_name', 'oc_feature_middle_name',
-                                       'oc_feature_nickname', 'oc_feature_foreign_name']:
+                if words[word_ind] in ['oc_span_last_name', 'oc_span_first_name', 'oc_span_middle_name',
+                                       'oc_span_nickname', 'oc_span_foreign_name']:
                     if prev_name_index > 0 and word_ind != prev_name_index + 1:
-                        create_values(name_chain, "name", values, verbose)
-                    name_chain.append((sent_index, word_ind))
+                        create_values(name_chain, sent_index, "name", values, verbose)
+                        name_chain = []
+                    name_chain.append(word_ind)
                     prev_name_index = word_ind
-                elif words[word_ind] in ['oc_feature_post', 'oc_feature_role', 'oc_feature_status']:
-                    if prev_prs_index > 0 and word_ind != prev_prs_index + 1:
-                        create_values(prs_chain, "post_role_status", values, verbose)
-                    prs_chain.append((sent_index, word_ind))
-                    prev_prs_index = word_ind
-
-                if prev_person_index > 0 and word_ind != prev_person_index + 1:
-                    create_values(person_chain, "person", values, verbose)
-                person_chain.append((sent_index, word_ind))
-                prev_person_index = word_ind
 
             if len(name_chain) > 0:
-                create_values(name_chain, "name", values, verbose)
-            if len(prs_chain) > 0:
-                create_values(prs_chain, "post_role_status", values, verbose)
-            if len(person_chain) > 0:
-                create_values(person_chain, "person", values, verbose)
-
-            # if not cur_value is None:
-            #     values[(word[0], word[1], cur_value)] = [1]
-            # i += 1
-    else:
-        references = db.get_references_for_doc(markup_id, session)
-        morpho = doc.morpho
-
-        values = {}
-
-        # previous_ref = None
-        # word_list_all = []
-        sent_dict = {}
-        if verbose:
-            sent_print = {}
-            for element in morpho:
-
-                if 'sentence_index' in element:
-                    if element['sentence_index'] not in sent_print:
-                        sent_print[element['sentence_index']] = ""
-                    sent_print[element['sentence_index']] += element.get("text", "") + " "
-
-        for ref in references:
-
-            start_ref = ref[0]
-            end_ref = ref[1]
-            ref_class = ref[2]
-            # if verbose:
-            #     print('coordinates: ', start_ref, end_ref)
-
-            ref_class_value = features.get(ref_class)
-            #
-            # word_list = []
-            for element in morpho:
-
-                value = None
-                if 'start_offset2' in element.keys():
-
-                    if element['start_offset2'] == start_ref:
-
-                        if (consider_right_symbol and element['end_offset2'] <= end_ref) or (
-                                    not consider_right_symbol and element['end_offset2'] < end_ref):
-
-                            value = ref_class_value
-                        else:
-                            # error
-                            log.info(
-                                'error: word ' + element['text'] + ' ' + str(element['start_offset2']) + ':' +
-                                str(element['end_offset2']) + ' refs: ' + str(ref))
-                            if verbose:
-                                print('error: word ', element['text'], ' ', str(element['start_offset2']), ':', str(
-                                    element['end_offset2']), ' refs: ', str(ref))
-
-                    elif element['start_offset2'] > start_ref:
-
-                        if (consider_right_symbol and element['end_offset2'] <= end_ref) or (
-                                    not consider_right_symbol and element['end_offset2'] < end_ref):
-
-                            value = ref_class_value
-                        else:
-                            break
-
-                    else:
-
-                        if element['end_offset2'] >= start_ref:
-                            # error
-                            log.info(
-                                'error: word ' + element['text'] + ' ' + str(element['start_offset2']) + ':' +
-                                str(element['end_offset2']) + ' refs: ' + str(ref))
-                            if verbose:
-                                print('error: word ', element['text'], ' ', str(element['start_offset2']), ':', str(
-                                    element['end_offset2']), ' refs: ', str(ref))
-
-                if not (value is None):
-                    if element['sentence_index'] not in sent_dict:
-                        sent_dict[element['sentence_index']] = {}
-                    sent_dict[element['sentence_index']][element['word_index']] = value
-
-                    # word_list.append((element['sentence_index'], element['word_index']))
-                    # word_list_all.append((element['sentence_index'], element['word_index']))
-                    values[(element['sentence_index'], element['word_index'], value)] = [1]
+                create_values(name_chain, sent_index, "name", values, verbose)
 
     if len(values) > 0:
-        db.put_ner_feature_dict(doc.doc_id, values, feature.ner_feature_types['OpenCorpora'],
+        db.put_ner_feature_dict(doc.doc_id, values, feature.ner_feature_types[entity_class + '_answers'],
                                  None, session, commit_session)
 
 
-def create_values(chain, feature_name, values, verbose=False):
+def create_values(chain, sent_index, feature_name, values, verbose=False):
     if verbose:
-        print(feature_name, chain)
+        print(feature_name, sent_index, chain)
     if len(chain) == 1:
-        values[(chain[0][0], chain[0][1], feature_name + "_S")] = [1]
-        values[(chain[0][0], chain[0][1], feature_name + "_ES")] = [1]
-        values[(chain[0][0], chain[0][1], feature_name + "_BS")] = [1]
+        values[(sent_index, chain[0], feature_name + "_S")] = [1]
+        values[(sent_index, chain[0], feature_name + "_ES")] = [1]
+        values[(sent_index, chain[0], feature_name + "_BS")] = [1]
     else:
         end_num = len(chain) - 1
-        values[(chain[0][0], chain[0][1], feature_name + "_B")] = [1]
-        values[(chain[0][0], chain[0][1], feature_name + "_BI")] = [1]
-        values[(chain[0][0], chain[0][1], feature_name + "_BS")] = [1]
+        values[(sent_index, chain[0], feature_name + "_B")] = [1]
+        values[(sent_index, chain[0], feature_name + "_BI")] = [1]
+        values[(sent_index, chain[0], feature_name + "_BS")] = [1]
 
-        values[(chain[end_num][0], chain[end_num][1], feature_name + "_E")] = [1]
-        values[(chain[end_num][0], chain[end_num][1], feature_name + "_ES")] = [1]
-        values[(chain[end_num][0], chain[end_num][1], feature_name + "_IE")] = [1]
+        values[(sent_index, chain[end_num], feature_name + "_E")] = [1]
+        values[(sent_index, chain[end_num], feature_name + "_ES")] = [1]
+        values[(sent_index, chain[end_num], feature_name + "_IE")] = [1]
         if end_num > 1:
             for i in range(1, end_num):
-                values[(chain[i][0], chain[i][1], feature_name + "_I")] = [1]
-                values[(chain[i][0], chain[i][1], feature_name + "_BI")] = [1]
-                values[(chain[i][0], chain[i][1], feature_name + "_IE")] = [1]
-
-    chain.clear()
+                values[(sent_index, chain[i], feature_name + "_I")] = [1]
+                values[(sent_index, chain[i], feature_name + "_BI")] = [1]
+                values[(sent_index, chain[i], feature_name + "_IE")] = [1]
 
 
 def create_answers_feature_for_doc_2(doc_id):
@@ -267,8 +269,8 @@ def create_markup(doc, session=None, commit_session=True, verbose=False):
 
     feature_type = feature.ner_feature_types['OpenCorpora']
 
-    features = ['oc_feature_last_name', 'oc_feature_first_name', 'oc_feature_middle_name', 'oc_feature_nickname',
-                'oc_feature_foreign_name', 'oc_feature_post', 'oc_feature_role', 'oc_feature_status']
+    features = ['oc_span_last_name', 'oc_span_first_name', 'oc_span_middle_name', 'oc_span_nickname',
+                'oc_span_foreign_name', 'oc_span_post', 'oc_span_role', 'oc_span_status']
 
     # Получим свойства слов документа из БД
     doc_properties = db.get_ner_feature_for_features(doc.doc_id, feature_type, features, session)
@@ -486,9 +488,9 @@ def form_evaluations(spans, spans_info):
             second_span_feature = second_span[3]
 
             # Различающимся фамилиям, именам, отчествам ставим -1
-            if (first_span_feature == second_span_feature and first_span_feature in ['oc_feature_last_name',
-                                                                                     'oc_feature_first_name',
-                                                                                     'oc_feature_middle_name']):
+            if (first_span_feature == second_span_feature and first_span_feature in ['oc_span_last_name',
+                                                                                     'oc_span_first_name',
+                                                                                     'oc_span_middle_name']):
                 if not same_meanings_spans(first_span, second_span, spans_info):
                     evaluations.append([first_span, second_span, -1])
                     eval_dict[(first_span, second_span)] = -1
@@ -510,7 +512,7 @@ def form_evaluations(spans, spans_info):
                 # Стоящие рядом слова
                 if first_span_word_index_end + 1 == second_span_word_index_start:
 
-                    if first_span_feature == 'oc_feature_last_name' and second_span_feature == 'oc_feature_first_name': # Фамилия, Имя
+                    if first_span_feature == 'oc_span_last_name' and second_span_feature == 'oc_span_first_name': # Фамилия, Имя
 
                         if same_case_numeric(first_span, second_span, spans_info): # Одинаковый падеж, число
                             evaluations.append([first_span, second_span, 5])
@@ -521,7 +523,7 @@ def form_evaluations(spans, spans_info):
                             eval_dict[(first_span, second_span)] = 3
                             continue
 
-                    if first_span_feature == 'oc_feature_first_name' and second_span_feature == 'oc_feature_last_name':  # Имя, Фамилия
+                    if first_span_feature == 'oc_span_first_name' and second_span_feature == 'oc_span_last_name':  # Имя, Фамилия
 
                         if same_case_numeric(first_span, second_span, spans_info):  # Одинаковый падеж, число
                             evaluations.append([first_span, second_span, 5])
@@ -532,7 +534,7 @@ def form_evaluations(spans, spans_info):
                             eval_dict[(first_span, second_span)] = 3
                             continue
 
-                    if first_span_feature == 'oc_feature_first_name' and second_span_feature == 'oc_feature_middle_name':  # Имя, Отчество
+                    if first_span_feature == 'oc_span_first_name' and second_span_feature == 'oc_span_middle_name':  # Имя, Отчество
 
                         if same_case_numeric(first_span, second_span, spans_info):  # Одинаковый падеж, число
                             evaluations.append([first_span, second_span, 5])
@@ -544,9 +546,9 @@ def form_evaluations(spans, spans_info):
                             continue
 
                     # Роль, статус, должность перед именем, фамилией, иностр.именем, ником
-                    if (first_span_feature in ['oc_feature_role', 'oc_feature_post', 'oc_feature_status'] and
-                                second_span_feature in ['oc_feature_first_name', 'oc_feature_last_name',
-                                                        'oc_feature_foreign_name', 'oc_feature_nickname']):
+                    if (first_span_feature in ['oc_span_role', 'oc_span_post', 'oc_span_status'] and
+                                second_span_feature in ['oc_span_first_name', 'oc_span_last_name',
+                                                        'oc_span_foreign_name', 'oc_span_nickname']):
                         evaluations.append([first_span, second_span, 4])
                         eval_dict[(first_span, second_span)] = 4
                         continue
@@ -555,14 +557,14 @@ def form_evaluations(spans, spans_info):
                 if j == i + 1:
 
                     # Роль, статус, должность в одном предложении с именем, отчеством, фамилией, иностр.именем, ником
-                    if (first_span_feature in ['oc_feature_role', 'oc_feature_post', 'oc_feature_status'] and
-                                second_span_feature in ['oc_feature_first_name', 'oc_feature_last_name',
-                                                        'oc_feature_middle_name',
-                                                        'oc_feature_foreign_name', 'oc_feature_nickname'] or
-                                    first_span_feature in ['oc_feature_first_name', 'oc_feature_last_name',
-                                                           'oc_feature_middle_name',
-                                                           'oc_feature_foreign_name', 'oc_feature_nickname'] and
-                                    second_span_feature in ['oc_feature_role', 'oc_feature_post', 'oc_feature_status']):
+                    if (first_span_feature in ['oc_span_role', 'oc_span_post', 'oc_span_status'] and
+                                second_span_feature in ['oc_span_first_name', 'oc_span_last_name',
+                                                        'oc_span_middle_name',
+                                                        'oc_span_foreign_name', 'oc_span_nickname'] or
+                                    first_span_feature in ['oc_span_first_name', 'oc_span_last_name',
+                                                           'oc_span_middle_name',
+                                                           'oc_span_foreign_name', 'oc_span_nickname'] and
+                                    second_span_feature in ['oc_span_role', 'oc_span_post', 'oc_span_status']):
                         evaluations.append([first_span, second_span, 2])
                         eval_dict[(first_span, second_span)] = 2
                         continue
@@ -802,24 +804,24 @@ def form_entity_for_chain_spans(doc, list_chain_spans, spans_info, spans_morpho_
             span_info_lex = span_info.get('best_lex')
 
             if not (span_info_lex is None):
-                if span_feature in ['oc_feature_last_name', 'oc_feature_first_name', 'oc_feature_middle_name']:
+                if span_feature in ['oc_span_last_name', 'oc_span_first_name', 'oc_span_middle_name']:
                     name = ' '.join(span_info_lex)if(name == '')else name + ' ' + ' '.join(span_info_lex)
-                if span_feature == 'oc_feature_first_name' and first_name == '':
+                if span_feature == 'oc_span_first_name' and first_name == '':
                     first_name = ' '.join(span_info_lex)
-                if span_feature == 'oc_feature_last_name' and last_name == '':
+                if span_feature == 'oc_span_last_name' and last_name == '':
                     last_name = ' '.join(span_info_lex)
-                if span_feature == 'oc_feature_middle_name' and middle_name == '':
+                if span_feature == 'oc_span_middle_name' and middle_name == '':
                     middle_name = ' '.join(span_info_lex)
-                if span_feature == 'oc_feature_nickname' and nick_name == '':
+                if span_feature == 'oc_span_nickname' and nick_name == '':
                     nick_name = ' '.join(span_info_lex)
-                if span_feature == 'oc_feature_foreign_name' and foreign_name == '':
+                if span_feature == 'oc_span_foreign_name' and foreign_name == '':
                     foreign_name = ' '.join(span_info_lex)
-                if span_feature == 'oc_feature_status':
+                if span_feature == 'oc_span_status':
                     if status == '':
                         status = ' '.join(span_info_lex)
-                if span_feature == 'oc_feature_post':
+                if span_feature == 'oc_span_post':
                     position.append(' '.join(span_info_lex))
-                if span_feature == 'oc_feature_role':
+                if span_feature == 'oc_span_role':
                     role.append(' '.join(span_info_lex))
 
         data = {'firstname': first_name,

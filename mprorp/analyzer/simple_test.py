@@ -1,4 +1,6 @@
 import mprorp.analyzer.rubricator as rb
+from mprorp.db.models import *
+from mprorp.ner.identification import create_answers_feature_for_doc
 
 set = [
     '3224687f-9594-4b91-a5ff-2a11856fb71c', # "Письмо Маши Васе"
@@ -13,7 +15,23 @@ set = [
     "f9a76f65-058e-4510-8d17-bd6595cd8404" # "Письмо Маши Пете"
     ]
 # set_id = db.put_training_set(set)
-set_id = '420d4561-d78d-40e3-b769-778d9b070076'
+doc_id = '2252a1a6-85c7-fa05-93ee-8c65accff3ed'
+session = rb.Driver.db_session()
+doc = session.query(Document).filter_by(doc_id=doc_id).first()
+doc_text = doc.stripped
+# rb.mystem_analyzer.start()
+# new_morpho = mystem_analyzer.analyze(doc_text)
+print(doc_text)
+# new_morpho = rb.mystem_analyzer.analyze(doc_text)
+print(doc.morpho)
+doc = session.query(Document).filter_by(doc_id=doc_id).first()
+
+sets = {'oc_class_org': {'train': '78f8c9fb-e385-442e-93b4-aa1a18e952d0',
+                         'test': '299c8bd1-4e39-431d-afa9-398b2fb23f69'},
+        'oc_class_loc': {'train': '74210e3e-0127-4b21-b4b7-0b55855ca02e',
+                         'test': '352df6b5-7659-4f8c-a68d-364400a5f0da'}}
+for cl in sets:
+    create_answers_feature_for_doc(doc, cl, verbose=True)
 docs_id = []
 # for id in set:
 #     docs_id.append(select(Document.doc_id, Document.doc_id == id).fetchone()[0])
@@ -44,13 +62,13 @@ rubrics_id = ['6816ab38-14fe-4d86-9b34-5608274d20c2', # 'Маша',
 # insert(DocumentRubric(doc_id = set[7],rubric_id = rubrics_id[2]))
 # insert(DocumentRubric(doc_id = set[9],rubric_id = rubrics_id[2]))
 
-for doc_id in set:
-   # print(doc_id)
-   rb.morpho_doc2(doc_id)
-   rb.lemmas_freq_doc2(doc_id)
-
-rb.idf_object_features_set(set_id)
-rb.learning_rubric_model(set_id, rubrics_id[0])
-
-for doc_id in set:
-    rb.spot_doc_rubrics2(doc_id, {rubrics_id[0]: None})
+# for doc_id in set:
+#    # print(doc_id)
+#    rb.morpho_doc2(doc_id)
+#    rb.lemmas_freq_doc2(doc_id)
+#
+# rb.idf_object_features_set(set_id)
+# rb.learning_rubric_model(set_id, rubrics_id[0])
+#
+# for doc_id in set:
+#     rb.spot_doc_rubrics2(doc_id, {rubrics_id[0]: None})

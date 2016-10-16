@@ -26,7 +26,7 @@ print(len(db.get_set_docs(dev_set)))
 #exit()
 # 2. morpho and other steps for docs from sets
 session = Driver.db_session()
-# stop_lemmas = rb.get_stop_lemmas(training_set)
+stop_lemmas = rb.get_stop_lemmas(training_set)
 # n = 0
 # for set_doc in [training_set, dev_set]:
 #     for doc_id in db.get_set_docs(set_doc):
@@ -66,14 +66,14 @@ doc_id = u'5fd76b1f-77d4-4451-9640-fd0981575960'
 doc_id = u'38a20507-dd29-4c96-a419-aeae892c5d74'
 doc_id = u'888d310d-5e30-4d93-a987-16488010fb55'
 session = Driver.db_session()
-# doc = session.query(Document).filter_by(doc_id=doc_id).first()
+doc = session.query(Document).filter_by(doc_id=doc_id).first()
 # rb.morpho_doc(doc)
 # session.commit()
 #
-# settings = [[home_dir + '/weights/ner_oc1.params', home_dir + '/weights/ner_oc1.weights'],
-#             [home_dir + '/weights/ner_oc2.params', home_dir + '/weights/ner_oc2.weights']]
+settings = [[home_dir + '/weights/ner_oc1.params', home_dir + '/weights/ner_oc1.weights'],
+            [home_dir + '/weights/ner_oc2.params', home_dir + '/weights/ner_oc2.weights']]
 #
-# NER.NER_predict(doc, settings, session, verbose=True)
+NER.NER_predict(doc, settings, session, verbose=True)
 # create_markup(doc, session, False)
 # grammars_of_tomita_classes = ['loc.cxx', 'org.cxx', 'norm_act.cxx']
 # convert_tomita_result_to_markup(doc, grammars_of_tomita_classes, session=session, commit_session=False, verbose=True)

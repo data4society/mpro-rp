@@ -6,7 +6,8 @@ import mprorp.ner.morpho_to_vec as morpho_to_vec
 import numpy as np
 import logging as log
 
-ner_feature_types = {'embedding': 1, 'gazetteer': 2, 'tomita': 3, 'morpho': 4, 'answer': 5, 'OpenCorpora': 6, 'Capital': 7}
+ner_feature_types = {'embedding': 1, 'gazetteer': 2, 'tomita': 3, 'morpho': 4, 'answer': 5, 'OpenCorpora': 6,
+                     'Capital': 7, 'oc_class_org_answers': 13, 'oc_class_loc_answers': 14}
 
 def part_of_speech(gr):
     gr = re.findall('^\w*', gr)
@@ -240,6 +241,7 @@ def create_morpho_feature2(doc_id):
     """wrap for create_morpho_feature"""
     db.doc_apply(doc_id, create_morpho_feature)
 
+
 def create_morpho_feature(doc, session=None, commit_session=True):
     """create feature for NER from morpho features"""
     doc_id = doc.doc_id
@@ -265,9 +267,11 @@ def create_morpho_feature(doc, session=None, commit_session=True):
         # print(values)
         db.put_ner_feature(doc_id, values, ner_feature_types['morpho'], 'morpho', session, commit_session)
 
+
 def create_capital_feature2(doc_id):
     """wrap for create_capital_feature"""
     db.doc_apply(doc_id, create_capital_feature)
+
 
 def create_capital_feature(doc, session=None, commit_session=True):
     """create feature for NER from capital features"""

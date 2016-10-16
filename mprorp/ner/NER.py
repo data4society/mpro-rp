@@ -26,6 +26,10 @@ class Config(object):
     information parameters. Model objects are passed a Config() object at
     instantiation.
     """
+    classes = ['oc_class_person', 'name', 'oc_class_org', 'oc_class_loc']
+    tag_types = [['B', 'I', 'S', 'E'], ['BS','IE'], ['BI','ES']]
+    learn_type = {'class': 2, 'tags': 2}
+
     new_model = True
     embed_size = 50
     batch_size = 64
@@ -149,6 +153,8 @@ class NERModel(LanguageModel):
 
         self.wv = np.array(wv_array, dtype=np.float32)
 
+        if verbose:
+            print(self.config.feature_answer)
         answers = db.get_ner_feature_dict(set_id=training_set, feature_list=self.config.feature_answer)
 
         tagnames = [0]
@@ -591,7 +597,7 @@ def NER_learning(filename_params, filename_tf, config=None):
     with tf.Graph().as_default():
         model = NERModel({'config': config})
         output_file = open(filename_params, 'wb')
-        pickle.dump({'words':model.word_to_num, 'tags':model.tag_to_num, 'config': model.config},
+        pickle.dump({'words': model.word_to_num, 'tags': model.tag_to_num, 'config': model.config},
                     output_file, protocol=3)
         output_file.close()
         init = tf.initialize_all_variables()
@@ -629,12 +635,13 @@ def NER_learning(filename_params, filename_tf, config=None):
 
 def NER_predict(doc, settings, session_db=None, commit_session=True, verbose=False):
     values = {}
+    entity_class = 'oc_class_org'
     for i in settings:
         NER_predict_set(doc, i[0], i[1], values, session_db, commit_session, verbose=verbose)
         if verbose:
             print(values)
     if len(values) > 0:
-        db.put_ner_feature_dict(doc.doc_id, values, ner_feature_types['OpenCorpora'],
+        db.put_ner_feature_dict(doc.doc_id, values, 'predictions' + entity_class,
                                 None, session_db, commit_session)
 
 
@@ -689,11 +696,10 @@ def NER_person_learning():
     for i in range(1, feature_count + 1):
 
         if i == 1:
-            # NER_config.feature_answer = ['oc_feature_last_name', 'oc_feature_first_name', 'oc_feature_middle_name',
-            #                              'oc_feature_nickname', 'oc_feature_foreign_name']
+            # NER_config.feature_answer = ['oc_span_last_name', 'oc_span_first_name', 'oc_span_middle_name',
+            #                              'oc_span_nickname', 'oc_span_foreign_name']
 
-            #NER_config.feature_answer = ['name_B', 'name_S', 'name_I', 'name_E']
-            #NER_config.feature_answer = ['person_B', 'person_S', 'person_I', 'person_E']
+            # NER_config.feature_answer = ['name_B', 'name_S', 'name_I', 'name_E']
             # NER_config.feature_answer = ['name_BS', 'name_IE']
             NER_config.feature_answer = ['name_BI', 'name_ES']
             # NER_config.feature_answer = ['person_BS', 'person_IE']
@@ -703,7 +709,7 @@ def NER_person_learning():
             filename_params = home_dir + '/weights/ner_oc1.params'
 
         else:
-            NER_config.feature_answer = ['oc_feature_post', 'oc_feature_role', 'oc_feature_status']
+            NER_config.feature_answer = ['oc_span_post', 'oc_span_role', 'oc_span_status']
             #NER_config.feature_answer = ['post_role_status_B', 'post_role_status_S',
             #                             'post_role_status_I', 'post_role_status_E']
 

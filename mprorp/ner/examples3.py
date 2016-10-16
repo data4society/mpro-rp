@@ -14,14 +14,89 @@ from mprorp.utils import home_dir
 from mprorp.ner.tomita_to_markup import convert_tomita_result_to_markup
 
 
-doc_id = u'3f521888-1e9f-4afd-8427-9d353cb842de'
 session = Driver.db_session()
-doc = session.query(Document).filter_by(doc_id=doc_id).first()
-print(doc.stripped)
-grammars_of_tomita_classes = ['loc.cxx', 'org.cxx', 'norm_act.cxx']
-create_markup(doc, session, False)
-session.commit()
-convert_tomita_result_to_markup(doc, grammars_of_tomita_classes, session=session, verbose=True)
-print(doc.markup)
-session.commit()
-print(doc.markup)
+# 1. Create sets: training and dev
+# Создание учебной и тестовой выборок для каждого класса, исходя из наличия этого класса в mentions.entity_class:
+# Если нужный нам класс указан в entity_class, то мы берем соответствующий markup, получаем из него document и все,
+# найденные таким оразом, документы складываем в выборки: учебную и тестовую
+# sets = {"oc_class_org": {}, "oc_class_loc": {}}
+# for cl in sets:
+#     docs = db.get_docs_for_entity_class(cl,markup_type='51', session=session)
+#     train_num = round(len(docs) * 0.8)
+#     sets[cl]['train'] = db.put_training_set(docs[:train_num])
+#     sets[cl]['test'] = db.put_training_set(docs[train_num:len(docs)])
+# print(sets)
+sets = {'oc_class_org': {'train': '78f8c9fb-e385-442e-93b4-aa1a18e952d0',
+                         'dev':  '299c8bd1-4e39-431d-afa9-398b2fb23f69'},
+        'oc_class_loc': {'train': '74210e3e-0127-4b21-b4b7-0b55855ca02e',
+                         'dev':  '352df6b5-7659-4f8c-a68d-364400a5f0da'}}
+
+# 2. morpho and other steps for docs from sets
+set_docs = {}
+for cl in sets:
+    set_docs[cl] = {}
+    for set_type in sets[cl]:
+        set_docs[cl][set_type] = db.get_set_docs(sets[cl][set_type])
+
+# for cl in set_docs:
+#     for set_type in set_docs[cl]:
+#         for doc_id in set_docs[cl][set_type]:
+#             rb.morpho_doc2(str(doc_id))
+# print('morpho - done')
+#
+# for cl in set_docs:
+#     for set_type in set_docs[cl]:
+#         for doc_id in set_docs[cl][set_type]:
+#             ner_feature.create_capital_feature2(doc_id)
+# print('capital - done')
+#
+# for cl in set_docs:
+#     for set_type in set_docs[cl]:
+#         for doc_id in set_docs[cl][set_type]:
+#             ner_feature.create_embedding_feature2(str(doc_id))
+# print('embedding feature - done')
+#
+# for cl in set_docs:
+#     for set_type in set_docs[cl]:
+#         for doc_id in set_docs[cl][set_type]:
+#             ner_feature.create_morpho_feature2(str(doc_id))
+# print('morpho feature - done')
+#
+# for cl in set_docs:
+#     for set_type in set_docs[cl]:
+#         for doc_id in set_docs[cl][set_type]:
+#             for gram in grammar_config:
+#                 run_tomita2(gram, str(doc_id))
+#             ner_feature.create_tomita_feature2(str(doc_id), grammar_config.keys())
+# print('tomita - done')
+
+
+# 3. Create answers for docs
+# session = Driver.db_session()
+# for cl in set_docs:
+#     for set_type in set_docs[cl]:
+#         for doc_id in set_docs[cl][set_type]:
+#             doc = session.query(Document).filter_by(doc_id=doc_id).first()
+#             create_answers_feature_for_doc(doc, cl, verbose=True)
+# session.commit()
+
+# 4. Обучение и запись модели в файл
+if not os.path.exists(home_dir + "/weights"):
+    os.makedirs(home_dir + "/weights")
+
+NER_config = NER.Config()
+learn_class = NER_config.classes[NER_config.learn_type['class']]
+
+NER_config.training_set = sets[learn_class]['train']
+NER_config.dev_set = sets[learn_class]['dev']
+
+NER_config.feature_answer = [learn_class + '_' + i for i in NER_config.tag_types[NER_config.learn_type['tags']]]
+print(NER_config.feature_answer)
+
+filename_part = str(NER_config.learn_type['class']) + '_' + str(NER_config.learn_type['tags'])
+filename_tf = home_dir + '/weights/ner_oc_' + filename_part + '.weights'
+filename_params = home_dir + '/weights/ner_oc' + filename_part + '.params'
+
+NER.NER_learning(filename_params, filename_tf, NER_config)
+
+# 5. Prediction

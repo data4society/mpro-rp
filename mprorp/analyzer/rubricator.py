@@ -97,7 +97,7 @@ def morpho_doc2(doc_id):
     db.doc_apply(doc_id, morpho_doc)
 
 
-def morpho_doc(doc):
+def morpho_doc(doc, verbose=False):
     """morphological analysis for document """
     doc_text = doc.stripped
     mystem_analyzer.start()
@@ -167,6 +167,35 @@ def morpho_doc(doc):
 
                     space_len += 1
 
+                elif symbol == "-":
+                    if verbose:
+                        print(line)
+                    is_ok = False
+                    if (line[word_start:(word_start + word_len)] == 'кое') or (line[word_start:(word_start + word_len)] == 'кой'):
+                        is_ok = True
+                    for word in ['то', 'либо', 'нибудь', 'таки']:
+                        if symbol_number + len(word) < len(line) and line[symbol_number + 1: symbol_number + 1 + len(word)] == word:
+                            is_ok = True
+                            break
+                    if not is_ok:
+                        if word_start > -1:  # добавим слово
+
+                            cur_word = line[word_start:(word_start + word_len)]
+                            if verbose:
+                                print('    ', cur_word)
+                            new_element = {'text': cur_word}
+                            if 'analysis' in element: new_element['analysis'] = element['analysis']
+                            morpho_list.append(new_element)
+
+                            word_start = -1
+                            word_len = 0
+
+                        # добавим дефис
+                        new_element = {'text': symbol}
+                        if 'analysis' in element: new_element['analysis'] = element['analysis']
+                        morpho_list.append(new_element)
+                    else:
+                        word_len += 1
                 else:
 
                     if space_len > 0: # добавим пробелы
@@ -781,9 +810,10 @@ def calculate_indicators_lemmas_for_docs_with_ready_lemmas(session=None):
     lex_doc_count = {}
     lex_doc_count_150 = {}
 
-    docs = session.query(Document.morpho).all()
+    docs = session.query(Document.morpho, Document.stripped).all()
     for doc in docs:
         doc_morpho = doc[0]
+        doc_text = doc[1]
         lex_doc = calculate_doc_lemmas(doc_morpho)
         for lex_doc_key in lex_doc.keys():
 

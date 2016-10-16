@@ -324,7 +324,7 @@ def put_ner_feature(doc_id, records, feature_type, feature=None, session=None, c
         session.commit()
 
 
-def put_ner_feature_dict(doc_id, records, feature_type, feature=None, session=None, commit_session=True):
+def put_ner_feature_dict(doc_id, records, feature_type, feature=None, session=None, commit_session=True, verbose=False):
     """write features of lemmas of document doc_id in db. records is dictionary"""
     if session is None:
         session = Driver.db_session()
@@ -342,6 +342,8 @@ def put_ner_feature_dict(doc_id, records, feature_type, feature=None, session=No
         # print(new_feature.value)
         # print(record['feature'], feature if not (feature is None) else record['feature'])
         new_feature.feature = feature if not (feature is None) else key[2]
+        if verbose:
+            print(new_feature.feature)
         session.add(new_feature)
     if commit_session:
         session.commit()
@@ -542,6 +544,15 @@ def get_references_for_set(set_id, markup_type='10', session=None):
     return result
 
 
+def get_mentions(markup_id, entity_class, session=None):
+
+    if session is None:
+        session = Driver.db_session()
+
+    return session.query(Mention.mention_id, Mention.reference_ids).filter((Mention.markup == markup_id) &
+                                                                           (Mention.entity_class == entity_class)).all()
+
+
 def get_references_for_doc(markup_id, session=None):
 
     if session is None:
@@ -551,7 +562,7 @@ def get_references_for_doc(markup_id, session=None):
 
     result = []
     for ref in refs:
-        result.append((ref[0].start_offset, ref[0].end_offset, ref[0].entity_class))
+        result.append((ref.start_offset, ref.end_offset, ref.entity_class, str(ref.reference_id)))
     return result
 
 
@@ -575,7 +586,7 @@ def get_markup_for_doc_and_class(doc_id, entity_class, markup_type='51', session
     if len(res) == 0:
         print('Error: No markups:')
         print('    class: ' + entity_class)
-        print('    doc_id: ' + doc_id)
+        print('    doc_id: ' + str(doc_id))
         print('    markup_type: ' + markup_type)
         return None
 
@@ -584,7 +595,7 @@ def get_markup_for_doc_and_class(doc_id, entity_class, markup_type='51', session
         print('    class: ' + entity_class)
         print('    doc_id: ' + doc_id)
         print('    markup_type: ' + markup_type)
-    return str(res[0])
+    return str(res[0][0])
 
 
 def get_multi_word_embedding(embedding, lemmas, session=None):
