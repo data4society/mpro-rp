@@ -53,7 +53,7 @@ VALIDATION_AND_CONVERTING_COMPLETE = 1001  # mpro redactor sets this and next st
 VALIDATION_FAILED = 1002
 FROM_OPEN_CORPORA = 1100
 FROM_MANUAL_SOURCES_FOR_LEARNING = 1101
-FOR_TRAINING = 17000
+FOR_TRAINING = 1000
 FOR_RUBRICS_TRAINING = 1200  # Normal documents from crawler that marked in redactor as for training
 
 EMPTY_TEXT = 2000
@@ -315,11 +315,15 @@ def set_doc(doc, new_status, session):
     """writing changes to db"""
     doc.status = new_status
     session.commit()
+    doc_id = doc.doc_id
     session.remove()
-    router(doc.doc_id, new_status)
+    router(doc_id, new_status)
+
+
 
 """
 
+regular_find_full_text('7b6428ea-435f-4a40-bdc1-19ffb3f3097a', 7000)
 
 @app.task(ignore_result=True)
 def regular_entities(doc_id, new_status):
