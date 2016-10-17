@@ -102,25 +102,51 @@ print(NER_config.feature_answer)
 
 filename_part = str(NER_config.learn_type['class']) + '_' + str(NER_config.learn_type['tags'])
 filename_tf = home_dir + '/weights/ner_oc_' + filename_part + '.weights'
-filename_params = home_dir + '/weights/ner_oc' + filename_part + '.params'
+filename_params = home_dir + '/weights/ner_oc_' + filename_part + '.params'
 
-NER.NER_learning(filename_params, filename_tf, NER_config)
+# NER.NER_learning(filename_params, filename_tf, NER_config)
 
 # 5. Prediction
-values = {}
-# for doc_id in set_docs[learn_class]['dev']:
-#     doc = session.query(Document).filter_by(doc_id=doc_id).first()
-#     NER.NER_predict_set(doc, filename_params, filename_tf, values, session, verbose=True)
-#     print(values)
-#     if len(values) > 0:
-#         db.put_ner_feature_dict(doc.doc_id, values, feature.ner_feature_types[learn_class + '_predictions'],
-#                                 None, session)
+
+for doc_id in set_docs[learn_class]['dev']:
+    values = {}
+    doc = session.query(Document).filter_by(doc_id=doc_id).first()
+    NER.NER_predict_set(doc, filename_params, filename_tf, values, session, verbose=True)
+    print(values)
+    if len(values) > 0:
+        db.put_ner_feature_dict(doc.doc_id, values, feature.ner_feature_types[learn_class + '_predictions'],
+                                session=session)
 
 # 6. Comparison
-# dev_set = set_docs[learn_class]['dev']
-# answers_type = feature.ner_feature_types[learn_class + '_answers']
-# predict_type = feature.ner_feature_types[learn_class + '_predictions']
-# answers = db.get_ner_feature_dict(set_id=dev_set, feature_type=answers_type,
-#                                         feature_list=NER_config.feature_answer)
-# predict = db.get_ner_feature_dict(set_id=dev_set, feature_type=predict_type,
-#                                         feature_list=NER_config.feature_answer)
+dev_set = sets[learn_class]['dev']
+answers_type = feature.ner_feature_types[learn_class + '_answers']
+predict_type = feature.ner_feature_types[learn_class + '_predictions']
+answers = db.get_ner_feature_dict(set_id=dev_set, feature_type=answers_type,
+                                        feature_list=NER_config.feature_answer)
+predict = db.get_ner_feature_dict(set_id=dev_set, feature_type=predict_type,
+                                        feature_list=NER_config.feature_answer)
+
+
+def add_difference(diff, key, ans, pred):
+    if key[0] not in diff:
+        diff[key[0]] = {}
+    diff[key[0]][key[1]] = (ans, pred)
+
+for doc_id in answers:
+    doc = session.query(Document).filter_by(doc_id=doc_id).first()
+    print(doc.stripped)
+    print('Слово, правильный ответ, предсказание')
+    diff = {}
+    for key in answers[doc_id]:
+        if predict[doc_id].get(key, None) != answers[doc_id][key]:
+            add_difference(diff, key, answers[doc_id][key], predict[doc_id].get(key, None))
+    for key in predict[doc_id]:
+        if answers[doc_id].get(key, None) is None:
+            add_difference(diff, key, None, predict[doc_id][key])
+    for elem in doc.morpho:
+        sent_i = elem.get('sentence_index', None)
+        if sent_i is not None and sent_i in diff:
+            if elem['word_index'] in diff[sent_i]:
+                print(elem['text'], diff[sent_i][elem['word_index']])
+
+
