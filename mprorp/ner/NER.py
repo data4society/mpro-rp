@@ -28,7 +28,7 @@ class Config(object):
     """
     classes = ['oc_class_person', 'name', 'oc_class_org', 'oc_class_loc']
     tag_types = [['B', 'I', 'S', 'E'], ['BS', 'IE'], ['BI', 'ES']]
-    learn_type = {'class': 2, 'tags': 2}
+    learn_type = {'class': 2, 'tags': 0}
 
     new_model = True
     embed_size = 50

@@ -686,7 +686,7 @@ def get_entity(dict_search, session=None):
 ########################################### NO USED
 
 # reading document plain text from db
-def get_doc(doc_id, session=None):
+def get_doc_text(doc_id, session=None):
     if session is None:
         session = Driver.db_session()
     return session.query(Document.stripped).filter(Document.doc_id == doc_id).one().stripped
@@ -727,10 +727,11 @@ def get_rubric_answer_doc(doc_id, rubric_id, session=None):
 
 
 # text of all documents in set
-def get_docs_text(set_id, session=None):
+def get_docs_text(set_id=None, docs_id=None, session=None):
     if session is None:
         session = Driver.db_session()
-    docs_id = session.query(TrainingSet).filter(TrainingSet.set_id == set_id).one().doc_ids
+    if docs_id is None:
+        docs_id = session.query(TrainingSet).filter(TrainingSet.set_id == set_id).one().doc_ids
     docs = session.query(Document.doc_id, Document.stripped, Document.morpho, Document.lemmas).filter(
         (DocumentRubric.doc_id.in_(docs_id))).all()
 

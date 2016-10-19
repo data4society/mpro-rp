@@ -630,7 +630,7 @@ def spot_doc_rubrics(doc, rubrics, session=None, commit_session=True, verbose=Fa
 
 # take 1 rubric and all doc from test_set
 # save in DB doc_id, rubric_id and YES or NO
-def spot_test_set_rubric(test_set_id, rubric_id):
+def spot_test_set_rubric(test_set_id, rubric_id, training_set_id=None):
     """spot rubrics for all documents from test_set"""
     # get lemmas
     docs = db.get_lemmas_freq(test_set_id)
@@ -644,7 +644,8 @@ def spot_test_set_rubric(test_set_id, rubric_id):
             docs_size[doc_id] += lemmas[lemma]
 
     # models for rubrics
-    training_set_id = db.get_set_id_by_rubric_id(rubric_id)
+    if training_set_id is None:
+        training_set_id = db.get_set_id_by_rubric_id(rubric_id)
     model = db.get_model(rubric_id, training_set_id)
     mif_number = model['features_num']
     idf_lemma_index = db.get_idf_lemma_index_by_set_id([training_set_id])[training_set_id]
@@ -677,25 +678,31 @@ def spot_test_set_rubric(test_set_id, rubric_id):
 
 
 # compute TP, FP, TN, FN, Precision, Recall and F-score on data from db
-def f1_score(model_id, test_set_id, rubric_id):
+def f1_score(model_id, test_set_id, rubric_id, protocol_file_name=""):
     """compute TP, FP, TN, FN, Precision, Recall and F-score on data from db"""
     result = {'true_positive': 0, 'false_positive': 0, 'true_negative': 0, 'false_negative': 0}
+    if protocol_file_name:
+        result_docs = {'true_positive': [], 'false_positive': [], 'true_negative': [], 'false_negative': []}
     # right answers
     answers = db.get_rubric_answers(test_set_id, rubric_id)
     # rubrication results
     rubrication_result = db.get_rubrication_result(model_id, test_set_id, rubric_id)
 
     for key in rubrication_result:
+        result_key = ''
         if rubrication_result[key] == answers[key]:
             if rubrication_result[key] == 1:
-                result['true_positive'] += 1
+                result_key = 'true_positive'
             else:
-                result['true_negative'] += 1
+                result_key = 'true_negative'
         else:
             if rubrication_result[key] == 1:
-                result['false_positive'] += 1
+                result_key = 'false_positive'
             else:
-                result['false_negative'] += 1
+                result_key = 'false_negative'
+        result[result_key] += 1
+        if protocol_file_name:
+            result_docs[result_key].append(key)
     if (result['true_positive'] + result['false_positive']) > 0:
         result['precision'] = result['true_positive'] / (result['true_positive'] + result['false_positive'])
     else:
@@ -708,7 +715,22 @@ def f1_score(model_id, test_set_id, rubric_id):
         result['f1'] = 2 * result['precision'] * result['recall'] / (result['precision'] + result['recall'])
     else:
         result['f1'] = 0
+    if protocol_file_name:
+        x = open(protocol_file_name, 'a', encoding='utf-8')
+        x.write('ТЕКСТЫ ДОКУМЕНТОВ РАСРПДЕЛЕННЫЕ ПО ВАРИАНТАМ ОТВЕТА РУБРИКАТОРА:' + '\n')
+        for result_key in result_docs:
+            x.write('==========================================================' + '\n')
+            x.write('==========================================================' + '\n')
+            x.write(result_key + '\n')
+            print_doc_texts_to_file(result_docs[result_key],x)
+        x.close()
     return result
+
+
+def print_doc_texts_to_file(doc_list, file):
+    for doc_id in doc_list:
+        file.write(db.get_doc_text(doc_id) + '\n')
+        file.write('-----------------------------------------------------' + '\n')
 
 
 def probabilities_score(model_id, test_set_id, rubric_id):

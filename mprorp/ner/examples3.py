@@ -104,7 +104,7 @@ filename_part = str(NER_config.learn_type['class']) + '_' + str(NER_config.learn
 filename_tf = home_dir + '/weights/ner_oc_' + filename_part + '.weights'
 filename_params = home_dir + '/weights/ner_oc_' + filename_part + '.params'
 
-# NER.NER_learning(filename_params, filename_tf, NER_config)
+NER.NER_learning(filename_params, filename_tf, NER_config)
 
 # 5. Prediction
 
