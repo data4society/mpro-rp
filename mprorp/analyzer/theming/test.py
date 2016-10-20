@@ -3,24 +3,33 @@ import csv
 from mprorp.db.dbDriver import *
 from mprorp.db.models import *
 from sqlalchemy.orm import load_only
+from mprorp.analyzer.theming.themer import THEME_THRESHOLD, WORD_GOOD_THRESHOLD, WORD_MIN_MENTIONS, MAX_THEME_PAUSE
 
 
 def get_estimate():
     experts = dict()
     systems = dict()
+    expert_themes = []
     with open('corpus/corpus.csv', 'r') as csvfile:
         spamreader = csv.reader(csvfile)
         for row in spamreader:
-            experts[row[0]] = row[3]
-    print(experts)
+            expert_theme = row[3]
+            experts[row[0]] = expert_theme
+            if expert_theme not in expert_themes:
+                expert_themes.append(expert_theme)
     keys = list(experts.keys())
-    print(keys)
+    print("Число экспертных сюжетов:",len(expert_themes))
+    themes = []
     session = db_session()
     docs = session.query(Document).options(load_only("doc_id","theme_id")).\
         filter(Document.doc_id.in_(keys)).\
         order_by(Document.created).all()
     for doc in docs:
-        systems[str(doc.doc_id)] = doc.theme_id
+        theme_id = str(doc.theme_id)
+        systems[str(doc.doc_id)] = theme_id
+        if theme_id not in themes:
+            themes.append(theme_id)
+    print("Число машинных сюжетов:",len(themes))
     tp = 0
     fp = 0
     fn = 0
@@ -40,6 +49,10 @@ def get_estimate():
                 else:
                     tn += 1
     print("Размер корпуса:",len(docs))
+    print("THEME_THRESHOLD:",THEME_THRESHOLD)
+    print("WORD_MIN_MENTIONS:",WORD_MIN_MENTIONS)
+    print("WORD_GOOD_THRESHOLD:",WORD_GOOD_THRESHOLD)
+    print("MAX_THEME_PAUSE:",MAX_THEME_PAUSE)
     print("TP:",tp)
     print("FP:",fp)
     print("FN:",fn)
