@@ -5,6 +5,7 @@ from sqlalchemy.orm import load_only
 import datetime
 
 import json
+import math
 
 from mprorp.analyzer.pymystem3_w import Mystem
 from sqlalchemy.orm.attributes import flag_modified
@@ -12,7 +13,7 @@ from sqlalchemy.orm.attributes import flag_modified
 WORD_MIN_MENTIONS = 30
 WORD_GOOD_THRESHOLD = 0.68
 MAX_THEME_PAUSE = 3*24*3600
-THEME_THRESHOLD = 0.3
+THEME_THRESHOLD = 0.2
 
 mystem = Mystem()
 
@@ -121,6 +122,201 @@ def check_middle():
     session.remove()
 
 
+def reg_theming_0(doc, session):
+    #now_time = datetime.datetime.now()
+    #print("AAA",session.query(Theme).count())
+    #print(doc.title)
+    #print(doc.lemmas)
+    themes = session.query(Theme) \
+        .filter(Theme.last_renew_time > datetime.datetime.fromtimestamp(doc.created.timestamp()-MAX_THEME_PAUSE)) \
+        .all()
+    #print(len(themes))
+    #print("BBB")
+    bad_words = session.query(ThemeWord.word).filter(ThemeWord.status == -1).all()
+    bad_words = [bad_word for (bad_word,) in bad_words]
+    #print(bad_words)
+    #print(bad_words[0])
+    #print(type(bad_words[0]))
+    #print(len(bad_words))
+    #mystem.start()
+    title_lemmas = mystem.lemmatize(doc.title)
+    #print(title_lemmas)
+    title_lemmas = [word for word in title_lemmas if len(word.strip()) > 2]
+    title_lemmas = [word for word in title_lemmas if word not in bad_words]
+    title_len = len(title_lemmas)
+    title_len_sqrt = math.sqrt(title_len)
+    #print(title_lemmas)
+    best_theme = 0
+    best_reit = 0
+    good_themes = []
+    good_themes_ids = []
+    for theme in themes:
+        reit = 0
+        theme_words = theme.words
+        #print(theme.title)
+        #print(theme_words)
+        for word in title_lemmas:
+            if word in theme_words:
+                reit += theme_words[word]/title_len_sqrt
+        #print(reit)
+        if reit >= THEME_THRESHOLD:
+            good_themes_ids.append(str(theme.theme_id))
+            good_themes.append(theme)
+            #print("GOOD")
+            if reit > best_reit:
+                best_reit = reit
+                best_theme = theme
+                #print("BEST")
+    docs_in_theme_num = 1
+    theme_words_arr = []
+    if len(good_themes) > 0:
+        best_theme_words = dict()
+        for theme in good_themes:
+            num = session.query(Document).filter_by(theme_id=theme.theme_id).count()
+            docs_in_theme_num += num
+            theme_words = theme.words
+            theme_words_arr.append(theme_words)
+            #print("!!!", theme_words)
+            for word in theme_words:
+                theme_words[word] *= num
+            if theme.theme_id != best_theme.theme_id:
+                session.delete(theme)
+                #("DELETE")
+        for theme_words in theme_words_arr:
+            for word in theme_words:
+                if word not in best_theme_words:
+                    best_theme_words[word] = 0
+                best_theme_words[word] += theme_words[word]/docs_in_theme_num
+        if len(good_themes) > 1:
+            good_themes_ids.remove(str(best_theme.theme_id))
+            for d in session.query(Document).filter(Document.theme_id.in_(good_themes_ids)).all():
+                d.theme = best_theme
+
+    else:
+        best_theme = Theme(words=dict())
+        session.add(best_theme)
+        best_theme_words = best_theme.words
+    #print(best_reit)
+    """
+    if best_reit < THEME_THRESHOLD:
+        best_theme = Theme(words=dict())
+        session.add(best_theme)
+        best_theme_words = best_theme.words
+    else:
+        print(best_theme.title)
+        docs_in_theme_num = session.query(Document).filter_by(theme_id=best_theme.theme_id).count()+1
+        best_theme_words = best_theme.words
+        for word in best_theme_words:
+            best_theme_words[word] = best_theme_words[word]*(docs_in_theme_num-1)/docs_in_theme_num
+    """
+    for word in title_lemmas:
+        if word not in best_theme_words:
+            best_theme_words[word] = 0
+        best_theme_words[word] += 1/(title_len_sqrt*docs_in_theme_num)
+    best_theme_words_sum = 0
+    for word in best_theme_words:
+        best_theme_words_sum += best_theme_words[word]*best_theme_words[word]
+    best_theme_words_sum = math.sqrt(best_theme_words_sum)
+    for word in best_theme_words:
+        best_theme_words[word] = best_theme_words[word]/best_theme_words_sum
+    best_theme.title = doc.title
+    best_theme.last_renew_time = doc.created
+    best_theme.words = best_theme_words
+    flag_modified(best_theme, "words")
+    doc.theme = best_theme
+    #print(best_theme.words)
+#   for theme in themes:
+
+    #mystem.close()
+    #exit()
+
+
+def reg_theming_1(doc, session):
+    #now_time = datetime.datetime.now()
+    print("AAA",session.query(Theme).count())
+    print(doc.title)
+    #print(doc.lemmas)
+    themes = session.query(Theme) \
+        .filter(Theme.last_renew_time > datetime.datetime.fromtimestamp(doc.created.timestamp()-MAX_THEME_PAUSE)) \
+        .all()
+    #print(len(themes))
+    #print("BBB")
+    bad_words = session.query(ThemeWord.word).filter(ThemeWord.status == -1).all()
+    bad_words = [bad_word for (bad_word,) in bad_words]
+    #print(bad_words)
+    #print(bad_words[0])
+    #print(type(bad_words[0]))
+    #print(len(bad_words))
+    #mystem.start()
+    title_lemmas = mystem.lemmatize(doc.title)
+    #print(title_lemmas)
+    title_lemmas = [word for word in title_lemmas if len(word.strip()) > 2]
+    title_lemmas = [word for word in title_lemmas if word not in bad_words]
+    title_len = len(title_lemmas)
+    title_len_sqrt = math.sqrt(title_len)
+    print(title_lemmas)
+    print(title_len_sqrt)
+    best_theme = 0
+    best_reit = 0
+    good_themes = []
+    good_themes_ids = []
+    for theme in themes:
+        theme_words_arr = theme.words
+        print(theme.title)
+        print(theme_words_arr)
+        for theme_words in theme_words_arr:
+            reit = 0
+            for word in title_lemmas:
+                if word in theme_words:
+                    reit += theme_words[word]/title_len_sqrt
+            print(reit)
+            if reit >= THEME_THRESHOLD:
+                good_themes_ids.append(str(theme.theme_id))
+                good_themes.append(theme)
+                print("GOOD")
+                if reit > best_reit:
+                    best_reit = reit
+                    best_theme = theme
+                    print("BEST")
+                break
+    docs_in_theme_num = 1
+    theme_words_arr = []
+    if len(good_themes) > 0:
+        for theme in good_themes:
+            num = session.query(Document).filter_by(theme_id=theme.theme_id).count()
+            docs_in_theme_num += num
+            theme_words = theme.words
+            theme_words_arr.extend(theme_words)
+            #print("!!!", theme_words)
+            if theme.theme_id != best_theme.theme_id:
+                session.delete(theme)
+                #("DELETE")
+        if len(good_themes) > 1:
+            good_themes_ids.remove(str(best_theme.theme_id))
+            for d in session.query(Document).filter(Document.theme_id.in_(good_themes_ids)).all():
+                d.theme = best_theme
+
+    else:
+        best_theme = Theme()
+        session.add(best_theme)
+    best_theme_words = dict()
+    #print(best_reit)
+    for word in title_lemmas:
+        best_theme_words[word] = 1/title_len_sqrt
+    theme_words_arr.append(best_theme_words)
+    best_theme.title = doc.title
+    best_theme.last_renew_time = doc.created
+    best_theme.words = theme_words_arr
+    flag_modified(best_theme, "words")
+    doc.theme = best_theme
+    print(best_theme.words)
+#   for theme in themes:
+
+    #mystem.close()
+    #exit()
+
+
+
 def reg_theming(doc, session):
     #now_time = datetime.datetime.now()
     print("AAA",session.query(Theme).count())
@@ -139,81 +335,67 @@ def reg_theming(doc, session):
     #print(len(bad_words))
     #mystem.start()
     title_lemmas = mystem.lemmatize(doc.title)
-    print(title_lemmas)
+    #print(title_lemmas)
     title_lemmas = [word for word in title_lemmas if len(word.strip()) > 2]
     title_lemmas = [word for word in title_lemmas if word not in bad_words]
+    title_len = len(title_lemmas)
+    title_len_sqrt = math.sqrt(title_len)
     print(title_lemmas)
+    print(title_len_sqrt)
     best_theme = 0
     best_reit = 0
     good_themes = []
     good_themes_ids = []
     for theme in themes:
-        reit = 0
-        theme_words = theme.words
+        theme_words_arr = theme.words
         print(theme.title)
-        print(theme_words)
-        for word in title_lemmas:
-            if word in theme_words:
-                reit += theme_words[word]
-        print(reit)
-        if reit >= THEME_THRESHOLD:
+        print(theme_words_arr)
+        reit_mid = 0
+        for theme_words in theme_words_arr:
+            reit = 0
+            for word in title_lemmas:
+                if word in theme_words:
+                    reit += theme_words[word]/title_len_sqrt
+            print(reit)
+            reit_mid += reit
+        reit_mid = reit_mid/len(theme_words_arr)
+        print(reit_mid)
+        if reit_mid >= THEME_THRESHOLD:
             good_themes_ids.append(str(theme.theme_id))
             good_themes.append(theme)
             print("GOOD")
-            if reit > best_reit:
-                best_reit = reit
+            if reit_mid > best_reit:
+                best_reit = reit_mid
                 best_theme = theme
                 print("BEST")
     docs_in_theme_num = 1
-    title_len = len(title_lemmas)
     theme_words_arr = []
     if len(good_themes) > 0:
-        best_theme_words = dict()
         for theme in good_themes:
             num = session.query(Document).filter_by(theme_id=theme.theme_id).count()
             docs_in_theme_num += num
             theme_words = theme.words
-            theme_words_arr.append(theme_words)
-            print("!!!", theme_words)
-            for word in theme_words:
-                theme_words[word] *= num
+            theme_words_arr.extend(theme_words)
+            #print("!!!", theme_words)
             if theme.theme_id != best_theme.theme_id:
                 session.delete(theme)
-                print("DELETE")
-        for theme_words in theme_words_arr:
-            for word in theme_words:
-                if word not in best_theme_words:
-                    best_theme_words[word] = 0
-                best_theme_words[word] += theme_words[word]/docs_in_theme_num
+                #("DELETE")
         if len(good_themes) > 1:
             good_themes_ids.remove(str(best_theme.theme_id))
             for d in session.query(Document).filter(Document.theme_id.in_(good_themes_ids)).all():
                 d.theme = best_theme
 
     else:
-        best_theme = Theme(words=dict())
+        best_theme = Theme()
         session.add(best_theme)
-        best_theme_words = best_theme.words
-    print(best_reit)
-    """
-    if best_reit < THEME_THRESHOLD:
-        best_theme = Theme(words=dict())
-        session.add(best_theme)
-        best_theme_words = best_theme.words
-    else:
-        print(best_theme.title)
-        docs_in_theme_num = session.query(Document).filter_by(theme_id=best_theme.theme_id).count()+1
-        best_theme_words = best_theme.words
-        for word in best_theme_words:
-            best_theme_words[word] = best_theme_words[word]*(docs_in_theme_num-1)/docs_in_theme_num
-    """
+    best_theme_words = dict()
+    #print(best_reit)
     for word in title_lemmas:
-        if word not in best_theme_words:
-            best_theme_words[word] = 0
-        best_theme_words[word] += 1/(title_len*docs_in_theme_num)
+        best_theme_words[word] = 1/title_len_sqrt
+    theme_words_arr.append(best_theme_words)
     best_theme.title = doc.title
     best_theme.last_renew_time = doc.created
-    best_theme.words = best_theme_words
+    best_theme.words = theme_words_arr
     flag_modified(best_theme, "words")
     doc.theme = best_theme
     print(best_theme.words)
@@ -221,6 +403,7 @@ def reg_theming(doc, session):
 
     #mystem.close()
     #exit()
+
 
 def print_by_themes():
     session = db_session()
@@ -250,7 +433,7 @@ if __name__ == "__main__":
     for doc_obj in docs:
         session = db_session()
         doc = session.query(Document).filter_by(doc_id=doc_obj.doc_id).first()
-        reg_theming(doc, session)
+        reg_theming_0(doc, session)
         session.commit()
         # print(doc.theme_id)
         session.remove()
