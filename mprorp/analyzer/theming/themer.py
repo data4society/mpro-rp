@@ -9,7 +9,7 @@ import math
 
 from mprorp.analyzer.pymystem3_w import Mystem
 from sqlalchemy.orm.attributes import flag_modified
-import pymorphy2
+#import pymorphy2
 
 WORD_MIN_MENTIONS = 30
 WORD_GOOD_THRESHOLD = 0.68
