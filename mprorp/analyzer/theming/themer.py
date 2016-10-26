@@ -9,6 +9,7 @@ import math
 
 from mprorp.analyzer.pymystem3_w import Mystem
 from sqlalchemy.orm.attributes import flag_modified
+import pymorphy2
 
 WORD_MIN_MENTIONS = 30
 WORD_GOOD_THRESHOLD = 0.68
@@ -418,47 +419,67 @@ def print_by_themes():
 
     session.remove()
 
-if __name__ == "__main__":
-    #check_middle()
-    #words_renew()
-    #print_by_themes()
-    #exit()
+
+def mass_themization():
     mystem.start()
     session = db_session()
-    docs = session.query(Document).options(load_only("doc_id")).\
-        join(Source, Source.source_id == Document.source_id).filter(Document.status==1001,Document.theme_id==None,Source.source_type_id=='1d6210b2-5ff3-401c-b0ba-892d43e0b741').\
+    docs = session.query(Document).options(load_only("doc_id")). \
+        join(Source, Source.source_id == Document.source_id).filter(Document.status == 1001, Document.theme_id == None,
+                                                                    Source.source_type_id == '1d6210b2-5ff3-401c-b0ba-892d43e0b741'). \
         order_by(Document.created).all()
     i = 0
     session.remove()
     for doc_obj in docs:
         session = db_session()
         doc = session.query(Document).filter_by(doc_id=doc_obj.doc_id).first()
+        # print(doc.lemmas)
+        # exit()
         reg_theming_0(doc, session)
         session.commit()
         # print(doc.theme_id)
         session.remove()
-        i+=1
+        i += 1
         print(i)
-        if i==350:
+        if i == 350:
             break
 
-    docs = session.query(Document).options(load_only("theme_id")).\
-        join(Source, Source.source_id == Document.source_id).filter(Document.status==1001,Source.source_type_id=='1d6210b2-5ff3-401c-b0ba-892d43e0b741').\
+    docs = session.query(Document).options(load_only("theme_id")). \
+        join(Source, Source.source_id == Document.source_id).filter(Document.status == 1001,
+                                                                    Source.source_type_id == '1d6210b2-5ff3-401c-b0ba-892d43e0b741'). \
         order_by(Document.created).all()
 
     print(len(docs))
     for doc_obj in docs:
         print(doc_obj.theme_id)
-    #exit()
+    # exit()
 
-    #print(docs)
-    #doc.status = new_status
-    #session.commit()
+    # print(docs)
+    # doc.status = new_status
+    # session.commit()
     mystem.close()
-    #router(doc.doc_id, new_status)
+    # router(doc.doc_id, new_status)
     # doc = session.query(Document).filter_by(doc_id="8c429c1a-54c6-4256-81ba-5db619032937").first()
-    #reg_theming(doc, session)
+    # reg_theming(doc, session)
     print_by_themes()
+
+
+if __name__ == "__main__":
+    #check_middle()
+    #words_renew()
+    #print_by_themes()
+    #exit()
+    """
+    morph = pymorphy2.MorphAnalyzer()
+    print(morph)
+    print(morph.parse("справедливо"))
+    print(morph.parse("российский")[0].normal_form)
+    print(morph.parse("конский")[0].normal_form)
+    print(morph.parse("правящий")[0].normal_form)
+    print(morph.parse("Александрам")[0].normal_form)
+    print(morph.parse("думающий")[0].normal_form)
+    exit()
+    """
+    mass_themization()
 
 """
 многопоточность тут явно может наносить определенный вред
