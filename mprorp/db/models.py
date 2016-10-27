@@ -487,6 +487,16 @@ class NERModel(Base):
     hyper_parameters = Column(JSONB())
     parameters = Column(JSONB())
 
+
+class IDF(Base):
+    __tablename__ = 'idfs'
+    # Word
+    word = Column(String(40), primary_key=True)
+    # Number of documents with this word
+    num = Column(Integer())
+    # IDF for this word
+    idf = Column(Float())
+
 ######################################## NO USED FIN
 
 

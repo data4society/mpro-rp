@@ -429,11 +429,13 @@ def mass_themization():
         order_by(Document.created).all()
     i = 0
     session.remove()
+    print("tut")
     for doc_obj in docs:
         session = db_session()
+        print("tut1")
         doc = session.query(Document).filter_by(doc_id=doc_obj.doc_id).first()
-        # print(doc.lemmas)
-        # exit()
+        #print(doc.lemmas)
+        #exit()
         reg_theming_0(doc, session)
         session.commit()
         # print(doc.theme_id)
@@ -463,11 +465,48 @@ def mass_themization():
     print_by_themes()
 
 
+def compute_idfs():
+    session = db_session()
+    docs = session.query(Document).options(load_only("doc_id")). \
+        join(Source, Source.source_id == Document.source_id).filter(Document.status == 1001,
+                                                                    Source.source_type_id == '1d6210b2-5ff3-401c-b0ba-892d43e0b741'). \
+        order_by(Document.created).all()
+    i = 0
+    session.remove()
+    words = dict()
+    docs_len = len(docs)
+    print("docs_num:", docs_len)
+    for doc_obj in docs:
+        session = db_session()
+        doc = session.query(Document).options(load_only("lemmas")).filter_by(doc_id=doc_obj.doc_id).first()
+        words_in_doc = dict()
+        for word in doc.lemmas:
+            words_in_doc[word] = 1
+        for word in words_in_doc:
+            if word not in words:
+                words[word] = 1
+            else:
+                words[word] += 1
+        session.remove()
+        i += 1
+        print(i)
+    session = db_session()
+    print("words num:",len(words))
+    for word in words:
+        num = words[num]
+        idf = IDF(word=word, num=num, idf=math.log(docs_len/num,2))
+        session.add(idf)
+    session.commit()
+    print("complete!")
+
+
 if __name__ == "__main__":
     #check_middle()
     #words_renew()
     #print_by_themes()
     #exit()
+    compute_idfs()
+    exit()
     """
     morph = pymorphy2.MorphAnalyzer()
     print(morph)
