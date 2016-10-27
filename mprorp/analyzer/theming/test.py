@@ -1,16 +1,16 @@
-import mprorp.crawler.readability.readability_kingwkb as kingwkb
 import csv
-from mprorp.db.dbDriver import *
+from mprorp.db.dbDriver import db_session
 from mprorp.db.models import *
 from sqlalchemy.orm import load_only
 from mprorp.analyzer.theming.themer import THEME_THRESHOLD, WORD_GOOD_THRESHOLD, WORD_MIN_MENTIONS, MAX_THEME_PAUSE
+import os
 
 
 def get_estimate():
     experts = dict()
     systems = dict()
     expert_themes = []
-    with open('corpus/corpus.csv', 'r') as csvfile:
+    with open(os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))+'/corpus/corpus.csv', 'r') as csvfile:
         spamreader = csv.reader(csvfile)
         for row in spamreader:
             expert_theme = row[3]
