@@ -490,10 +490,12 @@ def compute_idfs():
         session.remove()
         i += 1
         print(i)
+
     session = db_session()
     print("words num:",len(words))
+    docs_len += 1
     for word in words:
-        num = words[num]
+        num = words[word] + 1
         idf = IDF(word=word, num=num, idf=math.log(docs_len/num,2))
         session.add(idf)
     session.commit()
