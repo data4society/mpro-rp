@@ -6,6 +6,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import scoped_session
 from sqlalchemy.pool import NullPool
+from sqlalchemy.orm.attributes import flag_modified
 import sqlalchemy
 import sys
 from multiprocessing.util import register_after_fork
@@ -73,6 +74,41 @@ def update(obj):
 def delete(table_name, where_clause):
     """delete with query api"""
     engine.execute(sqlalchemy.delete(meta.tables[table_name]).where(where_clause))
+
+
+def variable_set(name, value, session = None):
+    from mprorp.db.models import Variable
+    has_session = True
+    if not session:
+        has_session = False
+        session = db_session()
+    var = session.query(Variable).filter(Variable.name == name).first()
+    if not var:
+        var = Variable(name=name, json=dict())
+        session.add(var)
+        var.json["value"] = value
+    flag_modified(var, "json")
+
+    if not has_session:
+        session.commit()
+        session.remove()
+
+
+def variable_get(name, value, session = None):
+    has_session = True
+    if not session:
+        has_session = False
+        session = db_session()
+    from mprorp.db.models import Variable
+    var = session.query(Variable).filter(Variable.name == name).first()
+    if var:
+        val = var.json["value"]
+        variable_set(name, value, session)
+    else:
+        val = value
+    if not has_session:
+        session.remove()
+    return val
 
 
 def dropall_and_create():

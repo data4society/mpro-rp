@@ -429,13 +429,11 @@ def mass_themization():
         order_by(Document.created).all()
     i = 0
     session.remove()
-    print("tut")
     for doc_obj in docs:
         session = db_session()
-        print("tut1")
         doc = session.query(Document).filter_by(doc_id=doc_obj.doc_id).first()
-        #print(doc.lemmas)
-        #exit()
+        get_main_words(doc.title, doc.lemmas, session)
+        exit()
         reg_theming_0(doc, session)
         session.commit()
         # print(doc.theme_id)
@@ -475,18 +473,33 @@ def compute_idfs():
     session.remove()
     words = dict()
     docs_len = len(docs)
-    print("docs_num:", docs_len)
+    # print("docs_num:", docs_len)
     for doc_obj in docs:
         session = db_session()
-        doc = session.query(Document).options(load_only("lemmas")).filter_by(doc_id=doc_obj.doc_id).first()
         words_in_doc = dict()
-        for word in doc.lemmas:
-            words_in_doc[word] = 1
+
+        doc = session.query(Document).options(load_only("morpho")).filter_by(doc_id=doc_obj.doc_id).first()
+        for obj in doc.morpho:
+            if 'analysis' in obj:
+                for analys in obj['analysis']:
+                    word = analys['lex']
+                    if word not in words_in_doc:
+                        words_in_doc[word] = list()
+                    words_in_doc[word].append(analys['wt'])
+        for word in words_in_doc:
+            p = 1
+            for pi in words_in_doc[word]:
+                p *= 1-pi
+            words_in_doc[word] = 1-p
+
+        #doc = session.query(Document).options(load_only("lemmas")).filter_by(doc_id=doc_obj.doc_id).first()
+        #for word in doc.lemmas:
+        #    words_in_doc[word] = 1
         for word in words_in_doc:
             if word not in words:
-                words[word] = 1
+                words[word] = words_in_doc[word]
             else:
-                words[word] += 1
+                words[word] += words_in_doc[word]
         session.remove()
         i += 1
         print(i)
@@ -495,20 +508,54 @@ def compute_idfs():
     print("words num:",len(words))
     docs_len += 1
     for word in words:
-        num = words[word] + 1
-        idf = IDF(word=word, num=num, idf=math.log(docs_len/num,2))
+        num = words[word]
+        idf = IDF(word=word, num=num  #, idf=math.log(docs_len/num,2)
+        )
         session.add(idf)
-    session.commit()
+        session.commit()
     print("complete!")
 
 
+def get_main_words(title, lemmas, session):
+    mains = dict()
+    words_len = len(lemmas)
+    docs_len = variable_get("idf_corpus_count",2500)
+    for word in lemmas:
+        if word in mains:
+            mains[word] += 1
+        else:
+            mains[word] = 1
+
+    #for word in mains:
+    #    mains[word] = mains[word]/words_len
+    print(mains.items())
+    print(type(mains.items()))
+    mains = {k: v/words_len for k, v in mains.items()}  #tf
+    words_list = list(mains.keys())
+    idf_objs = session.query(IDF).options(load_only("word","idf")).filter(IDF.word.in_(words_list)).all()
+    idf_dict = dict()
+    for idf_obj in idf_objs:
+        idf_dict[idf_obj.word] = idf_obj.idf
+
+    for word in mains:
+        if word in idf_dict:
+            mains[word] = mains[word]*idf_dict[word]
+        else:
+            mains[word] = math.log(docs_len+1,2)
+    print(sorted(mains.items()))
+    print(sorted(mains.items(), key=lambda tup: tup[1], reverse=True))
+    mains = {k: v for k, v in sorted(mains.items(), key=lambda tup: tup[1], reverse=True)[:5]}
+    print(mains)
+
+
 if __name__ == "__main__":
+    compute_idfs()
     #check_middle()
     #words_renew()
     #print_by_themes()
     #exit()
-    compute_idfs()
-    exit()
+    #compute_idfs()
+    #exit()
     """
     morph = pymorphy2.MorphAnalyzer()
     print(morph)

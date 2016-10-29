@@ -493,7 +493,7 @@ class IDF(Base):
     # Word
     word = Column(String(40), primary_key=True)
     # Number of documents with this word
-    num = Column(Integer())
+    num = Column(Float())
     # IDF for this word
     idf = Column(Float())
 
