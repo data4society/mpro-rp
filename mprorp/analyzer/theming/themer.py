@@ -512,7 +512,9 @@ def compute_idfs():
         idf = IDF(word=word, num=num  #, idf=math.log(docs_len/num,2)
         )
         session.add(idf)
-        session.commit()
+    variable_get("idf_corpus_count", docs_len, session)
+    session.commit()
+    session.remove()
     print("complete!")
 
 
