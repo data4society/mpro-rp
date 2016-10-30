@@ -2,7 +2,7 @@ import csv
 from mprorp.db.dbDriver import db_session
 from mprorp.db.models import *
 from sqlalchemy.orm import load_only
-from mprorp.analyzer.theming.themer import THEME_THRESHOLD, WORD_GOOD_THRESHOLD, WORD_MIN_MENTIONS, MAX_THEME_PAUSE
+from mprorp.analyzer.theming.themer import THEME_THRESHOLD, WORD_GOOD_THRESHOLD, WORD_MIN_MENTIONS, MAX_THEME_PAUSE, MAIN_WORDS_FROM_TEXT_LENGTH, THEMING_SOURCE, THEMING_GEOMETRIA
 import os
 
 
@@ -49,10 +49,13 @@ def get_estimate():
                 else:
                     tn += 1
     print("Размер корпуса:",len(docs))
+    print("THEMING_SOURCE:",THEMING_SOURCE)
+    print("THEMING_GEOMETRIA:",THEMING_GEOMETRIA)
     print("THEME_THRESHOLD:",THEME_THRESHOLD)
     print("WORD_MIN_MENTIONS:",WORD_MIN_MENTIONS)
     print("WORD_GOOD_THRESHOLD:",WORD_GOOD_THRESHOLD)
     print("MAX_THEME_PAUSE:",MAX_THEME_PAUSE)
+    print("MAIN_WORDS_FROM_TEXT_LENGTH:",MAIN_WORDS_FROM_TEXT_LENGTH)
     print("TP:",tp)
     print("FP:",fp)
     print("FN:",fn)

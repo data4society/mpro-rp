@@ -10,13 +10,16 @@ import math
 from mprorp.analyzer.pymystem3_w import Mystem
 from sqlalchemy.orm.attributes import flag_modified
 
-from mprorp.utils import dict_normalize, dict_scalar_multiply
+from mprorp.utils import *
 #import pymorphy2
 
 WORD_MIN_MENTIONS = 30
 WORD_GOOD_THRESHOLD = 0.68
 MAX_THEME_PAUSE = 3*24*3600
 THEME_THRESHOLD = 0.2
+MAIN_WORDS_FROM_TEXT_LENGTH = 10
+THEMING_SOURCE = "title"  # "morpho"
+THEMING_GEOMETRIA = "shar"
 
 mystem = Mystem()
 
@@ -125,7 +128,7 @@ def check_middle():
     session.remove()
 
 
-def reg_theming_0(doc, session):
+def reg_theming_shar(doc, doc_main_words_func, session):
     #now_time = datetime.datetime.now()
     #print("AAA",session.query(Theme).count())
     #print(doc.title)
@@ -133,34 +136,17 @@ def reg_theming_0(doc, session):
     themes = session.query(Theme) \
         .filter(Theme.last_renew_time > datetime.datetime.fromtimestamp(doc.created.timestamp()-MAX_THEME_PAUSE)) \
         .all()
-    #print(len(themes))
-    #print("BBB")
-    bad_words = session.query(ThemeWord.word).filter(ThemeWord.status == -1).all()
-    bad_words = [bad_word for (bad_word,) in bad_words]
-    #print(bad_words)
-    #print(bad_words[0])
-    #print(type(bad_words[0]))
-    #print(len(bad_words))
-    #mystem.start()
-    title_lemmas = mystem.lemmatize(doc.title)
-    #print(title_lemmas)
-    title_lemmas = [word for word in title_lemmas if len(word.strip()) > 2]
-    title_lemmas = [word for word in title_lemmas if word not in bad_words]
-    title_lemmas = {word: 1 for word in title_lemmas if word not in bad_words}
-    title_lemmas = dict_normalize(title_lemmas)
-    title_len = len(title_lemmas)
-    title_len_sqrt = math.sqrt(title_len)
-    #print(title_lemmas)
+
+    doc_main_words = doc_main_words_func(doc, session)
     best_theme = 0
     best_reit = 0
     good_themes = []
     good_themes_ids = []
     for theme in themes:
-        reit = 0
         theme_words = theme.words
         #print(theme.title)
         #print(theme_words)
-        reit = dict_scalar_multiply(title_lemmas, theme_words)
+        reit = dict_scalar_multiply(doc_main_words, theme_words)
         #print(reit)
         if reit >= THEME_THRESHOLD:
             good_themes_ids.append(str(theme.theme_id))
@@ -170,26 +156,16 @@ def reg_theming_0(doc, session):
                 best_reit = reit
                 best_theme = theme
                 #print("BEST")
-    docs_in_theme_num = 1
-    theme_words_arr = []
+
     if len(good_themes) > 0:
         best_theme_words = dict()
         for theme in good_themes:
             num = session.query(Document).filter_by(theme_id=theme.theme_id).count()
-            docs_in_theme_num += num
             theme_words = theme.words
-            theme_words_arr.append(theme_words)
-            #print("!!!", theme_words)
-            for word in theme_words:
-                theme_words[word] *= num
+            best_theme_words = dict_sum(best_theme_words, dict_multiply_to_scalar(theme_words, num))
             if theme.theme_id != best_theme.theme_id:
                 session.delete(theme)
                 #("DELETE")
-        for theme_words in theme_words_arr:
-            for word in theme_words:
-                if word not in best_theme_words:
-                    best_theme_words[word] = 0
-                best_theme_words[word] += theme_words[word]/docs_in_theme_num
         if len(good_themes) > 1:
             good_themes_ids.remove(str(best_theme.theme_id))
             for d in session.query(Document).filter(Document.theme_id.in_(good_themes_ids)).all():
@@ -212,16 +188,9 @@ def reg_theming_0(doc, session):
         for word in best_theme_words:
             best_theme_words[word] = best_theme_words[word]*(docs_in_theme_num-1)/docs_in_theme_num
     """
-    for word in title_lemmas:
-        if word not in best_theme_words:
-            best_theme_words[word] = 0
-        best_theme_words[word] += 1/(title_len_sqrt*docs_in_theme_num)
-    best_theme_words_sum = 0
-    for word in best_theme_words:
-        best_theme_words_sum += best_theme_words[word]*best_theme_words[word]
-    best_theme_words_sum = math.sqrt(best_theme_words_sum)
-    for word in best_theme_words:
-        best_theme_words[word] = best_theme_words[word]/best_theme_words_sum
+
+    best_theme_words = dict_sum(best_theme_words, doc_main_words)
+    best_theme_words = dict_normalize(best_theme_words)
     best_theme.title = doc.title
     best_theme.last_renew_time = doc.created
     best_theme.words = best_theme_words
@@ -431,12 +400,19 @@ def mass_themization():
         order_by(Document.created).all()
     i = 0
     session.remove()
+    if THEMING_GEOMETRIA == "shar":
+        func = reg_theming_shar
+    if THEMING_SOURCE == "title":
+        func_source = main_words_by_title
+    if THEMING_SOURCE == "morpho":
+        func_source = main_words_by_morpho
+
     for doc_obj in docs:
         session = db_session()
         doc = session.query(Document).filter_by(doc_id=doc_obj.doc_id).first()
         #get_main_words(doc.title, doc.morpho, session)
         #get_main_words(doc.title, doc.lemmas, session)
-        reg_theming_0(doc, session)
+        func(doc, func_source, session)
         session.commit()
         # print(doc.theme_id)
         session.remove()
@@ -559,9 +535,26 @@ def get_main_words(title, lemmas, session):
 """
 
 
-def get_main_words(title, morpho, session):
-    mains = dict()
+def main_words_by_title(doc, session):
+    bad_words = session.query(ThemeWord.word).filter(ThemeWord.status == -1).all()
+    bad_words = [bad_word for (bad_word,) in bad_words]
+    title_lemmas = mystem.lemmatize(doc.title)
+    #print(title_lemmas)
+    title_lemmas = [word for word in title_lemmas if len(word.strip()) > 2]
+    title_lemmas = [word for word in title_lemmas if word not in bad_words]
+    #title_lemmas1 = {word: 1 for word in title_lemmas if word not in bad_words}
+    title_lemmas1 = dict()
+    for word in title_lemmas:
+        if word in title_lemmas1:
+            title_lemmas1[word] += 1
+        else:
+            title_lemmas1[word] = 1
+    return dict_normalize(title_lemmas1)
 
+
+def main_words_by_morpho(doc, session):
+    mains = dict()
+    morpho = doc.morpho
     docs_len = variable_get("idf_corpus_count", session.query(Document).options(load_only("doc_id")). \
         join(Source, Source.source_id == Document.source_id).filter(Document.status == 1001,
                                                                     Source.source_type_id == '1d6210b2-5ff3-401c-b0ba-892d43e0b741').count())
@@ -611,10 +604,17 @@ def get_main_words(title, morpho, session):
         mains[word] *= idf
     #print(sorted(mains.items()))
     #print(sorted(mains.items(), key=lambda tup: tup[1], reverse=True))
-    mains = {k: v for k, v in sorted(mains.items(), key=lambda tup: tup[1], reverse=True)[:5]}
-    print(mains)
-    mains = dict_normalize(mains)
-    print(mains)
+    mains = {k: v for k, v in sorted(mains.items(), key=lambda tup: tup[1], reverse=True)[:MAIN_WORDS_FROM_TEXT_LENGTH]}
+    return dict_normalize(mains)
+
+
+def theme_clearing():
+    session = db_session()
+    session.execute('UPDATE documents SET theme_id = null WHERE theme_id IS NOT null')
+    session.commit()
+    session.execute('DELETE FROM themes')
+    session.commit()
+    session.remove()
 
 
 if __name__ == "__main__":
@@ -636,6 +636,7 @@ if __name__ == "__main__":
     print(morph.parse("думающий")[0].normal_form)
     exit()
     """
+    theme_clearing()
     mass_themization()
 
 """
