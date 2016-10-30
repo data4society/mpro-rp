@@ -473,11 +473,15 @@ def compute_idfs():
     session = db_session()
     print("words num:",len(words))
     docs_len += 1
+    print("Bad words:")
     for word in words:
         num = words[word]
-        idf = IDF(word=word, num=num  #, idf=math.log(docs_len/num,2)
-        )
-        session.add(idf)
+        if num > 0:
+            idf = IDF(word=word, num=num  #, idf=math.log(docs_len/num,2)
+            )
+            session.add(idf)
+        else:
+            print(word)
     variable_get("idf_corpus_count", docs_len, session)
     session.commit()
     session.remove()
@@ -568,13 +572,14 @@ def main_words_by_morpho(doc, session):
             for analys in obj['analysis']:
                 word = analys['lex']
                 pi = analys['wt']
-                if word not in words_probabilities:
-                    words_probabilities[word] = list()
-                words_probabilities[word].append(pi)
-                if word in mains:
-                    mains[word] += pi
-                else:
-                    mains[word] = pi
+                if pi > 0:
+                    if word not in words_probabilities:
+                        words_probabilities[word] = list()
+                    words_probabilities[word].append(pi)
+                    if word in mains:
+                        mains[word] += pi
+                    else:
+                        mains[word] = pi
     for word in words_probabilities:
         p = 1
         for pi in words_probabilities[word]:
