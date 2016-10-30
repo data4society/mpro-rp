@@ -18,7 +18,7 @@ WORD_GOOD_THRESHOLD = 0.68
 MAX_THEME_PAUSE = 3*24*3600
 THEME_THRESHOLD = 0.2
 MAIN_WORDS_FROM_TEXT_LENGTH = 10
-THEMING_SOURCE = "title"  # "morpho"
+THEMING_SOURCE = "morpho"  #""title"  # "morpho"
 THEMING_GEOMETRIA = "shar"
 
 mystem = Mystem()
