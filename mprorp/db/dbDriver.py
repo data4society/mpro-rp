@@ -94,7 +94,7 @@ def variable_set(name, value, session = None):
         session.remove()
 
 
-def variable_get(name, value, session = None):
+def variable_get(name, value=0, session=None):
     has_session = True
     if not session:
         has_session = False
@@ -103,10 +103,11 @@ def variable_get(name, value, session = None):
     var = session.query(Variable).filter(Variable.name == name).first()
     if var:
         val = var.json["value"]
-        variable_set(name, value, session)
     else:
         val = value
+        variable_set(name, value, session)
     if not has_session:
+        session.commit()
         session.remove()
     return val
 
