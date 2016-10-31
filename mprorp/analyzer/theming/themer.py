@@ -587,7 +587,7 @@ def main_words_by_morpho(doc, session):
 
     words_probabilities = dict()
     words_len = 0
-    print(morpho)
+    #print(morpho)
     for obj in morpho:
         if 'analysis' in obj:
             words_len += 1
