@@ -16,10 +16,11 @@ from mprorp.utils import *
 WORD_MIN_MENTIONS = 30
 WORD_GOOD_THRESHOLD = 0.68
 MAX_THEME_PAUSE = 3*24*3600
-THEME_THRESHOLD = 0.2
+THEME_THRESHOLD = 0.25
 MAIN_WORDS_FROM_TEXT_LENGTH = 10
-THEMING_SOURCE = "morpho"  #""title"  # "morpho"
+THEMING_SOURCE = "title_morpho"  #""title"  # "morpho"
 THEMING_GEOMETRIA = "shar"
+TITLE_PRIORITY = 1
 
 mystem = Mystem()
 
@@ -408,6 +409,8 @@ def mass_themization():
         func_source = main_words_by_morpho
     if THEMING_SOURCE == "lemmas":
         func_source = main_words_by_lemmas
+    if THEMING_SOURCE == "title_morpho":
+        func_source = main_words_by_title_and_morpho
 
     for doc_obj in docs:
         session = db_session()
@@ -552,6 +555,10 @@ def get_main_words(title, lemmas, session):
     mains = {k: v for k, v in sorted(mains.items(), key=lambda tup: tup[1], reverse=True)[:5]}
     print(mains)
 """
+def main_words_by_title_and_morpho(doc, session):
+    dict_title = main_words_by_title(doc, session)
+    dict_morpho = main_words_by_morpho(doc, session)
+    return dict_normalize(dict_sum(dict_multiply_to_scalar(dict_title, TITLE_PRIORITY),dict_morpho))
 
 
 def main_words_by_title(doc, session):

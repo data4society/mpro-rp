@@ -6,9 +6,9 @@ from mprorp.analyzer.theming.test import get_estimate
 
 if __name__ == '__main__':
     print("STARTING MASS THEMIZATION")
-    idfs_clearing()
-    compute_idfs(True)
-    exit()
+    #idfs_clearing()
+    #compute_idfs(True)
+    #exit()
     theme_clearing()
     mass_themization()
     get_estimate()
