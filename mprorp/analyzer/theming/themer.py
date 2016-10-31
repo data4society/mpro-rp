@@ -406,6 +406,8 @@ def mass_themization():
         func_source = main_words_by_title
     if THEMING_SOURCE == "morpho":
         func_source = main_words_by_morpho
+    if THEMING_SOURCE == "lemmas":
+        func_source = main_words_by_lemmas
 
     for doc_obj in docs:
         session = db_session()
@@ -441,7 +443,7 @@ def mass_themization():
     print_by_themes()
 
 
-def compute_idfs():
+def compute_idfs(probabilities=True):
     session = db_session()
     docs = session.query(Document).options(load_only("doc_id")). \
         join(Source, Source.source_id == Document.source_id).filter(Document.status == 1001,
@@ -456,7 +458,10 @@ def compute_idfs():
         session = db_session()
 
         doc = session.query(Document).options(load_only("morpho")).filter_by(doc_id=doc_obj.doc_id).first()
-        words_probabilities = get_words_probabilities(doc.morpho)
+        if probabilities:
+            words_probabilities = get_words_probabilities(doc.morpho)
+        else:
+            words_probabilities = get_words_ones(doc.morpho)
 
         #doc = session.query(Document).options(load_only("lemmas")).filter_by(doc_id=doc_obj.doc_id).first()
         #for word in doc.lemmas:
@@ -473,15 +478,11 @@ def compute_idfs():
     session = db_session()
     print("words num:",len(words))
     docs_len += 1
-    print("Bad words:")
     for word in words:
         num = words[word]
-        if num > 0:
-            idf = IDF(word=word, num=num  #, idf=math.log(docs_len/num,2)
-            )
-            session.add(idf)
-        else:
-            print(word)
+        idf = IDF(word=word, num=num  #, idf=math.log(docs_len/num,2)
+        )
+        session.add(idf)
     variable_get("idf_corpus_count", docs_len, session)
     session.commit()
     session.remove()
@@ -494,14 +495,28 @@ def get_words_probabilities(morpho):
         if 'analysis' in obj:
             for analys in obj['analysis']:
                 word = analys['lex']
-                if word not in words_probabilities:
-                    words_probabilities[word] = list()
-                words_probabilities[word].append(analys['wt'])
+                pi = analys['wt']
+                if pi > 0:
+                    if word not in words_probabilities:
+                        words_probabilities[word] = list()
+                    words_probabilities[word].append(pi)
     for word in words_probabilities:
         p = 1
         for pi in words_probabilities[word]:
             p *= 1 - pi
         words_probabilities[word] = 1 - p
+    return words_probabilities
+
+
+def get_words_ones(morpho):
+    words_probabilities = dict()
+    for obj in morpho:
+        if 'analysis' in obj:
+            for analys in obj['analysis']:
+                word = analys['lex']
+                pi = analys['wt']
+                if pi > 0:
+                    words_probabilities[word] = 1
     return words_probabilities
 
 
@@ -586,8 +601,6 @@ def main_words_by_morpho(doc, session):
             p *= 1 - pi
         words_probabilities[word] = 1 - p
 
-
-
     #for word in mains:
     #    mains[word] = mains[word]/words_len
     #print(mains)
@@ -613,11 +626,61 @@ def main_words_by_morpho(doc, session):
     return dict_normalize(mains)
 
 
+def main_words_by_lemmas(doc, session):
+    mains = dict()
+    morpho = doc.morpho
+    docs_len = variable_get("idf_corpus_count", session.query(Document).options(load_only("doc_id")). \
+        join(Source, Source.source_id == Document.source_id).filter(Document.status == 1001,
+                                                                    Source.source_type_id == '1d6210b2-5ff3-401c-b0ba-892d43e0b741').count())
+
+    words_probabilities = dict()
+    words_len = 0
+    # print(morpho)
+    for obj in morpho:
+        if 'analysis' in obj:
+            words_len += 1
+            for analys in obj['analysis']:
+                word = analys['lex']
+                pi = analys['wt']
+                if pi > 0:
+                    words_probabilities[word] = 1
+                    if word in mains:
+                        mains[word] += pi
+                    else:
+                        mains[word] = pi
+
+    mains = {k: v/words_len for k, v in mains.items()}  #tf
+    words_list = list(mains.keys())
+    idf_objs = session.query(IDF).options(load_only("word","num")).filter(IDF.word.in_(words_list)).all()
+    idf_dict = dict()
+    for idf_obj in idf_objs:
+        idf_dict[idf_obj.word] = idf_obj.num
+
+    for word in mains:
+        if word in idf_dict:
+            idf = math.log((docs_len+1)/(idf_dict[word]+words_probabilities[word]), 2)
+        else:
+            idf = math.log((docs_len+1)/words_probabilities[word], 2)
+        #print(word, idf)
+        mains[word] *= idf
+    #print(sorted(mains.items()))
+    #print(sorted(mains.items(), key=lambda tup: tup[1], reverse=True))
+    mains = {k: v for k, v in sorted(mains.items(), key=lambda tup: tup[1], reverse=True)[:MAIN_WORDS_FROM_TEXT_LENGTH]}
+    return dict_normalize(mains)
+
+
 def theme_clearing():
     session = db_session()
     session.execute('UPDATE documents SET theme_id = null WHERE theme_id IS NOT null')
     session.commit()
     session.execute('DELETE FROM themes')
+    session.commit()
+    session.remove()
+
+
+def idfs_clearing():
+    session = db_session()
+    session.execute('DELETE FROM idfs')
     session.commit()
     session.remove()
 
