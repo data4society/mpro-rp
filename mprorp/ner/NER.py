@@ -17,6 +17,7 @@ from mprorp.ner.feature import ner_feature_types
 import pickle as pickle
 from mprorp.utils import home_dir
 from mprorp.ner.saver import saver
+from gensim.models import word2vec
 
 
 class Config(object):
@@ -28,33 +29,48 @@ class Config(object):
     """
     classes = ['oc_class_person', 'name', 'oc_class_org', 'oc_class_loc']
     tag_types = [['B', 'I', 'S', 'E'], ['BS', 'IE'], ['BI', 'ES']]
-    learn_type = {'class': 2, 'tags': 0}
+    learn_type = {'class': 1, 'tags': 1}
 
     new_model = True
+
+    # embed_size = 1000
+    # hidden_size = 500 # 500
+    # l2_embed = 0.000002 # 0.00001
+    # l2_2lay = 0.00005 # 0.000325
+    # window_size = 11 # 11
+    # pre_embedding = True
+    # train_embedding = False
+
     embed_size = 50
-    batch_size = 64
+    hidden_size = 100 # 500
+    l2_embed = 0.0005 # 0.00001
+    l2_2lay = 0.00325 # 0.000325
+    window_size = 9 # 11
+    pre_embedding = False
+    train_embedding = True
+
+    batch_size = 64 # 128
     label_size = 5
-    hidden_size = 100
     max_epochs = 24
     early_stopping = 6
     dropout1 = 0.5
     dropout2 = 0.65
-    lr = 0.001
-    l2_embed = 0.001
-    l2_2lay = 0.00325
+    lr = 0.0003
     l2_feat = 0.00015
-    window_size = 7
     training_set = u'4fb42fd1-a0cf-4f39-9206-029255115d01'
     dev_set = u'f861ee9d-5973-460d-8f50-92fca9910345'
-    pre_embedding = False
-    pre_embedding_count = 6
+
+    embedding_for_word_count = 6
+    pre_embedding_from_file = '/home/vagrant/embeddings/news_win20.model.bin'
     embedding = 'first_test_embedding'
+    word_unkn = 'etiraz_UNKN'
+
     feature_answer = ['person_answer']
     # feature_answer = 'org_answer'
     # features = []
     # features = ['Org']
     # features = ['Org', 'Person', 'Loc', 'Date', 'Prof', 'morpho', 'Capital']
-    features = ['morpho', 'Capital']
+    features = ['morpho', 'Capital', 'Prof', 'Loc']
     print(features)
     features_length = 0
     for feat in features:
@@ -102,19 +118,33 @@ class NERModel(LanguageModel):
         #  train_set_words[doc_id] = [(sentence, word, [lemma1, lemma2]), ... (...)]
         train_set_words = db.get_ner_feature(set_id=training_set, feature='embedding')
 
+        dev_set = self.config.dev_set
+        #  dev_set_words[doc_id] = [(sentence, word, [lemma1, lemma2]), ... (...)]
+        dev_set_words = db.get_ner_feature(set_id=dev_set, feature='embedding')
+
         # collect words from set
 
         words_for_embedding = {}
         if Config.pre_embedding:
-            for doc_id in train_set_words:
-                doc_words = train_set_words[doc_id]
-                for element in doc_words:
-                    for word in element[2]:
-                        words_for_embedding[word] = ''
+            for set_words in [train_set_words, dev_set_words]:
+                for doc_id in set_words:
+                    doc_words = set_words[doc_id]
+                    for element in doc_words:
+                        for word in element[2]:
+                            words_for_embedding[word] = ''
+            words_for_embedding[self.config.word_unkn] = ''
             # if verbose:
             #     print(words_for_embedding)
 
-            wv_dict = db.get_multi_word_embedding(self.config.embedding, words_for_embedding.keys())
+            if self.config.pre_embedding_from_file == '':
+                wv_dict = db.get_multi_word_embedding(self.config.embedding, words_for_embedding.keys())
+            else:
+                model_w2v = word2vec.Word2Vec.load_word2vec_format(self.config.pre_embedding_from_file, binary=True)
+                wv_dict = {}
+                for word in words_for_embedding:
+                    if word in model_w2v.vocab:
+                        wv_dict[word] = model_w2v[word]
+                model_w2v = None
         else:
             words_count = {}
             for doc_id in train_set_words:
@@ -128,7 +158,7 @@ class NERModel(LanguageModel):
 
             wv_dict = {}
             for word in words_count:
-                if words_count[word] > Config.pre_embedding_count:
+                if words_count[word] > Config.embedding_for_word_count:
                     wv_dict[word] = ''
 
 
@@ -136,7 +166,13 @@ class NERModel(LanguageModel):
 
         # If word not in wv_dict (in embedding) we change it with 'UUUNKKK' = 0
         # We can append random array for such word
-        wv_array = [np.random.uniform(-0.1, 0.1, Config.embed_size)]
+        if not self.config.pre_embedding:
+            wv_array = [np.random.uniform(-0.1, 0.1, Config.embed_size)]
+        elif self.config.word_unkn in wv_dict:
+            wv_array = [wv_dict[self.config.word_unkn]]
+        else:
+            # pre_embedding, но нет вектора для редкого слова
+            wv_array = [np.random.uniform(-0.1, 0.1, Config.embed_size)]
 
         word_to_num = {'UUUNKKK': 0}
         count = 1
@@ -152,6 +188,8 @@ class NERModel(LanguageModel):
             print(word_to_num)
 
         self.wv = np.array(wv_array, dtype=np.float32)
+        # model_w2v = None
+
 
         if verbose:
             print(self.config.feature_answer)
@@ -169,7 +207,7 @@ class NERModel(LanguageModel):
                     tagnames.append(ans_tuple)
 
         print(tagnames)
-        if verbose:
+        if verbose and self.config.train_embedding:
             x = open('NER_' + str(training_set) + '_' + str(tagnames[1]) + '.py', 'a', encoding='utf-8')
             x.write('word_to_num = ' + str(word_to_num) + '\n')
             x.write('words_for_embedding = ' + str(words_for_embedding) + '\n')
@@ -191,9 +229,7 @@ class NERModel(LanguageModel):
                                                         features_set, features_size, self.config.features_length,
                                                         wsize=self.config.window_size)
 
-        dev_set = self.config.dev_set
-        #  train_set_words[doc_id] = [(sentence, word, [lemma1, lemma2]), ... (...)]
-        dev_set_words = db.get_ner_feature(set_id=dev_set, feature='embedding')
+        # dev_set
         answers = db.get_ner_feature_dict(set_id=dev_set, feature_type=self.config.feature_type,
                                           feature_list=self.config.feature_answer)
         features_set = {}
@@ -373,7 +409,7 @@ class NERModel(LanguageModel):
         with tf.device('/cpu:0'):
             ### YOUR CODE HERE
             if pre_embedding:
-                embedding = tf.Variable(self.wv, name='Embedding')
+                embedding = tf.Variable(self.wv, name='Embedding', trainable=self.config.train_embedding)
             else:
                 embedding = tf.get_variable('Embedding', [len(self.word_to_num), self.config.embed_size])
             # embedding = tf.Variable(self.wv, name='Embedding')
@@ -490,7 +526,7 @@ class NERModel(LanguageModel):
         self.config = params['config']
         # self.load_data(debug=False)
         if self.config.new_model:
-            self.load_data_db(debug=False, verbose=True)
+            self.load_data_db(debug=False, verbose=False)
 
         else:
             self.word_to_num = params['words']
@@ -597,6 +633,11 @@ def NER_learning(filename_params, filename_tf, config=None):
     """
     if config is None:
         config = Config()
+    if not config.train_embedding:
+        if not config.pre_embedding:
+            raise Exception('Not train embedding allowed for pre-embedding only')
+        elif config.pre_embedding_from_file == '':
+            raise Exception('Not train pre-embedding allowed only from file')
     with tf.Graph().as_default():
         model = NERModel({'config': config})
         output_file = open(filename_params, 'wb')
