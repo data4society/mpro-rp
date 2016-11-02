@@ -3,12 +3,17 @@ import mprorp.ner.feature as feature
 import mprorp.ner.morpho_to_vec as morpho_to_vec
 import numpy as np
 import logging as log
+import mprorp.ner.wiki_search as wiki_search
 
 settings = {'markup_type': '62',
             'consider_right_symbol': False,
             'entity_class': 'person',
             'put_markup_references': True,
             'put_documents': True}
+
+markup_types = {'oc_class_person': '62',
+                'oc_class_org': '51',
+                'oc_class_loc': '51'}
 
 
 def get_ref_from_morpho(reference, morpho, verbose=False):
@@ -18,7 +23,6 @@ def get_ref_from_morpho(reference, morpho, verbose=False):
     end_ref   = reference[1]
     sent_index = None
     span_chain = []
-
 
     for elem in morpho:
 
@@ -80,10 +84,17 @@ def get_ref_from_morpho(reference, morpho, verbose=False):
 def create_answers_feature_for_doc(doc, entity_class='oc_class_person', session=None, commit_session=True, verbose=False):
 
     # let find markup for entity_class
-    markup_id = db.get_markup_for_doc_and_class(doc_id=doc.doc_id, entity_class=entity_class, session=session)
+    main_entity_class = entity_class
+    ignore_no_ref_from_mention = False
+    if entity_class == 'name':
+        main_entity_class = 'oc_class_person'
+        ignore_no_ref_from_mention = True
+
+    markup_id = db.get_markup_for_doc_and_class(doc_id=doc.doc_id, entity_class=main_entity_class,
+                                                markup_type = markup_types[main_entity_class], session=session)
 
     if verbose:
-        print('markup_id: ', markup_id)
+        print('markup_id: ', markup_id, ' doc_id: ', doc.doc_id)
 
     references = db.get_references_for_doc(markup_id, session)
     morpho = doc.morpho
@@ -105,7 +116,11 @@ def create_answers_feature_for_doc(doc, entity_class='oc_class_person', session=
     for ref in references:
 
         ref_class = ref[2]
-        ref_id    = ref[3]
+        if entity_class == 'name':
+            if ref_class not in ['oc_span_first_name', 'oc_span_last_name', 'oc_span_middle_name',
+                                 'oc_span_foreign_name', 'oc_span_nickname']:
+                continue
+        ref_id = ref[3]
         # if verbose:
             # print(ref_id)
         span_chain, sent_index_ref = get_ref_from_morpho(ref, morpho, verbose=verbose)
@@ -113,12 +128,12 @@ def create_answers_feature_for_doc(doc, entity_class='oc_class_person', session=
             # print(span_chain)
         if len(span_chain) > 0:
             refs[ref_id] = (sent_index_ref, span_chain, ref_class)
-            if ref_class == 'oc_class_person':
-                if element['sentence_index'] not in sent_dict:
-                    sent_dict[element['sentence_index']] = {}
-
-                for word_index in span_chain:
-                    sent_dict[sent_index_ref][word_index] = ref_class
+            # if ref_class == 'oc_class_person':
+            #     if element['sentence_index'] not in sent_dict:
+            #         sent_dict[element['sentence_index']] = {}
+            #
+            #     for word_index in span_chain:
+            #         sent_dict[sent_index_ref][word_index] = ref_class
 
                 # word_list.append((element['sentence_index'], element['word_index']))
                 # word_list_all.append((element['sentence_index'], element['word_index']))
@@ -126,34 +141,45 @@ def create_answers_feature_for_doc(doc, entity_class='oc_class_person', session=
     # if verbose:
         # print('refs: ', refs)
     # Mentions
-    mentions = db.get_mentions(markup_id, entity_class, session)
+    mentions = db.get_mentions(markup_id, main_entity_class, session)
     sent_chains = {}
     for mention in mentions:
         sent_indexes = set()
+        # Соберем индексы предложений, которые затронуты mention
         for ref_id in mention[1]:
             ref = refs.get(str(ref_id), None)
             if ref is None:
-                print('Error: ref from mention not found')
-                print('    mention: ', mention[0])
-                print('    reference: ', str(ref_id))
-                print('    text: ')
-                print(doc.stripped)
-                print('    morpho: ')
-                print(doc.morpho)
-                raise Exception('Error: ref from mention not found')
-            sent_indexes |= {ref[0]}
-            if len(sent_indexes) > 1:
-                if verbose:
-                    print('Mystery: refs from mention have difference sentence indexes')
+                if ignore_no_ref_from_mention:
+                    continue
+                else:
+                    print('Error: ref from mention not found')
                     print('    mention: ', mention[0])
-                    print('    refs: ', list((str(r_id), refs[str(r_id)][0]) for r_id in mention[1]))
-                    print('    sent_index: ', sent_indexes)
+                    print('    reference: ', str(ref_id))
+                    print('    text: ')
+                    print(doc.stripped)
+                    print('    morpho: ')
+                    print(doc.morpho)
+                    raise Exception('Error: ref from mention not found')
+            sent_indexes |= {ref[0]}
+        # Если оказалось, затронуто более одного предложения - сообщим
+        if len(sent_indexes) > 1:
+            if verbose:
+                print('Mystery: refs from mention have difference sentence indexes')
+                print('    mention: ', mention[0])
+                # print('    refs: ', list((str(r_id), refs[str(r_id)][0]) for r_id in mention[1]))
+                print('    sent_index: ', sent_indexes)
+        # Отдельно по каждому предложению:
+        # Соберем все участвующие слова из предложения, отсортируем и разобьем на непрерывные цепочки
         for sent_index in sent_indexes:
             words = []
             for ref_id in mention[1]:
                 ref = refs.get(str(ref_id), None)
+                if ref is None:
+                    continue
                 if sent_index == ref[0]:
                     words.extend(ref[1])
+            if len(words) == 0:
+                continue
             words.sort()
             # if verbose:
             #     print(sent_index, words)
@@ -208,30 +234,6 @@ def create_answers_feature_for_doc(doc, entity_class='oc_class_person', session=
                 old_chain = chains[first_word]
         if len(old_chain) > 0:
             create_values(old_chain, sent_index, entity_class, values, verbose=verbose)
-
-    if entity_class == 'oc_class_person':
-        # create 'name_XX'
-
-        for sent_index in sent_dict:
-            # if verbose:
-            #     print(sent_index, sent_print[sent_index])
-
-            words = sent_dict[sent_index]
-            word_indexes = list(words.keys())
-            word_indexes.sort()
-            prev_name_index = -10
-            name_chain = []
-            for word_ind in word_indexes:
-                if words[word_ind] in ['oc_span_last_name', 'oc_span_first_name', 'oc_span_middle_name',
-                                       'oc_span_nickname', 'oc_span_foreign_name']:
-                    if prev_name_index > 0 and word_ind != prev_name_index + 1:
-                        create_values(name_chain, sent_index, "name", values, verbose)
-                        name_chain = []
-                    name_chain.append(word_ind)
-                    prev_name_index = word_ind
-
-            if len(name_chain) > 0:
-                create_values(name_chain, sent_index, "name", values, verbose)
 
     if len(values) > 0:
         db.put_ner_feature_dict(doc.doc_id, values, feature.ner_feature_types[entity_class + '_answers'],
@@ -317,30 +319,183 @@ def create_markup(doc, session=None, commit_session=True, verbose=False):
     form_entity_for_chain_spans(doc, list_chain_spans, spans_info, spans_morpho_info, session, commit_session)
 
 
+def create_markup_name(doc, session=None, commit_session=True, verbose=False):
+
+    feature_type = feature.ner_feature_types['name_predictions']
+
+    tag_type = ['BS', 'IE'] # ['B', 'I', 'S', 'E'], ['BI', 'ES']
+    learn_class = 'name'
+
+    features = [learn_class + '_' + i for i in tag_type]
+
+    # Получим свойства слов документа из БД
+    doc_properties = db.get_ner_feature_for_features(doc.doc_id, feature_type, features, session)
+    if verbose:
+        print('Свойства слов документа:', doc_properties)
+
+    # Сформируем информацию о словах документа (падеж, число, нормальная форма)
+    doc_properties_info = form_doc_properties_info(doc, doc_properties, session)
+    if verbose:
+        for_print = {}
+        for i in doc_properties_info:
+            for_print[i] = doc_properties_info[i].get('list_lex', [])
+        print('Подробно о словах документа:', doc_properties_info)
+        print('Информация о словах документа:', for_print)
+
+    mentions, labels, labels_from_text = form_mentions_BS_IE(doc_properties, doc_properties_info, learn_class)
+    if verbose:
+        print('Labels: ', labels)
+        print('Labels (text): ', labels_from_text)
+    # Сопоставим для всех пар упоминаний попарно все метки
+    # Для каждого упоминания получим, упоминания, в которые оно входит, с которыми оно совпадает (хоть по одной метке)
+    # При этом для каждого упоминания посчитаем, сколько упоминаний в него входят, сколько с ним совпадают
+    links = []
+    for i in range(len(mentions)):
+        links.append({'equal': [], 'subs': [], 'parent': []})
+    for i in range(len(mentions) - 1):
+        for j in range(i + 1, len(mentions)):
+            compare_labels(i, j, [labels[i], labels_from_text[i]], [labels[j], labels_from_text[j]], links[i], links[j])
+
+    # Ищем сущность в БД
+
+
+    # Сформируем список выявленных сущностей. Каждой сущности сопоставим номера ее упоминаний
+    # и список, связанных с ней меток, собранный из разных упоминаний
+    # 1. Для всех имеющихся упоминаний ищем соответствия в нашей базе данных
+    # Если в результате одно упоминание оказалось связано с одной сущностью, считаем, что сущность определена
+    # Если найдено несколько сущностей и упоминание не входит в другие упоминания - не будем его идентифицировать,
+    # если же входит в другие, то будем в соответствии с родителем.
+    # Если не найдено в нашей базе - ищем в викиданных.
+    # Если по какой-то метке найдена единственная сущность, считаем, что это правильный ответ
+    # и привязываем ее к данному упоминанию и ко всем дочерним, заносим в базу данных ее и все метки.
+    # Если по какой-то метке найдено несколько сущностей, значит метка не корректная, но не конкретная,
+    # типа Владимир, или Президент, можно попрбовать взять другие метки из найденных сущностей и
+    # поискать среди них другие метки из текста. Если это удастся, то можно объединить упоминания в тексте
+    # и привязать их к сущности, которая соответствует обоим упоминаниям
+
+
+    # Временный словарь для имитации поиска ссылки на сущность в БД по метке
+    db_labels = {'Путин': '12345-54321-123445-543232'}
+    # Найденные ссылки по номерам упоминаний
+    wiki_ids = []
+    for i in range(len(mentions)):
+        labels_set = set()
+        if len(links[i]['parent']) == 0 and (len(links[i]['equal']) == 0 or links[i]['equal'][0] > i):
+            labels_set.add(labels[i])
+            labels_set.add(labels_from_text[i])
+            for j in links[i]['equal']:
+                labels_set.add(labels[j])
+                labels_set.add(labels_from_text[j])
+
+        # Теперь поищем, что у нас есть по меткам из labels_set
+        db_id = db.get_entity_by_labels(list(labels_set))
+        if db_id is None:
+            # Ищем сущности в викиданных
+            found_ids = set()
+            for l in labels_set:
+                wiki_ids_l = wiki_search.find_human(l)
+                for elem in wiki_ids_l:
+                    found_ids.add(wiki_ids_l[0]['id'])
+        # Если нет в БД, то запишем туда, не важно, нашли кого-то в викиданных или нет
+
+
+        # if len(found_ids) == 1:
+        #     wiki_ids.append(found_ids[0])
+
+
+    if verbose:
+        print(links)
+        print(wiki_ids)
+
+    if False:
+        # Сформиреум спаны
+        spans = form_spans(doc_properties)
+        if verbose:
+            print('Спаны:', spans)
+
+        # Сформируем информацию о спанах (падеж, число, нормальная форма)
+        spans_info = form_spans_info(spans, doc_properties_info)
+        if verbose:
+            print('Информация о спанах:', spans_info)
+
+        # Сформируем символьную информацию о спанах
+        spans_morpho_info = form_spans_morpho_info(doc, spans)
+        if verbose:
+            print('Символьная информация о спанах', spans_morpho_info)
+
+        # Сформируем оценки связей спанов
+        evaluations, eval_dict = form_evaluations(spans, spans_info)
+        if verbose:
+            print('Оценки связей:', evaluations)
+
+        # Сформируем список цепочек спанов
+        list_chain_spans = form_list_chain_spans(spans, evaluations, eval_dict)
+        if verbose:
+            print('Цепочки спанов:', list_chain_spans)
+
+        # print(len(spans))
+        # print(sum([len(s) for s in list_chain_spans]))
+
+        # Запишем цепочки
+        form_entity_for_chain_spans(doc, list_chain_spans, spans_info, spans_morpho_info, session, commit_session)
+
+
+def compare_labels(i, j, labels_i, labels_j,  links_i, links_j):
+
+    for label_i in labels_i:
+        for label_j in labels_j:
+            if label_i == label_j:
+                links_i['equal'].append(j)
+                links_j['equal'].append(i)
+                return
+
+    for label_i in labels_i:
+        for label_j in labels_j:
+            if label_i.find(label_j) > 0:
+                links_i['subs'].append(j)
+                links_j['parent'].append(i)
+                return
+
+            if label_j.find(label_i) > 0:
+                links_j['subs'].append(i)
+                links_i['parent'].append(j)
+                return
+
+
 def create_markup_2(doc_id):
     db.doc_apply(doc_id, create_markup)
+
 
 def form_doc_properties_info(doc, doc_properties, session):
     # Формирует информацию о словах документа
 
-    doc_morpho = db.get_morpho(doc.doc_id, session)
+    doc_morpho = doc.morpho
 
     doc_properties_info = {}
+    doc_property_is_found = False
 
     for doc_property in doc_properties:
+        doc_property_is_found = False
 
         for element_doc_morpho in doc_morpho:
 
             sentence_index = element_doc_morpho.get('sentence_index', -1)
             word_index = element_doc_morpho.get('word_index', -1)
 
+            this_is_space = False
             if sentence_index == -1 or word_index == -1:
-                continue
+                this_is_space = True
 
-            if doc_property[0] == sentence_index and doc_property[1] == word_index:
-
+            if doc_property_is_found:
+                doc_properties_info[doc_property]['next_one_is_space'] = this_is_space
+                break
+            elif doc_property[0] == sentence_index and doc_property[1] == word_index:
+                doc_property_is_found = True
                 analysis = element_doc_morpho.get('analysis')
-                if analysis is not None:
+                if analysis is None:
+                    best_lex = element_doc_morpho.get('text', '')
+                    doc_properties_info[doc_property] = {'list_lex': [best_lex], 'best_lex': best_lex, 'text': best_lex}
+                else:
 
                     list_lex = []
                     best_lex = ''
@@ -373,9 +528,64 @@ def form_doc_properties_info(doc, doc_properties, session):
                     array_case /= len_vectors
                     array_numeric /= len_vectors
 
-                    doc_properties_info[doc_property] = {'list_lex': list_lex, 'best_lex': best_lex, 'case': array_case, 'numeric': array_numeric}
+                    text = element_doc_morpho.get('text', ' ')
+
+                    doc_properties_info[doc_property] = {'list_lex': list_lex, 'best_lex': best_lex,
+                                                         'case': array_case, 'numeric': array_numeric,
+                                                         'first_supper': text[0].isupper(),
+                                                         'all_supper': text.isupper(),
+                                                         'text': text}
 
     return doc_properties_info
+
+
+def form_mentions_BS_IE(doc_properties, doc_properties_info, learn_class):
+    mentions = []
+    labels = []
+    texts = []
+    mention = []
+    label = ''
+    last_sent = -1
+    last_word = -1
+    text = ''
+
+    for word in doc_properties:
+        word_label = get_label_from_prop_info(doc_properties_info[word])
+        text_label = doc_properties_info[word]['text'] + (' ' if doc_properties_info[word]['next_one_is_space'] else '')
+        if word[0] == last_sent and word[1] == last_word + 1 and word[2] == learn_class + '_IE':
+            mention.append(word)
+            label = label + word_label
+            text = text + text_label
+        else:
+            if len(mention) != 0:
+                mentions.append(mention)
+                labels.append(label.strip())
+                texts.append(text.strip())
+            mention = [word]
+            label = word_label
+            text = text_label
+        last_sent = word[0]
+        last_word = word[1]
+    if len(mention):
+        mentions.append(mention)
+        labels.append(label.strip())
+        texts.append(text.strip())
+    return mentions, labels, texts
+
+
+def get_label_from_prop_info(info):
+    first_supper = info.get('first_supper', False)
+    all_supper = info.get('all_supper', False)
+    label = info.get('best_lex', '')
+    if all_supper:
+        label = label.upper()
+    elif first_supper:
+        label = label.capitalize()
+    if info.get('next_one_is_space', False):
+        return label + ' '
+    else:
+        return label
+
 
 def form_spans(doc_properties):
     # Формирует спаны
@@ -396,6 +606,7 @@ def form_spans(doc_properties):
         spans.append(tuple(element_spans_list))
 
     return spans
+
 
 def form_spans_info(spans, doc_properties_info):
     # Формирует информацию о спанах

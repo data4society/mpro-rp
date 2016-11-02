@@ -7,8 +7,11 @@ import numpy as np
 import logging as log
 
 ner_feature_types = {'embedding': 1, 'gazetteer': 2, 'tomita': 3, 'morpho': 4, 'answer': 5, 'OpenCorpora': 6,
-                     'Capital': 7, 'oc_class_org_answers': 13, 'oc_class_loc_answers': 14,
-                     'oc_class_org_predictions': 23, 'oc_class_loc_predictions': 24}
+                     'Capital': 7,
+                     'name_answers': 11,            'name_predictions': 21,
+                     'oc_class_person_answers': 12, 'oc_class_person_predictions': 22,
+                     'oc_class_org_answers': 13,    'oc_class_org_predictions': 23,
+                     'oc_class_loc_answers': 14,    'oc_class_loc_predictions': 24}
 
 def part_of_speech(gr):
     gr = re.findall('^\w*', gr)

@@ -71,8 +71,10 @@ def get_stop_lemmas(training_set=""):
 
     return stop_lemmas
 
+
 def run_eliminate_once_found_lemma2(doc_id):
     return db.doc_apply(doc_id, run_eliminate_once_found_lemma)
+
 
 def run_eliminate_once_found_lemma(doc):
     return calculate_doc_lemmas(doc.stripped)
@@ -264,6 +266,9 @@ def morpho_doc(doc, verbose=False):
             start_offset += line_len
             start_offset2 += line_len
 
+    if start_offset2 != len(doc_text):
+        print('Error: different length: text - ', len(doc_text), ' last symbol in morpho: ', start_offset2)
+        print('    doc_id: ', doc.doc_id)
     doc.morpho = morpho_list
     mystem_analyzer.close()
 

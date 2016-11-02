@@ -15,10 +15,16 @@ set = [
     "f9a76f65-058e-4510-8d17-bd6595cd8404" # "Письмо Маши Пете"
     ]
 # set_id = db.put_training_set(set)
-doc_id = '2252a1a6-85c7-fa05-93ee-8c65accff3ed'
+doc_id = '77ea2e3a-6bce-9622-ca2a-69f2f7de52dc'
 session = rb.Driver.db_session()
 doc = session.query(Document).filter_by(doc_id=doc_id).first()
 doc_text = doc.stripped
+
+rb.mystem_analyzer.start()
+# new_morpho = mystem_analyzer.analyze(doc_text)
+new_morpho = rb.mystem_analyzer.analyze(doc_text)
+print(new_morpho)
+exit()
 # rb.mystem_analyzer.start()
 # new_morpho = mystem_analyzer.analyze(doc_text)
 print(doc_text)

@@ -97,6 +97,7 @@ def put_training_set(doc_id_array, session=None, commit_session=True):
         session = Driver.db_session()
     new_set = TrainingSet()
     new_set.doc_ids = doc_id_array
+    new_set.doc_num = len(doc_id_array)
     session.add(new_set)
     if commit_session:
         session.commit()
@@ -661,6 +662,27 @@ def put_entity(name, entity_class, data, session=None, commit_session=True):
         session.commit()
 
     return new_entity.entity_id
+
+
+def get_entity_by_labels(labels, session=None):
+
+    if session is None:
+        session = Driver.db_session()
+
+    res = session.query(Entity.entity_id)
+    conditions = None
+    for label in labels:
+        if conditions is None:
+            conditions = Entity.data['labels'].astext.like('%' + label + '%')
+        else:
+            conditions = conditions | Entity.data['labels'].astext.like('%' + label + '%')
+    res = res.filter(conditions)
+
+    try:
+        res = res.all()
+        return res[0][0]
+    except Exception:
+        return None
 
 
 def get_entity(dict_search, session=None):

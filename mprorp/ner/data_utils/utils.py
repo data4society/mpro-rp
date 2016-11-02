@@ -120,7 +120,7 @@ def max_key(mydict):
 
 
 def appendXY(words, words_text, words_feature, pad, zero_feature, doc_answers, sent_length, sent_index, tag_to_num,
-             feature_window_size, X_feature, X, y, W, indexes):
+             feature_window_size, X_feature, X, y, W, indexes, train_embedding=True):
     """Добавляет в начало предложения нулевое слово и нулевые векторы свойств"""
     """Объединяет векторы и слова в окна, модифицирует размерность, чтобы получить один вектор"""
     """Добавляет в X_feature - окно из words_feature в X - окна с номерами слов,"""
@@ -145,8 +145,8 @@ def appendXY(words, words_text, words_feature, pad, zero_feature, doc_answers, s
         indexes.append((sent_index, i - pad))
 
 
-def docs_to_windows2(train_set_words, word_to_num, tag_to_num, answers,
-                     feature_list, features_set, features_size, feature_length, wsize=3):
+def docs_to_windows2(train_set_words, word_to_num, tag_to_num, answers, feature_list,
+                     features_set, features_size, feature_length, wsize=3):
     pad = int((wsize - 1) / 2)
     X = []
     y = []
@@ -164,15 +164,16 @@ def docs_to_windows2(train_set_words, word_to_num, tag_to_num, answers,
         for word in train_set_words[doc_id]:  # word - (sentence_index, word_index, value)
             # print(word)
             if not (word[0] == sent_index):
-                if not (words is None):
-                    appendXY(words, words_text, words_feature, pad, zero_feature, answers.get(doc_id,{}), word_index + 1,
-                             sent_index, tag_to_num, wsize * feature_length, X_feature, X, y, W, indexes)
+                if not (words_text is None):
+                    appendXY(words, words_text, words_feature, pad, zero_feature, answers.get(doc_id,{}),
+                             word_index + 1, sent_index, tag_to_num, wsize * feature_length, X_feature, X, y, W,
+                             indexes)
                 words = [0 for i in range(pad)]
                 words_text = ['' for i in range(pad)]
                 words_feature = [zero_feature for i in range(pad)]
             sent_index = word[0]
             word_index = word[1]
-            words.append(word_to_num.get(max_key(word[2]),0))
+            words.append(word_to_num.get(max_key(word[2]), 0))
             words_text.append(max_key(word[2]))
             feature_word = []
             for feature in feature_list:
@@ -185,9 +186,10 @@ def docs_to_windows2(train_set_words, word_to_num, tag_to_num, answers,
                         new_feat = [0 for i in range(features_size[feature])]
                 feature_word.extend(new_feat)
             words_feature.append(feature_word)
-        if not (words is None):
-            appendXY(words, words_text, words_feature, pad, zero_feature, answers.get(doc_id, {}), word_index + 1,
-                     sent_index, tag_to_num, wsize * feature_length, X_feature, X, y, W, indexes)
+        if not (words_text is None):
+            appendXY(words, words_text, words_feature, pad, zero_feature, answers.get(doc_id, {}),
+                     word_index + 1, sent_index, tag_to_num, wsize * feature_length, X_feature, X, y, W,
+                     indexes)
     return array(X_feature), array(X), array(y), array(W), array(indexes)
 
 
