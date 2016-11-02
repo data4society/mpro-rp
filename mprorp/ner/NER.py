@@ -41,13 +41,13 @@ class Config(object):
     # pre_embedding = True
     # train_embedding = False
 
-    embed_size = 50
-    hidden_size = 100 # 500
-    l2_embed = 0.0005 # 0.00001
-    l2_2lay = 0.00325 # 0.000325
+    embed_size = 1000
+    hidden_size = 500
+    l2_embed = 0.000005 # 0.00001
+    l2_2lay = 0.0000325 # 0.000325
     window_size = 9 # 11
-    pre_embedding = False
-    train_embedding = True
+    pre_embedding = True
+    train_embedding = False
 
     batch_size = 64 # 128
     label_size = 5
@@ -61,7 +61,7 @@ class Config(object):
     dev_set = u'f861ee9d-5973-460d-8f50-92fca9910345'
 
     embedding_for_word_count = 6
-    pre_embedding_from_file = '/home/vagrant/embeddings/news_win20.model.bin'
+    pre_embedding_from_file = home_dir + '/embeddings/news_win20.model.bin'
     embedding = 'first_test_embedding'
     word_unkn = 'etiraz_UNKN'
 
