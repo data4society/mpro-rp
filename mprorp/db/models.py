@@ -75,6 +75,10 @@ class User(Base):
     login_key = Column(String(40), unique=True)
     # encrypted password
     password = Column(String(255))
+    # access to the system
+    access = Column(Boolean(), server_default="False")
+    # super access to the system
+    super = Column(Boolean(), server_default="False")
 
 
 class Document(Base):
@@ -160,7 +164,9 @@ class Record(Base):
     training = Column(Boolean())
     # document rubrics
     rubrics = Column(ARRAY(UUIDType(binary=False), ForeignKey('rubrics.rubric_id')))
-    # refrence to source document table record
+    # document entities
+    entities = Column(ARRAY(UUIDType(binary=False), ForeignKey('entities.entity_id')))
+    # reference to source document table record
     source = Column(UUIDType(binary=False), ForeignKey('documents.doc_id'))
     # substce document
     content = Column(JSONB())
@@ -480,6 +486,16 @@ class NERModel(Base):
     morpho_features = Column(ARRAY(String(40)))
     hyper_parameters = Column(JSONB())
     parameters = Column(JSONB())
+
+
+class IDF(Base):
+    __tablename__ = 'idfs'
+    # Word
+    word = Column(String(40), primary_key=True)
+    # Number of documents with this word
+    num = Column(Float())
+    # IDF for this word
+    idf = Column(Float())
 
 ######################################## NO USED FIN
 
