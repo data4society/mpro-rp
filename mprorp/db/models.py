@@ -497,6 +497,22 @@ class IDF(Base):
     # IDF for this word
     idf = Column(Float())
 
+
+class KLADR(Base):
+    __tablename__ = 'kladrs'
+    # id in KLADR
+    kladr_id = Column(String(20), primary_key=True)
+    # title of geoobject
+    name = Column(String(40))
+    # title in lemmas
+    name_lemmas = Column(JSONB())
+    # KLADR level
+    level = Column(Integer)
+    # type of geoobject
+    type = Column(String(40))
+
+
+
 ######################################## NO USED FIN
 
 
