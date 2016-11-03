@@ -187,7 +187,7 @@ def identification():
 
 
 def script_exec():
-    learning()
-
+    # learning()
+    identification()
 
 script_exec()

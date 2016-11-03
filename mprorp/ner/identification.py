@@ -4,6 +4,7 @@ import mprorp.ner.morpho_to_vec as morpho_to_vec
 import numpy as np
 import logging as log
 import mprorp.ner.wiki_search as wiki_search
+from functools import reduce
 
 settings = {'markup_type': '62',
             'consider_right_symbol': False,
@@ -344,11 +345,11 @@ def create_markup_name(doc, session=None, commit_session=True, verbose=False):
 
     mentions, labels, labels_from_text = form_mentions_BS_IE(doc_properties, doc_properties_info, learn_class)
     if verbose:
+        print('mentions: ', mentions)
         print('Labels: ', labels)
         print('Labels (text): ', labels_from_text)
     # Сопоставим для всех пар упоминаний попарно все метки
     # Для каждого упоминания получим, упоминания, в которые оно входит, с которыми оно совпадает (хоть по одной метке)
-    # При этом для каждого упоминания посчитаем, сколько упоминаний в него входят, сколько с ним совпадают
     links = []
     for i in range(len(mentions)):
         links.append({'equal': [], 'subs': [], 'parent': []})
@@ -356,88 +357,144 @@ def create_markup_name(doc, session=None, commit_session=True, verbose=False):
         for j in range(i + 1, len(mentions)):
             compare_labels(i, j, [labels[i], labels_from_text[i]], [labels[j], labels_from_text[j]], links[i], links[j])
 
-    # Ищем сущность в БД
-
-
-    # Сформируем список выявленных сущностей. Каждой сущности сопоставим номера ее упоминаний
-    # и список, связанных с ней меток, собранный из разных упоминаний
-    # 1. Для всех имеющихся упоминаний ищем соответствия в нашей базе данных
-    # Если в результате одно упоминание оказалось связано с одной сущностью, считаем, что сущность определена
-    # Если найдено несколько сущностей и упоминание не входит в другие упоминания - не будем его идентифицировать,
-    # если же входит в другие, то будем в соответствии с родителем.
-    # Если не найдено в нашей базе - ищем в викиданных.
-    # Если по какой-то метке найдена единственная сущность, считаем, что это правильный ответ
-    # и привязываем ее к данному упоминанию и ко всем дочерним, заносим в базу данных ее и все метки.
-    # Если по какой-то метке найдено несколько сущностей, значит метка не корректная, но не конкретная,
-    # типа Владимир, или Президент, можно попрбовать взять другие метки из найденных сущностей и
-    # поискать среди них другие метки из текста. Если это удастся, то можно объединить упоминания в тексте
-    # и привязать их к сущности, которая соответствует обоим упоминаниям
-
-
-    # Временный словарь для имитации поиска ссылки на сущность в БД по метке
-    db_labels = {'Путин': '12345-54321-123445-543232'}
-    # Найденные ссылки по номерам упоминаний
-    wiki_ids = []
-    for i in range(len(mentions)):
-        labels_set = set()
-        if len(links[i]['parent']) == 0 and (len(links[i]['equal']) == 0 or links[i]['equal'][0] > i):
-            labels_set.add(labels[i])
-            labels_set.add(labels_from_text[i])
-            for j in links[i]['equal']:
-                labels_set.add(labels[j])
-                labels_set.add(labels_from_text[j])
-
-        # Теперь поищем, что у нас есть по меткам из labels_set
-        db_id = db.get_entity_by_labels(list(labels_set))
-        if db_id is None:
-            # Ищем сущности в викиданных
-            found_ids = set()
-            for l in labels_set:
-                wiki_ids_l = wiki_search.find_human(l)
-                for elem in wiki_ids_l:
-                    found_ids.add(wiki_ids_l[0]['id'])
-        # Если нет в БД, то запишем туда, не важно, нашли кого-то в викиданных или нет
-
-
-        # if len(found_ids) == 1:
-        #     wiki_ids.append(found_ids[0])
-
-
+    # В Links:
+    # 'equal' - список упоминания, коорые совпали с данным упоминанием хоть по одной метке
+    # 'subs' - список дочерних упоминаний
+    # 'parent' - список родительских упоминаний
+    # Теоретически могло получиться так, что одно упоминание не имеет родителей, но другое, равное ему - имеет.
+    # Плюс отношение равенства ('equal') могло не оказаться онтношением эквивалентности.
+    # Исправим все это1
+    local_entities, subclasses, main_class = normalize_links(links)
     if verbose:
-        print(links)
-        print(wiki_ids)
+        print(local_entities)
+    # Здесь local_entities - лист вида [[1,2], [3,6], [4], [5]].
+    # Его элементы - это сущности = списки с номерами упоминаний этих сущностей.
+    # subclasses - лист содержащий для каждой сущности из local_entities множество дочерних сущностей
+    # main_class - булев лист. True означает, что соответствующая сущность не является дочерней для какой-либо другой
 
-    if False:
-        # Сформиреум спаны
-        spans = form_spans(doc_properties)
-        if verbose:
-            print('Спаны:', spans)
+    # Соберем все метки по главным классам и найдем классы в нашей базе,
+    # либо найдем их в викиданных и создадим соответствующие классы в нашей базе
+    # То, что не нашлось ни у нас, ни в викиданных - обработаем ниже
+    mentions_id = [None for i in range(len(local_entities))]
 
-        # Сформируем информацию о спанах (падеж, число, нормальная форма)
-        spans_info = form_spans_info(spans, doc_properties_info)
-        if verbose:
-            print('Информация о спанах:', spans_info)
+    labels_lists = [None for i in range(len(local_entities))]
+    for i in range(len(local_entities)):
 
-        # Сформируем символьную информацию о спанах
-        spans_morpho_info = form_spans_morpho_info(doc, spans)
-        if verbose:
-            print('Символьная информация о спанах', spans_morpho_info)
+        if main_class[i]:
+            labels_lists[i] = list(reduce(lambda a,x: a|x, [set([labels[j], labels_from_text[j]]) for j in local_entities[i]]))
+            # Теперь поищем, что у нас есть по меткам из labels_set
+            db_id = db.get_entity_by_labels(list(labels_lists[i]))
+            if db_id is None:
+                # Ищем сущности в викиданных
+                found_ids = set()
+                for l in labels_lists[i]:
+                    wiki_ids_l = wiki_search.find_human(l)
+                    for elem in wiki_ids_l:
+                        found_ids.add(wiki_ids_l[0]['id'])
+                if len(found_ids) > 0:
+                    data = {'labels': labels_lists[i], 'wiki_ids': list(found_ids)}
+                    db_id = db.put_entity(labels_from_text[i], 'person', data, session, commit_session)
+            if db_id is not None:
+                mentions_id[i] = db_id
+    if verbose:
+        print('mentions_id 1:', mentions_id)
+    # Те классы, которые не удалось идентифицировать проверим следующим образом:
+    # Кажлый токен каждого упоминания, длины больше 1 (чтобы исключить дефисы) проверим на вхождение в другие классы
+    # Если окажется, что токены одного упоминания входят в разные классы, то, нужно разбивать упоминание на несколько и
+    # формировать заменять соответствующий классы на подклассы.
+    # В результате мы дополним mentions новыми упоминаниями, а некоторые старые заменим (обрежем),
+    # также мы пополним новыми классами local_entities и новыми отношениями subclasses, т.к. вновь образованные классы
+    # по пстроению окажутся подклассами других классов. Также мы выключим для обрезанных (ставших подклассами) классов
+    # флаги в main_class
+    #
+    # ...
+    # сделаем это потом.
+    # ...
+    # будем считать, что все это уже проделано. После этого те классы, которые все же остались в main_class,
+    # но еще не имеют mentions_id, нужно занести в БД. Новых main_class еще не появилось,
+    # значит можно воспользоваться посчитанным ранее labels_lists[i]
+    for i in range(len(main_class)):
+        if main_class[i] and mentions_id[i] is None:
+            data = {'labels': labels_lists[i]}
+            mentions_id[i] = db.put_entity(labels_from_text[i], 'person', data, session, commit_session)
 
-        # Сформируем оценки связей спанов
-        evaluations, eval_dict = form_evaluations(spans, spans_info)
-        if verbose:
-            print('Оценки связей:', evaluations)
+    # Выберем те классы, которые являются подклассом ровно одного класса.
+    # Для этого соберем родителей каждого класса
+    parents = [[] for i in range(len(local_entities))]
+    for i in range(len(subclasses)):
+        for j in subclasses[i]:
+            parents[j].append(i)
+    # В тех случаях, когда родитель у класса один, распространим на него id сущности родительского класса
+    for i in range(len(parents)):
+        if len(parents[i]) == 1:
+            mentions_id[i] = mentions_id[j]
+    if verbose:
+        print('mentions_id 2:', mentions_id)
 
-        # Сформируем список цепочек спанов
-        list_chain_spans = form_list_chain_spans(spans, evaluations, eval_dict)
-        if verbose:
-            print('Цепочки спанов:', list_chain_spans)
+    # Классы, которые остались без сущностей - это подклассы двух и более классов.
+    # Забудем пока про них, а позже можно будет их отнести к одному из классов
+    # по признаку близости расположения в локументе
 
-        # print(len(spans))
-        # print(sum([len(s) for s in list_chain_spans]))
+    # Теперь осталось записать в базу данных markup'ы с найденными и созданными сущностями
+    # для этого по каждому упоминанию сформируем символьные координаты
+    refs = []
+    for i in range(len(mentions_id)):
+        if mentions_id[i] is not None:
+            start_offset = doc_properties_info[mentions[i][0]]['start_offset']
+            end_offset = doc_properties_info[mentions[i][len(mentions[i]) - 1]]['end_offset']
+            refs.append({'start_offset': start_offset, 'end_offset': end_offset + 1,
+                         'len_offset': end_offset - start_offset + 1,
+                         'entity': str(mentions_id[i]), 'entity_class': 'person'})
+    if verbose:
+        print(refs)
+    name = 'markup from NER name'
+    # db.put_markup(doc, name, ['person'], '20', refs, session=session, commit_session=commit_session)
 
-        # Запишем цепочки
-        form_entity_for_chain_spans(doc, list_chain_spans, spans_info, spans_morpho_info, session, commit_session)
+
+def normalize_links(links):
+    all_equal = set()
+    local_entities = []
+    for i in range(len(links)):
+        if i not in all_equal:
+            # Новый класс эквивалентности
+            equal = set([i])
+            add_equal(links, i, equal)
+            local_entities.append(equal)
+            all_equal |= equal
+    # Теперь соберем для каждого класса все его подчиненные упоминания, всех уровней
+    num_classes = len(local_entities)
+    subclasses = [set() for i in range(num_classes)]
+    # Для каждой пары классов установим, является ли один из них подклассом другого по какой-либо паре упоминаний
+    for class_1 in range(num_classes - 1):
+        for class_2 in range(class_1 + 1, num_classes):
+            if reduce(lambda a, x: a or x, [i in links[j]['subs']
+                                    for i in local_entities[class_1] for j in local_entities[class_2]]):
+                subclasses[class_2].add(class_1)
+            elif reduce(lambda a, x: a or x, [i in links[j]['subs']
+                                    for i in local_entities[class_2] for j in local_entities[class_1]]):
+                subclasses[class_1].add(class_2)
+
+    # Выберем те классы, которые  не являются подклассами какого-либо другого класса
+    main_class = [not reduce(lambda a, x: a or x, [((i in subclasses[j]) and (i != j)) for j in range(num_classes)])
+                  for i in range(num_classes)]
+    # Перенесем все подклассы подклассов в подклассы
+    for i in range(num_classes):
+            for j in subclasses[i]:
+                subclasses[i] |= subclasses[j]
+    # Только теперь очистим подклассы неглавных классов. Сразу нельзя было,
+    # т.к. класс может быть подклассом в нескольких классах верхнего уровня
+    # Перенесем все подклассы в родительские классы верхнего уровня
+    for i in range(num_classes):
+        if not main_class[i]:
+            subclasses[i] = set()
+
+    return local_entities, subclasses, main_class
+
+
+def add_equal(links, i, equal):
+    for j in links[i]['equal']:
+        equal.add(j)
+        add_equal(links, j, equal)
 
 
 def compare_labels(i, j, labels_i, labels_j,  links_i, links_j):
@@ -472,7 +529,6 @@ def form_doc_properties_info(doc, doc_properties, session):
     doc_morpho = doc.morpho
 
     doc_properties_info = {}
-    doc_property_is_found = False
 
     for doc_property in doc_properties:
         doc_property_is_found = False
@@ -534,6 +590,8 @@ def form_doc_properties_info(doc, doc_properties, session):
                                                          'case': array_case, 'numeric': array_numeric,
                                                          'first_supper': text[0].isupper(),
                                                          'all_supper': text.isupper(),
+                                                         'start_offset': element_doc_morpho['start_offset'],
+                                                         'end_offset': element_doc_morpho['end_offset'],
                                                          'text': text}
 
     return doc_properties_info

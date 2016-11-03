@@ -661,7 +661,7 @@ def put_entity(name, entity_class, data, session=None, commit_session=True):
     if commit_session:
         session.commit()
 
-    return new_entity.entity_id
+    return str(new_entity.entity_id)
 
 
 def get_entity_by_labels(labels, session=None):
