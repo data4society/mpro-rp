@@ -122,7 +122,7 @@ def upd_kladr():
     mystem = Mystem()
     mystem.start()
     session = db_session()
-    kladrs = session.query(KLADR).options(load_only("name")).limit(100).all()
+    kladrs = session.query(KLADR).options(load_only("name")).all()
     n = 0
     for kladr in kladrs:
         name = kladr.name
@@ -146,6 +146,9 @@ def upd_kladr():
 
 
 if __name__ == '__main__':
-    #upd_kladr()
+    upd_kladr()
     #import_kladr()
-    import_ovds()
+    #session = db_session()
+    #ovds = session.query(Entity).filter(Entity.data.has_key("org_type")).count()
+    #print(ovds)
+    #import_ovds()
