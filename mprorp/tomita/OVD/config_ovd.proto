@@ -1,0 +1,21 @@
+encoding "utf8";
+
+TTextMinerConfig {
+  Dictionary = "dic_ovd.gzt";       
+  PrettyOutput = "debug.html";  
+  Input = {
+    File = "text.txt";
+ }
+  Articles = [
+	{Name = "ОВД"}
+	,{Name = "Локация"}
+  ]
+  Facts = [
+    { Name = "OVDFact_TOMITA" }, { Name = "LocationFact_TOMITA" }
+  ]
+  Output = {
+    File = "facts.xml";
+    Format = xml;   
+	Encoding = "utf-8";
+ }
+}

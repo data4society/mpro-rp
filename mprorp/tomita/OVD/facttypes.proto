@@ -1,0 +1,37 @@
+import "base.proto";
+import "facttypes_base.proto";
+
+message OVDFact_TOMITA: NFactType.TFact 
+{
+    required string OVD_TOMITA = 1;
+	optional string type_3_4_TOMITA = 2;
+	optional string type_3_4_5_TOMITA = 3;
+	optional string type_1_3_4_TOMITA = 4;
+	optional string type_5_TOMITA = 5;
+	optional string type_1_TOMITA = 6;
+	optional string type_4_5_TOMITA = 7;
+	optional string type_3_TOMITA = 8;
+	optional string type_4_TOMITA = 9;
+	optional string type_2_TOMITA = 10;
+	optional string type_1_2_TOMITA = 11;
+	optional string Name_TOMITA = 12;
+	optional string Numb_TOMITA = 13;
+	optional string Location_TOMITA = 14;
+}
+
+
+message LocationFact_TOMITA: NFactType.TFact 
+{
+	optional string Location_TOMITA = 1;
+	optional string type_3_4_TOMITA = 2;
+	optional string type_3_4_5_TOMITA = 3;
+	optional string type_1_3_4_TOMITA = 4;
+	optional string type_5_TOMITA = 5;
+	optional string type_1_TOMITA = 6;
+	optional string type_4_5_TOMITA = 7;
+	optional string type_3_TOMITA = 8;
+	optional string type_4_TOMITA = 9;
+	optional string type_2_TOMITA = 10;
+	optional string type_1_2_TOMITA = 11;
+	optional string Str_TOMITA = 12;
+} 

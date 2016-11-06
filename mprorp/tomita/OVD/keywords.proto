@@ -1,0 +1,25 @@
+import "base.proto";     
+import "articles_base.proto";
+message OVD: TAuxDicArticle {}
+message Dis: TAuxDicArticle {}
+message Vil: TAuxDicArticle {}
+message Reg: TAuxDicArticle {}
+message RUS: TAuxDicArticle {}
+message lost_loc: TAuxDicArticle {}
+message location_front: TAuxDicArticle {}
+message location_back: TAuxDicArticle {}
+message abbreviation: TAuxDicArticle {}
+message city: TAuxDicArticle {}
+message street: TAuxDicArticle {}
+message house: TAuxDicArticle {}
+message apartment: TAuxDicArticle {}
+message type_3_4: TAuxDicArticle {}
+message type_3_4_5: TAuxDicArticle {}
+message type_1_3_4: TAuxDicArticle {}
+message type_5: TAuxDicArticle {} 
+message type_1: TAuxDicArticle {}
+message type_4_5: TAuxDicArticle {} 
+message type_3: TAuxDicArticle {} 
+message type_4: TAuxDicArticle {} 
+message type_2: TAuxDicArticle {} 
+message type_1_2: TAuxDicArticle {}
