@@ -20,12 +20,6 @@ session = Driver.db_session()
 # Если нужный нам класс указан в entity_class, то мы берем соответствующий markup, получаем из него document и все,
 # найденные таким оразом, документы складываем в выборки: учебную и тестовую
 # sets = {"oc_class_org": {}, "oc_class_loc": {}}
-# for cl in sets:
-#      docs = db.get_docs_for_entity_class(cl,markup_type='51', session=session)
-#     train_num = round(len(docs) * 0.8)
-#     sets[cl]['train'] = db.put_training_set(docs[:train_num])
-#     sets[cl]['test'] = db.put_training_set(docs[train_num:len(docs)])
-# print(sets)
 
 sets = dict()
 sets['oc_class_person'] = {'train': '2e366853-4533-4bd5-a66e-92a834a1a2ca',
@@ -39,6 +33,7 @@ sets['oc_class_org'] = {'train': '78f8c9fb-e385-442e-93b4-aa1a18e952d0',
 sets['oc_class_loc'] = {'train': '74210e3e-0127-4b21-b4b7-0b55855ca02e',
                         'dev':  '352df6b5-7659-4f8c-a68d-364400a5f0da'}
 
+
 set_docs = {}
 for cl in sets:
     set_docs[cl] = {}
@@ -50,9 +45,19 @@ if not os.path.exists(home_dir + "/weights"):
 
 NER_config = NER.Config()
 learn_class = NER_config.classes[NER_config.learn_type['class']]
+NER_config.feature_type = feature.ner_feature_types[learn_class + '_answers']
+NER_config.feature_answer = [learn_class + '_' + i for i in NER_config.tag_types[NER_config.learn_type['tags']]]
 filename_part = str(NER_config.learn_type['class']) + '_' + str(NER_config.learn_type['tags'])
 filename_tf = home_dir + '/weights/ner_oc_' + filename_part + '.weights'
 filename_params = home_dir + '/weights/ner_oc_' + filename_part + '.params'
+
+
+def create_sets(cl):
+    docs = db.get_docs_for_entity_class(cl, markup_type='51', session=session)
+    train_num = round(len(docs) * 0.8)
+    sets[cl]['train'] = db.put_training_set(docs[:train_num])
+    sets[cl]['test'] = db.put_training_set(docs[train_num:len(docs)])
+    print(sets)
 
 
 def morpho():
@@ -100,9 +105,13 @@ def tomita():
     print('tomita - done')
 
 
-def create_answers():
+def create_answers(cla=None):
     # 3. Create answers for docs
-    for cl in set_docs:
+    if cla is None:
+        class_list = list(set_docs.keys())
+    else:
+        class_list = [cla]
+    for cl in class_list:
         for set_type in set_docs[cl]:
             for doc_id in set_docs[cl][set_type]:
                 doc = session.query(Document).filter_by(doc_id=doc_id).first()
@@ -118,9 +127,6 @@ def learning():
     NER_config.training_set = sets[learn_class]['train']
     NER_config.dev_set = sets[learn_class]['dev']
 
-    NER_config.feature_type = feature.ner_feature_types[learn_class + '_answers']
-
-    NER_config.feature_answer = [learn_class + '_' + i for i in NER_config.tag_types[NER_config.learn_type['tags']]]
     print(NER_config.feature_answer)
 
     NER.NER_learning(filename_params, filename_tf, NER_config)
@@ -136,6 +142,7 @@ def prediction():
         if len(values) > 0:
             db.put_ner_feature_dict(doc.doc_id, values, feature.ner_feature_types[learn_class + '_predictions'],
                                     session=session)
+    session.commit()
 
 
 def comparison():
@@ -148,13 +155,17 @@ def comparison():
                                             feature_list=NER_config.feature_answer)
     predict = db.get_ner_feature_dict(set_id=dev_set, feature_type=predict_type,
                                             feature_list=NER_config.feature_answer)
-
-
+    print(answers)
+    print(predict)
     for doc_id in answers:
         doc = session.query(Document).filter_by(doc_id=doc_id).first()
         print(doc.stripped)
         print('Слово, правильный ответ, предсказание')
         diff = {}
+        if predict.get(doc_id, None) is None:
+            predict[doc_id] = {}
+        if answers.get(doc_id, None) is None:
+            answers[doc_id] = {}
         for key in answers[doc_id]:
             if predict[doc_id].get(key, None) != answers[doc_id][key]:
                 add_difference(diff, key, answers[doc_id][key], predict[doc_id].get(key, None))
@@ -188,6 +199,9 @@ def identification():
 
 def script_exec():
     # learning()
-    identification()
+    # create_answers('oc_class_loc')
+    # identification()
+    prediction()
+    comparison()
 
 script_exec()

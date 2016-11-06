@@ -29,7 +29,7 @@ class Config(object):
     """
     classes = ['oc_class_person', 'name', 'oc_class_org', 'oc_class_loc']
     tag_types = [['B', 'I', 'S', 'E'], ['BS', 'IE'], ['BI', 'ES']]
-    learn_type = {'class': 1, 'tags': 1}
+    learn_type = {'class': 3, 'tags': 1}
 
     new_model = True
 
@@ -41,18 +41,18 @@ class Config(object):
     # pre_embedding = True
     # train_embedding = False
 
-    embed_size = 1000
-    hidden_size = 500
-    l2_embed = 0.000005 # 0.00001
-    l2_2lay = 0.0000325 # 0.000325
-    window_size = 9 # 11
-    pre_embedding = True
-    train_embedding = False
+    embed_size = 30
+    hidden_size = 100
+    l2_embed = 0.0005 # 0.00001
+    l2_2lay = 0.00325 # 0.000325
+    window_size = 5 # 11
+    pre_embedding = False
+    train_embedding = True
 
     batch_size = 64 # 128
     label_size = 5
     max_epochs = 24
-    early_stopping = 6
+    early_stopping = 2
     dropout1 = 0.5
     dropout2 = 0.65
     lr = 0.0003
