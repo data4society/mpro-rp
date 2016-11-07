@@ -12,5 +12,9 @@ from mprorp.db.models import *
 #path = os.path.dirname(os.path.realpath(__file__))
 #os.chdir(path + '/grammars')
 session = db_session()
-type1 = session.query(KLADR.name).filter_by(level=1, type="Город").all()
-print(type1)
+#type1 = session.query(KLADR.kladr_id).filter_by(name_lemmas='{"строитель": 1}').all()
+type2 = session.query(KLADR).filter(KLADR.name_lemmas.has_key("строитель")).all()
+type3 = session.query(KLADR).filter_by(level=3).all()
+for i in type2:
+    if i in type3:
+        print(i)

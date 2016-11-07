@@ -23,7 +23,7 @@ def normalization(fact):
              'набережная', 'мост', 'аллея', 'шоссе', 'вал', 'проулок', 'площадь', 'переезд', 'ферма', 'тупик', 'парк', 'просек', 'бульвар', 'улица', 'тоннель',
              'просека', 'поселок', 'волость', 'сельский округ', 'сельское поселение', 'курортный поселок', 'станица']
     for f in fact['facts']:
-        if f[0] == 'OVD' or f[0] == 'Str':
+        if f[0] == 'OVD' or f[0] == 'Str' or f[0] == 'City':
             normal = ''
             myst = mystem.lemmatize(f[1])
             for el in myst:
@@ -118,5 +118,3 @@ def pprint():
     for i in sen_division(a):
         arr2[i] = sen_division(a)[i]
     print(arr2)
-        
-pprint()
