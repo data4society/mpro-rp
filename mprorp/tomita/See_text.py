@@ -2,7 +2,7 @@ from mprorp.utils import home_dir
 import os
 from mprorp.db.dbDriver import *
 from mprorp.db.models import *
-from mprorp.tomita.OVD.code_from_db import *
+#from mprorp.tomita.OVD.code_from_db import *
 
 #text = get_doc('f844e3f0-4b02-4643-9ee3-2bdcd7c422be')
 #print(text)
@@ -13,6 +13,9 @@ from mprorp.tomita.OVD.code_from_db import *
 #path = os.path.dirname(os.path.realpath(__file__))
 #os.chdir(path + '/grammars')
 #session = db_session()
+#all_levels = []
+#all_levels += session.query(KLADR).filter_by(level=2).all()
+#print(a)
 #type1 = session.query(KLADR.kladr_id).filter_by(name_lemmas='{"строитель": 1}').all()
 #type2 = session.query(KLADR).filter(KLADR.name_lemmas.has_key("строитель")).all()
 #type3 = session.query(KLADR).filter_by(level=3).all()
