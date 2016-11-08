@@ -151,10 +151,13 @@ def comparison():
     dev_set = sets[learn_class]['dev']
     answers_type = feature.ner_feature_types[learn_class + '_answers']
     predict_type = feature.ner_feature_types[learn_class + '_predictions']
+    tomita_type = feature.ner_feature_types['tomita']
     answers = db.get_ner_feature_dict(set_id=dev_set, feature_type=answers_type,
                                             feature_list=NER_config.feature_answer)
     predict = db.get_ner_feature_dict(set_id=dev_set, feature_type=predict_type,
                                             feature_list=NER_config.feature_answer)
+    tomita_loc = db.get_ner_feature_dict(set_id=dev_set, feature_type=tomita_type,
+                                            feature_list=['Loc'])
     print(answers)
     print(predict)
     for doc_id in answers:
@@ -164,14 +167,14 @@ def comparison():
         diff = {}
         if predict.get(doc_id, None) is None:
             predict[doc_id] = {}
-        if answers.get(doc_id, None) is None:
-            answers[doc_id] = {}
+        if tomita_loc.get(doc_id, None) is None:
+            tomita_loc[doc_id] = {}
         for key in answers[doc_id]:
             if predict[doc_id].get(key, None) != answers[doc_id][key]:
-                add_difference(diff, key, answers[doc_id][key], predict[doc_id].get(key, None))
+                add_difference(diff, key, answers[doc_id][key], predict[doc_id].get(key, None), tomita_loc[doc_id].get(key, None))
         for key in predict[doc_id]:
             if answers[doc_id].get(key, None) is None:
-                add_difference(diff, key, None, predict[doc_id][key])
+                add_difference(diff, key, None, predict[doc_id][key], tomita_loc[doc_id].get(key, None))
         for elem in doc.morpho:
             sent_i = elem.get('sentence_index', None)
             if sent_i is not None and sent_i in diff:
@@ -179,10 +182,13 @@ def comparison():
                     print(elem['text'], diff[sent_i][elem['word_index']])
 
 
-def add_difference(diff, key, ans, pred):
+def add_difference(diff, key, ans, pred, add_feature=None):
     if key[0] not in diff:
         diff[key[0]] = {}
-    diff[key[0]][key[1]] = (ans, pred)
+    if add_feature is None:
+        diff[key[0]][key[1]] = (ans, pred)
+    else:
+        diff[key[0]][key[1]] = (ans, pred, add_feature)
 
 
 def identification():
@@ -201,7 +207,7 @@ def script_exec():
     # learning()
     # create_answers('oc_class_loc')
     # identification()
-    prediction()
+    # prediction()
     comparison()
 
 script_exec()
