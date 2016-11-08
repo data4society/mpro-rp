@@ -25,11 +25,8 @@ All -> Type_3_4 | Type_3_4_5 | Type_1_3_4 | Type_5 | Type_1 | Type_4_5 | Type_3 
 
 Loc -> Loc1<~l-quoted, ~r-quoted> | Loc2<~l-quoted, ~r-quoted> | Loc3<~l-quoted, ~r-quoted> | Loc4<~l-quoted, ~r-quoted> | Loc5<~l-quoted, ~r-quoted>;
 
-//Adr
-Str -> Word<kwtype='street'> Punct* Word<h-reg1>+ interp(LocationFact_TOMITA.Str_TOMITA::not_norm) | Word<h-reg1>+ interp(LocationFact_TOMITA.Str_TOMITA::not_norm) Word<kwtype='street'> Punct*;
-
 Allw -> All {weight = 0.9};
 City -> Loc6 {weight = 0.5};
 Locw -> Loc {weight = 0.7};
 
-Location -> Locw interp(LocationFact_TOMITA.Location_TOMITA::not_norm) | Allw | Str | City interp(LocationFact_TOMITA.City_TOMITA::not_norm);
+Location -> Locw interp(LocationFact_TOMITA.Location_TOMITA::not_norm) | Allw | City interp(LocationFact_TOMITA.City_TOMITA::not_norm);
