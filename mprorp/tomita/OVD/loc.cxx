@@ -8,7 +8,7 @@ Loc4 -> Word<kwtype='abbreviation'> Word<h-reg1>;
 Loc5 -> Word<kwtype='lost_loc'>;
 Loc6 -> Word<kwtype='city', h-reg1>;
 
-//Other1 -> Prep | Word<gram="CONJ">;
+//Other1 -> Prep;
 Other1 -> Word<gram="CONJ">;
 Other2 -> Other1* Adj<h-reg1>+ | Other1* Noun<h-reg1, wfl=~'ОВД'>+;
 Type_3_4 -> Other2+ interp(LocationFact_TOMITA.type_3_4_TOMITA::not_norm) Word<kwtype="type_3_4"> | Word<kwtype="type_3_4"> Other2+ interp(LocationFact_TOMITA.type_3_4_TOMITA::not_norm);

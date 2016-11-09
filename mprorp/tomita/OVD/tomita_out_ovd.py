@@ -23,31 +23,19 @@ def normalization(fact):
              'набережная', 'мост', 'аллея', 'шоссе', 'вал', 'проулок', 'площадь', 'переезд', 'ферма', 'тупик', 'парк', 'просек', 'бульвар', 'улица', 'тоннель',
              'просека', 'поселок', 'волость', 'сельский округ', 'сельское поселение', 'курортный поселок', 'станица']
     for f in fact['facts']:
-        if f[0] == 'OVD' or f[0] == 'City':
+        if f[0] == 'Name' or f[0] == 'Numb':
+            norm[f[0]] = f[1].lower()
+        else:
             normal = ''
             myst = mystem.lemmatize(f[1])
             for el in myst:
-                if el != '\n':
+                if el != '\n' and el not in wrong:
                     normal += el
-            norm[f[0]] = [normal]
-        elif f[0] == 'Location':
-            normal = []
-            myst = mystem.lemmatize(f[1])
-            for el in myst:
-                if el != '\n':
-                    normal.append(el)
-            norm[f[0]] = normal
-        elif f[0] == 'Name' or f[0] == 'Numb':
-            norm[f[0]] = f[1].lower()
-        else:
-            normal = []
-            myst = mystem.lemmatize(f[1])
-            for el in myst:
-                if el != '\n' and len(el) > 3 and el not in wrong:
-                    normal.append(el)
-            norm[f[0]] = normal
+            normal = normal.replace('  ', ' ')
+            norms = normal.split(' и ')
+            norm[f[0]] = norms
     fact['norm'] = norm
-    return fact    
+    return fact
 
 def get_coordinates(facts, sourse):
     text = open(facts, 'r', encoding='utf-8').read()

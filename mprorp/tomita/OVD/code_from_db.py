@@ -1,14 +1,8 @@
 from mprorp.tomita.OVD.tomita_out_ovd import *
 from mprorp.db.dbDriver import *
 from mprorp.db.models import *
+from mprorp.tomita.OVD.additional import *
 import itertools
-
-def cross(arr1, arr2):
-    out = []
-    for i in arr1:
-        if i in arr2:
-            out.append(i)
-    return out
 
 
 def get_level_of_fact(el):
@@ -24,14 +18,7 @@ def get_codes_for_fact(fact, session):
     norms = fact['norm']
     for fact_type in norms:
         if fact_type in fact_type_1:
-            if len(norms[fact_type]) == 1:
-                codes = session.query(KLADR).filter(KLADR.name_lemmas.has_key(norms[fact_type][0])).all()
-                out.append(codes)
-            else:
-                codes = []
-                for el in norms[fact_type]:
-                    codes += session.query(KLADR).filter(KLADR.name_lemmas.has_key(el)).all()
-                out.append(codes)
+            out = Location(norms[fact_type], session)
         elif fact_type in fact_type_2:
             out.append([])
             #функция для таблицы с ОВД
@@ -55,6 +42,6 @@ def get_all_codes(tomita_out_file, original_text):
         fact['codes'] = get_codes_for_fact(fact, session)
     return all_facts
 
-a = get_all_codes('facts.xml', 'text.txt')
-for i in a:
-    print([len(ii) for ii in i['codes']])
+#a = get_all_codes('facts.xml', 'text.txt')
+#for i in a:
+#    print([len(ii) for ii in i['codes']])
