@@ -1,8 +1,6 @@
 from mprorp.tomita.OVD.tomita_out_ovd import *
 from mprorp.db.dbDriver import *
-from mprorp.db.models import *
 from mprorp.tomita.OVD.additional import *
-import itertools
 
 
 def get_level_of_fact(el):
@@ -12,26 +10,24 @@ def get_level_of_fact(el):
 
 def get_codes_for_fact(fact, session):
     out = []
-    fact_type_1 = ['Location']
-    fact_type_2 = ['OVD', 'Name', 'Numb']
-    fact_type_3 = ['City']
     norms = fact['norm']
-    for fact_type in norms:
-        if fact_type in fact_type_1:
-            out = Location(norms[fact_type], session)
-        elif fact_type in fact_type_2:
-            out.append([])
-            #функция для таблицы с ОВД
-        elif fact_type in fact_type_3:
-            codes = session.query(KLADR).filter(KLADR.name_lemmas.has_key(norms[fact_type][0]), KLADR.fact_type == 'Город').all()
-            out.append(codes)
-        else:
-            codes = []
-            levels = get_level_of_fact(fact_type)
-            for l in levels:
-                for el in norms[fact_type]:
-                    codes += session.query(KLADR).filter(KLADR.level == int(l), KLADR.name_lemmas.has_key(el)).all()
-            out.append(codes)
+    if 'OVD' not in norms:
+        for fact_type in norms:
+            if fact_type == 'Location':
+                codes = Location(norms[fact_type], session, city=False, level=0)
+                out.append(codes)
+            elif fact_type == 'City':
+                codes = Location(norms[fact_type], session, city=True, level=0)
+                out.append(codes)
+            else:
+                codes = []
+                levels = get_level_of_fact(fact_type)
+                for l in levels:
+                    codes += Location(norms[fact_type], session, city=False, level=int(l))
+                out.append(codes)
+    else:
+        codes = OVD_codes(norms, session)
+        out.append(codes)
     return out
 
 

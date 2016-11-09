@@ -24,7 +24,7 @@ def normalization(fact):
              'просека', 'поселок', 'волость', 'сельский округ', 'сельское поселение', 'курортный поселок', 'станица']
     for f in fact['facts']:
         if f[0] == 'Name' or f[0] == 'Numb':
-            norm[f[0]] = f[1].lower()
+            norm[f[0]] = [f[1].lower()]
         else:
             normal = ''
             myst = mystem.lemmatize(f[1])
@@ -100,7 +100,6 @@ def pprint():
     for i in a:
         print(i)
     print('\n==========\n')
-    arr = []
     arr = sen_division(a).keys()
     arr2 = [[] for i in range(min(arr), max(arr) + 1)]
     for i in sen_division(a):
