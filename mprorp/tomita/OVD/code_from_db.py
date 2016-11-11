@@ -49,4 +49,4 @@ def get_all_codes(tomita_out_file, original_text):
 #            print(el.name, el.data['kladr'])
 #    else:
 #        for el in i['codes'][0]:
-#            print(el.name, el.kladr_id)
+##            print(el.name, el.kladr_id)
