@@ -27,17 +27,26 @@ def get_codes_for_fact(fact, session):
                 out.append(codes)
     else:
         codes = OVD_codes(norms, session)
-        out.append(codes)
+        out.append([codes])
     return out
 
 
 def get_all_codes(tomita_out_file, original_text):
+    out = []
     session = db_session()
     all_facts = delete_loc(get_coordinates(tomita_out_file, original_text))
     for fact in all_facts:
-        fact['codes'] = get_codes_for_fact(fact, session)
-    return all_facts
+        if "'norm': {'Location': ['россия']}" not in str(fact):
+            fact['codes'] = get_codes_for_fact(fact, session)[0]
+            out.append(fact)
+    return out
 
-#a = get_all_codes('facts.xml', 'text.txt')
-#for i in a:
-#    print([len(ii) for ii in i['codes']])
+a = get_all_codes('facts.xml', 'text_no_n.txt')
+for i in a:
+    print(i['string'], len(i['codes'][0]))
+    if type(i['codes'][0][0]) == Entity:
+        for el in i['codes'][0]:
+            print(el.name, el.data['kladr'])
+    else:
+        for el in i['codes'][0]:
+            print(el.name, el.kladr_id)

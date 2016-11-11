@@ -96,7 +96,7 @@ def sen_division(facts):
     return sentences
 
 def pprint():
-    a = delete_loc(get_coordinates('facts.xml', 'text.txt'))
+    a = delete_loc(get_coordinates('facts.xml', 'text_no_n.txt'))
     for i in a:
         print(i)
     print('\n==========\n')

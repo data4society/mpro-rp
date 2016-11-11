@@ -9,10 +9,10 @@ def cross(arr):
     return list(out)
 
 def Location(loc, session, city, level):
-    for i in range(len(loc)):
-        loc[i] = loc[i].replace('-', ' ')
-        loc[i] = loc[i].split(' ')
-    print(loc)
+    if len(loc[0]) != 1:
+        for i in range(len(loc)):
+            loc[i] = loc[i].replace('-', ' ')
+            loc[i] = loc[i].split(' ')
     out = []
     for name in loc:
         codes = []
@@ -71,7 +71,42 @@ def OVD(ovd, session, Numb=False, Name=False):
             if code.data["org_type"] == 'OVD' and name in code.data['name'].lower():
                 codes.append(code)
     else:
-        codes = session.query(Entity).filter(Entity.data.has_key("org_type")).all()
-        #дописать про различные типы ОВД
+        name = ovd[0]
+        codes = types(name, session)
     return codes
 
+def types(name, session):
+    types = [['министерство внутренних дел'],['гу мвд', 'главное управление мвд'],['управление мвд', 'умвд'],
+             ['межмуниципальное управление'],['межмуниципальный отдел', 'ммо', 'мо мвд', 'му мвд'],
+             ['линейное управление', 'лу ', 'управление на транспорте'],['линейный отдел', 'лоп', 'ло '],['линейный пункт', 'лпп'],
+             ['отдел полиции', 'отделение полиции', 'оп ', 'омвд'],['пункт полиции']]
+    codes = []
+    if name != 'овд':
+        out = []
+        for n in range(len(types)):
+            if name in types[n]:
+                for t in types[n]:
+                    all_codes = session.query(Entity).filter(Entity.data.has_key("org_type")).all()
+                    for code in all_codes:
+                        if code.data["org_type"] == 'OVD' and t in code.data['name'].lower():
+                            out.append(code)
+                k = n + 1
+                break
+        bad = []
+        for m in range(k,len(types)):
+            for c in range(len(out)):
+                for name in types[m]:
+                    if out[c] != []:
+                        if name in out[c].data['name'].lower():
+                            bad.append(out[c])
+
+        for i in out:
+            if i not in bad:
+                codes.append(i)
+
+    else:
+        all_codes = session.query(Entity).filter(Entity.data.has_key("org_type")).all()
+        for code in all_codes:
+            if code.data["org_type"] == 'OVD':
+                codes.append(code)
+    return codes
