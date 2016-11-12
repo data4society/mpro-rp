@@ -166,6 +166,8 @@ class Record(Base):
     rubrics = Column(ARRAY(UUIDType(binary=False), ForeignKey('rubrics.rubric_id')))
     # document entities
     entities = Column(ARRAY(UUIDType(binary=False), ForeignKey('entities.entity_id')))
+    # document collections
+    collections = Column(ARRAY(UUIDType(binary=False), ForeignKey('collections.collection_id')))
     # reference to source document table record
     source = Column(UUIDType(binary=False), ForeignKey('documents.doc_id'))
     # substce document
@@ -177,6 +179,37 @@ class Record(Base):
     # vector with the lexemes for fulltext searching
     tsv = Column(TSVECTOR())
 
+class Collection(Base):
+    """contains document collections"""
+    __tablename__ = 'collections'
+
+    # collection id
+    collection_id = Column(UUIDType(binary=False),
+                         server_default=text("uuid_generate_v4()"), primary_key=True, unique=True)
+    # collection name
+    name = Column(String(255))
+    # collection description
+    description = Column(Text())
+    # date of collection creation
+    created = Column(TIMESTAMP(), server_default=functions.current_timestamp())
+    # date of last edition
+    edited = Column(TIMESTAMP())
+    # creator, e.g. user who created collection
+    author = Column(UUIDType(binary=False), ForeignKey('users.user_id'))
+
+class Rule(Base):
+     """contains rules for documents collection matching"""
+    __tablename__ = 'rules'
+
+    # rule id
+    rule_id = Column(UUIDType(binary=False),
+                         server_default=text("uuid_generate_v4()"), primary_key=True, unique=True)
+    # target collection
+    collection_id = Column(UUIDType(binary=False), ForeignKey('collection.collection_id'))
+    # array of rubric ids for contains matching
+    rubrics = Column(ARRAY(UUIDType(binary=False), ForeignKey('rubrics.rubric_id')))
+    # array of entity ids for contains matching
+    entities = Column(ARRAY(UUIDType(binary=False), ForeignKey('entities.entity_id')))        
 
 class TrainingSet(Base):
     """sets of document for train and test models"""
