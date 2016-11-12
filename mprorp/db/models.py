@@ -198,7 +198,7 @@ class Collection(Base):
     author = Column(UUIDType(binary=False), ForeignKey('users.user_id'))
 
 class Rule(Base):
-     """contains rules for documents collection matching"""
+    """contains rules for documents collection matching"""
     __tablename__ = 'rules'
 
     # rule id
