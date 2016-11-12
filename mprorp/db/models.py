@@ -340,6 +340,10 @@ class Entity(Base):
     author = Column(UUIDType(binary=False), ForeignKey('users.user_id'))
     # class of entity - entityclasses
     entity_class = Column(String(40))
+    # entity labels
+    labels = Column(ARRAY(item_type=String, dimensions=1))
+    # external entity data, for example ids from external databases
+    external_data = Column(JSONB())
     # entity data
     data = Column(JSONB())
     # tsv vector for indexing
