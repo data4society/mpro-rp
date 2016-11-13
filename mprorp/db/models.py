@@ -205,7 +205,7 @@ class Rule(Base):
     rule_id = Column(UUIDType(binary=False),
                          server_default=text("uuid_generate_v4()"), primary_key=True, unique=True)
     # target collection
-    collection_id = Column(UUIDType(binary=False), ForeignKey('collection.collection_id'))
+    collection_id = Column(UUIDType(binary=False), ForeignKey('collections.collection_id'))
     # array of rubric ids for contains matching
     rubrics = Column(ARRAY(UUIDType(binary=False), ForeignKey('rubrics.rubric_id')))
     # array of entity ids for contains matching
