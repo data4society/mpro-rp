@@ -13,6 +13,7 @@ from mprorp.ner.identification import create_markup_name
 from mprorp.utils import home_dir
 from mprorp.ner.tomita_to_markup import convert_tomita_result_to_markup
 import mprorp.ner.feature as feature
+import random
 
 session = Driver.db_session()
 # 1. Create sets: training and dev
@@ -22,23 +23,41 @@ session = Driver.db_session()
 # sets = {"oc_class_org": {}, "oc_class_loc": {}}
 
 sets = dict()
+
+# sets for database 139.162.170.98
+# sets['oc_class_person'] = {'train': '2e366853-4533-4bd5-a66e-92a834a1a2ca',
+#                            'dev': 'f861ee9d-5973-460d-8f50-92fca9910345'}
+#
+# sets['name'] = {'train': '2e366853-4533-4bd5-a66e-92a834a1a2ca',
+#                 'dev': 'f861ee9d-5973-460d-8f50-92fca9910345'}
+#
+# sets['oc_class_org'] = {'train': '78f8c9fb-e385-442e-93b4-aa1a18e952d0',
+#                         'dev': '299c8bd1-4e39-431d-afa9-398b2fb23f69'}
+# sets['oc_class_loc'] = {'train': '74210e3e-0127-4b21-b4b7-0b55855ca02e',
+#                         'dev':  '352df6b5-7659-4f8c-a68d-364400a5f0da'}
+# sets['oc_class_loc'] = {'train': '9a9f7fdf-af69-439c-b30e-7e237a8cd037',
+#                         'dev': 'cff51852-6d37-4873-bef5-4d088b50a0a3'}
+
+# set for database 46.101.162.206
 sets['oc_class_person'] = {'train': '2e366853-4533-4bd5-a66e-92a834a1a2ca',
                            'dev': 'f861ee9d-5973-460d-8f50-92fca9910345'}
 
-sets['name'] = {'train': '2e366853-4533-4bd5-a66e-92a834a1a2ca',
+sets['name'] = {'train': '4fb42fd1-a0cf-4f39-9206-029255115d01',
                 'dev': 'f861ee9d-5973-460d-8f50-92fca9910345'}
 
-sets['oc_class_org'] = {'train': '78f8c9fb-e385-442e-93b4-aa1a18e952d0',
-                        'dev': '299c8bd1-4e39-431d-afa9-398b2fb23f69'}
-sets['oc_class_loc'] = {'train': '74210e3e-0127-4b21-b4b7-0b55855ca02e',
-                        'dev':  '352df6b5-7659-4f8c-a68d-364400a5f0da'}
-
+# sets['oc_class_org'] = {'train': '78f8c9fb-e385-442e-93b4-aa1a18e952d0',
+#                         'dev': '299c8bd1-4e39-431d-afa9-398b2fb23f69'}
+# sets['oc_class_loc'] = {'train': '74210e3e-0127-4b21-b4b7-0b55855ca02e',
+#                         'dev': '352df6b5-7659-4f8c-a68d-364400a5f0da'}
+# sets['oc_class_loc'] = {'train': '9a9f7fdf-af69-439c-b30e-7e237a8cd037',
+#                         'dev': 'cff51852-6d37-4873-bef5-4d088b50a0a3'}
 
 set_docs = {}
 for cl in sets:
     set_docs[cl] = {}
     for set_type in sets[cl]:
         set_docs[cl][set_type] = db.get_set_docs(sets[cl][set_type])
+        print(cl, set_type, len(set_docs[cl][set_type]), 'documents')
 
 if not os.path.exists(home_dir + "/weights"):
     os.makedirs(home_dir + "/weights")
@@ -54,9 +73,10 @@ filename_params = home_dir + '/weights/ner_oc_' + filename_part + '.params'
 
 def create_sets(cl):
     docs = db.get_docs_for_entity_class(cl, markup_type='51', session=session)
+    random.shuffle(docs)
     train_num = round(len(docs) * 0.8)
-    sets[cl]['train'] = db.put_training_set(docs[:train_num])
-    sets[cl]['test'] = db.put_training_set(docs[train_num:len(docs)])
+    sets[cl]['train'] = str(db.put_training_set(docs[:train_num]))
+    sets[cl]['dev'] = str(db.put_training_set(docs[train_num:len(docs)]))
     print(sets)
 
 
@@ -76,6 +96,7 @@ def capital():
             for doc_id in set_docs[cl][set_type]:
                 ner_feature.create_capital_feature2(doc_id)
     print('capital - done')
+
 
 def embedding():
 
@@ -199,15 +220,19 @@ def identification():
         print(doc.stripped)
         create_markup_name(doc, verbose=True)
         number += 1
-        if number == 1:
+        if number == 10:
             exit()
 
 
 def script_exec():
+    # create_sets('oc_class_person')
     # learning()
     # create_answers('oc_class_loc')
-    # identification()
+    prediction()
+    identification()
     # prediction()
-    comparison()
+    # comparison()
+
+    NER.NER_name_learning()
 
 script_exec()

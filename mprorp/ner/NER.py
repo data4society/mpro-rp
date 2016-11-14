@@ -18,6 +18,7 @@ import pickle as pickle
 from mprorp.utils import home_dir
 from mprorp.ner.saver import saver
 from gensim.models import word2vec
+import mprorp.ner.feature as feature
 
 
 class Config(object):
@@ -29,7 +30,7 @@ class Config(object):
     """
     classes = ['oc_class_person', 'name', 'oc_class_org', 'oc_class_loc']
     tag_types = [['B', 'I', 'S', 'E'], ['BS', 'IE'], ['BI', 'ES']]
-    learn_type = {'class': 3, 'tags': 1}
+    learn_type = {'class': 1, 'tags': 1}
 
     new_model = True
 
@@ -41,7 +42,7 @@ class Config(object):
     # pre_embedding = True
     # train_embedding = False
 
-    embed_size = 30
+    embed_size = 50
     hidden_size = 100
     l2_embed = 0.0005 # 0.00001
     l2_2lay = 0.00325 # 0.000325
@@ -70,6 +71,8 @@ class Config(object):
     # features = []
     # features = ['Org']
     # features = ['Org', 'Person', 'Loc', 'Date', 'Prof', 'morpho', 'Capital']
+
+    # features = ['morpho', 'Capital', 'Prof', 'Loc']
     features = ['morpho', 'Capital', 'Prof', 'Loc']
     print(features)
     features_length = 0
@@ -256,6 +259,42 @@ class NERModel(LanguageModel):
         # doc_set_words[doc_id] = db.get_ner_feature_one_feature(doc_id=doc_id, feature='embedding', session=session)
         doc_set_words = db.get_ner_feature(doc_id=doc_id, feature='embedding', session=session)
 
+        if Config.pre_embedding:
+            words_for_embedding = {}
+            for doc_id in doc_set_words:
+                doc_words = doc_set_words[doc_id]
+                for element in doc_words:
+                    for word in element[2]:
+                        words_for_embedding[word] = ''
+            words_for_embedding[self.config.word_unkn] = ''
+            # if verbose:
+            #     print(words_for_embedding)
+
+            if self.config.pre_embedding_from_file == '':
+                wv_dict = db.get_multi_word_embedding(self.config.embedding, words_for_embedding.keys())
+            else:
+                model_w2v = word2vec.Word2Vec.load_word2vec_format(self.config.pre_embedding_from_file, binary=True)
+                wv_dict = {}
+                for word in words_for_embedding:
+                    if word in model_w2v.vocab:
+                        wv_dict[word] = model_w2v[word]
+                model_w2v = None
+
+            if self.config.word_unkn in wv_dict:
+                wv_array = [wv_dict[self.config.word_unkn]]
+            else:
+                # pre_embedding, но нет вектора для редкого слова
+                wv_array = [np.random.uniform(-0.1, 0.1, Config.embed_size)]
+
+            word_to_num = {'UUUNKKK': 0}
+            count = 1
+            for word in wv_dict:
+                word_to_num[word] = count
+                wv_array.append(wv_dict[word])
+                count += 1
+            self.wv = np.array(wv_array, dtype=np.float32)
+
+        # -------------------------------------------------
         self.config.label_size = len(self.tag_to_num)
 
         features_set = {}
@@ -679,7 +718,7 @@ def NER_learning(filename_params, filename_tf, config=None):
 
 def NER_predict(doc, settings, session_db=None, commit_session=True, verbose=False):
     values = {}
-    entity_class = 'oc_class_org'
+    entity_class = 'name'
     for i in settings:
         NER_predict_set(doc, i[0], i[1], values, session_db, commit_session, verbose=verbose)
         if verbose:
@@ -762,3 +801,28 @@ def NER_person_learning():
 
         NER_learning(filename_params, filename_tf, NER_config)
 
+
+def NER_name_learning():
+
+    if not os.path.exists(home_dir + "/weights"):
+        os.makedirs(home_dir + "/weights")
+
+    NER_config = Config()
+    NER_config.learn_type['class'] = 1
+    NER_config.learn_type['tags'] = 1
+    learn_class = NER_config.classes[NER_config.learn_type['class']]
+    NER_config.feature_type = feature.ner_feature_types[learn_class + '_answers']
+    NER_config.feature_answer = [learn_class + '_' + i for i in NER_config.tag_types[NER_config.learn_type['tags']]]
+    filename_part = str(NER_config.learn_type['class']) + '_' + str(NER_config.learn_type['tags'])
+    filename_tf = home_dir + '/weights/ner_oc_' + filename_part + '.weights'
+    filename_params = home_dir + '/weights/ner_oc_' + filename_part + '.params'
+
+    training_set = u'4fb42fd1-a0cf-4f39-9206-029255115d01'
+    dev_set = u'f861ee9d-5973-460d-8f50-92fca9910345'
+
+    NER_config.training_set = training_set
+    NER_config.dev_set = dev_set
+
+    # print(NER_config.feature_answer)
+
+    NER_learning(filename_params, filename_tf, NER_config)
