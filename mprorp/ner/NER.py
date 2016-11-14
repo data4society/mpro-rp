@@ -29,7 +29,7 @@ class Config(object):
     """
     classes = ['oc_class_person', 'name', 'oc_class_org', 'oc_class_loc']
     tag_types = [['B', 'I', 'S', 'E'], ['BS', 'IE'], ['BI', 'ES']]
-    learn_type = {'class': 3, 'tags': 1}
+    learn_type = {'class': 1, 'tags': 1}
 
     new_model = True
 
@@ -256,6 +256,42 @@ class NERModel(LanguageModel):
         # doc_set_words[doc_id] = db.get_ner_feature_one_feature(doc_id=doc_id, feature='embedding', session=session)
         doc_set_words = db.get_ner_feature(doc_id=doc_id, feature='embedding', session=session)
 
+        if Config.pre_embedding:
+            words_for_embedding = {}
+            for doc_id in doc_set_words:
+                doc_words = doc_set_words[doc_id]
+                for element in doc_words:
+                    for word in element[2]:
+                        words_for_embedding[word] = ''
+            words_for_embedding[self.config.word_unkn] = ''
+            # if verbose:
+            #     print(words_for_embedding)
+
+            if self.config.pre_embedding_from_file == '':
+                wv_dict = db.get_multi_word_embedding(self.config.embedding, words_for_embedding.keys())
+            else:
+                model_w2v = word2vec.Word2Vec.load_word2vec_format(self.config.pre_embedding_from_file, binary=True)
+                wv_dict = {}
+                for word in words_for_embedding:
+                    if word in model_w2v.vocab:
+                        wv_dict[word] = model_w2v[word]
+                model_w2v = None
+
+            if self.config.word_unkn in wv_dict:
+                wv_array = [wv_dict[self.config.word_unkn]]
+            else:
+                # pre_embedding, но нет вектора для редкого слова
+                wv_array = [np.random.uniform(-0.1, 0.1, Config.embed_size)]
+
+            word_to_num = {'UUUNKKK': 0}
+            count = 1
+            for word in wv_dict:
+                word_to_num[word] = count
+                wv_array.append(wv_dict[word])
+                count += 1
+            self.wv = np.array(wv_array, dtype=np.float32)
+
+        # -------------------------------------------------
         self.config.label_size = len(self.tag_to_num)
 
         features_set = {}

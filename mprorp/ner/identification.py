@@ -351,22 +351,26 @@ def create_markup_name(doc, session=None, commit_session=True, verbose=False):
     # Сопоставим для всех пар упоминаний попарно все метки
     # Для каждого упоминания получим, упоминания, в которые оно входит, с которыми оно совпадает (хоть по одной метке)
     links = []
+    names = []
     for i in range(len(mentions)):
-        links.append({'equal': [], 'subs': [], 'parent': []})
+        links.append({'equal': [], 'subs': [], 'parent': [], 'name': labels_from_text[i]})
     for i in range(len(mentions) - 1):
         for j in range(i + 1, len(mentions)):
-            compare_labels(i, j, [labels[i], labels_from_text[i]], [labels[j], labels_from_text[j]], links[i], links[j])
+            compare_labels(i, j, labels_from_text, [labels[i], labels_from_text[i]], [labels[j], labels_from_text[j]],
+                           links[i], links[j], verbose)
 
     # В Links:
     # 'equal' - список упоминания, коорые совпали с данным упоминанием хоть по одной метке
     # 'subs' - список дочерних упоминаний
     # 'parent' - список родительских упоминаний
+    # 'name' - список наиболее подходящих для наименования меток: берем из текста, если только не оказалось,
+    # что вариант не из текста равен варианту из текста в другом упоминании
     # Теоретически могло получиться так, что одно упоминание не имеет родителей, но другое, равное ему - имеет.
-    # Плюс отношение равенства ('equal') могло не оказаться онтношением эквивалентности.
-    # Исправим все это1
-    local_entities, subclasses, main_class = normalize_links(links)
+    # Плюс отношение равенства ('equal') могло не оказаться отношением эквивалентности.
+    # Исправим все это
+    local_entities, subclasses, main_class, names = normalize_links(links)
     if verbose:
-        print(local_entities)
+        print(local_entities, subclasses, names)
     # Здесь local_entities - лист вида [[1,2], [3,6], [4], [5]].
     # Его элементы - это сущности = списки с номерами упоминаний этих сущностей.
     # subclasses - лист содержащий для каждой сущности из local_entities множество дочерних сущностей
@@ -383,17 +387,20 @@ def create_markup_name(doc, session=None, commit_session=True, verbose=False):
         if main_class[i]:
             labels_lists[i] = list(reduce(lambda a,x: a|x, [set([labels[j], labels_from_text[j]]) for j in local_entities[i]]))
             # Теперь поищем, что у нас есть по меткам из labels_set
-            db_id = db.get_entity_by_labels(list(labels_lists[i]))
+            db_id = db.get_entity_by_labels(labels_lists[i])
             if db_id is None:
                 # Ищем сущности в викиданных
                 found_ids = set()
                 for l in labels_lists[i]:
                     wiki_ids_l = wiki_search.find_human(l)
                     for elem in wiki_ids_l:
-                        found_ids.add(wiki_ids_l[0]['id'])
+                        found_ids.add(elem['id'])
                 if len(found_ids) > 0:
-                    data = {'labels': labels_lists[i], 'wiki_ids': list(found_ids)}
-                    db_id = db.put_entity(labels_from_text[i], 'person', data, session, commit_session)
+                    ext_data = {'wiki_ids': list(found_ids)}
+                    if verbose:
+                        print(labels_lists[i])
+                    db_id = db.put_entity(names[i], 'person', labels=labels_lists[i], external_data=ext_data,
+                                          session=session, commit_session=commit_session)
             if db_id is not None:
                 mentions_id[i] = db_id
     if verbose:
@@ -413,10 +420,12 @@ def create_markup_name(doc, session=None, commit_session=True, verbose=False):
     # будем считать, что все это уже проделано. После этого те классы, которые все же остались в main_class,
     # но еще не имеют mentions_id, нужно занести в БД. Новых main_class еще не появилось,
     # значит можно воспользоваться посчитанным ранее labels_lists[i]
-    for i in range(len(main_class)):
-        if main_class[i] and mentions_id[i] is None:
-            data = {'labels': labels_lists[i]}
-            mentions_id[i] = db.put_entity(labels_from_text[i], 'person', data, session, commit_session)
+
+    # Временно не будем записаывать в базу новые сущности, кроме тех, что нашлись в викиданных
+    # for i in range(len(main_class)):
+    #     if main_class[i] and mentions_id[i] is None:
+    #         data = {'labels': labels_lists[i]}
+    #         mentions_id[i] = db.put_entity(labels_from_text[i], 'person', data, session, commit_session)
 
     # Выберем те классы, которые являются подклассом ровно одного класса.
     # Для этого соберем родителей каждого класса
@@ -425,9 +434,11 @@ def create_markup_name(doc, session=None, commit_session=True, verbose=False):
         for j in subclasses[i]:
             parents[j].append(i)
     # В тех случаях, когда родитель у класса один, распространим на него id сущности родительского класса
+    if verbose:
+        print('parents:', parents)
     for i in range(len(parents)):
         if len(parents[i]) == 1:
-            mentions_id[i] = mentions_id[j]
+            mentions_id[i] = mentions_id[parents[i][0]]
     if verbose:
         print('mentions_id 2:', mentions_id)
 
@@ -447,19 +458,30 @@ def create_markup_name(doc, session=None, commit_session=True, verbose=False):
                          'entity': str(mentions_id[i]), 'entity_class': 'person'})
     if verbose:
         print(refs)
-    name = 'markup from NER name'
-    # db.put_markup(doc, name, ['person'], '20', refs, session=session, commit_session=commit_session)
+    if len(refs) > 0:
+        name = 'markup from NER name'
+        db.put_markup(doc, name, ['person'], '20', refs, session=session, commit_session=commit_session)
 
 
 def normalize_links(links):
     all_equal = set()
     local_entities = []
+    names = []
     for i in range(len(links)):
         if i not in all_equal:
             # Новый класс эквивалентности
             equal = set([i])
             add_equal(links, i, equal)
             local_entities.append(equal)
+            names_weights = {}
+            for s in equal:
+                names_weights[links[s]['name']] = names_weights.get(links[s]['name'], 0) + 1
+            best_name = ''
+            max_weight = 0
+            for s in names_weights:
+                if max_weight < names_weights[s]:
+                    best_name = s
+            names.append(best_name)
             all_equal |= equal
     # Теперь соберем для каждого класса все его подчиненные упоминания, всех уровней
     num_classes = len(local_entities)
@@ -479,8 +501,16 @@ def normalize_links(links):
                   for i in range(num_classes)]
     # Перенесем все подклассы подклассов в подклассы
     for i in range(num_classes):
-            for j in subclasses[i]:
-                subclasses[i] |= subclasses[j]
+        if main_class[i]:
+            final_set = subclasses[i]
+            subclasses[i] = set()
+            new_set = set()
+            while not final_set.issubset(subclasses[i]):
+                subclasses[i] |= final_set
+                for j in final_set:
+                    new_set |= subclasses[j]
+                final_set = new_set
+                new_set = set()
     # Только теперь очистим подклассы неглавных классов. Сразу нельзя было,
     # т.к. класс может быть подклассом в нескольких классах верхнего уровня
     # Перенесем все подклассы в родительские классы верхнего уровня
@@ -488,22 +518,28 @@ def normalize_links(links):
         if not main_class[i]:
             subclasses[i] = set()
 
-    return local_entities, subclasses, main_class
+    return local_entities, subclasses, main_class, names
 
 
 def add_equal(links, i, equal):
-    for j in links[i]['equal']:
+    for j in set(links[i]['equal']).difference(equal):
         equal.add(j)
         add_equal(links, j, equal)
 
 
-def compare_labels(i, j, labels_i, labels_j,  links_i, links_j):
-
+def compare_labels(i, j, names, labels_i, labels_j,  links_i, links_j, verbose):
+    if verbose:
+        print('labels:', labels_i, labels_j)
     for label_i in labels_i:
         for label_j in labels_j:
             if label_i == label_j:
                 links_i['equal'].append(j)
                 links_j['equal'].append(i)
+                if label_i in names:
+                    links_i['name'] = label_i
+                    links_j['name'] = label_i
+                    if verbose:
+                        print('name: ', label_i)
                 return
 
     for label_i in labels_i:
@@ -511,11 +547,15 @@ def compare_labels(i, j, labels_i, labels_j,  links_i, links_j):
             if label_i.find(label_j) > 0:
                 links_i['subs'].append(j)
                 links_j['parent'].append(i)
+                if verbose:
+                    print("links_i['subs']:", links_i['subs'])
                 return
 
             if label_j.find(label_i) > 0:
                 links_j['subs'].append(i)
                 links_i['parent'].append(j)
+                if verbose:
+                    print("links_j['subs']:", links_j['subs'])
                 return
 
 

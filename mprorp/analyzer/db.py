@@ -7,6 +7,7 @@ from datetime import datetime
 from sqlalchemy import desc
 import numpy as np
 import uuid
+from sqlalchemy.orm.attributes import flag_modified
 
 
 def doc_apply(doc_id, my_def, *args):
@@ -548,10 +549,12 @@ def put_markup(doc, name, classes, markup_type, refs, new_doc_markup=True, sessi
         if verbose:
             print('new_my_markup', my_markup)
 
-        doc.markup = None
-        # ЭТО ПОЛНЫЙ ПИЗДЕЦ. ТАК ДЕЛАТЬ НЕЛЬЗЯ. НУЖНО СРОЧНО (ДО 2017 ГОДА) УБРАТЬ ОТСЮДА КОМИТ
-        session.commit()
+        # doc.markup = None
+        # # ЭТО ПОЛНЫЙ ПИЗДЕЦ. ТАК ДЕЛАТЬ НЕЛЬЗЯ. НУЖНО СРОЧНО (ДО 2017 ГОДА) УБРАТЬ ОТСЮДА КОМИТ
+        # session.commit()
         doc.markup = my_markup
+        flag_modified(doc, "markup")
+
         if verbose:
             print('doc.markup', doc.markup)
     doc.entity_ids = entities.keys()
@@ -649,12 +652,18 @@ def get_docs_with_markup(markup_type, session=None):
     return [str(r.document) for r in res]
 
 
-def put_entity(name, entity_class, data, session=None, commit_session=True):
+def put_entity(name, entity_class, data=None, labels=None, external_data=None, session=None, commit_session=True):
 
     if session is None:
         session = Driver.db_session()
 
-    new_entity = Entity(name=name, entity_class=entity_class, data=data)
+    new_entity = Entity(name=name, entity_class=entity_class)
+    if data is not None:
+        new_entity.data = data
+    if labels is not None:
+        new_entity.labels = labels
+    if external_data is not None:
+        new_entity.external_data = external_data
     new_entity.entity_id = uuid.uuid4()
     session.add(new_entity)
 
@@ -673,9 +682,11 @@ def get_entity_by_labels(labels, session=None):
     conditions = None
     for label in labels:
         if conditions is None:
-            conditions = Entity.data['labels'].astext.like('%' + label + '%')
+            conditions = Entity.labels.any(label)
+            # conditions = Entity.data['labels'].astext.like('%' + label + '%')
         else:
-            conditions = conditions | Entity.data['labels'].astext.like('%' + label + '%')
+            conditions = conditions | Entity.labels.any(label)
+            # conditions = conditions | Entity.data['labels'].astext.like('%' + label + '%')
     res = res.filter(conditions)
 
     try:
