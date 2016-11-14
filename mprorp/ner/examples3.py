@@ -42,7 +42,7 @@ sets = dict()
 sets['oc_class_person'] = {'train': '2e366853-4533-4bd5-a66e-92a834a1a2ca',
                            'dev': 'f861ee9d-5973-460d-8f50-92fca9910345'}
 
-sets['name'] = {'train': '2e366853-4533-4bd5-a66e-92a834a1a2ca',
+sets['name'] = {'train': '4fb42fd1-a0cf-4f39-9206-029255115d01',
                 'dev': 'f861ee9d-5973-460d-8f50-92fca9910345'}
 
 # sets['oc_class_org'] = {'train': '78f8c9fb-e385-442e-93b4-aa1a18e952d0',
@@ -228,9 +228,11 @@ def script_exec():
     # create_sets('oc_class_person')
     # learning()
     # create_answers('oc_class_loc')
-    # prediction()
+    prediction()
     identification()
     # prediction()
     # comparison()
+
+    NER.NER_name_learning()
 
 script_exec()
