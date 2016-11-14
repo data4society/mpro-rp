@@ -192,12 +192,13 @@ def upd_ovds_tables():
                         full_address.append(geoobject_name(kladr_obj.name, kladr_obj.type))
                         if row[6]:
                             full_address.append(row[6])
-                        full_address = ", ".join(full_address)
                     except Exception as err:
                         print("Error with code", code, "from row", row)
                         full_address = "Error"
                         bad = True
                         break
+                if type(full_address) == "list":
+                    full_address = ", ".join(full_address)
                 #if bad:
                 #    continue
                 #print(full_address)
