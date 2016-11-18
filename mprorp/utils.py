@@ -48,3 +48,7 @@ def dict_sum(dict1,dict2):
 
 def dict_multiply_to_scalar(dictionary,scalar):
     return {k: v*scalar for k, v in dictionary.items()}
+
+
+def relative_file_path(file, path):
+    return os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(file))) + '/' + path

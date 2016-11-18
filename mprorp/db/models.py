@@ -123,6 +123,8 @@ class Document(Base):
     # reference to theme
     theme_id = Column(UUIDType(binary=False), ForeignKey('themes.theme_id'))
     theme = relationship(Theme)
+    # id of application (without reference to somewhere)
+    app_id = Column(String(255), nullable=False)
 
 
 class Variable(Base):
@@ -178,6 +180,8 @@ class Record(Base):
     info = Column(JSONB())
     # vector with the lexemes for fulltext searching
     tsv = Column(TSVECTOR())
+    # id of application (without reference to somewhere)
+    app_id = Column(String(255), nullable=False)
 
 class Collection(Base):
     """contains document collections"""

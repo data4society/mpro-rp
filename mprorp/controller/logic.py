@@ -9,7 +9,6 @@ from mprorp.crawler.site_page import find_full_text
 from mprorp.db.dbDriver import *
 from mprorp.db.models import *
 from mprorp.ner.tomita_to_markup import convert_tomita_result_to_markup
-from mprorp.tomita.grammars.config import config as tomita_config
 from mprorp.tomita.tomita_run import run_tomita
 
 # from mprorp.db.dbDriver import DBSession
@@ -21,9 +20,11 @@ from mprorp.crawler.vk import vk_start_parsing, vk_parse_item
 
 from mprorp.analyzer.theming.themer import reg_theming
 
-from mprorp.utils import home_dir
+from mprorp.utils import home_dir, relative_file_path
 from mprorp.ner.NER import NER_predict
 from mprorp.ner.identification import create_markup
+
+import json
 
 # statuses
 VK_INIT_STATUS = 10
@@ -63,59 +64,84 @@ WITHOUT_RUBRICS = 2001
 
 rubrics_for_regular = {u'19848dd0-436a-11e6-beb8-9e71128cae02': None,
                        u'19848dd0-436a-11e6-beb8-9e71128cae21': None}   # 404f1c89-53bd-4313-842d-d4a417c88d67
-grammars = list(tomita_config.keys()) #  ['date.cxx', 'person.cxx']
 facts = ['Person']
-ner_settings = [[home_dir + '/weights/ner_oc1.params', home_dir + '/weights/ner_oc1.weights'],
-           [home_dir + '/weights/ner_oc2.params', home_dir + '/weights/ner_oc2.weights']]
 
 
-def router(doc_id, status):
+def get_apps_config():
+    with open(relative_file_path(__file__, '../config/app.json')) as app_config_file:
+        config_list = json.load(app_config_file)
+    config = {}
+    for app in config_list:
+        if "ner_predict" in app:
+            ner_settings = app["ner_predict"]["ner_settings"]
+            for ind1, val1 in enumerate(ner_settings):
+                for ind2, val2 in enumerate(val1):
+                    ner_settings[ind1][ind2] = home_dir + '/weights/' + val2
+        config[app["app_name"]] = app
+    return config
+apps_config = get_apps_config()
+
+
+def router(doc_id, app_id, status):
     """route function, that adds new tasks by incoming result (document's status)"""
     doc_id = str(doc_id)
+    app_conf = apps_config[app_id]
     logging.info("route doc: " + str(doc_id) + " status: " + str(status))
+    if status in [SITE_PAGE_LOADING_FAILED, EMPTY_TEXT]:
+        return
     if status in [GOOGLE_NEWS_INIT_STATUS, GOOGLE_ALERTS_INIT_STATUS, YANDEX_NEWS_INIT_STATUS]:  # to find full text of HTML page
         regular_find_full_text.delay(doc_id, SITE_PAGE_COMPLETE_STATUS)
-    elif status == VK_INIT_STATUS:  # to complete vk item parsing
+        return
+    if status == VK_INIT_STATUS:  # to complete vk item parsing
         regular_vk_parse_item.delay(doc_id, VK_COMPLETE_STATUS)
-    elif status < 100 and status%10 == 9:  # to morpho
-        source_id = select([Document.source_id], Document.doc_id == doc_id).fetchone()[0]
-        source_type = select([Source.source_type_id], Source.source_id == source_id).fetchone()[0]
-        source_type = str(source_type)
-        if source_type in ['0cc76b0c-531e-4a90-ab0b-078695336df5', '1d6210b2-5ff3-401c-b0ba-892d43e0b741', 'ce81b5dc-115c-400b-8886-91f9246926ca']:
-            regular_morpho.delay(doc_id, MORPHO_COMPLETE_STATUS)
-        else:  # training
-            session = db_session()
-            doc = session.query(Document).filter_by(doc_id=doc_id).first()
-            doc.status = FOR_TRAINING
-            doc.type = 'tng'
-            session.commit()
-            session.remove()
-    elif status == MORPHO_COMPLETE_STATUS:  # to lemmas
+        return
+    if status < MORPHO_COMPLETE_STATUS and "morpho" in app_conf:  # to morpho
+        regular_morpho.delay(doc_id, MORPHO_COMPLETE_STATUS)
+        return
+    if status < LEMMAS_COMPLETE_STATUS and "lemmas" in app_conf:  # to lemmas
         regular_lemmas.delay(doc_id, LEMMAS_COMPLETE_STATUS)
-    elif status == LEMMAS_COMPLETE_STATUS:  # to rubrication
+        return
+    if status < RUBRICATION_COMPLETE_STATUS and "rubrication" in app_conf:  # to rubrication
         regular_rubrication.delay(doc_id, RUBRICATION_COMPLETE_STATUS, WITHOUT_RUBRICS)
-    elif status == RUBRICATION_COMPLETE_STATUS:  # to tomita
-        regular_tomita.delay(0, doc_id, TOMITA_FIRST_COMPLETE_STATUS)
-    elif status >= TOMITA_FIRST_COMPLETE_STATUS and status < TOMITA_FIRST_COMPLETE_STATUS+len(grammars)-1:  # to tomita
-        regular_tomita.delay(status-TOMITA_FIRST_COMPLETE_STATUS+1, doc_id, status+1)
-    elif status == TOMITA_FIRST_COMPLETE_STATUS+len(grammars)-1:  # to ner tomita
-        regular_tomita_features.delay(doc_id, NER_TOMITA_FEATURES_COMPLETE_STATUS)
-    elif status == NER_TOMITA_FEATURES_COMPLETE_STATUS:  # to preparing lemmas
+        return
+    if "tomita" in app_conf:
+        grammars = list(app_conf["tomita"]["grammars"].keys())  # ['date.cxx', 'person.cxx']
+        if status < TOMITA_FIRST_COMPLETE_STATUS+len(grammars)-1:  # to tomita
+            if status < TOMITA_FIRST_COMPLETE_STATUS:
+                regular_tomita.delay(grammars[0], doc_id, TOMITA_FIRST_COMPLETE_STATUS)
+            else:
+                regular_tomita.delay(grammars[status - TOMITA_FIRST_COMPLETE_STATUS + 1], doc_id, status + 1)
+            return
+        if "tomita_features" in app_conf["tomita"] and status < NER_TOMITA_FEATURES_COMPLETE_STATUS:  # to ner tomita
+            regular_tomita_features.delay(grammars, doc_id, NER_TOMITA_FEATURES_COMPLETE_STATUS)
+            return
+    if "ner_tomita_embedding_features" in app_conf and status < NER_TOMITA_EMBEDDING_FEATURES_COMPLETE_STATUS:  # to preparing lemmas
         regular_embedding_features.delay(doc_id, NER_TOMITA_EMBEDDING_FEATURES_COMPLETE_STATUS)
-    elif status == NER_TOMITA_EMBEDDING_FEATURES_COMPLETE_STATUS:  # to preparing morpho
+        return
+    if "ner_tomita_morpho_features" in app_conf and status == NER_TOMITA_MORPHO_FEATURES_COMPLETE_STATUS:  # to preparing morpho
         regular_morpho_features.delay(doc_id, NER_TOMITA_MORPHO_FEATURES_COMPLETE_STATUS)
-    elif status == NER_TOMITA_MORPHO_FEATURES_COMPLETE_STATUS:  # to NER
-        regular_NER_predict.delay(doc_id, NER_PREDICT_COMPLETE_STATUS)
-    elif status == NER_PREDICT_COMPLETE_STATUS:  # to createb markup
+        return
+    if "ner_predict" in app_conf and status == NER_PREDICT_COMPLETE_STATUS:  # to NER
+        regular_NER_predict.delay(app_conf["ner_predict"]["ner_settings"], doc_id, NER_PREDICT_COMPLETE_STATUS)
+        return
+    if "markup" in app_conf and status == MARKUP_COMPLETE_STATUS:  # to createb markup
         regular_create_markup.delay(doc_id, MARKUP_COMPLETE_STATUS)
-    elif status == MARKUP_COMPLETE_STATUS:  # to ner entities
+        return
+    if "ner_entities" in app_conf and status == NER_ENTITIES_COMPLETE_STATUS:  # to ner entities
         regular_entities.delay(doc_id, NER_ENTITIES_COMPLETE_STATUS)
-    elif status == NER_ENTITIES_COMPLETE_STATUS:  # fin regular processes
-        session = db_session()
-        doc = session.query(Document).filter_by(doc_id=doc_id).first()
+        return
+
+    # finish regular procedures:
+    session = db_session()
+    doc = session.query(Document).filter_by(doc_id=doc_id).first()
+    if app_conf["special_type"]:
+        doc.type = app_conf["special_type"]
+    if app_conf["special_final_status"]:
+        doc.status = app_conf["special_final_status"]
+    else:
         doc.status = REGULAR_PROCESSES_FINISH_STATUS
-        session.commit()
-        session.remove()
+    session.commit()
+    session.remove()
 
 
 
@@ -128,7 +154,7 @@ def regular_gn_start_parsing(source_id):
         doc.status = GOOGLE_NEWS_INIT_STATUS
     session.commit()
     for doc in docs:
-        router(doc.doc_id, GOOGLE_NEWS_INIT_STATUS)
+        router(doc.doc_id, doc.app_id,  GOOGLE_NEWS_INIT_STATUS)
     session.remove()
 
 
@@ -141,7 +167,7 @@ def regular_ga_start_parsing(source_id):
         doc.status = GOOGLE_ALERTS_INIT_STATUS
     session.commit()
     for doc in docs:
-        router(doc.doc_id, GOOGLE_ALERTS_INIT_STATUS)
+        router(doc.doc_id, doc.app_id, GOOGLE_ALERTS_INIT_STATUS)
     session.remove()
 
 
@@ -154,7 +180,7 @@ def regular_yn_start_parsing(source_id):
         doc.status = YANDEX_NEWS_INIT_STATUS
     session.commit()
     for doc in docs:
-        router(doc.doc_id, YANDEX_NEWS_INIT_STATUS)
+        router(doc.doc_id, doc.app_id, YANDEX_NEWS_INIT_STATUS)
     session.remove()
 
 
@@ -168,7 +194,7 @@ def regular_vk_start_parsing(source_id):
     session.commit()
     print("regular_vk_start_parsing commit", source_id)
     for doc in docs:
-        router(doc.doc_id, VK_INIT_STATUS)
+        router(doc.doc_id, doc.app_id, VK_INIT_STATUS)
     session.remove()
 
 
@@ -233,15 +259,15 @@ def regular_rubrication(doc_id, with_rubrics_status, without_rubrics_status):
     set_doc(doc, new_status, session)
 
 @app.task(ignore_result=True)
-def regular_tomita(grammar_index, doc_id, new_status):
+def regular_tomita(grammar, doc_id, new_status):
     """tomita"""
     session, doc = get_doc(doc_id)
-    run_tomita(doc, grammars[grammar_index], session, False)
+    run_tomita(doc, grammar, session, False)
     set_doc(doc, new_status, session)
 
 
 @app.task(ignore_result=True)
-def regular_tomita_features(doc_id, new_status):
+def regular_tomita_features(grammars, doc_id, new_status):
     """tomita features (transform coordinates for ner)"""
     session, doc = get_doc(doc_id)
     ner_feature.create_tomita_feature(doc, grammars, session, False)
@@ -264,7 +290,7 @@ def regular_morpho_features(doc_id, new_status):
 
 
 @app.task(ignore_result=True)
-def regular_NER_predict(doc_id, new_status):
+def regular_NER_predict(ner_settings, doc_id, new_status):
     """NER computing"""
     session, doc = get_doc(doc_id)
     NER_predict(doc, ner_settings, session, False)
@@ -317,7 +343,7 @@ def set_doc(doc, new_status, session):
     session.commit()
     doc_id = doc.doc_id
     session.remove()
-    router(doc_id, new_status)
+    router(doc_id, doc.app_id, new_status)
 
 
 
@@ -345,3 +371,8 @@ doc = session.query(Document).filter_by(doc_id='3f521888-1e9f-4afd-8427-9d353cb8
 print(doc.markup)
 session.remove()
 """
+
+if __name__ == '__main__':
+    print("LOGIC START")
+    print(apps_config)
+    print("LOGIC FIN")

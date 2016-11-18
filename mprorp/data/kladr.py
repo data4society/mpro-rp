@@ -1,12 +1,12 @@
 """script for import KLADR to database"""
 import csv
-import os
 from mprorp.db.dbDriver import *
 from mprorp.db.models import *
 from sqlalchemy.orm import load_only
 
 from mprorp.analyzer.pymystem3_w import Mystem
-from sqlalchemy.orm.attributes import flag_modified
+
+from mprorp.utils import relative_file_path
 
 import pymorphy2
 morph = pymorphy2.MorphAnalyzer()
@@ -15,8 +15,7 @@ mystem = Mystem()
 mystem.start()
 socrs = dict()
 def import_kladr():
-    with open(os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__))) + '/kladr_data/SOCRBASE.csv',
-              'r') as csvfile:
+    with open(relative_file_path(__file__, 'kladr_data/SOCRBASE.csv'), 'r') as csvfile:
         spamreader = csv.reader(csvfile, delimiter=';')
         data = False
         for row in spamreader:
@@ -30,7 +29,7 @@ def import_kladr():
 
     session = db_session()
     n = 0
-    with open(os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))+'/kladr_data/KLADR.csv', 'r') as csvfile:
+    with open(relative_file_path(__file__, 'kladr_data/KLADR.csv'), 'r') as csvfile:
         spamreader = csv.reader(csvfile, delimiter=';')
         data = False
         for row in spamreader:
@@ -39,7 +38,7 @@ def import_kladr():
             else:
                 data = True
 
-    with open(os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))+'/kladr_data/STREET.csv', 'r') as csvfile:
+    with open(relative_file_path(__file__, 'kladr_data/STREET.csv'), 'r') as csvfile:
         spamreader = csv.reader(csvfile, delimiter=';')
         data = False
         for row in spamreader:
@@ -70,9 +69,9 @@ def parse_kladr_row(row, session, n):
 
 
 def import_ovds():
-    with open(os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__))) + '/kladr_data/ovds_out.csv', 'w') as csvnewfile:
+    with open(relative_file_path(__file__, 'kladr_data/ovds_out.csv'), 'w') as csvnewfile:
         spamwriter = csv.writer(csvnewfile)
-        with open(os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__))) + '/kladr_data/ovds.csv',
+        with open(relative_file_path(__file__, 'kladr_data/ovds.csv'),
                   'r') as csvfile:
             spamreader = csv.reader(csvfile)
             session = db_session()
@@ -162,9 +161,9 @@ def upd_kladr():
 
 
 def upd_ovds_tables():
-    with open(os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__))) + '/kladr_data/ovds_out2.csv', 'w') as csvnewfile:
+    with open(relative_file_path(__file__, 'kladr_data/ovds_out2.csv'), 'w') as csvnewfile:
         spamwriter = csv.writer(csvnewfile)
-        with open(os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__))) + '/kladr_data/ovds_out.csv',
+        with open(relative_file_path(__file__, '/kladr_data/ovds_out.csv'),
                   'r') as csvfile:
             spamreader = csv.reader(csvfile)
             session = db_session()
@@ -213,7 +212,7 @@ def upd_ovds_tables():
 
 
 def get_kladr_examples():
-    with open(os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__))) + '/kladr_data/SOCRBASE.csv',
+    with open(relative_file_path(__file__, 'kladr_data/SOCRBASE.csv'),
               'r') as csvfile:
         spamreader = csv.reader(csvfile, delimiter=';')
         data = False

@@ -1,0 +1,61 @@
+[
+  {
+    "app_name": "for manual rubrication",
+    "crawler": {
+      "vk":[
+        "http://...",
+        "http://...",
+        "http://..."
+      ],
+      "yandex_news":[
+        "http://...",
+        "http://...",
+        "http://..."
+      ]
+    },
+    "final_status":1000
+  },
+
+  {
+    "app_name": "for client",
+    "crawler": {
+      "vk":[
+        "http://...",
+        "http://...",
+        "http://..."
+      ],
+      "yandex_news":[
+        "http://...",
+        "http://...",
+        "http://..."
+      ]
+    },
+    "morpho": true,
+    "lemmas": true,
+    "rubrication":true,
+    "tomita": {
+      "grammars":{
+        "person.cxx": "Person",
+        "date.cxx": "Date",
+        "loc.cxx": "Loc",
+        "adr.cxx": "Adr",
+        "org.cxx": "Org",
+        "norm_act.cxx": "Norm",
+        "prof.cxx": "Prof"
+      },
+      "tomita_features": true
+    },
+    "ner_tomita_embedding_features": true,
+    "ner_tomita_morpho_features": true,
+    "ner_predict": {
+      "ner_settings": [
+        ["ner_oc1.params", "ner_oc1.weights"],
+        ["ner_oc2.params", "ner_oc2.weights"]
+      ]
+    },
+    "markup": true,
+    "ner_entities": true,
+    "special_final_status":1000,
+    "special_type":"tng"
+  }
+]
