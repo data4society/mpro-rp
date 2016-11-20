@@ -141,9 +141,9 @@ def router(doc_id, app_id, status):
     # finish regular procedures:
     session = db_session()
     doc = session.query(Document).filter_by(doc_id=doc_id).first()
-    if app_conf["special_type"]:
+    if "special_type" in app_conf:
         doc.type = app_conf["special_type"]
-    if app_conf["special_final_status"]:
+    if "special_final_status" in app_conf:
         doc.status = app_conf["special_final_status"]
     else:
         doc.status = REGULAR_PROCESSES_FINISH_STATUS
