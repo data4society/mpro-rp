@@ -84,6 +84,7 @@ def get_apps_config():
                 for source in crawler[source_type]:
                     crawler[source_type][source] = {"wait": True, "parse_period": crawler[source_type][source], "next_crawling_time": 0}
         config[app["app_id"]] = app
+    variable_set("last_config", config)
     return config
 apps_config = get_apps_config()
 
