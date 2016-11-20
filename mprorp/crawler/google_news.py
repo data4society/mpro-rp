@@ -10,12 +10,10 @@ from mprorp.crawler.utils import send_get_request
 import datetime
 
 
-def gn_start_parsing(source_id, session):
+def gn_start_parsing(source, app_id, session):
     """download google news start feed and feeds for every story"""
-    # get source url
-    source = session.query(Source).filter_by(source_id=source_id).first()
     # download google news start feed
-    req_result = send_get_request(source.url,'utf-8')
+    req_result = send_get_request(source,'utf-8')
     root_xml = etree.fromstring(req_result)
     channel = root_xml.find("channel")
     # print(len(channel.findall("item")))
@@ -27,7 +25,7 @@ def gn_start_parsing(source_id, session):
         ncls = re.findall(r'ncl=([A-Za-z0-9-_]+)',desc)
         # if no story id was found we parse item from start feed
         if len(ncls) == 0:
-            parse_gn_item(item, source_id, session, docs)
+            parse_gn_item(item, app_id, session, docs)
         else:
             for ncl in ncls:
                 # download google news story feed
@@ -37,16 +35,13 @@ def gn_start_parsing(source_id, session):
                 # print(len(sub_channel.findall("item")))
                 sub_items = sub_channel.findall("item")
                 for sub_item in sub_items:
-                    parse_gn_item(sub_item, source_id, session, docs)
+                    parse_gn_item(sub_item, app_id, session, docs)
 
-    source.next_crawling_time = datetime.datetime.fromtimestamp(
-        datetime.datetime.now().timestamp() + source.parse_period)
-    source.wait = True
     print("GN CRAWL COMPLETE")
     return docs
 
 
-def parse_gn_item(item, source_id, session, docs):
+def parse_gn_item(item, app_id, session, docs):
     """parses one news item and create new Document object"""
     title = item.find("title").text
     gnews_link = item.find("link").text
@@ -62,9 +57,9 @@ def parse_gn_item(item, source_id, session, docs):
     pos = title.find(' - '+publisher)
     title = title[:pos]
 
-    if session.query(Document).filter_by(guid=url).count() == 0:
+    if session.query(Document).filter_by(guid=app_id + url).count() == 0:
         # initial insert with guid, start status and reference to source
-        new_doc = Document(guid=url, source_id=source_id, status=0, type='article')
+        new_doc = Document(guid=app_id + url, url=url, status=0, type='article')
         new_doc.published_date = date
         new_doc.title = title
         meta = dict()

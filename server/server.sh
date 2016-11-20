@@ -20,6 +20,9 @@ unzip dev.zip
 cp /home/mprorp/mpro-rp-dev/mprorp/config/local_settings.sample.py /home/mprorp/local_settings.py
 # update local config at /home/mprorp/local_settings.py with real database connection string
 cp /home/mprorp/local_settings.py /home/mprorp/mpro-rp-dev/mprorp/config/local_settings.py
+cp /home/mprorp/mpro-rp-dev/mprorp/config/app.sample.json /home/mprorp/app.json
+# update application config at /home/mprorp/app.json with real app settings
+cp /home/mprorp/app.json /home/mprorp/mpro-rp-dev/mprorp/config/app.json
 
 
 su - #input root pass

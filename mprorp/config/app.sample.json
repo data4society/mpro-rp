@@ -1,34 +1,36 @@
 [
   {
+    "app_id": "fmrtest",
     "app_name": "for manual rubrication",
+    "app_desc": "grabbing documents to rubricator",
     "crawler": {
-      "vk":[
-        "http://...",
-        "http://...",
-        "http://..."
-      ],
-      "yandex_news":[
-        "http://...",
-        "http://...",
-        "http://..."
-      ]
+      "vk":{
+        "https://api.vk.com/method/newsfeed.search?count=25&q=в тексте":600,
+        "https://api.vk.com/method/newsfeed.search?count=25&q=\"в одной фразе\"":600
+      },
+      "yandex_news":{
+        "login:pass":600
+      }
     },
-    "final_status":1000
+    "special_final_status":1000,
+    "special_type":"tng"
   },
 
   {
+    "app_id": "fctest",
     "app_name": "for client",
+    "app_desc": "documents to view in client",
     "crawler": {
-      "vk":[
-        "http://...",
-        "http://...",
-        "http://..."
-      ],
-      "yandex_news":[
-        "http://...",
-        "http://...",
-        "http://..."
-      ]
+      "vk":{
+        "https://api.vk.com/method/newsfeed.search?count=25&q=в тексте":600,
+        "https://api.vk.com/method/newsfeed.search?count=25&q=\"в одной фразе\"":600
+      },
+      "google_news":{
+        "https://news.google.com/news/section?cf=all&hl=en&pz=1&q=Вася+Пупкин&output=rss":700,
+      },
+      "google_alerts":{
+        "https://www.google.ru/alerts/feeds/01670104253645512148/4749341977166306530":600
+      }
     },
     "morpho": true,
     "lemmas": true,
@@ -54,8 +56,6 @@
       ]
     },
     "markup": true,
-    "ner_entities": true,
-    "special_final_status":1000,
-    "special_type":"tng"
+    "ner_entities": true
   }
 ]

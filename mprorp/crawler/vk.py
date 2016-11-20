@@ -10,30 +10,24 @@ from mprorp.crawler.utils import *
 #logging.basicConfig(format = u'%(filename)s[LINE:%(lineno)d]# %(levelname)-8s [%(asctime)s]  %(message)s', level = logging.DEBUG)
 
 
-def vk_start_parsing(source_id, session):
+def vk_start_parsing(source, app_id, session):
     """download vk response and run list parsing function"""
-    # get source object
-    source = session.query(Source).filter_by(source_id=source_id).first()
-    print('vk start parsing source:' + source.name)
+    print('vk start parsing source:' + source)
     # download vk response
-    req_result = send_get_request(source.url)
+    req_result = send_get_request(source)
     # run list parsing function
-    docs = vk_parse_list(req_result, source_id, session)
-    # change next timestamp crawl start
-    source.next_crawling_time = datetime.datetime.fromtimestamp(datetime.datetime.now().timestamp() + source.parse_period)
-    source.wait = True
+    docs = vk_parse_list(req_result, app_id, session)
     print("VK CRAWL COMPLETE")
     return docs
 
 
-def vk_parse_list(req_result, source_id, session):
+def vk_parse_list(req_result, app_id, session):
     """parses one source, get list and do initial insert"""
 
     # convert to json object
     json_obj = json.loads(req_result)
     if not "response" in json_obj:
         print("RESPONSE ERROR")
-        print(source_id)
         print(json_obj)
     docs = []
     for item in json_obj["response"]:
@@ -48,9 +42,9 @@ def vk_parse_list(req_result, source_id, session):
 
             # Skip item if we have any row in Document table with same guid (url)
             # skip all not 'post' items
-            if post_type == 'post' and session.query(Document).filter_by(guid=url).count() == 0:
+            if post_type == 'post' and session.query(Document).filter_by(app_id=app_id + url).count() == 0:
                 # initial insert with guid start status and reference to source
-                new_doc = Document(guid=url, source_id=source_id, type='vk', meta=item)
+                new_doc = Document(guid=app_id + url, url=url, type='vk', meta=item)
                 docs.append(new_doc)
                 session.add(new_doc)
                 # further parsing

@@ -25,6 +25,7 @@ from mprorp.ner.NER import NER_predict
 from mprorp.ner.identification import create_markup
 
 import json
+import datetime
 
 # statuses
 VK_INIT_STATUS = 10
@@ -77,7 +78,12 @@ def get_apps_config():
             for ind1, val1 in enumerate(ner_settings):
                 for ind2, val2 in enumerate(val1):
                     ner_settings[ind1][ind2] = home_dir + '/weights/' + val2
-        config[app["app_name"]] = app
+        if "crawler" in app:
+            crawler = app["crawler"]
+            for source_type in crawler:
+                for source in crawler[source_type]:
+                    crawler[source_type][source] = {"wait": True, "parse_period": crawler[source_type][source], "next_crawling_time": 0}
+        config[app["app_id"]] = app
     return config
 apps_config = get_apps_config()
 
@@ -146,56 +152,76 @@ def router(doc_id, app_id, status):
 
 
 @app.task(ignore_result=True, time_limit=660, soft_timeout_limit=600)
-def regular_gn_start_parsing(source_id):
+def regular_gn_start_parsing(source, app_id):
     """parsing google news request"""
     session = db_session()
-    docs = gn_start_parsing(source_id, session)
+    docs = gn_start_parsing(source, app_id, session)
     for doc in docs:
         doc.status = GOOGLE_NEWS_INIT_STATUS
+        doc.source_with_type = "google_news "+source
+        doc.app_id = app_id
     session.commit()
     for doc in docs:
-        router(doc.doc_id, doc.app_id,  GOOGLE_NEWS_INIT_STATUS)
+        router(doc.doc_id, app_id,  GOOGLE_NEWS_INIT_STATUS)
     session.remove()
+    source_params = apps_config[app_id]["crawler"]["gn"][source]
+    source_params["wait"] = True
+    source_params["next_crawling_time"] = datetime.datetime.now().timestamp() + source_params["parse_period"]
 
 
 @app.task(ignore_result=True, time_limit=660, soft_timeout_limit=600)
-def regular_ga_start_parsing(source_id):
+def regular_ga_start_parsing(source, app_id):
     """parsing google alerts request"""
     session = db_session()
-    docs = ga_start_parsing(source_id, session)
+    docs = ga_start_parsing(source, app_id, session)
     for doc in docs:
         doc.status = GOOGLE_ALERTS_INIT_STATUS
+        doc.source_with_type = "google_alerts "+source
+        doc.app_id = app_id
     session.commit()
     for doc in docs:
-        router(doc.doc_id, doc.app_id, GOOGLE_ALERTS_INIT_STATUS)
+        router(doc.doc_id, app_id, GOOGLE_ALERTS_INIT_STATUS)
     session.remove()
+    source_params = apps_config[app_id]["crawler"]["gn"][source]
+    source_params["wait"] = True
+    source_params["next_crawling_time"] = datetime.datetime.now().timestamp() + source_params["parse_period"]
 
 
 @app.task(ignore_result=True, time_limit=660, soft_timeout_limit=600)
-def regular_yn_start_parsing(source_id):
+def regular_yn_start_parsing(source, app_id):
     """parsing yandex news request"""
     session = db_session()
-    docs = yn_start_parsing(source_id, session)
+    docs = yn_start_parsing(source, app_id, session)
     for doc in docs:
         doc.status = YANDEX_NEWS_INIT_STATUS
+        doc.source_with_type = "yandex_news "+source
+        doc.app_id = app_id
     session.commit()
     for doc in docs:
-        router(doc.doc_id, doc.app_id, YANDEX_NEWS_INIT_STATUS)
+        router(doc.doc_id, app_id, YANDEX_NEWS_INIT_STATUS)
     session.remove()
+    source_params = apps_config[app_id]["crawler"]["gn"][source]
+    source_params["wait"] = True
+    source_params["next_crawling_time"] = datetime.datetime.now().timestamp() + source_params["parse_period"]
 
 
 @app.task(ignore_result=True, time_limit=660, soft_timeout_limit=600)
-def regular_vk_start_parsing(source_id):
+def regular_vk_start_parsing(source, app_id):
     """parsing vk request"""
     session = db_session()
-    docs = vk_start_parsing(source_id, session)
+    docs = vk_start_parsing(source, app_id, session)
     for doc in docs:
         doc.status = VK_INIT_STATUS
+        doc.source_with_type = "vk "+source
+        doc.app_id = app_id
     session.commit()
-    print("regular_vk_start_parsing commit", source_id)
+    print("regular_vk_start_parsing commit", source)
     for doc in docs:
         router(doc.doc_id, doc.app_id, VK_INIT_STATUS)
     session.remove()
+    source_params = apps_config[app_id]["crawler"]["gn"][source]
+    source_params["wait"] = True
+    source_params["next_crawling_time"] = datetime.datetime.now().timestamp() + source_params["parse_period"]
 
 
 @app.task(ignore_result=True)
@@ -257,6 +283,7 @@ def regular_rubrication(doc_id, with_rubrics_status, without_rubrics_status):
     else:
         new_status = with_rubrics_status
     set_doc(doc, new_status, session)
+
 
 @app.task(ignore_result=True)
 def regular_tomita(grammar, doc_id, new_status):
