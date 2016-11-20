@@ -4,6 +4,7 @@ from sqlalchemy import Column, ForeignKey, String, Text, Integer, TIMESTAMP, Flo
 from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR, ARRAY
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import text, functions
+from sqlalchemy import UniqueConstraint
 
 from mprorp.db.dbDriver import Base
 
@@ -88,6 +89,10 @@ class Document(Base):
     doc_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
     # unic identificator
     guid = Column(String(1023), unique=True)
+    # url
+    url = Column(String(1023))
+    # source with it's type
+    source_with_type = Column(String(1023))
     # reference to source
     source_id = Column(UUIDType(binary=False), ForeignKey('sources.source_id'))
     source = relationship(Source)
@@ -124,7 +129,9 @@ class Document(Base):
     theme_id = Column(UUIDType(binary=False), ForeignKey('themes.theme_id'))
     theme = relationship(Theme)
     # id of application (without reference to somewhere)
-    app_id = Column(String(255), nullable=False)
+    app_id = Column(String(255))
+
+    __table_args__ = (UniqueConstraint('app_id', 'url'), )
 
 
 class Variable(Base):
@@ -146,6 +153,8 @@ class Record(Base):
                          server_default=text("uuid_generate_v4()"), primary_key=True, unique=True)
     # unic identificator
     guid = Column(String(255), unique=True)
+    # url
+    url = Column(String(1023))
     # document title
     title = Column(String(255))
     # document schema
@@ -181,7 +190,7 @@ class Record(Base):
     # vector with the lexemes for fulltext searching
     tsv = Column(TSVECTOR())
     # id of application (without reference to somewhere)
-    app_id = Column(String(255), nullable=False)
+    app_id = Column(String(255))
 
 class Collection(Base):
     """contains document collections"""

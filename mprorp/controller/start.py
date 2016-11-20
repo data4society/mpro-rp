@@ -14,33 +14,31 @@ from sqlalchemy.orm import load_only
 @app.task(ignore_result=True)
 def check_sources():
     """check sources and start crawling if need"""
-    sources_dict = {}
-    session = db_session()
-    sources = session.query(Source)\
-        .filter(Source.parse_period != -1, Source.next_crawling_time < datetime.datetime.now(), Source.wait == True) \
-        .options(load_only("source_id", "source_type_id")).all()
-    for source in sources:
-        sources_dict[str(source.source_id)] = str(source.source_type_id)
-    session.query(Source) \
-        .filter(Source.parse_period != -1, Source.next_crawling_time < datetime.datetime.now(), Source.wait == True)\
-        .update({"wait": False})
-    session.commit()
-    session.remove()
-    for source_id, source_type_id in sources_dict.items():
-        print("NEED CRAWL: ", source_id)
+    for app_id in apps_config:
+        app = apps_config[app_id]
+        if "crawler" in app:
+            crawler = app["crawler"]
+            for source_type in crawler:
+                for source in crawler[source_type]:
+                    source_params = crawler[source_type][source]
+                    if source_params["wait"] and source_params["next_crawling_time"] < datetime.datetime.now().timestamp():
+                        source_params["wait"] = False
+                        if source_type == "vk":  # vk
+                            print("START VK CRAWL")
+                            regular_vk_start_parsing.delay(source, app_id)
+                        elif source_type == "google_news":  # google_news
+                            print("START GOOGLE NEWS CRAWL")
+                            regular_gn_start_parsing.delay(source, app_id)
+                        elif source_type == "google_alerts":  # google alerts
+                            print("START GOOGLE ALERTS CRAWL")
+                            regular_ga_start_parsing.delay(source, app_id)
+                        elif source_type == "yandex_news":  # yandex news
+                            print("START YANDEX NEWS CRAWL")
+                            regular_yn_start_parsing.delay(source, app_id)
+                    elif (not source_params["wait"]) and source_params["next_crawling_time"] < datetime.datetime.now().timestamp():
+                        print("wait for "+source)
 
-        if source_type_id in ['0cc76b0c-531e-4a90-ab0b-078695336df5', '81518bd0-9aef-4899-84c5-c1839e155963']: #  vk
-            print("START VK CRAWL")
-            regular_vk_start_parsing.delay(source_id)
-        if source_type_id in ['1d6210b2-5ff3-401c-b0ba-892d43e0b741', '62cf1ff2-c860-40db-92e6-c3a3898fea48']: #  google_news
-            print("START GOOGLE NEWS CRAWL")
-            regular_gn_start_parsing.delay(source_id)
-        if source_type_id in ['ce81b5dc-115c-400b-8886-91f9246926ca']: #  google alerts
-            print("START GOOGLE ALERTS CRAWL")
-            regular_ga_start_parsing.delay(source_id)
-        if source_type_id in ['11d72f40-707e-4fdc-94bf-08db29e50657']: #  yandex news
-            print("START YANDEX NEWS CRAWL")
-            regular_yn_start_parsing.delay(source_id)
+
 
 
 if __name__ == "__main__":

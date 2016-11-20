@@ -7,13 +7,11 @@ import lxml.html
 import re
 
 
-def yn_start_parsing(source_id, session):
+def yn_start_parsing(source, app_id, session):
     """download google news start feed and feeds for every story"""
-    # get source url
-    source = session.query(Source).filter_by(source_id=source_id).first()
 
     server = IMAP4_SSL('imap.yandex.ru')
-    (user,password) = source.url.split(":")
+    (user,password) = source.split(":")
     server.login(user, password)
 
     server.select()
@@ -36,14 +34,11 @@ def yn_start_parsing(source_id, session):
             ol = tree_mail.find("body").find("ol")
             items = ol.findall("li")
             for item in items:
-                parse_yn_item(item, source_id, session, docs)
-    source.next_crawling_time = datetime.datetime.fromtimestamp(
-        datetime.datetime.now().timestamp() + source.parse_period)
-    source.wait = True
+                parse_yn_item(item, app_id, session, docs)
     print("YN CRAWL COMPLETE")
     return docs
 
-def parse_yn_item(item, source_id, session, docs):
+def parse_yn_item(item, app_id, session, docs):
     a = item.find("a")
     url = a.get("href")
     title = a.text_content()
@@ -60,9 +55,9 @@ def parse_yn_item(item, source_id, session, docs):
     #print(date)
     #print(title)
     #print(desc)
-    if session.query(Document).filter_by(guid=url).count() == 0:
+    if session.query(Document).filter_by(guid=app_id + url).count() == 0:
         # initial insert with guid, start status and reference to source
-        new_doc = Document(guid=url, source_id=source_id, status=0, type='article')
+        new_doc = Document(guid=app_id + url, url=url, status=0, type='article')
         new_doc.published_date = date
         new_doc.title = title
         meta = dict()

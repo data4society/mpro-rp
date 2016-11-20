@@ -25,6 +25,7 @@ from mprorp.ner.NER import NER_predict
 from mprorp.ner.identification import create_markup
 
 import json
+import datetime
 
 # statuses
 VK_INIT_STATUS = 10
@@ -77,7 +78,13 @@ def get_apps_config():
             for ind1, val1 in enumerate(ner_settings):
                 for ind2, val2 in enumerate(val1):
                     ner_settings[ind1][ind2] = home_dir + '/weights/' + val2
-        config[app["app_name"]] = app
+        if "crawler" in app:
+            crawler = app["crawler"]
+            for source_type in crawler:
+                for source in crawler[source_type]:
+                    crawler[source_type][source] = {"wait": True, "parse_period": crawler[source_type][source], "next_crawling_time": 0}
+        config[app["app_id"]] = app
+    variable_set("last_config", config)
     return config
 apps_config = get_apps_config()
 
@@ -118,25 +125,25 @@ def router(doc_id, app_id, status):
     if "ner_tomita_embedding_features" in app_conf and status < NER_TOMITA_EMBEDDING_FEATURES_COMPLETE_STATUS:  # to preparing lemmas
         regular_embedding_features.delay(doc_id, NER_TOMITA_EMBEDDING_FEATURES_COMPLETE_STATUS)
         return
-    if "ner_tomita_morpho_features" in app_conf and status == NER_TOMITA_MORPHO_FEATURES_COMPLETE_STATUS:  # to preparing morpho
+    if "ner_tomita_morpho_features" in app_conf and status < NER_TOMITA_MORPHO_FEATURES_COMPLETE_STATUS:  # to preparing morpho
         regular_morpho_features.delay(doc_id, NER_TOMITA_MORPHO_FEATURES_COMPLETE_STATUS)
         return
-    if "ner_predict" in app_conf and status == NER_PREDICT_COMPLETE_STATUS:  # to NER
+    if "ner_predict" in app_conf and status < NER_PREDICT_COMPLETE_STATUS:  # to NER
         regular_NER_predict.delay(app_conf["ner_predict"]["ner_settings"], doc_id, NER_PREDICT_COMPLETE_STATUS)
         return
-    if "markup" in app_conf and status == MARKUP_COMPLETE_STATUS:  # to createb markup
+    if "markup" in app_conf and status < MARKUP_COMPLETE_STATUS:  # to createb markup
         regular_create_markup.delay(doc_id, MARKUP_COMPLETE_STATUS)
         return
-    if "ner_entities" in app_conf and status == NER_ENTITIES_COMPLETE_STATUS:  # to ner entities
+    if "ner_entities" in app_conf and status < NER_ENTITIES_COMPLETE_STATUS:  # to ner entities
         regular_entities.delay(doc_id, NER_ENTITIES_COMPLETE_STATUS)
         return
 
     # finish regular procedures:
     session = db_session()
     doc = session.query(Document).filter_by(doc_id=doc_id).first()
-    if app_conf["special_type"]:
+    if "special_type" in app_conf:
         doc.type = app_conf["special_type"]
-    if app_conf["special_final_status"]:
+    if "special_final_status" in app_conf:
         doc.status = app_conf["special_final_status"]
     else:
         doc.status = REGULAR_PROCESSES_FINISH_STATUS
@@ -146,56 +153,96 @@ def router(doc_id, app_id, status):
 
 
 @app.task(ignore_result=True, time_limit=660, soft_timeout_limit=600)
-def regular_gn_start_parsing(source_id):
+def regular_gn_start_parsing(source, app_id):
     """parsing google news request"""
-    session = db_session()
-    docs = gn_start_parsing(source_id, session)
-    for doc in docs:
-        doc.status = GOOGLE_NEWS_INIT_STATUS
-    session.commit()
-    for doc in docs:
-        router(doc.doc_id, doc.app_id,  GOOGLE_NEWS_INIT_STATUS)
-    session.remove()
+    try:
+        session = db_session()
+        docs = gn_start_parsing(source, app_id, session)
+        for doc in docs:
+            doc.status = GOOGLE_NEWS_INIT_STATUS
+            doc.source_with_type = "google_news "+source
+            doc.app_id = app_id
+        session.commit()
+        for doc in docs:
+            router(doc.doc_id, app_id,  GOOGLE_NEWS_INIT_STATUS)
+        session.remove()
+    except Exception as err:
+        err_txt = repr(err)
+        logging.error("Неизвестная ошибка крайлинга, source: " + source)
+        print(err_txt)
+    source_params = apps_config[app_id]["crawler"]["google_news"][source]
+    source_params["wait"] = True
+    source_params["next_crawling_time"] = datetime.datetime.now().timestamp() + source_params["parse_period"]
 
 
 @app.task(ignore_result=True, time_limit=660, soft_timeout_limit=600)
-def regular_ga_start_parsing(source_id):
+def regular_ga_start_parsing(source, app_id):
     """parsing google alerts request"""
-    session = db_session()
-    docs = ga_start_parsing(source_id, session)
-    for doc in docs:
-        doc.status = GOOGLE_ALERTS_INIT_STATUS
-    session.commit()
-    for doc in docs:
-        router(doc.doc_id, doc.app_id, GOOGLE_ALERTS_INIT_STATUS)
-    session.remove()
+    try:
+        session = db_session()
+        docs = ga_start_parsing(source, app_id, session)
+        for doc in docs:
+            doc.status = GOOGLE_ALERTS_INIT_STATUS
+            doc.source_with_type = "google_alerts "+source
+            doc.app_id = app_id
+        session.commit()
+        for doc in docs:
+            router(doc.doc_id, app_id, GOOGLE_ALERTS_INIT_STATUS)
+        session.remove()
+    except Exception as err:
+        err_txt = repr(err)
+        logging.error("Неизвестная ошибка крайлинга, source: " + source)
+        print(err_txt)
+    source_params = apps_config[app_id]["crawler"]["google_alerts"][source]
+    source_params["wait"] = True
+    source_params["next_crawling_time"] = datetime.datetime.now().timestamp() + source_params["parse_period"]
 
 
 @app.task(ignore_result=True, time_limit=660, soft_timeout_limit=600)
-def regular_yn_start_parsing(source_id):
+def regular_yn_start_parsing(source, app_id):
     """parsing yandex news request"""
-    session = db_session()
-    docs = yn_start_parsing(source_id, session)
+    try:
+        session = db_session()
+        docs = yn_start_parsing(source, app_id, session)
+        for doc in docs:
+            doc.status = YANDEX_NEWS_INIT_STATUS
+            doc.source_with_type = "yandex_news "+source
+            doc.app_id = app_id
+        session.commit()
+    except Exception as err:
+        err_txt = repr(err)
+        logging.error("Неизвестная ошибка крайлинга, source: " + source)
+        print(err_txt)
     for doc in docs:
-        doc.status = YANDEX_NEWS_INIT_STATUS
-    session.commit()
-    for doc in docs:
-        router(doc.doc_id, doc.app_id, YANDEX_NEWS_INIT_STATUS)
+        router(doc.doc_id, app_id, YANDEX_NEWS_INIT_STATUS)
     session.remove()
+    source_params = apps_config[app_id]["crawler"]["yandex_news"][source]
+    source_params["wait"] = True
+    source_params["next_crawling_time"] = datetime.datetime.now().timestamp() + source_params["parse_period"]
 
 
 @app.task(ignore_result=True, time_limit=660, soft_timeout_limit=600)
-def regular_vk_start_parsing(source_id):
+def regular_vk_start_parsing(source, app_id):
     """parsing vk request"""
-    session = db_session()
-    docs = vk_start_parsing(source_id, session)
-    for doc in docs:
-        doc.status = VK_INIT_STATUS
-    session.commit()
-    print("regular_vk_start_parsing commit", source_id)
-    for doc in docs:
-        router(doc.doc_id, doc.app_id, VK_INIT_STATUS)
-    session.remove()
+    try:
+        session = db_session()
+        docs = vk_start_parsing(source, app_id, session)
+        for doc in docs:
+            doc.status = VK_INIT_STATUS
+            doc.source_with_type = "vk "+source
+            doc.app_id = app_id
+        session.commit()
+        print("regular_vk_start_parsing commit", source)
+        for doc in docs:
+            router(doc.doc_id, doc.app_id, VK_INIT_STATUS)
+        session.remove()
+    except Exception as err:
+        err_txt = repr(err)
+        logging.error("Неизвестная ошибка крайлинга, source: " + source)
+        print(err_txt)
+    source_params = apps_config[app_id]["crawler"]["vk"][source]
+    source_params["wait"] = True
+    source_params["next_crawling_time"] = datetime.datetime.now().timestamp() + source_params["parse_period"]
 
 
 @app.task(ignore_result=True)
@@ -257,6 +304,7 @@ def regular_rubrication(doc_id, with_rubrics_status, without_rubrics_status):
     else:
         new_status = with_rubrics_status
     set_doc(doc, new_status, session)
+
 
 @app.task(ignore_result=True)
 def regular_tomita(grammar, doc_id, new_status):

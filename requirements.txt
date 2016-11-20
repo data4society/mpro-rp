@@ -18,7 +18,5 @@ chardet
 
 pymorphy2
 
-smart_open
-scipy
 gensim
 

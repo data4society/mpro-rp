@@ -9,6 +9,7 @@ apt-get -y upgrade
 dpkg-reconfigure tzdata # change server timezone
 apt-get -y install mc python-virtualenv rabbitmq-server python3-pip libpq-dev nginx
 apt-get -y build-dep python3-lxml
+apt-get -y libblas-dev liblapack-dev libatlas-base-dev gfortran
 
 
 # we'll run our app in virtualenv '/home/mprorp/mprorpenv'
@@ -20,6 +21,9 @@ unzip dev.zip
 cp /home/mprorp/mpro-rp-dev/mprorp/config/local_settings.sample.py /home/mprorp/local_settings.py
 # update local config at /home/mprorp/local_settings.py with real database connection string
 cp /home/mprorp/local_settings.py /home/mprorp/mpro-rp-dev/mprorp/config/local_settings.py
+cp /home/mprorp/mpro-rp-dev/mprorp/config/app.sample.json /home/mprorp/app.json
+# update application config at /home/mprorp/app.json with real app settings
+cp /home/mprorp/app.json /home/mprorp/mpro-rp-dev/mprorp/config/app.json
 
 
 su - #input root pass
