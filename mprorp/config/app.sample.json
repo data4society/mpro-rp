@@ -63,8 +63,6 @@
       "name": "markup from NER",
       "markup_type": "20"
     },
-    "ner_entities": true,
-    "special_final_status":1000,
-    "special_type":"tng"
+    "ner_entities": true
   }
 ]
