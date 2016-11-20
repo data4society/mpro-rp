@@ -6,6 +6,7 @@ sudo apt-get update
 # install some libs
 sudo apt-get -y install libpq-dev mc python3-pip python3-nose
 sudo apt-get -y build-dep python3-lxml
+sudo apt-get -y libblas-dev liblapack-dev libatlas-base-dev gfortran
 # install project requirements
 sudo pip3 install -r requirements.txt
 # install tensorflow
