@@ -42,7 +42,7 @@ def vk_parse_list(req_result, app_id, session):
 
             # Skip item if we have any row in Document table with same guid (url)
             # skip all not 'post' items
-            if post_type == 'post' and session.query(Document).filter_by(app_id=app_id + url).count() == 0:
+            if post_type == 'post' and session.query(Document).filter_by(guid=app_id + url).count() == 0:
                 # initial insert with guid start status and reference to source
                 new_doc = Document(guid=app_id + url, url=url, type='vk', meta=item)
                 docs.append(new_doc)
