@@ -165,7 +165,7 @@ def regular_gn_start_parsing(source, app_id):
     for doc in docs:
         router(doc.doc_id, app_id,  GOOGLE_NEWS_INIT_STATUS)
     session.remove()
-    source_params = apps_config[app_id]["crawler"]["gn"][source]
+    source_params = apps_config[app_id]["crawler"]["google_news"][source]
     source_params["wait"] = True
     source_params["next_crawling_time"] = datetime.datetime.now().timestamp() + source_params["parse_period"]
 
@@ -183,7 +183,7 @@ def regular_ga_start_parsing(source, app_id):
     for doc in docs:
         router(doc.doc_id, app_id, GOOGLE_ALERTS_INIT_STATUS)
     session.remove()
-    source_params = apps_config[app_id]["crawler"]["gn"][source]
+    source_params = apps_config[app_id]["crawler"]["google_alerts"][source]
     source_params["wait"] = True
     source_params["next_crawling_time"] = datetime.datetime.now().timestamp() + source_params["parse_period"]
 
@@ -201,7 +201,7 @@ def regular_yn_start_parsing(source, app_id):
     for doc in docs:
         router(doc.doc_id, app_id, YANDEX_NEWS_INIT_STATUS)
     session.remove()
-    source_params = apps_config[app_id]["crawler"]["gn"][source]
+    source_params = apps_config[app_id]["crawler"]["yandex_news"][source]
     source_params["wait"] = True
     source_params["next_crawling_time"] = datetime.datetime.now().timestamp() + source_params["parse_period"]
 
@@ -220,7 +220,7 @@ def regular_vk_start_parsing(source, app_id):
     for doc in docs:
         router(doc.doc_id, doc.app_id, VK_INIT_STATUS)
     session.remove()
-    source_params = apps_config[app_id]["crawler"]["gn"][source]
+    source_params = apps_config[app_id]["crawler"]["vk"][source]
     source_params["wait"] = True
     source_params["next_crawling_time"] = datetime.datetime.now().timestamp() + source_params["parse_period"]
 
