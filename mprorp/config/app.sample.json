@@ -49,11 +49,18 @@
     "ner_tomita_morpho_features": true,
     "ner_predict": {
       "ner_settings": [
-        ["ner_oc1.params", "ner_oc1.weights"],
-        ["ner_oc2.params", "ner_oc2.weights"]
+        {"class": 1, "tags": 1, "use_special_tags": 0},
+        {"class": 0, "tags": 1, "use_special_tags": 1},
+        {"class": 0, "tags": 1, "use_special_tags": 1}
       ]
     },
-    "markup": true,
+    "markup": {
+      "identification_settings": [
+        {"identification_type": 1, "tag_type": ["BS", "IE"], "learn_class": "name"}
+      ],
+      "name": "markup from NER",
+      "markup_type": "20"
+    },
     "ner_entities": true,
     "special_final_status":1000,
     "special_type":"tng"

@@ -30,6 +30,10 @@ class Config(object):
     """
     classes = ['oc_class_person', 'name', 'oc_class_org', 'oc_class_loc']
     tag_types = [['B', 'I', 'S', 'E'], ['BS', 'IE'], ['BI', 'ES']]
+    special_tag_types = {'oc_class_person':
+                             [['oc_span_last_name', 'oc_span_first_name', 'oc_span_middle_name',
+                               'oc_span_nickname', 'oc_span_foreign_name'],
+                              ['oc_span_post', 'oc_span_role', 'oc_span_status']]}
     learn_type = {'class': 1, 'tags': 1}
 
     new_model = True
@@ -717,15 +721,30 @@ def NER_learning(filename_params, filename_tf, config=None):
 
 
 def NER_predict(doc, settings, session_db=None, commit_session=True, verbose=False):
+
     values = {}
-    entity_class = 'name'
-    for i in settings:
-        NER_predict_set(doc, i[0], i[1], values, session_db, commit_session, verbose=verbose)
+    for model_type in settings:
+        NER_config = Config()
+        learn_class = NER_config.classes[model_type['class']]
+        NER_config.feature_type = feature.ner_feature_types[learn_class + '_answers']
+        if model_type['use_special_tags']:
+            list_tags = NER_config.special_tag_types[learn_class][model_type['tags']]
+        else:
+            list_tags = NER_config.tag_types[model_type['tags']]
+
+        NER_config.feature_answer = [learn_class + '_' + i for i in list_tags]
+        filename_part = str(NER_config.learn_type['class']
+                            ) + '_' + str(NER_config.learn_type['tags']
+                            ) + '_' + str(NER_config.learn_type['use_special_tags'])
+        filename_tf = home_dir + '/weights/ner_oc_' + filename_part + '.weights'
+        filename_params = home_dir + '/weights/ner_oc_' + filename_part + '.params'
+
+        NER_predict_set(doc, filename_params, filename_tf, values, session_db, commit_session, verbose=verbose)
         if verbose:
             print(values)
-    if len(values) > 0:
-        db.put_ner_feature_dict(doc.doc_id, values, 'predictions' + entity_class,
-                                None, session_db, commit_session)
+        if len(values) > 0:
+            db.put_ner_feature_dict(doc.doc_id, values, 'predictions' + learn_class,
+                                    None, session_db, commit_session)
 
 
 def NER_predict_set(doc, filename_params, filename_tf, values, session_db, commit_session=True, verbose=False):

@@ -9,7 +9,7 @@ from mprorp.tomita.tomita_run import run_tomita2
 import mprorp.ner.feature as ner_feature
 from mprorp.ner.identification import create_answers_feature_for_doc
 from mprorp.db.models import *
-from mprorp.ner.identification import create_markup_name
+from mprorp.ner.identification import create_markup_regular
 from mprorp.utils import home_dir
 from mprorp.ner.tomita_to_markup import convert_tomita_result_to_markup
 import mprorp.ner.feature as feature
@@ -214,11 +214,12 @@ def add_difference(diff, key, ans, pred, add_feature=None):
 
 def identification():
     # 7. Identification
+    settings_list = [{"identification_type": 1, "tag_type": ["BS", "IE"], "learn_class": "name"}]
     number = 0
     for doc_id in set_docs[learn_class]['dev']:
         doc = session.query(Document).filter_by(doc_id=doc_id).first()
         print(doc.stripped)
-        create_markup_name(doc, verbose=True)
+        create_markup_regular(doc, settings_list, 'from NER', '20', verbose=True)
         number += 1
         if number == 10:
             exit()

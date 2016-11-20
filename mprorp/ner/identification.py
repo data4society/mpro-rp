@@ -83,6 +83,9 @@ def get_ref_from_morpho(reference, morpho, verbose=False):
 
 
 def create_answers_feature_for_doc(doc, entity_class='oc_class_person', session=None, commit_session=True, verbose=False):
+    """Create answers like classname_B, classname_I, ..., classname_BS, classname_IE.
+    for example name_BS, name_IE
+    """
 
     # let find markup for entity_class
     main_entity_class = entity_class
@@ -268,6 +271,20 @@ def create_answers_feature_for_doc_2(doc_id):
     db.doc_apply(doc_id,  create_answers_feature_for_doc)
 
 
+def create_markup_regular(doc, settings_list, name, markup_type, session=None, commit_session=True, verbose=False):
+    refs = []
+    classes = set()
+    for ref_settings in settings_list:
+        if settings['identification_type'] == 1:
+            create_refs(doc, ref_settings, refs, session, commit_session, verbose)
+            classes.add(ref_settings['learn_class'])
+
+    if verbose:
+        print(refs)
+    if len(refs) > 0:
+        db.put_markup(doc, name, list(classes), markup_type, refs, session=session, commit_session=commit_session)
+
+
 def create_markup(doc, session=None, commit_session=True, verbose=False):
 
     feature_type = feature.ner_feature_types['OpenCorpora']
@@ -320,12 +337,15 @@ def create_markup(doc, session=None, commit_session=True, verbose=False):
     form_entity_for_chain_spans(doc, list_chain_spans, spans_info, spans_morpho_info, session, commit_session)
 
 
-def create_markup_name(doc, session=None, commit_session=True, verbose=False):
+def create_refs(doc, refs_settings, refs, session=None, commit_session=True, verbose=False):
 
-    feature_type = feature.ner_feature_types['name_predictions']
+    # feature_type = feature.ner_feature_types['name_predictions']
+    # tag_type = ['BS', 'IE'] # ['B', 'I', 'S', 'E'], ['BI', 'ES']
+    # learn_class = 'name'
 
-    tag_type = ['BS', 'IE'] # ['B', 'I', 'S', 'E'], ['BI', 'ES']
-    learn_class = 'name'
+    tag_type = refs_settings['tag_type']
+    learn_class = refs_settings['learn_class']
+    feature_type = feature.ner_feature_types[learn_class + '_predictions']
 
     features = [learn_class + '_' + i for i in tag_type]
 
@@ -448,7 +468,6 @@ def create_markup_name(doc, session=None, commit_session=True, verbose=False):
 
     # Теперь осталось записать в базу данных markup'ы с найденными и созданными сущностями
     # для этого по каждому упоминанию сформируем символьные координаты
-    refs = []
     for i in range(len(mentions_id)):
         if mentions_id[i] is not None:
             start_offset = doc_properties_info[mentions[i][0]]['start_offset']
@@ -456,11 +475,6 @@ def create_markup_name(doc, session=None, commit_session=True, verbose=False):
             refs.append({'start_offset': start_offset, 'end_offset': end_offset + 1,
                          'len_offset': end_offset - start_offset + 1,
                          'entity': str(mentions_id[i]), 'entity_class': 'person'})
-    if verbose:
-        print(refs)
-    if len(refs) > 0:
-        name = 'markup from NER name'
-        db.put_markup(doc, name, ['person'], '20', refs, session=session, commit_session=commit_session)
 
 
 def normalize_links(links):
