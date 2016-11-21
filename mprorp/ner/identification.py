@@ -275,7 +275,7 @@ def create_markup_regular(doc, settings_list, name, markup_type, session=None, c
     refs = []
     classes = set()
     for ref_settings in settings_list:
-        if settings['identification_type'] == 1:
+        if ref_settings['identification_type'] == 1:
             create_refs(doc, ref_settings, refs, session, commit_session, verbose)
             classes.add(ref_settings['learn_class'])
 
