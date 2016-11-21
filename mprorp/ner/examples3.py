@@ -244,7 +244,7 @@ def identification(learn_class):
 
 def script_exec():
     # create_sets('oc_class_person')
-    learning()
+    NER.NER_learning_by_config({"class": 1, "tags": 1, "use_special_tags": 0})
     # create_answers('oc_class_loc')
     prediction('name')
     identification('name')

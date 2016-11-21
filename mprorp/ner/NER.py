@@ -736,16 +736,16 @@ def NER_predict(doc, settings, session_db=None, commit_session=True, verbose=Fal
     for model_type in settings:
         NER_config = Config()
         learn_class = NER_config.classes[model_type['class']]
-        NER_config.feature_type = feature.ner_feature_types[learn_class + '_answers']
-        if model_type['use_special_tags']:
-            list_tags = NER_config.special_tag_types[learn_class][model_type['tags']]
-        else:
-            list_tags = NER_config.tag_types[model_type['tags']]
-
-        NER_config.feature_answer = [learn_class + '_' + i for i in list_tags]
-        filename_part = str(NER_config.learn_type['class']
-                            ) + '_' + str(NER_config.learn_type['tags']
-                            ) + '_' + str(NER_config.learn_type['use_special_tags'])
+        # NER_config.feature_type = feature.ner_feature_types[learn_class + '_answers']
+        # if model_type['use_special_tags']:
+        #     list_tags = NER_config.special_tag_types[learn_class][model_type['tags']]
+        # else:
+        #     list_tags = NER_config.tag_types[model_type['tags']]
+        #
+        # NER_config.feature_answer = [learn_class + '_' + i for i in list_tags]
+        filename_part = str(model_type['class']
+                            ) + '_' + str(model_type['tags']
+                            ) + '_' + str(model_type['use_special_tags'])
         filename_tf = home_dir + '/weights/ner_oc_' + filename_part + '.weights'
         filename_params = home_dir + '/weights/ner_oc_' + filename_part + '.params'
 
@@ -753,7 +753,7 @@ def NER_predict(doc, settings, session_db=None, commit_session=True, verbose=Fal
         if verbose:
             print(values)
         if len(values) > 0:
-            db.put_ner_feature_dict(doc.doc_id, values, 'predictions' + learn_class,
+            db.put_ner_feature_dict(doc.doc_id, values, feature.ner_feature_types[learn_class + '_predictions'],
                                     None, session_db, commit_session)
 
 
