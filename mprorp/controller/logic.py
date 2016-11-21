@@ -22,7 +22,7 @@ from mprorp.analyzer.theming.themer import reg_theming
 
 from mprorp.utils import home_dir, relative_file_path
 from mprorp.ner.NER import NER_predict
-from mprorp.ner.identification import create_markup
+from mprorp.ner.identification import create_markup_regular
 
 import json
 import datetime
@@ -134,10 +134,10 @@ def router(doc_id, app_id, status):
         regular_NER_predict.delay(app_conf["ner_predict"]["ner_settings"], doc_id, NER_PREDICT_COMPLETE_STATUS)
         return
     if "markup" in app_conf and status < MARKUP_COMPLETE_STATUS:  # to createb markup
-        regular_create_markup.delay(doc_id, MARKUP_COMPLETE_STATUS)
+        regular_create_markup.delay(app_conf["markup"], doc_id, MARKUP_COMPLETE_STATUS)
         return
-    if "ner_entities" in app_conf and status < NER_ENTITIES_COMPLETE_STATUS:  # to ner entities
-        regular_entities.delay(doc_id, NER_ENTITIES_COMPLETE_STATUS)
+    if "tomita_entities" in app_conf and status < NER_ENTITIES_COMPLETE_STATUS:  # to ner entities
+        tomita_entities.delay(app_conf["tomita_entities"], doc_id, NER_ENTITIES_COMPLETE_STATUS)
         return
 
     # finish regular procedures:
@@ -348,10 +348,11 @@ def regular_NER_predict(ner_settings, doc_id, new_status):
 
 
 @app.task(ignore_result=True)
-def regular_create_markup(doc_id, new_status):
+def regular_create_markup(markup_settings, doc_id, new_status):
     """create entities if it needs and create markup"""
     session, doc = get_doc(doc_id)
-    create_markup(doc, session, False)
+    # create_markup(doc, session, False)
+    create_markup_regular(doc, markup_settings, session, False)
     set_doc(doc, new_status, session)
 
 
@@ -364,7 +365,7 @@ def regular_theming(doc_id, new_status):
 
 
 @app.task(ignore_result=True)
-def regular_entities(doc_id, new_status):
+def tomita_entities(grammars_of_tomita_classes, doc_id, new_status):
     """
     grammars_of_tomita_classes = ['loc.cxx', 'org.cxx', 'norm_act.cxx']
     convert_tomita_result_to_markup(doc, grammars_of_tomita_classes, session=session, commit_session=False)
@@ -375,7 +376,7 @@ def regular_entities(doc_id, new_status):
     #router(doc_id, new_status)
     """
     session, doc = get_doc(doc_id)
-    grammars_of_tomita_classes = ['loc.cxx', 'org.cxx', 'norm_act.cxx']
+    #grammars_of_tomita_classes = ['loc.cxx', 'org.cxx', 'norm_act.cxx']
     convert_tomita_result_to_markup(doc, grammars_of_tomita_classes, session=session, commit_session=False)
     set_doc(doc, new_status, session)
 

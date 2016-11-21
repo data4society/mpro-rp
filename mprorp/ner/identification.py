@@ -271,7 +271,10 @@ def create_answers_feature_for_doc_2(doc_id):
     db.doc_apply(doc_id,  create_answers_feature_for_doc)
 
 
-def create_markup_regular(doc, settings_list, name, markup_type, session=None, commit_session=True, verbose=False):
+def create_markup_regular(doc, markup_settings, session=None, commit_session=True, verbose=False):
+    settings_list = markup_settings["identification_settings"]
+    name = markup_settings["name"]
+    markup_type = markup_settings["markup_type"]
     refs = []
     classes = set()
     for ref_settings in settings_list:
