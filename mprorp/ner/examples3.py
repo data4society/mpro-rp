@@ -62,11 +62,11 @@ for cl in sets:
 if not os.path.exists(home_dir + "/weights"):
     os.makedirs(home_dir + "/weights")
 
-NER_config = NER.Config()
-learn_class = NER_config.classes[NER_config.learn_type['class']]
-NER_config.feature_type = feature.ner_feature_types[learn_class + '_answers']
-NER_config.feature_answer = [learn_class + '_' + i for i in NER_config.tag_types[NER_config.learn_type['tags']]]
-filename_part = str(NER_config.learn_type['class']) + '_' + str(NER_config.learn_type['tags'])
+NER_settings = {"class": 1, "tags": 1, "use_special_tags": 0}
+
+filename_part = str(NER_settings['class']
+                    ) + '_' + str(NER_settings['tags']
+                    ) + '_' + str(NER_settings['use_special_tags'])
 filename_tf = home_dir + '/weights/ner_oc_' + filename_part + '.weights'
 filename_params = home_dir + '/weights/ner_oc_' + filename_part + '.params'
 
@@ -145,6 +145,13 @@ def learning():
     if not os.path.exists(home_dir + "/weights"):
         os.makedirs(home_dir + "/weights")
 
+    NER_config = NER.Config()
+    NER_config.learn_type = NER_settings
+
+    learn_class = NER_config.classes[NER_config.learn_type['class']]
+    NER_config.feature_type = feature.ner_feature_types[learn_class + '_answers']
+    NER_config.feature_answer = [learn_class + '_' + i for i in NER_config.tag_types[NER_config.learn_type['tags']]]
+
     NER_config.training_set = sets[learn_class]['train']
     NER_config.dev_set = sets[learn_class]['dev']
 
@@ -153,7 +160,7 @@ def learning():
     NER.NER_learning(filename_params, filename_tf, NER_config)
 
 
-def prediction():
+def prediction(learn_class):
     # 5. Prediction
     for doc_id in set_docs[learn_class]['dev']:
         values = {}
@@ -168,6 +175,16 @@ def prediction():
 
 def comparison():
     # 6. Comparison
+
+    NER_config = NER.Config()
+    NER_config.learn_type = NER_settings
+
+    learn_class = NER_config.classes[NER_config.learn_type['class']]
+    NER_config.feature_type = feature.ner_feature_types[learn_class + '_answers']
+    NER_config.feature_answer = [learn_class + '_' + i for i in NER_config.tag_types[NER_config.learn_type['tags']]]
+
+    NER_config.training_set = sets[learn_class]['train']
+    NER_config.dev_set = sets[learn_class]['dev']
 
     dev_set = sets[learn_class]['dev']
     answers_type = feature.ner_feature_types[learn_class + '_answers']
@@ -212,7 +229,7 @@ def add_difference(diff, key, ans, pred, add_feature=None):
         diff[key[0]][key[1]] = (ans, pred, add_feature)
 
 
-def identification():
+def identification(learn_class):
     # 7. Identification
     settings_list = [{"identification_type": 1, "tag_type": ["BS", "IE"], "learn_class": "name"}]
     number = 0
@@ -227,13 +244,13 @@ def identification():
 
 def script_exec():
     # create_sets('oc_class_person')
-    # learning()
+    learning()
     # create_answers('oc_class_loc')
-    prediction()
-    identification()
+    prediction('name')
+    identification('name')
     # prediction()
     # comparison()
 
-    NER.NER_name_learning()
+    # NER.NER_name_learning()
 
 script_exec()

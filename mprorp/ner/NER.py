@@ -20,6 +20,16 @@ from mprorp.ner.saver import saver
 from gensim.models import word2vec
 import mprorp.ner.feature as feature
 
+sets = dict()
+sets['oc_class_person'] = {'train': '2e366853-4533-4bd5-a66e-92a834a1a2ca',
+                           'dev': 'f861ee9d-5973-460d-8f50-92fca9910345'}
+sets['name'] = {'train': '4fb42fd1-a0cf-4f39-9206-029255115d01',
+                'dev': 'f861ee9d-5973-460d-8f50-92fca9910345'}
+sets['oc_class_org'] = {'train': '78f8c9fb-e385-442e-93b4-aa1a18e952d0',
+                        'dev': '299c8bd1-4e39-431d-afa9-398b2fb23f69'}
+sets['oc_class_loc'] = {'train': '74210e3e-0127-4b21-b4b7-0b55855ca02e',
+                        'dev': '352df6b5-7659-4f8c-a68d-364400a5f0da'}
+
 
 class Config(object):
     """Holds model hyperparams and data information.
@@ -50,7 +60,7 @@ class Config(object):
     hidden_size = 100
     l2_embed = 0.0005 # 0.00001
     l2_2lay = 0.00325 # 0.000325
-    window_size = 5 # 11
+    window_size = 7 # 11
     pre_embedding = False
     train_embedding = True
 
@@ -843,5 +853,31 @@ def NER_name_learning():
     NER_config.dev_set = dev_set
 
     # print(NER_config.feature_answer)
+
+    NER_learning(filename_params, filename_tf, NER_config)
+
+
+def NER_learning_by_config(NER_settings):
+    # 4. Обучение и запись модели в файл
+    if not os.path.exists(home_dir + "/weights"):
+        os.makedirs(home_dir + "/weights")
+
+    NER_config = Config()
+    NER_config.learn_type = NER_settings
+
+    learn_class = NER_config.classes[NER_config.learn_type['class']]
+    NER_config.feature_type = feature.ner_feature_types[learn_class + '_answers']
+    NER_config.feature_answer = [learn_class + '_' + i for i in NER_config.tag_types[NER_config.learn_type['tags']]]
+
+    NER_config.training_set = sets[learn_class]['train']
+    NER_config.dev_set = sets[learn_class]['dev']
+
+    # print(NER_config.feature_answer)
+
+    filename_part = str(NER_settings['class']
+                        ) + '_' + str(NER_settings['tags']
+                                      ) + '_' + str(NER_settings['use_special_tags'])
+    filename_tf = home_dir + '/weights/ner_oc_' + filename_part + '.weights'
+    filename_params = home_dir + '/weights/ner_oc_' + filename_part + '.params'
 
     NER_learning(filename_params, filename_tf, NER_config)
