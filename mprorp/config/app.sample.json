@@ -63,6 +63,6 @@
       "name": "markup from NER",
       "markup_type": "20"
     },
-    "ner_entities": true
+    "tomita_entities": ["loc.cxx", "org.cxx", "norm_act.cxx"]
   }
 ]
