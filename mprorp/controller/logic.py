@@ -73,11 +73,13 @@ def get_apps_config():
         config_list = json.load(app_config_file)
     config = {}
     for app in config_list:
+        """
         if "ner_predict" in app:
             ner_settings = app["ner_predict"]["ner_settings"]
             for ind1, val1 in enumerate(ner_settings):
                 for ind2, val2 in enumerate(val1):
                     ner_settings[ind1][ind2] = home_dir + '/weights/' + val2
+        """
         if "crawler" in app:
             crawler = app["crawler"]
             for source_type in crawler:
