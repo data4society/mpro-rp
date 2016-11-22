@@ -76,7 +76,7 @@ def delete(table_name, where_clause):
     engine.execute(sqlalchemy.delete(meta.tables[table_name]).where(where_clause))
 
 
-def variable_set(name, value, session = None):
+def variable_set(name, value, session=None):
     from mprorp.db.models import Variable
     has_session = True
     if not session:
@@ -86,7 +86,7 @@ def variable_set(name, value, session = None):
     if not var:
         var = Variable(name=name, json=dict())
         session.add(var)
-        var.json["value"] = value
+    var.json["value"] = value
     flag_modified(var, "json")
 
     if not has_session:
