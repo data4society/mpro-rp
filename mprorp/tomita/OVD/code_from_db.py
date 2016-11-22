@@ -41,7 +41,7 @@ def get_all_codes(tomita_out_file, original_text):
             out.append(fact)
     return out
 
-#a = get_all_codes('facts.xml', 'text_no_n.txt')
+##a = get_all_codes('facts.xml', 'text_no_n.txt')
 #for i in a:
 #    print(i['string'], len(i['codes'][0]))
 #    if type(i['codes'][0][0]) == Entity:
