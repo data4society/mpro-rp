@@ -165,11 +165,14 @@ def prediction(learn_class):
     for doc_id in set_docs[learn_class]['dev']:
         values = {}
         doc = session.query(Document).filter_by(doc_id=doc_id).first()
-        NER.NER_predict_set(doc, filename_params, filename_tf, values, session, verbose=True)
-        print(values)
-        if len(values) > 0:
-            db.put_ner_feature_dict(doc.doc_id, values, feature.ner_feature_types[learn_class + '_predictions'],
-                                    session=session)
+
+        NER.NER_predict(doc, {"class": 1, "tags": 1, "use_special_tags": 0},
+                        session, commit_session=False, verbose=True)
+        # NER.NER_predict_set(doc, filename_params, filename_tf, values, session, verbose=True)
+        # print(values)
+        # if len(values) > 0:
+        #     db.put_ner_feature_dict(doc.doc_id, values, feature.ner_feature_types[learn_class + '_predictions'],
+        #                             session=session)
     session.commit()
 
 
@@ -231,12 +234,16 @@ def add_difference(diff, key, ans, pred, add_feature=None):
 
 def identification(learn_class):
     # 7. Identification
-    settings_list = [{"identification_type": 1, "tag_type": ["BS", "IE"], "learn_class": "name"}]
+    settings_list = {
+        'identification_settings': {"identification_type": 1, "tag_type": ["BS", "IE"], "learn_class": "name"},
+        'name': 'from NER',
+        'markup_type': '20'
+    }
     number = 0
     for doc_id in set_docs[learn_class]['dev']:
         doc = session.query(Document).filter_by(doc_id=doc_id).first()
         print(doc.stripped)
-        create_markup_regular(doc, settings_list, 'from NER', '20', verbose=True)
+        create_markup_regular(doc, settings_list, verbose=True)
         number += 1
         if number == 10:
             exit()

@@ -409,13 +409,18 @@ def create_refs(doc, refs_settings, refs, session=None, commit_session=True, ver
 
         if main_class[i]:
             labels_lists[i] = list(reduce(lambda a,x: a|x, [set([labels[j], labels_from_text[j]]) for j in local_entities[i]]))
-            # Теперь поищем, что у нас есть по меткам из labels_set
+            # Теперь поищем, что у нас есть по меткам из labels_set - только точное совпадание с одной из меток
             db_id = db.get_entity_by_labels(labels_lists[i])
             if db_id is None:
                 # Ищем сущности в викиданных
                 found_ids = set()
                 for l in labels_lists[i]:
                     wiki_ids_l = wiki_search.find_human(l)
+                    if len(wiki_ids_l) > 1:
+                        # Если в викиданных несколько ссылок, значит это
+                        # что-то неопределенное, например, просто имя Сергей.
+                        # Не ясно, следует ли это вообще куда-то добавлять
+                        continue
                     for elem in wiki_ids_l:
                         found_ids.add(elem['id'])
                 if len(found_ids) > 0:
@@ -445,10 +450,10 @@ def create_refs(doc, refs_settings, refs, session=None, commit_session=True, ver
     # значит можно воспользоваться посчитанным ранее labels_lists[i]
 
     # Временно не будем записаывать в базу новые сущности, кроме тех, что нашлись в викиданных
-    # for i in range(len(main_class)):
-    #     if main_class[i] and mentions_id[i] is None:
-    #         data = {'labels': labels_lists[i]}
-    #         mentions_id[i] = db.put_entity(labels_from_text[i], 'person', data, session, commit_session)
+    for i in range(len(main_class)):
+        if main_class[i] and mentions_id[i] is None:
+            data = {'labels': labels_lists[i]}
+            mentions_id[i] = db.put_entity(labels_from_text[i], 'person', data, session, commit_session)
 
     # Выберем те классы, которые являются подклассом ровно одного класса.
     # Для этого соберем родителей каждого класса
