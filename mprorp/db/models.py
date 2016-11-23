@@ -508,6 +508,30 @@ class NERFeature(Base):
     __table_args__ = (PrimaryKeyConstraint(doc_id, feature_type, feature, word_index, sentence_index),)
 
 
+class IDF(Base):
+    __tablename__ = 'idfs'
+    # Word
+    word = Column(String(40), primary_key=True)
+    # Number of documents with this word
+    num = Column(Float())
+    # IDF for this word
+    idf = Column(Float())
+
+
+class KLADR(Base):
+    __tablename__ = 'kladrs'
+    # id in KLADR
+    kladr_id = Column(String(20), primary_key=True)
+    # title of geoobject
+    name = Column(String(40))
+    # title in lemmas
+    name_lemmas = Column(JSONB())
+    # KLADR level
+    level = Column(Integer)
+    # type of geoobject
+    type = Column(String(40))
+
+
 ######################################## NO USED
 class TomitaGrammar(Base):
     __tablename__ = 'tomita_grammars'
@@ -536,30 +560,6 @@ class NERModel(Base):
     morpho_features = Column(ARRAY(String(40)))
     hyper_parameters = Column(JSONB())
     parameters = Column(JSONB())
-
-
-class IDF(Base):
-    __tablename__ = 'idfs'
-    # Word
-    word = Column(String(40), primary_key=True)
-    # Number of documents with this word
-    num = Column(Float())
-    # IDF for this word
-    idf = Column(Float())
-
-
-class KLADR(Base):
-    __tablename__ = 'kladrs'
-    # id in KLADR
-    kladr_id = Column(String(20), primary_key=True)
-    # title of geoobject
-    name = Column(String(40))
-    # title in lemmas
-    name_lemmas = Column(JSONB())
-    # KLADR level
-    level = Column(Integer)
-    # type of geoobject
-    type = Column(String(40))
 
 
 
