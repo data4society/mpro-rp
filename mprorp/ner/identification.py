@@ -349,6 +349,7 @@ def create_refs(doc, refs_settings, refs, session=None, commit_session=True, ver
     tag_type = refs_settings['tag_type']
     learn_class = refs_settings['learn_class']
     feature_type = feature.ner_feature_types[learn_class + '_predictions']
+    mark_all = True
 
     features = [learn_class + '_' + i for i in tag_type]
 
@@ -413,21 +414,26 @@ def create_refs(doc, refs_settings, refs, session=None, commit_session=True, ver
             db_id = db.get_entity_by_labels(labels_lists[i])
             if db_id is None:
                 # Ищем сущности в викиданных
-                found_ids = set()
+                found_items = set()
                 for l in labels_lists[i]:
-                    wiki_ids_l = wiki_search.find_human(l)
-                    if len(wiki_ids_l) > 1:
-                        # Если в викиданных несколько ссылок, значит это
-                        # что-то неопределенное, например, просто имя Сергей.
-                        # Не ясно, следует ли это вообще куда-то добавлять
+                    if wiki_search.is_given_name(l):
+                        # Это просто имя - такое как Алексей, Татьяна
                         continue
+                    wiki_ids_l = wiki_search.find_human(l)
                     for elem in wiki_ids_l:
-                        found_ids.add(elem['id'])
-                if len(found_ids) > 0:
-                    ext_data = {'wiki_ids': list(found_ids)}
+                        found_items.add(elem)
+                if len(found_items) == 1:
+                    ext_data = {'wiki_id': found_items[0]['id']}
                     if verbose:
                         print(labels_lists[i])
-                    db_id = db.put_entity(names[i], 'person', labels=labels_lists[i], external_data=ext_data,
+                    data = None
+                    if 'name' in found_items[0]:
+                        data = {'firstname': found_items[0]['name']}
+                    if 'family_name' in found_items[0]:
+                        if data is None:
+                            data = dict()
+                        data['lastname'] = found_items[0]['family_name']
+                    db_id = db.put_entity(names[i], 'person', data=data, labels=labels_lists[i], external_data=ext_data,
                                           session=session, commit_session=commit_session)
             if db_id is not None:
                 mentions_id[i] = db_id
@@ -449,11 +455,13 @@ def create_refs(doc, refs_settings, refs, session=None, commit_session=True, ver
     # но еще не имеют mentions_id, нужно занести в БД. Новых main_class еще не появилось,
     # значит можно воспользоваться посчитанным ранее labels_lists[i]
 
-    # Временно не будем записаывать в базу новые сущности, кроме тех, что нашлись в викиданных
-    for i in range(len(main_class)):
-        if main_class[i] and mentions_id[i] is None:
-            data = {'labels': labels_lists[i]}
-            mentions_id[i] = db.put_entity(labels_from_text[i], 'person', data, session, commit_session)
+    if mark_all:
+        # Создадим сущности для всего, что попалось под руку
+        for i in range(len(main_class)):
+            if main_class[i] and mentions_id[i] is None:
+                # data = {'labels': labels_lists[i]}
+                mentions_id[i] = db.put_entity(labels_from_text[i], 'person', labels=labels_lists[i],
+                                               session=session, commit_session=commit_session)
 
     # Выберем те классы, которые являются подклассом ровно одного класса.
     # Для этого соберем родителей каждого класса

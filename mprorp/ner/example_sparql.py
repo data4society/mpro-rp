@@ -19,17 +19,42 @@ SELECT ?president ?cause ?dob ?dod WHERE {
     }
 }'''
 
+
+label = 'Алексей Навальный'
+language = 'ru'
+query = '''PREFIX wikibase: <http://wikiba.se/ontology#>
+    PREFIX wd: <http://www.wikidata.org/entity/>
+    PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+    SELECT ?id ?name ?family_name WHERE {
+    ?id ?label "''' + label + '"@' + language + ''' .
+    ?id wdt:P31 wd:Q5 .
+    OPTIONAL {
+        ?id wdt:P734 ?family_name_entity .
+        ?family_name_entity rdfs:label ?family_name filter (lang(?family_name) = "ru").
+        }
+    OPTIONAL {
+        ?id wdt:P735 ?name_entity .
+        ?name_entity rdfs:label ?name filter (lang(?name) = "ru") .
+        }
+    }'''
+
 url = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql'
 data = requests.get(url, params={'query': query, 'format': 'json'}).json()
 
 presidents = []
 for item in data['results']['bindings']:
-    presidents.append({
-        'name': item['president']['value'],
-        'cause of death': item['cause']['value'],
-        'date of birth': item['dob']['value'],
-        'date of death': item['dod']['value']})
+    print(item['id']['value'])
+    if 'name' in item:
+        print(item['name']['value'])
+    if 'family_name' in item:
+        print(item['family_name']['value'])
 
-print(presidents)
+#     presidents.append({
+#         'id': item['id']['value'],
+#         'name': item['name']['value']})
+#
+# print(presidents)
 
 
