@@ -420,7 +420,8 @@ def create_refs(doc, refs_settings, refs, session=None, commit_session=True, ver
                 found_items = set()
                 for l in labels_lists[i]:
                     if wiki_search.is_given_name(l):
-                        # Это просто имя - такое как Алексей, Татьяна
+                        # Это просто имя - такое как
+                        # Алексей, Татьяна
                         continue
                     wiki_ids_l = wiki_search.find_human(l)
                     for elem in wiki_ids_l:
