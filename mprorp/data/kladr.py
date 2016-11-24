@@ -14,6 +14,7 @@ morph = pymorphy2.MorphAnalyzer()
 mystem = Mystem()
 mystem.start()
 socrs = dict()
+mvd_root = 'eaf0a69a-74d7-4e1a-9187-038a202c7698'
 def import_kladr():
     with open(relative_file_path(__file__, 'kladr_data/SOCRBASE.csv'), 'r') as csvfile:
         spamreader = csv.reader(csvfile, delimiter=';')
@@ -88,10 +89,13 @@ def import_ovds():
                     print("KLADR ERROR", row)
                     continue
                 data = dict()
+                external_data = dict()
                 data["name"] = row[0]
                 data["kladr"] = row[i]
+                external_data["kladr"] = row[i]
                 data["org_type"] = 'OVD'
-                entity = Entity(name=row[0], data=data, entity_class='location')
+                data["jurisdiction"] = mvd_root
+                entity = Entity(name=row[0], data=data, external_data=external_data, entity_class='org')
                 #continue
                 session.add(entity)
                 session.commit()
