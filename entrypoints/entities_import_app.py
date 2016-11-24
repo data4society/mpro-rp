@@ -5,8 +5,8 @@ from mprorp.data.kladr import import_kladr, import_ovds, upd_kladr, upd_ovds_tab
 
 if __name__ == '__main__':
     print("STARTING ENTITIES IMPORT")
-    #import_kladr()
+    import_kladr()
+    upd_kladr()
+    import_ovds()
     upd_ovds_tables()
-    #import_ovds()
-    #upd_kladr()
     print("ENTITIES IMPORTCOMPLETE")
