@@ -673,7 +673,7 @@ def put_entity(name, entity_class, data=None, labels=None, external_data=None, s
     return str(new_entity.entity_id)
 
 
-def get_entity_by_labels(labels, session=None):
+def get_entity_by_labels(labels, add_conditions=None, session=None, verbose=False):
 
     if session is None:
         session = Driver.db_session()
@@ -687,10 +687,21 @@ def get_entity_by_labels(labels, session=None):
         else:
             conditions = conditions | Entity.labels.any(label)
             # conditions = conditions | Entity.data['labels'].astext.like('%' + label + '%')
+    if add_conditions is not None:
+        if 'external_data' in add_conditions:
+            if 'has_key' in add_conditions['external_data']:
+                for key in add_conditions['external_data']['has_key']:
+                    if conditions is None:
+                        conditions = Entity.external_data.has_key(key)
+                    else:
+                        conditions = conditions | Entity.external_data.has_key(key)
+
     res = res.filter(conditions)
 
     try:
         res = res.all()
+        if verbose:
+            print(len(res), res)
         return res[0][0]
     except Exception:
         return None

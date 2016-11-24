@@ -349,7 +349,10 @@ def create_refs(doc, refs_settings, refs, session=None, commit_session=True, ver
     tag_type = refs_settings['tag_type']
     learn_class = refs_settings['learn_class']
     feature_type = feature.ner_feature_types[learn_class + '_predictions']
-    mark_all = True
+    create_new_entities = refs_settings.get('create_new_entities', False)
+    create_wiki_entities = refs_settings.get('create_wiki_entities', True)
+    # дополнительные условия, которые налагаются при поиске в нашей базе
+    add_conditions = refs_settings.get('add_conditions', None)
 
     features = [learn_class + '_' + i for i in tag_type]
 
@@ -410,9 +413,9 @@ def create_refs(doc, refs_settings, refs, session=None, commit_session=True, ver
 
         if main_class[i]:
             labels_lists[i] = list(reduce(lambda a,x: a|x, [set([labels[j], labels_from_text[j]]) for j in local_entities[i]]))
-            # Теперь поищем, что у нас есть по меткам из labels_set - только точное совпадание с одной из меток
-            db_id = db.get_entity_by_labels(labels_lists[i])
-            if db_id is None:
+            # Теперь поищем, что у нас есть по меткам из labels_set - только точное совпадение с одной из меток
+            db_id = db.get_entity_by_labels(labels_lists[i], add_conditions=add_conditions)
+            if (db_id is None) and create_wiki_entities:
                 # Ищем сущности в викиданных
                 found_items = set()
                 for l in labels_lists[i]:
@@ -455,7 +458,7 @@ def create_refs(doc, refs_settings, refs, session=None, commit_session=True, ver
     # но еще не имеют mentions_id, нужно занести в БД. Новых main_class еще не появилось,
     # значит можно воспользоваться посчитанным ранее labels_lists[i]
 
-    if mark_all:
+    if create_new_entities:
         # Создадим сущности для всего, что попалось под руку
         for i in range(len(main_class)):
             if main_class[i] and mentions_id[i] is None:
