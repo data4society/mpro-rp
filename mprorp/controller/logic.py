@@ -100,7 +100,7 @@ def router(doc_id, app_id, status):
     logging.info("route doc: " + str(doc_id) + " status: " + str(status))
     if status in [SITE_PAGE_LOADING_FAILED, EMPTY_TEXT]:
         return
-    if status in [GOOGLE_NEWS_INIT_STATUS, GOOGLE_ALERTS_INIT_STATUS, YANDEX_NEWS_INIT_STATUS]:  # to find full text of HTML page
+    if status in [GOOGLE_NEWS_INIT_STATUS, GOOGLE_ALERTS_INIT_STATUS, YANDEX_NEWS_INIT_STATUS, CSV_INIT_STATUS]:  # to find full text of HTML page
         regular_find_full_text.delay(doc_id, SITE_PAGE_COMPLETE_STATUS)
         return
     if status == VK_INIT_STATUS:  # to complete vk item parsing
