@@ -4,4 +4,4 @@ celerybeat-schedule
 *log.txt
 mprorp/crawler/readability/corpus
 mprorp/analyzer/theming/corpus
-mprorp/data/kladr_data
+mprorp/data/kladr_data/*

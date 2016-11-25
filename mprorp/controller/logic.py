@@ -17,6 +17,7 @@ from mprorp.crawler.google_news import gn_start_parsing
 from mprorp.crawler.yandex_news import yn_start_parsing
 from mprorp.crawler.google_alerts import ga_start_parsing
 from mprorp.crawler.vk import vk_start_parsing, vk_parse_item
+from mprorp.crawler.csv_to_rubricator import csv_start_parsing
 
 from mprorp.analyzer.theming.themer import reg_theming
 
@@ -33,6 +34,7 @@ VK_COMPLETE_STATUS = 19
 GOOGLE_NEWS_INIT_STATUS = 30
 GOOGLE_ALERTS_INIT_STATUS = 20
 YANDEX_NEWS_INIT_STATUS = 40
+CSV_INIT_STATUS = 50
 #GOOGLE_NEWS_COMPLETE_STATUS = 21
 SITE_PAGE_LOADING_FAILED = 91
 SITE_PAGE_COMPLETE_STATUS = 99
@@ -153,7 +155,6 @@ def router(doc_id, app_id, status):
     session.remove()
 
 
-
 @app.task(ignore_result=True, time_limit=660, soft_timeout_limit=600)
 def regular_gn_start_parsing(source, app_id):
     """parsing google news request"""
@@ -170,7 +171,7 @@ def regular_gn_start_parsing(source, app_id):
         session.remove()
     except Exception as err:
         err_txt = repr(err)
-        logging.error("Неизвестная ошибка крайлинга, source: " + source)
+        logging.error("Неизвестная ошибка google_news краулера, source: " + source)
         print(err_txt)
     source_params = apps_config[app_id]["crawler"]["google_news"][source]
     source_params["wait"] = True
@@ -193,7 +194,7 @@ def regular_ga_start_parsing(source, app_id):
         session.remove()
     except Exception as err:
         err_txt = repr(err)
-        logging.error("Неизвестная ошибка крайлинга, source: " + source)
+        logging.error("Неизвестная ошибка google_alerts краулера, source: " + source)
         print(err_txt)
     source_params = apps_config[app_id]["crawler"]["google_alerts"][source]
     source_params["wait"] = True
@@ -213,13 +214,36 @@ def regular_yn_start_parsing(source, app_id):
         session.commit()
     except Exception as err:
         err_txt = repr(err)
-        logging.error("Неизвестная ошибка крайлинга, source: " + source)
+        logging.error("Неизвестная ошибка yandex_news краулера, source: " + source)
         print(err_txt)
     for doc in docs:
         router(doc.doc_id, app_id, YANDEX_NEWS_INIT_STATUS)
     session.remove()
     source_params = apps_config[app_id]["crawler"]["yandex_news"][source]
     source_params["wait"] = True
+    source_params["next_crawling_time"] = datetime.datetime.now().timestamp() + source_params["parse_period"]
+
+
+@app.task(ignore_result=True, time_limit=660, soft_timeout_limit=600)
+def regular_csv_start_parsing(source, app_id):
+    """parsing yandex news request"""
+    try:
+        session = db_session()
+        docs = csv_start_parsing(source, app_id, session)
+        for doc in docs:
+            doc.status = CSV_INIT_STATUS
+            doc.source_with_type = "csv "+source
+            doc.app_id = app_id
+        session.commit()
+    except Exception as err:
+        err_txt = repr(err)
+        logging.error("Неизвестная ошибка csv краулера, source: " + source)
+        print(err_txt)
+    for doc in docs:
+        router(doc.doc_id, app_id, CSV_INIT_STATUS)
+    session.remove()
+    source_params = apps_config[app_id]["crawler"]["csv_to_rubricator"][source]
+    #source_params["wait"] = True
     source_params["next_crawling_time"] = datetime.datetime.now().timestamp() + source_params["parse_period"]
 
 
@@ -240,7 +264,7 @@ def regular_vk_start_parsing(source, app_id):
         session.remove()
     except Exception as err:
         err_txt = repr(err)
-        logging.error("Неизвестная ошибка крайлинга, source: " + source)
+        logging.error("Неизвестная ошибка vk краулера, source: " + source)
         print(err_txt)
     source_params = apps_config[app_id]["crawler"]["vk"][source]
     source_params["wait"] = True

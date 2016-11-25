@@ -7,7 +7,7 @@ from mprorp.db.models import *
 
 import datetime
 
-from mprorp.controller.logic import regular_gn_start_parsing, regular_ga_start_parsing, regular_vk_start_parsing, regular_yn_start_parsing, apps_config
+from mprorp.controller.logic import regular_gn_start_parsing, regular_ga_start_parsing, regular_vk_start_parsing, regular_yn_start_parsing, regular_csv_start_parsing, apps_config
 from sqlalchemy.orm import load_only
 
 
@@ -35,6 +35,9 @@ def check_sources():
                         elif source_type == "yandex_news":  # yandex news
                             print("START YANDEX NEWS CRAWL")
                             regular_yn_start_parsing.delay(source, app_id)
+                        elif source_type == "csv_to_rubricator":  # csv
+                            print("START CSV CRAWL")
+                            regular_csv_start_parsing.delay(source, app_id)
                     elif (not source_params["wait"]) and source_params["next_crawling_time"] < datetime.datetime.now().timestamp():
                         print("wait for "+source)
 
