@@ -16,6 +16,7 @@ mystem.start()
 socrs = dict()
 mvd_root = 'eaf0a69a-74d7-4e1a-9187-038a202c7698'
 def import_kladr():
+    print("start import kladrs")
     with open(relative_file_path(__file__, 'kladr_data/SOCRBASE.csv'), 'r') as csvfile:
         spamreader = csv.reader(csvfile, delimiter=';')
         data = False
@@ -49,6 +50,7 @@ def import_kladr():
                 data = True
     session.commit()
     session.remove()
+    print("fin import kladrs")
 
 
 def parse_kladr_row(row, session, n):
@@ -70,6 +72,7 @@ def parse_kladr_row(row, session, n):
 
 
 def import_ovds():
+    print("start import ovds")
     with open(relative_file_path(__file__, 'kladr_data/ovds_out.csv'), 'w') as csvnewfile:
         spamwriter = csv.writer(csvnewfile)
         with open(relative_file_path(__file__, 'kladr_data/ovds.csv'),
@@ -91,9 +94,7 @@ def import_ovds():
                 data = dict()
                 external_data = dict()
                 data["name"] = row[0]
-                data["kladr"] = row[i]
                 external_data["kladr"] = row[i]
-                data["org_type"] = 'OVD'
                 data["jurisdiction"] = mvd_root
                 entity = Entity(name=row[0], data=data, external_data=external_data, entity_class='org')
                 #continue
@@ -103,6 +104,7 @@ def import_ovds():
                 spamwriter.writerow(row)
                 n += 1
                 print(n)
+    print("fin import ovds")
 
 
 kladr_structure = {1: [0, 2], 2: [2, 5], 3: [5, 8], 4: [8, 11], 5: [11, 15]}
@@ -141,6 +143,7 @@ def get_parents_codes(code):
 
 
 def upd_kladr():
+    print("start update kladrs")
     session = db_session()
     kladrs = session.query(KLADR).options(load_only("name")).all()
     n = 0
@@ -162,9 +165,11 @@ def upd_kladr():
         if n % 10000 == 0:
             print(n)
             session.commit()
+    print("fin update kladrs")
 
 
 def upd_ovds_tables():
+    print("start update ovds")
     with open(relative_file_path(__file__, 'kladr_data/ovds_out2.csv'), 'w') as csvnewfile:
         spamwriter = csv.writer(csvnewfile)
         with open(relative_file_path(__file__, '/kladr_data/ovds_out.csv'),
@@ -213,6 +218,7 @@ def upd_ovds_tables():
                 #row.append(entity.entity_id)
                 row.append(full_address)
                 spamwriter.writerow(row)
+    print("fin update ovds")
 
 
 def get_kladr_examples():
@@ -350,11 +356,11 @@ def geoobject_name(name, type):
 if __name__ == '__main__':
     #print(mystem.analyze("ильгощинский"))
     #print(morph.parse("ильгощинский обрыв"))
-    #upd_kladr()
-    #import_kladr()
-    #get_kladr_examples()
+    import_kladr()
+    upd_kladr()
+    import_ovds()
     upd_ovds_tables()
+    #get_kladr_examples()
     #session = db_session()
     #ovds = session.query(Entity).filter(Entity.data.has_key("org_type")).count()
     #print(ovds)
-    #import_ovds()
