@@ -60,15 +60,15 @@ def OVD(ovd, session, Numb=False, Name=False):
     codes = []
     if Numb is True:
         numb = ovd[0]
-        all_codes = session.query(Entity).filter(Entity.data.has_key("org_type")).all()
+        all_codes = session.query(Entity).filter(Entity.data.has_key("jurisdiction")).all()
         for code in all_codes:
-            if code.data["org_type"] == 'OVD' and numb in code.data['name']:
+            if code.data["jurisdiction"] == "eaf0a69a-74d7-4e1a-9187-038a202c7698" and numb in code.data['name']:
                 codes.append(code)
     elif Name is True:
         name = ovd[0]
-        all_codes = session.query(Entity).filter(Entity.data.has_key("org_type")).all()
+        all_codes = session.query(Entity).filter(Entity.data.has_key("jurisdiction")).all()
         for code in all_codes:
-            if code.data["org_type"] == 'OVD' and name in code.data['name'].lower():
+            if code.data["jurisdiction"] == "eaf0a69a-74d7-4e1a-9187-038a202c7698" and name in code.data['name'].lower():
                 codes.append(code)
     else:
         name = ovd[0]
@@ -86,9 +86,9 @@ def types(name, session):
         for n in range(len(types)):
             if name in types[n]:
                 for t in types[n]:
-                    all_codes = session.query(Entity).filter(Entity.data.has_key("org_type")).all()
+                    all_codes = session.query(Entity).filter(Entity.data.has_key("jurisdiction")).all()
                     for code in all_codes:
-                        if code.data["org_type"] == 'OVD' and t in code.data['name'].lower():
+                        if code.data["jurisdiction"] == "eaf0a69a-74d7-4e1a-9187-038a202c7698" and t in code.data['name'].lower():
                             out.append(code)
                 k = n + 1
                 break
@@ -105,8 +105,8 @@ def types(name, session):
                 codes.append(i)
 
     else:
-        all_codes = session.query(Entity).filter(Entity.data.has_key("org_type")).all()
+        all_codes = session.query(Entity).filter(Entity.data.has_key("jurisdiction")).all()
         for code in all_codes:
-            if code.data["org_type"] == 'OVD':
+            if code.data["jurisdiction"] == "eaf0a69a-74d7-4e1a-9187-038a202c7698":
                 codes.append(code)
     return codes
