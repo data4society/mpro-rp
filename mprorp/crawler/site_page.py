@@ -15,7 +15,7 @@ logging.basicConfig(format = u'%(levelname)-8s [%(asctime)s] %(message)s', level
 
 def find_full_text(doc):
     """finds full text for doc object by readability algorithm"""
-    url = doc.guid
+    url = doc.url
     meta = doc.meta
     print('start grabbing ' + url)
 
