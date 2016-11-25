@@ -680,6 +680,7 @@ def get_entity_by_labels(labels, add_conditions=None, session=None, verbose=Fals
 
     res = session.query(Entity.entity_id)
     conditions = None
+    conditions2 = None
     for label in labels:
         if conditions is None:
             conditions = Entity.labels.any(label)
@@ -691,12 +692,13 @@ def get_entity_by_labels(labels, add_conditions=None, session=None, verbose=Fals
         if 'external_data' in add_conditions:
             if 'has_key' in add_conditions['external_data']:
                 for key in add_conditions['external_data']['has_key']:
-                    if conditions is None:
-                        conditions = Entity.external_data.has_key(key)
+                    if conditions2 is None:
+                        conditions2 = Entity.external_data.has_key(key)
                     else:
-                        conditions = conditions | Entity.external_data.has_key(key)
-
-    res = res.filter(conditions)
+                        conditions2 = conditions2 | Entity.external_data.has_key(key)
+    if verbose:
+        print('conditions', conditions&conditions2)
+    res = res.filter(conditions&conditions2)
 
     try:
         res = res.all()

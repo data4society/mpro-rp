@@ -39,10 +39,10 @@ sets = dict()
 #                         'dev': 'cff51852-6d37-4873-bef5-4d088b50a0a3'}
 
 # set for database 46.101.162.206
-sets['oc_class_person'] = {'train': '2e366853-4533-4bd5-a66e-92a834a1a2ca',
+sets['oc_class_person'] = {'train': '4fb42fd1-a0cf-4f39-9206-029255115d01',
                            'dev': 'f861ee9d-5973-460d-8f50-92fca9910345'}
 
-sets['name'] = {'train': '4fb42fd1-a0cf-4f39-9206-029255115d01',
+sets['name'] = {'train': '4fb42fd1-a0cf-4f39-9206-029255115d01', # '2e366853-4533-4bd5-a66e-92a834a1a2ca'
                 'dev': 'f861ee9d-5973-460d-8f50-92fca9910345'}
 
 # sets['oc_class_org'] = {'train': '78f8c9fb-e385-442e-93b4-aa1a18e952d0',
@@ -166,7 +166,7 @@ def prediction(learn_class):
         values = {}
         doc = session.query(Document).filter_by(doc_id=doc_id).first()
 
-        NER.NER_predict(doc, {"class": 1, "tags": 1, "use_special_tags": 0},
+        NER.NER_predict(doc, [{"class": 1, "tags": 1, "use_special_tags": 0}],
                         session, commit_session=False, verbose=True)
         # NER.NER_predict_set(doc, filename_params, filename_tf, values, session, verbose=True)
         # print(values)
@@ -249,15 +249,44 @@ def identification(learn_class):
             exit()
 
 
+def identification_doc(doc_id):
+    # settings_list = {
+    #     'identification_settings': [{"identification_type": 1, "tag_type": ["BS", "IE"], "learn_class": "name",
+    #                                  "create_new_entities": False, "create_wiki_entities": False,
+    #                                  "add_conditions": {"external_data": {"has_key": ["pp_id"]}}
+    #      }],
+    #     'name': 'from NER',
+    #     'markup_type': '20'
+    # }
+    settings_list = {
+        'identification_settings': [{"identification_type": 1, "tag_type": ["BS", "IE"], "learn_class": "name"}],
+        'name': 'from NER',
+        'markup_type': '20'
+    }
+
+    doc = session.query(Document).filter_by(doc_id=doc_id).first()
+    print(doc.stripped)
+    create_markup_regular(doc, settings_list, verbose=True)
+
+
+def get_doc_id(rec_id):
+    res = session.query(Record.source).filter_by(document_id=rec_id).first()
+    return str(res[0])
+
+
 def script_exec():
     # create_sets('oc_class_person')
-    NER.NER_learning_by_config({"class": 1, "tags": 1, "use_special_tags": 0})
+    # NER.NER_learning_by_config({"class": 1, "tags": 1, "use_special_tags": 0})
     # create_answers('oc_class_loc')
-    prediction('name')
-    identification('name')
+    # prediction('name')
+    doc_id = get_doc_id('55c9091f-e6d4-4bed-f5d1-3f9ca2d4bb0a')
+    print(doc_id)
+    identification_doc(doc_id)
     # prediction()
     # comparison()
 
     # NER.NER_name_learning()
 
 script_exec()
+
+
