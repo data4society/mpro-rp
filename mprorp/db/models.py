@@ -209,6 +209,12 @@ class Collection(Base):
     edited = Column(TIMESTAMP())
     # creator, e.g. user who created collection
     author = Column(UUIDType(binary=False), ForeignKey('users.user_id'))
+    # whatever collection is private and filled mannualy
+    private = Column(Boolean())
+    # whatever collection is public and seen from outside
+    public = Column(Boolean())
+    # id of application (without reference to somewhere)
+    app_id = Column(String(255))
 
 class Rule(Base):
     """contains rules for documents collection matching"""
