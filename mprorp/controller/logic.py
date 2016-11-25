@@ -212,13 +212,13 @@ def regular_yn_start_parsing(source, app_id):
             doc.source_with_type = "yandex_news "+source
             doc.app_id = app_id
         session.commit()
+        for doc in docs:
+            router(doc.doc_id, app_id, YANDEX_NEWS_INIT_STATUS)
+        session.remove()
     except Exception as err:
         err_txt = repr(err)
         logging.error("Неизвестная ошибка yandex_news краулера, source: " + source)
         print(err_txt)
-    for doc in docs:
-        router(doc.doc_id, app_id, YANDEX_NEWS_INIT_STATUS)
-    session.remove()
     source_params = apps_config[app_id]["crawler"]["yandex_news"][source]
     source_params["wait"] = True
     source_params["next_crawling_time"] = datetime.datetime.now().timestamp() + source_params["parse_period"]
@@ -235,16 +235,16 @@ def regular_csv_start_parsing(source, app_id):
             doc.source_with_type = "csv "+source
             doc.app_id = app_id
         session.commit()
+        for doc in docs:
+            router(doc.doc_id, app_id, CSV_INIT_STATUS)
+        session.remove()
     except Exception as err:
         err_txt = repr(err)
         logging.error("Неизвестная ошибка csv краулера, source: " + source)
         print(err_txt)
-    for doc in docs:
-        router(doc.doc_id, app_id, CSV_INIT_STATUS)
-    session.remove()
-    source_params = apps_config[app_id]["crawler"]["csv_to_rubricator"][source]
+    #source_params = apps_config[app_id]["crawler"]["csv_to_rubricator"][source]
     #source_params["wait"] = True
-    source_params["next_crawling_time"] = datetime.datetime.now().timestamp() + source_params["parse_period"]
+    #source_params["next_crawling_time"] = datetime.datetime.now().timestamp() + source_params["parse_period"]
 
 
 @app.task(ignore_result=True, time_limit=660, soft_timeout_limit=600)
