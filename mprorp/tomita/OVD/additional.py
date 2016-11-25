@@ -76,37 +76,33 @@ def OVD(ovd, session, Numb=False, Name=False):
     return codes
 
 def types(name, session):
-    types = [['министерство внутренних дел'],['гу мвд', 'главное управление мвд'],['управление мвд', 'умвд'],
-             ['межмуниципальное управление'],['межмуниципальный отдел', 'ммо', 'мо мвд', 'му мвд'],
-             ['линейное управление', 'лу ', 'управление на транспорте'],['линейный отдел', 'лоп', 'ло '],['линейный пункт', 'лпп'],
-             ['отдел полиции', 'отделение полиции', 'оп ', 'омвд'],['пункт полиции']]
     codes = []
+    name = name.lower()
     if name != 'овд':
-        out = []
-        for n in range(len(types)):
-            if name in types[n]:
-                for t in types[n]:
-                    all_codes = session.query(Entity).filter(Entity.data.has_key("jurisdiction")).all()
-                    for code in all_codes:
-                        if code.data["jurisdiction"] == "eaf0a69a-74d7-4e1a-9187-038a202c7698" and t in code.data['name'].lower():
-                            out.append(code)
-                k = n + 1
-                break
-        bad = []
-        for m in range(k,len(types)):
-            for c in range(len(out)):
-                for name in types[m]:
-                    if out[c] != []:
-                        if name in out[c].data['name'].lower():
-                            bad.append(out[c])
-
-        for i in out:
-            if i not in bad:
-                codes.append(i)
-
+        types = get_types(name)
+        all_codes = session.query(Entity).filter(Entity.data.has_key("jurisdiction")).all()
+        for code in all_codes:
+            for type in types:
+                if code.data["jurisdiction"] == "eaf0a69a-74d7-4e1a-9187-038a202c7698" and type in code.name.ower():
+                    codes.append(code)
     else:
         all_codes = session.query(Entity).filter(Entity.data.has_key("jurisdiction")).all()
         for code in all_codes:
             if code.data["jurisdiction"] == "eaf0a69a-74d7-4e1a-9187-038a202c7698":
                 codes.append(code)
     return codes
+
+def get_types(name):
+    types = {'_министерство внутренних дел_мвд_' : ['министерство внутренних дел', 'мвд'],
+            '_гу мвд_главное управление мвд_':['гу мвд', 'главное управление мвд'],
+            '_управление мвд_умвд_':['управление мвд', 'умвд'],
+            '_межмуниципальное управление_' : ['межмуниципальное управление'],
+             '_межмуниципальный отдел_ммо_мо мвд_му мвд_' : ['межмуниципальный отдел', 'ммо', 'мо мвд', 'му мвд'],
+             '_линейное управление_лу_управление на транспорте_' : ['линейное управление', 'лу ', 'управление на транспорте'],
+             '_линейный отдел_лоп_ло_': ['линейный отдел', 'лоп', 'ло '],
+             '_линейный пункт_лпп_' : ['линейный пункт', 'лпп'],
+             '_отдел полиции_отделение полиции_оп_омвд_' : ['отдел полиции', 'отделение полиции', 'оп ', 'омвд'],
+             '_пункт полиции_пп_': ['пункт полиции', 'пп']}
+    for type in types:
+        if '_' + name + '_' in type:
+            return types[type]
