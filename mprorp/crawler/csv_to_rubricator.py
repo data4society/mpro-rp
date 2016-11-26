@@ -13,12 +13,14 @@ def csv_start_parsing(source, app_id, session):
         spamreader = csv.reader(csvfile)
         for row in spamreader:
             rubric = session.query(Rubric).filter_by(name=row[0]).first()
+            print(rubric.rubric_id)
             url = row[1]
-            new_doc = Document(guid=app_id + url, url=url, status=0, type='article')
+            new_doc = Document(guid=app_id + url, app_id=app_id, url=url, status=0, type='article', rubric_ids=[rubric.rubric_id])
             doc_rubric = DocumentRubric(doc=new_doc, rubric=rubric)
             session.add(new_doc)
             session.add(doc_rubric)
             docs.append(new_doc)
+            #return
     return docs
 
 
@@ -26,5 +28,5 @@ if __name__ == '__main__':
     from mprorp.db.dbDriver import *
     session = db_session()
     csv_start_parsing('mpro-urls_to_csv', 'test', session)
-    #session.commit()
-    #session.remove()
+    session.commit()
+    session.remove()

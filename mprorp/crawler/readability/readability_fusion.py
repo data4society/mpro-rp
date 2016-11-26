@@ -173,6 +173,10 @@ class Document:
             while True:
                 self._html(True)
                 if title == '':
+                    # print(self.html)
+                    # print(self.html.find(".//title"))
+                    title_text = self.html.find(".//h1").text_content()
+                if title == '':
                     #print(self.html)
                     #print(self.html.find(".//title"))
                     title_text = self.html.find(".//title").text_content()  #self.title()
@@ -229,7 +233,7 @@ class Document:
                     # Loop through and try again.
                     continue
                 else:
-                    return cleaned_article
+                    return cleaned_article, title_text
         except Exception as e:
             log.exception('error getting summary: ')
             if sys.version_info[0] == 2:
