@@ -297,7 +297,8 @@ def regular_find_full_text(doc_id, new_status):
         else:
             # print(url, type(err))
             new_status = SITE_PAGE_LOADING_FAILED
-            logging.error("Неизвестная ошибка doc_id: " + doc_id)
+            logging.error("Неизвестная ошибка doc_id: " + doc_id + "url:" + doc.url)
+        print(err_txt)
     set_doc(doc, new_status, session)
 
 

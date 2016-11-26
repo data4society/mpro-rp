@@ -173,12 +173,10 @@ class Document:
             while True:
                 self._html(True)
                 if title == '':
-                    # print(self.html)
-                    # print(self.html.find(".//title"))
-                    title_text = self.html.find(".//h1").text_content()
+                    h1 = self.html.find(".//h1")
+                    if h1 != None:
+                        title_text = h1.text_content()
                 if title == '':
-                    #print(self.html)
-                    #print(self.html.find(".//title"))
                     title_text = self.html.find(".//title").text_content()  #self.title()
                 else:
                     title_text = title
