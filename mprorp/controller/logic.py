@@ -8,6 +8,7 @@ from mprorp.celery_app import app
 from mprorp.crawler.site_page import find_full_text
 from mprorp.db.dbDriver import *
 from mprorp.db.models import *
+from sqlalchemy.orm.attributes import flag_modified
 from mprorp.ner.tomita_to_markup import convert_tomita_result_to_markup
 from mprorp.tomita.tomita_run import run_tomita
 
@@ -285,6 +286,7 @@ def regular_find_full_text(doc_id, new_status):
     session, doc = get_doc(doc_id)
     try:
         find_full_text(doc)
+        flag_modified(doc, "meta")
     except Exception as err:
         err_txt = repr(err)
         if err_txt == 'Empty text':

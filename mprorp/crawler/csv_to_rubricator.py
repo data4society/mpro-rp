@@ -14,7 +14,9 @@ def csv_start_parsing(source, app_id, session):
         for row in spamreader:
             rubric = session.query(Rubric).filter_by(name=row[0]).first()
             url = row[1]
-            new_doc = Document(guid=app_id + url, app_id=app_id, url=url, status=0, type='article', meta=dict(), rubric_ids=[rubric.rubric_id])
+            meta = dict()
+            meta["publisher"] = dict()
+            new_doc = Document(guid=app_id + url, app_id=app_id, url=url, status=0, type='article', meta=meta, rubric_ids=[rubric.rubric_id])
             doc_rubric = DocumentRubric(doc=new_doc, rubric=rubric)
             session.add(new_doc)
             session.add(doc_rubric)
