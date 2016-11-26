@@ -25,7 +25,7 @@ def find_full_text(doc):
     if title == None:
         title = ''
     content, doc.title = rf_doc.summary(title=title)
-
+    print(content)
     if content.strip() == '':
         logging.error("Получен пустой текст url: " + url)
         content = meta["abstract"]

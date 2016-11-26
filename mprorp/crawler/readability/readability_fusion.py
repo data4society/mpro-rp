@@ -176,10 +176,10 @@ class Document:
                     h1 = self.html.find(".//h1")
                     if h1 != None:
                         title_text = h1.text_content()
-                if title == '':
-                    title_text = self.html.find(".//title").text_content()  #self.title()
                 else:
                     title_text = title
+                if title_text == '':
+                    title_text = self.html.find(".//title").text_content()  #self.title()
                 print(title_text)
                 self.title_lemmas = mystem.lemmatize(title_text)
                 #mystem.close()

@@ -283,8 +283,9 @@ def regular_vk_parse_item(doc_id, new_status):
 def regular_find_full_text(doc_id, new_status):
     """parsing HTML page to find full text"""
     session, doc = get_doc(doc_id)
-    try:
-        find_full_text(doc)
+    #try:
+    find_full_text(doc)
+    """
     except Exception as err:
         err_txt = repr(err)
         if err_txt == 'Empty text':
@@ -299,6 +300,7 @@ def regular_find_full_text(doc_id, new_status):
             new_status = SITE_PAGE_LOADING_FAILED
             logging.error("Неизвестная ошибка doc_id: " + doc_id + "url:" + doc.url)
         print(err_txt)
+    """
     set_doc(doc, new_status, session)
 
 
