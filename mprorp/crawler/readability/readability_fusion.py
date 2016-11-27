@@ -172,6 +172,7 @@ class Document:
             ruthless = True
             while True:
                 self._html(True)
+                title_text = ''
                 if title == '':
                     h1 = self.html.find(".//h1")
                     if h1 != None:
