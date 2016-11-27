@@ -143,6 +143,23 @@ class Variable(Base):
     # value in json format
     json = Column(JSONB())
 
+class Api(Base):
+    """contains public apis"""
+    __tablename__ = 'apis'
+
+    # unique api key
+    key = Column(UUIDType(binary=False),
+                         server_default=text("uuid_generate_v4()"), primary_key=True, unique=True)
+    # type of api
+    api = Column(Text())
+    # path to param value
+    param = Column(Text())
+    # export format
+    format = Column(Text())
+    # whatever api is accessible
+    live = Column(Boolean())
+    # id of application (without reference to somewhere)
+    app_id = Column(String(255))
 
 class Record(Base):
     """contains converted documents for exposing to client"""
