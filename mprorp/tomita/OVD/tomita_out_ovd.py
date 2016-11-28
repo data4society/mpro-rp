@@ -46,7 +46,8 @@ def get_coordinates(facts, sourse):
           'string' : sourse[int(i[1]):int(i[1])+int(i[2])].lower(),
           'facts' : re.findall('<(\w*?)_TOMITA val="(.*?)"/>', i[4]),
           'type' : i[5],
-          'sn' : int(i[3])} for i in facts]
+          'sn' : int(i[3]),
+          'ls': int(i[1]) + int(i[2])} for i in facts]
     for fact in l:
         fact = normalization(fact)
         fact = coordinates(fact)
