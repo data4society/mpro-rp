@@ -83,7 +83,7 @@ def types(name, session):
         all_codes = session.query(Entity).filter(Entity.data.has_key("jurisdiction")).all()
         for code in all_codes:
             for type in types:
-                if code.data["jurisdiction"] == "eaf0a69a-74d7-4e1a-9187-038a202c7698" and type in code.name.ower():
+                if code.data["jurisdiction"] == "eaf0a69a-74d7-4e1a-9187-038a202c7698" and type in code.name.lower():
                     codes.append(code)
     else:
         all_codes = session.query(Entity).filter(Entity.data.has_key("jurisdiction")).all()
