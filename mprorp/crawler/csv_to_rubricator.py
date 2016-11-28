@@ -22,7 +22,9 @@ def csv_start_parsing(source, app_id, session):
                 docs.append(doc)
             else:
                 doc = session.query(Document).filter_by(guid=app_id + url).first()
-                doc.rubric_ids.append(rubric.rubric_id)
+                rubric_ids = doc.rubric_ids
+                rubric_ids.append(rubric.rubric_id)
+                doc.rubric_ids = rubric_ids
             doc_rubric = DocumentRubric(doc=doc, rubric=rubric)
             session.add(doc_rubric)
     return docs
