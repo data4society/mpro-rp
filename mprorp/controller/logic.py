@@ -183,7 +183,7 @@ def regular_gn_start_parsing(source, **kwargs):
 
 
 @app.task(ignore_result=True, time_limit=660, soft_timeout_limit=600)
-def regular_ga_start_parsing(source, app_id, **kwargs):
+def regular_ga_start_parsing(source, **kwargs):
     """parsing google alerts request"""
     app_id = kwargs["app_id"]
     try:
@@ -207,7 +207,7 @@ def regular_ga_start_parsing(source, app_id, **kwargs):
 
 
 @app.task(ignore_result=True, time_limit=660, soft_timeout_limit=600)
-def regular_yn_start_parsing(source, app_id, **kwargs):
+def regular_yn_start_parsing(source, **kwargs):
     """parsing yandex news request"""
     app_id = kwargs["app_id"]
     try:
@@ -231,7 +231,7 @@ def regular_yn_start_parsing(source, app_id, **kwargs):
 
 
 @app.task(ignore_result=True, time_limit=660, soft_timeout_limit=600)
-def regular_csv_start_parsing(source, app_id, **kwargs):
+def regular_csv_start_parsing(source, **kwargs):
     app_id = kwargs["app_id"]
     """parsing yandex news request"""
     try:
@@ -255,7 +255,7 @@ def regular_csv_start_parsing(source, app_id, **kwargs):
 
 
 @app.task(ignore_result=True, time_limit=660, soft_timeout_limit=600)
-def regular_vk_start_parsing(source, app_id, **kwargs):
+def regular_vk_start_parsing(source, **kwargs):
     """parsing vk request"""
     app_id = kwargs["app_id"]
     try:
@@ -280,6 +280,7 @@ def regular_vk_start_parsing(source, app_id, **kwargs):
 
 
 #@app.task(ignore_result=True)
+@app.task()
 def regular_vk_parse_item(doc_id, new_status, **kwargs):
     """parsing vk request"""
     session, doc = get_doc(doc_id)
@@ -288,6 +289,7 @@ def regular_vk_parse_item(doc_id, new_status, **kwargs):
 
 
 #@app.task(ignore_result=True)
+@app.task()
 def regular_find_full_text(doc_id, new_status, **kwargs):
     """parsing HTML page to find full text"""
     session, doc = get_doc(doc_id)
@@ -312,6 +314,7 @@ def regular_find_full_text(doc_id, new_status, **kwargs):
 
 
 #@app.task(ignore_result=True)
+@app.task()
 def regular_morpho(doc_id, new_status, **kwargs):
     """morphologia"""
     session, doc = get_doc(doc_id)
@@ -320,6 +323,7 @@ def regular_morpho(doc_id, new_status, **kwargs):
 
 
 #@app.task(ignore_result=True)
+@app.task()
 def regular_lemmas(doc_id, new_status, **kwargs):
     """counting lemmas frequency for one document"""
     session, doc = get_doc(doc_id)
@@ -328,6 +332,7 @@ def regular_lemmas(doc_id, new_status, **kwargs):
 
 
 #@app.task(ignore_result=True)
+@app.task()
 def regular_rubrication(doc_id, with_rubrics_status, without_rubrics_status, **kwargs):
     """regular rubrication"""
     session, doc = get_doc(doc_id)
@@ -343,6 +348,7 @@ def regular_rubrication(doc_id, with_rubrics_status, without_rubrics_status, **k
 
 
 #@app.task(ignore_result=True)
+@app.task()
 def regular_tomita(grammar, doc_id, new_status, **kwargs):
     """tomita"""
     session, doc = get_doc(doc_id)
@@ -351,6 +357,7 @@ def regular_tomita(grammar, doc_id, new_status, **kwargs):
 
 
 #@app.task(ignore_result=True)
+@app.task()
 def regular_tomita_features(grammars, doc_id, new_status, **kwargs):
     """tomita features (transform coordinates for ner)"""
     session, doc = get_doc(doc_id)
@@ -359,6 +366,7 @@ def regular_tomita_features(grammars, doc_id, new_status, **kwargs):
 
 
 #@app.task(ignore_result=True)
+@app.task()
 def regular_embedding_features(doc_id, new_status, **kwargs):
     """lemmas preparation for NER"""
     session, doc = get_doc(doc_id)
@@ -367,6 +375,7 @@ def regular_embedding_features(doc_id, new_status, **kwargs):
 
 
 #@app.task(ignore_result=True)
+@app.task()
 def regular_morpho_features(doc_id, new_status, **kwargs):
     session, doc = get_doc(doc_id)
     ner_feature.create_morpho_feature(doc, session, False)
@@ -374,6 +383,7 @@ def regular_morpho_features(doc_id, new_status, **kwargs):
 
 
 #@app.task(ignore_result=True)
+@app.task()
 def regular_NER_predict(ner_settings, doc_id, new_status, **kwargs):
     """NER computing"""
     session, doc = get_doc(doc_id)
@@ -382,6 +392,7 @@ def regular_NER_predict(ner_settings, doc_id, new_status, **kwargs):
 
 
 #@app.task(ignore_result=True)
+@app.task()
 def regular_create_markup(markup_settings, doc_id, new_status, **kwargs):
     """create entities if it needs and create markup"""
     session, doc = get_doc(doc_id)
@@ -391,6 +402,7 @@ def regular_create_markup(markup_settings, doc_id, new_status, **kwargs):
 
 
 #@app.task(ignore_result=True)
+@app.task()
 def regular_theming(doc_id, new_status, **kwargs):
     """regular theming"""
     session, doc = get_doc(doc_id)
@@ -399,6 +411,7 @@ def regular_theming(doc_id, new_status, **kwargs):
 
 
 #@app.task(ignore_result=True)
+@app.task()
 def tomita_entities(grammars_of_tomita_classes, doc_id, new_status, **kwargs):
     """
     grammars_of_tomita_classes = ['loc.cxx', 'org.cxx', 'norm_act.cxx']
