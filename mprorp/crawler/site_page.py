@@ -49,7 +49,7 @@ def find_full_text(doc):
 
 if __name__ == '__main__':
 
-    find_full_text(Document(url="https://zona.media/news/2015/04/12/matzemlya",meta=dict()))
+    find_full_text(Document(url="http://echo-oren.ru/2016/09/16/11327",meta=dict()))
     exit()
     articles = select(Document.doc_id, Document.source_id == '71dc5343-c27d-44bf-aa76-f4d8085317fe').fetchall()
     print(len(articles))
