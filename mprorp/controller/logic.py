@@ -72,6 +72,7 @@ facts = ['Person']
 
 
 def get_apps_config():
+    print("get_apps_config")
     with open(relative_file_path(__file__, '../config/app.json')) as app_config_file:
         config_list = json.load(app_config_file)
     config = {}
