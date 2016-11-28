@@ -24,6 +24,7 @@ from lxml.html import HtmlElement
 from lxml import etree
 
 from mprorp.analyzer.pymystem3_w import Mystem
+from mprorp.crawler.utils import to_plain_text
 import datetime
 
 log = logging.getLogger("readability.readability")
@@ -172,12 +173,18 @@ class Document:
             ruthless = True
             while True:
                 self._html(True)
+                title_text = ''
                 if title == '':
-                    #print(self.html)
-                    #print(self.html.find(".//title"))
-                    title_text = self.html.find(".//title").text_content()  #self.title()
+                    h1 = self.html.find(".//h1")
+                    if h1 != None:
+                        title_text = h1.text_content()
+                        print("h1",title_text)
                 else:
                     title_text = title
+                print(title_text)
+                if title_text == '':
+                    title_text = self.short_title()  # self.html.find(".//title").text_content()  #self.title()
+                title_text = to_plain_text(title_text)
                 print(title_text)
                 self.title_lemmas = mystem.lemmatize(title_text)
                 #mystem.close()
@@ -229,7 +236,7 @@ class Document:
                     # Loop through and try again.
                     continue
                 else:
-                    return cleaned_article
+                    return cleaned_article, title_text
         except Exception as e:
             log.exception('error getting summary: ')
             if sys.version_info[0] == 2:

@@ -414,10 +414,10 @@ def create_refs(doc, refs_settings, refs, session=None, commit_session=True, ver
         if main_class[i]:
             labels_lists[i] = list(reduce(lambda a,x: a|x, [set([labels[j], labels_from_text[j]]) for j in local_entities[i]]))
             # Теперь поищем, что у нас есть по меткам из labels_set - только точное совпадение с одной из меток
-            db_id = db.get_entity_by_labels(labels_lists[i], add_conditions=add_conditions)
+            db_id = db.get_entity_by_labels(labels_lists[i], add_conditions=add_conditions, verbose=verbose)
             if (db_id is None) and create_wiki_entities:
                 # Ищем сущности в викиданных
-                found_items = set()
+                found_items = dict()
                 for l in labels_lists[i]:
                     if wiki_search.is_given_name(l):
                         # Это просто имя - такое как
@@ -425,18 +425,19 @@ def create_refs(doc, refs_settings, refs, session=None, commit_session=True, ver
                         continue
                     wiki_ids_l = wiki_search.find_human(l)
                     for elem in wiki_ids_l:
-                        found_items.add(elem)
+                        found_items[elem['id']] = elem
                 if len(found_items) == 1:
-                    ext_data = {'wiki_id': found_items[0]['id']}
+                    wiki_id = list(found_items.keys())[0]
+                    ext_data = {'wiki_id': wiki_id}
                     if verbose:
                         print(labels_lists[i])
                     data = None
-                    if 'name' in found_items[0]:
-                        data = {'firstname': found_items[0]['name']}
-                    if 'family_name' in found_items[0]:
+                    if 'name' in found_items[wiki_id]:
+                        data = {'firstname': found_items[wiki_id]['name']}
+                    if 'family_name' in found_items[wiki_id]:
                         if data is None:
                             data = dict()
-                        data['lastname'] = found_items[0]['family_name']
+                        data['lastname'] = found_items[wiki_id]['family_name']
                     db_id = db.put_entity(names[i], 'person', data=data, labels=labels_lists[i], external_data=ext_data,
                                           session=session, commit_session=commit_session)
             if db_id is not None:

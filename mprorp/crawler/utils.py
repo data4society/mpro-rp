@@ -5,7 +5,7 @@ import re
 from user_agent import generate_user_agent, generate_navigator
 
 
-def send_get_request(url, encoding = '', gen_useragent = False,has_encoding = False):
+def send_get_request(url, encoding='', gen_useragent=False, has_encoding=False):
     """accessory function for sending requests"""
     s = Session()
     req = Request('GET', url)
