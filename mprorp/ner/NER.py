@@ -58,7 +58,7 @@ class Config(object):
 
     embed_size = 50
     hidden_size = 100
-    l2_embed = 0.0005 # 0.00001
+    l2_embed = 0.001 # 0.00001
     l2_2lay = 0.00325 # 0.000325
     window_size = 7 # 11
     pre_embedding = False
@@ -67,10 +67,10 @@ class Config(object):
     batch_size = 64 # 128
     label_size = 5
     max_epochs = 24
-    early_stopping = 2
+    early_stopping = 6
     dropout1 = 0.5
-    dropout2 = 0.65
-    lr = 0.0003
+    dropout2 = 0.6
+    lr = 0.001
     l2_feat = 0.00015
     training_set = u'4fb42fd1-a0cf-4f39-9206-029255115d01'
     dev_set = u'f861ee9d-5973-460d-8f50-92fca9910345'
