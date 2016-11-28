@@ -7,6 +7,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import scoped_session
 from sqlalchemy.pool import NullPool
 from sqlalchemy.orm.attributes import flag_modified
+from sqlalchemy.orm import load_only
 import sqlalchemy
 import sys
 from multiprocessing.util import register_after_fork
@@ -127,3 +128,40 @@ def dropall_and_create():
     import mprorp.db.models
     # create tables by models
     Base.metadata.create_all(engine)
+
+
+def delete_document(doc_id, session=None):
+    has_session = True
+    if not session:
+        has_session = False
+        session = db_session()
+    session.execute("DELETE FROM mentions USING markups m WHERE m.markup_id = markup AND m.document = '" + doc_id + "'")
+    session.execute(
+        "DELETE FROM public.\"references\" USING markups m WHERE m.markup_id = markup AND m.document = '" + doc_id + "'")
+    session.execute("DELETE FROM markups m WHERE m.document = '" + doc_id + "'")
+    session.execute("DELETE FROM rubricationresults r WHERE r.doc_id = '" + doc_id + "'")
+    session.execute("DELETE FROM documentrubrics d WHERE d.doc_id = '" + doc_id + "'")
+    session.execute("DELETE FROM tomita_results d WHERE d.doc_id = '" + doc_id + "'")
+    session.execute("DELETE FROM objectfeatures o WHERE o.doc_id = '" + doc_id + "'")
+    session.execute("DELETE FROM ner_features n WHERE n.doc_id = '" + doc_id + "'")
+    session.execute(
+        "DELETE FROM changes c USING records r WHERE c.document_id = r.document_id AND r.source = '" + doc_id + "'")
+    session.execute("DELETE FROM records WHERE source = '" + doc_id + "'")
+    session.execute("DELETE FROM documents WHERE doc_id = '" + doc_id + "'")
+    session.commit()
+    if not has_session:
+        session.remove()
+    print(doc_id, "complete deletion")
+
+
+def delete_app_documents(app_id):
+    from mprorp.db.models import Document
+    session = db_session()
+    docs = session.query(Document).filter_by(app_id=app_id).options(load_only("doc_id")).all()
+    print("documents length:", len(docs))
+    n = 0
+    for doc in docs:
+        delete_document(str(doc.doc_id), session)
+        n += 1
+        print(n)
+    session.remove()

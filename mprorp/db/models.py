@@ -143,6 +143,23 @@ class Variable(Base):
     # value in json format
     json = Column(JSONB())
 
+class Api(Base):
+    """contains public apis"""
+    __tablename__ = 'apis'
+
+    # unique api key
+    key = Column(UUIDType(binary=False),
+                         server_default=text("uuid_generate_v4()"), primary_key=True, unique=True)
+    # type of api
+    api = Column(Text())
+    # path to param value
+    param = Column(Text())
+    # export format
+    format = Column(Text())
+    # whatever api is accessible
+    live = Column(Boolean())
+    # id of application (without reference to somewhere)
+    app_id = Column(String(255))
 
 class Record(Base):
     """contains converted documents for exposing to client"""
@@ -209,6 +226,12 @@ class Collection(Base):
     edited = Column(TIMESTAMP())
     # creator, e.g. user who created collection
     author = Column(UUIDType(binary=False), ForeignKey('users.user_id'))
+    # whatever collection is private and filled mannualy
+    private = Column(Boolean())
+    # whatever collection is public and seen from outside
+    public = Column(Boolean())
+    # id of application (without reference to somewhere)
+    app_id = Column(String(255))
 
 class Rule(Base):
     """contains rules for documents collection matching"""
@@ -268,8 +291,10 @@ class DocumentRubric(Base):
 
     # document identificator
     doc_id = Column(UUIDType(binary=False), ForeignKey('documents.doc_id'))
+    doc = relationship(Document)
     # document identifier
     rubric_id = Column(UUIDType(binary=False), ForeignKey('rubrics.rubric_id'))
+    rubric = relationship(Rubric)
     # rubric identifier
     __table_args__ = (PrimaryKeyConstraint(doc_id, rubric_id),)
 
