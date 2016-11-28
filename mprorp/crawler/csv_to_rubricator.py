@@ -14,13 +14,17 @@ def csv_start_parsing(source, app_id, session):
         for row in spamreader:
             rubric = session.query(Rubric).filter_by(name=row[0]).first()
             url = row[1]
-            meta = dict()
-            meta["publisher"] = dict()
-            new_doc = Document(guid=app_id + url, app_id=app_id, url=url, status=0, type='article', meta=meta, rubric_ids=[rubric.rubric_id])
-            doc_rubric = DocumentRubric(doc=new_doc, rubric=rubric)
-            session.add(new_doc)
+            if session.query(Document).filter_by(guid=app_id + url).count() == 0:
+                meta = dict()
+                meta["publisher"] = dict()
+                doc = Document(guid=app_id + url, app_id=app_id, url=url, status=0, type='article', meta=meta, rubric_ids=[rubric.rubric_id])
+                session.add(doc)
+                docs.append(doc)
+            else:
+                doc = session.query(Document).filter_by(guid=app_id + url).first()
+                doc.rubric_ids.append(rubric.rubric_id)
+            doc_rubric = DocumentRubric(doc=doc, rubric=rubric)
             session.add(doc_rubric)
-            docs.append(new_doc)
     return docs
 
 
