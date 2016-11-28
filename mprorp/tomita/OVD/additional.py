@@ -60,15 +60,15 @@ def OVD(ovd, session, Numb=False, Name=False):
     codes = []
     if Numb is True:
         numb = ovd[0]
-        all_codes = session.query(Entity).filter(Entity.data.has_key("org_type")).all()
+        all_codes = session.query(Entity).filter(Entity.data.has_key("jurisdiction")).all()
         for code in all_codes:
-            if code.data["org_type"] == 'OVD' and numb in code.data['name']:
+            if code.data["jurisdiction"] == "eaf0a69a-74d7-4e1a-9187-038a202c7698" and numb in code.data['name']:
                 codes.append(code)
     elif Name is True:
         name = ovd[0]
-        all_codes = session.query(Entity).filter(Entity.data.has_key("org_type")).all()
+        all_codes = session.query(Entity).filter(Entity.data.has_key("jurisdiction")).all()
         for code in all_codes:
-            if code.data["org_type"] == 'OVD' and name in code.data['name'].lower():
+            if code.data["jurisdiction"] == "eaf0a69a-74d7-4e1a-9187-038a202c7698" and name in code.data['name'].lower():
                 codes.append(code)
     else:
         name = ovd[0]
@@ -76,37 +76,33 @@ def OVD(ovd, session, Numb=False, Name=False):
     return codes
 
 def types(name, session):
-    types = [['министерство внутренних дел'],['гу мвд', 'главное управление мвд'],['управление мвд', 'умвд'],
-             ['межмуниципальное управление'],['межмуниципальный отдел', 'ммо', 'мо мвд', 'му мвд'],
-             ['линейное управление', 'лу ', 'управление на транспорте'],['линейный отдел', 'лоп', 'ло '],['линейный пункт', 'лпп'],
-             ['отдел полиции', 'отделение полиции', 'оп ', 'омвд'],['пункт полиции']]
     codes = []
+    name = name.lower()
     if name != 'овд':
-        out = []
-        for n in range(len(types)):
-            if name in types[n]:
-                for t in types[n]:
-                    all_codes = session.query(Entity).filter(Entity.data.has_key("org_type")).all()
-                    for code in all_codes:
-                        if code.data["org_type"] == 'OVD' and t in code.data['name'].lower():
-                            out.append(code)
-                k = n + 1
-                break
-        bad = []
-        for m in range(k,len(types)):
-            for c in range(len(out)):
-                for name in types[m]:
-                    if out[c] != []:
-                        if name in out[c].data['name'].lower():
-                            bad.append(out[c])
-
-        for i in out:
-            if i not in bad:
-                codes.append(i)
-
-    else:
-        all_codes = session.query(Entity).filter(Entity.data.has_key("org_type")).all()
+        types = get_types(name)
+        all_codes = session.query(Entity).filter(Entity.data.has_key("jurisdiction")).all()
         for code in all_codes:
-            if code.data["org_type"] == 'OVD':
+            for type in types:
+                if code.data["jurisdiction"] == "eaf0a69a-74d7-4e1a-9187-038a202c7698" and type in code.name.lower():
+                    codes.append(code)
+    else:
+        all_codes = session.query(Entity).filter(Entity.data.has_key("jurisdiction")).all()
+        for code in all_codes:
+            if code.data["jurisdiction"] == "eaf0a69a-74d7-4e1a-9187-038a202c7698":
                 codes.append(code)
     return codes
+
+def get_types(name):
+    types = {'_министерство внутренний дело_мвд_' : ['министерство внутренних дел', 'мвд'],
+            '_гу мвд_главный управление мвд_':['гу мвд', 'главное управление мвд'],
+            '_управление мвд_умвд_':['управление мвд', 'умвд'],
+            '_межмуниципальный управление_' : ['межмуниципальное управление'],
+             '_межмуниципальный отдел_ммо_мо мвд_му мвд_' : ['межмуниципальный отдел', 'ммо', 'мо мвд', 'му мвд'],
+             '_линейный управление_лу_управление на транспорт_' : ['линейное управление', 'лу ', 'управление на транспорте'],
+             '_линейный отдел_лоп_ло_': ['линейный отдел', 'лоп', 'ло '],
+             '_линейный пункт_лпп_' : ['линейный пункт', 'лпп'],
+             '_отдел полиция_отделение полиция_оп_омвд_' : ['отдел полиции', 'отделение полиции', 'оп ', 'омвд'],
+             '_пункт полиция_пп_': ['пункт полиции', 'пп']}
+    for type in types:
+        if '_' + name + '_' in type:
+            return types[type]

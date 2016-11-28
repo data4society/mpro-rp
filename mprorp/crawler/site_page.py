@@ -8,6 +8,8 @@ from mprorp.crawler.utils import *
 import urllib.request
 import urllib.parse as urlparse
 
+from mprorp.crawler.utils import send_get_request
+
 
 import logging
 logging.basicConfig(format = u'%(levelname)-8s [%(asctime)s] %(message)s', level = logging.DEBUG, filename = u'crawler_log.txt')
@@ -18,8 +20,8 @@ def find_full_text(doc):
     url = doc.url
     meta = doc.meta
     print('start grabbing ' + url)
-
-    html_source = urllib.request.urlopen(url, timeout=10).read()
+    html_source = send_get_request(url, has_encoding=True, gen_useragent=True)# urllib.request.urlopen(url, timeout=10).read()
+    #print(html_source.decode("utf-8"))
     rf_doc = Doc(html_source)
     title = doc.title
     if title == None:
@@ -47,7 +49,8 @@ def find_full_text(doc):
 
 if __name__ == '__main__':
 
-
+    find_full_text(Document(url="http://echo-oren.ru/2016/09/16/11327",meta=dict()))
+    exit()
     articles = select(Document.doc_id, Document.source_id == '71dc5343-c27d-44bf-aa76-f4d8085317fe').fetchall()
     print(len(articles))
     from mprorp.controller.logic import SITE_PAGE_COMPLETE_STATUS, SITE_PAGE_LOADING_FAILED

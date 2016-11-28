@@ -1,6 +1,7 @@
-from mprorp.tomita.OVD.code_from_db import *
+#from mprorp.tomita.OVD.code_from_db import *
 from mprorp.db.dbDriver import *
 from mprorp.db.models import *
+from mprorp.data.kladr import mvd_root
 
 session = db_session()
 fact = {'sn': 17, 'facts': {'Location': [0, 4]}, 'type': 'LocationFact', 'string': 'крыму', 'id': 22, 'fs': 2597,
@@ -11,4 +12,11 @@ fact2 = {'string': 'овд «южное медведково', 'sn': 0, 'facts':
 #    print(i)
 #    for ii in i[0]:
 #        print(ii.name)
-#a = session.query(KLADR).filter(KLADR.name_lemmas.has_key('крым')).all()
+#a = session.query(KLADR).filter(KLADR.name_lemmas.has_key('нижневартовск')).all()
+#print(a)
+a = session.query(Entity).filter(Entity.data.has_key("jurisdiction")).all()
+for code in a:
+    if code.data["jurisdiction"] == mvd_root and '8600001100000' in code.external_data['kladr']:
+        print(code.name, code.external_data['kladr'])
+#a = session.query(Entity).filter(Entity.data["name"] == "Отдел Министерства внутренних дел Российской Федерации по Бижбулякскому району").all()
+#print(len(a))
