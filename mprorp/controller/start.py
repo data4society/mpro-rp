@@ -25,19 +25,19 @@ def check_sources():
                         source_params["wait"] = False
                         if source_type == "vk":  # vk
                             print("START VK CRAWL")
-                            regular_vk_start_parsing.delay(source, app_id)
+                            regular_vk_start_parsing.delay(source, app_id=app_id)
                         elif source_type == "google_news":  # google_news
                             print("START GOOGLE NEWS CRAWL")
-                            regular_gn_start_parsing.delay(source, app_id)
+                            regular_gn_start_parsing.delay(source, app_id=app_id)
                         elif source_type == "google_alerts":  # google alerts
                             print("START GOOGLE ALERTS CRAWL")
-                            regular_ga_start_parsing.delay(source, app_id)
+                            regular_ga_start_parsing.delay(source, app_id=app_id)
                         elif source_type == "yandex_news":  # yandex news
                             print("START YANDEX NEWS CRAWL")
-                            regular_yn_start_parsing.delay(source, app_id)
+                            regular_yn_start_parsing.delay(source, app_id=app_id)
                         elif source_type == "csv_to_rubricator":  # csv
                             print("START CSV CRAWL")
-                            regular_csv_start_parsing.delay(source, app_id)
+                            regular_csv_start_parsing.delay(source, app_id=app_id)
                     elif (not source_params["wait"]) and source_params["next_crawling_time"] < datetime.datetime.now().timestamp():
                         print("wait for "+source)
 
