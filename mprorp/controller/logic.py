@@ -149,13 +149,11 @@ def router(doc_id, app_id, status):
     if "special_type" in app_conf:
         doc.type = app_conf["special_type"]
     if "special_final_status" in app_conf:
-        status = app_conf["special_final_status"]
+        doc.status = app_conf["special_final_status"]
     else:
-        status = REGULAR_PROCESSES_FINISH_STATUS
-    doc.status = status
+        doc.status = REGULAR_PROCESSES_FINISH_STATUS
     session.commit()
     session.remove()
-    return status
 
 
 @app.task(ignore_result=True, time_limit=660, soft_timeout_limit=600)
@@ -274,15 +272,15 @@ def regular_vk_start_parsing(source, app_id):
     source_params["next_crawling_time"] = datetime.datetime.now().timestamp() + source_params["parse_period"]
 
 
-#@app.task(ignore_result=True)
+@app.task(ignore_result=True)
 def regular_vk_parse_item(doc_id, new_status, **kwargs):
     """parsing vk request"""
     session, doc = get_doc(doc_id)
     vk_parse_item(doc)
-    return set_doc(doc, new_status, session)
+    set_doc(doc, new_status, session)
 
 
-#@app.task(ignore_result=True)
+@app.task(ignore_result=True)
 def regular_find_full_text(doc_id, new_status, **kwargs):
     """parsing HTML page to find full text"""
     session, doc = get_doc(doc_id)
@@ -303,26 +301,26 @@ def regular_find_full_text(doc_id, new_status, **kwargs):
             new_status = SITE_PAGE_LOADING_FAILED
             logging.error("Неизвестная ошибка загрузки doc_id: " + doc_id + "url:" + doc.url)
         print(err_txt)
-    return set_doc(doc, new_status, session)
+    set_doc(doc, new_status, session)
 
 
-#@app.task(ignore_result=True)
+@app.task(ignore_result=True)
 def regular_morpho(doc_id, new_status, **kwargs):
     """morphologia"""
     session, doc = get_doc(doc_id)
     rb.morpho_doc(doc)
-    return set_doc(doc, new_status, session)
+    set_doc(doc, new_status, session)
 
 
-#@app.task(ignore_result=True)
+@app.task(ignore_result=True)
 def regular_lemmas(doc_id, new_status, **kwargs):
     """counting lemmas frequency for one document"""
     session, doc = get_doc(doc_id)
     rb.lemmas_freq_doc(doc)
-    return set_doc(doc, new_status, session)
+    set_doc(doc, new_status, session)
 
 
-#@app.task(ignore_result=True)
+@app.task(ignore_result=True)
 def regular_rubrication(doc_id, with_rubrics_status, without_rubrics_status, **kwargs):
     """regular rubrication"""
     session, doc = get_doc(doc_id)
@@ -334,66 +332,66 @@ def regular_rubrication(doc_id, with_rubrics_status, without_rubrics_status, **k
         new_status = without_rubrics_status
     else:
         new_status = with_rubrics_status
-    return set_doc(doc, new_status, session)
+    set_doc(doc, new_status, session)
 
 
-#@app.task(ignore_result=True)
+@app.task(ignore_result=True)
 def regular_tomita(grammar, doc_id, new_status, **kwargs):
     """tomita"""
     session, doc = get_doc(doc_id)
     run_tomita(doc, grammar, session, False)
-    return set_doc(doc, new_status, session)
+    set_doc(doc, new_status, session)
 
 
-#@app.task(ignore_result=True)
+@app.task(ignore_result=True)
 def regular_tomita_features(grammars, doc_id, new_status, **kwargs):
     """tomita features (transform coordinates for ner)"""
     session, doc = get_doc(doc_id)
     ner_feature.create_tomita_feature(doc, grammars, session, False)
-    return set_doc(doc, new_status, session)
+    set_doc(doc, new_status, session)
 
 
-#@app.task(ignore_result=True)
+@app.task(ignore_result=True)
 def regular_embedding_features(doc_id, new_status, **kwargs):
     """lemmas preparation for NER"""
     session, doc = get_doc(doc_id)
     ner_feature.create_embedding_feature(doc, session, False)
-    return set_doc(doc, new_status, session)
+    set_doc(doc, new_status, session)
 
 
-#@app.task(ignore_result=True)
+@app.task(ignore_result=True)
 def regular_morpho_features(doc_id, new_status, **kwargs):
     session, doc = get_doc(doc_id)
     ner_feature.create_morpho_feature(doc, session, False)
-    return set_doc(doc, new_status, session)
+    set_doc(doc, new_status, session)
 
 
-#@app.task(ignore_result=True)
+@app.task(ignore_result=True)
 def regular_NER_predict(ner_settings, doc_id, new_status, **kwargs):
     """NER computing"""
     session, doc = get_doc(doc_id)
     NER_predict(doc, ner_settings, session, False)
-    return set_doc(doc, new_status, session)
+    set_doc(doc, new_status, session)
 
 
-#@app.task(ignore_result=True)
+@app.task(ignore_result=True)
 def regular_create_markup(markup_settings, doc_id, new_status, **kwargs):
     """create entities if it needs and create markup"""
     session, doc = get_doc(doc_id)
     # create_markup(doc, session, False)
     create_markup_regular(doc, markup_settings, session, False)
-    return set_doc(doc, new_status, session)
+    set_doc(doc, new_status, session)
 
 
-#@app.task(ignore_result=True)
+@app.task(ignore_result=True)
 def regular_theming(doc_id, new_status, **kwargs):
     """regular theming"""
     session, doc = get_doc(doc_id)
     reg_theming(doc, session)
-    return set_doc(doc, new_status, session)
+    set_doc(doc, new_status, session)
 
 
-#@app.task(ignore_result=True)
+@app.task(ignore_result=True)
 def tomita_entities(grammars_of_tomita_classes, doc_id, new_status, **kwargs):
     """
     grammars_of_tomita_classes = ['loc.cxx', 'org.cxx', 'norm_act.cxx']
@@ -407,7 +405,7 @@ def tomita_entities(grammars_of_tomita_classes, doc_id, new_status, **kwargs):
     session, doc = get_doc(doc_id)
     #grammars_of_tomita_classes = ['loc.cxx', 'org.cxx', 'norm_act.cxx']
     convert_tomita_result_to_markup(doc, grammars_of_tomita_classes, session=session, commit_session=False)
-    return set_doc(doc, new_status, session)
+    set_doc(doc, new_status, session)
 
 
 def get_doc(doc_id):
@@ -423,7 +421,7 @@ def set_doc(doc, new_status, session):
     session.commit()
     doc_id = doc.doc_id
     session.remove()
-    return router(doc_id, doc.app_id, new_status) or new_status
+    router(doc_id, doc.app_id, new_status)
 
 
 
