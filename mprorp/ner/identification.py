@@ -465,7 +465,7 @@ def create_refs(doc, refs_settings, refs, session=None, commit_session=True, ver
         for i in range(len(main_class)):
             if main_class[i] and mentions_id[i] is None:
                 # data = {'labels': labels_lists[i]}
-                mentions_id[i] = db.put_entity(labels_from_text[i], 'person', labels=labels_lists[i],
+                mentions_id[i] = db.put_entity(names[i], 'person', labels=labels_lists[i],
                                                session=session, commit_session=commit_session)
 
     # Выберем те классы, которые являются подклассом ровно одного класса.

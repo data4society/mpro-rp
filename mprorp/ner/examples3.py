@@ -279,7 +279,8 @@ def script_exec():
     # NER.NER_learning_by_config({"class": 1, "tags": 1, "use_special_tags": 0})
     # create_answers('oc_class_loc')
     # prediction('name')
-    doc_id = get_doc_id('55c9091f-e6d4-4bed-f5d1-3f9ca2d4bb0a')
+    # doc_id = get_doc_id('55c9091f-e6d4-4bed-f5d1-3f9ca2d4bb0a')
+    doc_id = 'f98e75ea-feee-480d-80cc-fe5b4a21e727'
     print(doc_id)
     identification_doc(doc_id)
     # prediction()
