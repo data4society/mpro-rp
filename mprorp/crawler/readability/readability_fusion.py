@@ -180,7 +180,7 @@ class Document:
                 else:
                     title_text = title
                 if title_text == '':
-                    title_text = self.html.find(".//title").text_content()  #self.title()
+                    title_text = self.short_title()  # self.html.find(".//title").text_content()  #self.title()
                 print(title_text)
                 self.title_lemmas = mystem.lemmatize(title_text)
                 #mystem.close()
