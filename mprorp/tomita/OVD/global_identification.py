@@ -3,43 +3,71 @@ from mprorp.tomita.OVD.additional import cross
 from mprorp.tomita.OVD.code_from_db import get_all_codes
 import re
 
-def ovd_combiner(sentences, facts):
+def combiner(facts, fact_type):
+    if fact_type == 'OVDFact':
+        n = 2
+    else:
+        n = 100
     out = []
-    for sen_n in sentences:
-        ovds = []
-        sentence = sentences[sen_n]
-        if str(sentence).count('OVD') > 1:
-            for fact_id in sentence:
-                fact_id = int(re.findall('(\d+?)_', fact_id)[0])
-                for fact in facts:
-                    if fact['id'] == fact_id and fact['type'] == 'OVDFact':
-                        ovds.append(fact)
+    used = []
+    ovds = []
+    for fact in facts:
+        if fact['type'] == fact_type:
+            ovds.append(fact)
         else:
-            for fact_id in sentence:
-                fact_id = int(re.findall('(\d+?)_', fact_id)[0])
-                for fact in facts:
-                    if fact['id'] == fact_id:
-                        out.append(fact)
-        if ovds != []:
-            for n in range(len(ovds)):
-                for m in range(len(ovds)):
-                    if ovds[n]['ls'] + 1 == ovds[m]['fs']:
-                        new_fact = {'type': 'OVDFact',
-                                    'string' : ovds[n]['string'] + ' ' + ovds[m]['string'],
-                                    'id' : str(ovds[n]['id']) + str(ovds[m]['id']),
-                                    'sn' : ovds[n]['sn'],
-                                    'fs' : ovds[n]['fs'],
-                                    'ls' : ovds[m]['ls'],
-                                    'codes' : cross([ovds[n]['codes'][0], ovds[m]['codes'][0]])}
-                        out.append(new_fact)
+            out.append(fact)
+    for fact1 in ovds:
+        for fact2 in ovds:
+            if 0 < fact2['fs'] - fact1['ls'] < n:
+                cross_codes = cross([fact1['codes'][0], fact2['codes'][0]])
+                if cross_codes != []:
+                    new_fact = {'type': fact_type,
+                                'string' : fact1['string'] + ' ' + fact2['string'],
+                                'id' : str(fact1['id']) + str(fact2['id']),
+                                'sn' : fact1['sn'],
+                                'fs' : fact1['fs'],
+                                'ls' : fact2['ls'],
+                                'codes' : cross_codes}
+                    out.append(new_fact)
+                    used.append(fact1)
+                    used.append(fact2)
+        if fact1 not in used:
+            fact1['codes'] = fact1['codes'][0]
+            out.append(fact1)
+    return out
+
+def variants(facts):
+    out = []
+    ovds = []
+    locs =[]
+    for fact in facts:
+        if fact['type'] == 'OVDFact':
+            ovds.append(fact)
+        else:
+            locs.append(fact)
+    for ovd in ovds:
+        for loc in locs:
+            for ovd_code in ovd['codes']:
+                for loc_code in loc['codes']:
+                    if loc_code.kladr_id in ovd_code.external_data['kladr']:
+                        out.append({'type' : 'OVDVariant',
+                                     'string' : ovd['string'],
+                                     'fs' : ovd['fs'],
+                                     'ls' : ovd['ls'],
+                                     'code' : ovd_code.external_data['kladr']})
     return out
 
 def step1(tomita_out_file, original_text):
     facts = get_all_codes(tomita_out_file, original_text)
+    facts = combiner(facts, 'OVDFact')
+    facts = combiner(facts, 'LocationFact')
     sentences = sen_division(facts)
-    facts = ovd_combiner(sentences, facts)
-    #дописать
-    return facts
+    out = variants(facts)
+    print('sentences: ' + str(sentences))
+    return out
 
+f = open('text_no_n.txt', 'r', encoding='utf-8').read()
+print('original text: ' + f)
 for i in step1('facts.xml', 'text_no_n.txt'):
-    print(i['string'], len(i['codes']))
+    print('ovd: ' + str(i))
+    print('original string: ' + f[i['fs']:i['ls']])
