@@ -3,6 +3,23 @@ from mprorp.db.models import *
 import mprorp.analyzer.db as db
 import mprorp.analyzer.rubricator as rb
 
+rubric_no_name = '35ed00df-3be5-4533-9f13-7535a95dba62'
+rubrics = {
+    '1': {'pos': '10180591-8d58-4d6e-a3dd-cc7df1cbb671',
+          'neg': 'ec434320-3a42-4bbc-aa2f-fb95dc28e9db'},# искусство
+    '2': {'pos': '264468df-6c20-4a66-8f4f-07c91f200e37',
+          'neg': '49596f63-353a-4207-a076-4ca0bd66eca3'},# отчисление и увольнение
+    '3': {'pos': '8676d718-7ca7-49a4-a815-8bc2efd9ee2e',
+          'neg': 'd4a52335-34f7-4677-a20b-21b39983088a'},# насилие
+    '4': {'pos': 'c1486c39-62f5-4476-aca0-6641af0ba11d',
+          'neg': '4c5882dc-0dd1-4382-813b-18fb02650e02'},# ЛГБТ
+    '5': {'pos': 'd9b9f38e-77e0-4ab5-8a58-98e8ff5e6d21',
+          'neg': '6aac7df6-98a5-42e1-a463-4c7f222269a8'},# угрозы
+    '6': {'pos': 'f079f081-d1ab-4136-ba4f-520ac59b70b8',
+          'neg': 'a283ced3-32b5-4ae4-a9a6-440107c3e9e2'},# интернет
+}
+
+
 def create_training_set(rubric_id, session=None):
     if session is None:
         session = Driver.db_session()
@@ -82,6 +99,7 @@ def write_sets(rubric_id, session=None):
 def teach_rubricator(set_id, rubric_id, session=None):
     rb.idf_object_features_set(set_id)
     rb.learning_rubric_model(set_id, rubric_id)
+    # rb.learning_rubric_model_coeffs(set_id, doc_coefficients, rubric_id, savefiles=False)
 
 
 def test_model(set_id, rubric_id, name=''):

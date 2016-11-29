@@ -696,9 +696,13 @@ def get_entity_by_labels(labels, add_conditions=None, session=None, verbose=Fals
                         conditions2 = Entity.external_data.has_key(key)
                     else:
                         conditions2 = conditions2 | Entity.external_data.has_key(key)
+        if conditions is None:
+            conditions = conditions2
+        elif conditions2 is not None:
+            conditions = conditions & conditions2
     if verbose:
-        print('conditions', conditions&conditions2)
-    res = res.filter(conditions&conditions2)
+        print('conditions', conditions)
+    res = res.filter(conditions)
 
     try:
         res = res.all()
@@ -706,6 +710,8 @@ def get_entity_by_labels(labels, add_conditions=None, session=None, verbose=Fals
             print(len(res), res)
         return res[0][0]
     except Exception:
+        if verbose:
+            print('Error')
         return None
 
 
@@ -840,3 +846,16 @@ def get_ner_model(model_id, session=None):
     model = session.query(NERModel).filter(NERModel.ner_id == model_id).one()
     return {'embedding': model.embedding, 'gazetteers': model.gazetteers, 'tomita_facts': model.tomita_facts,
             'morpho_features': model.morpho_features, 'hyper_parameters': model.hyper_parameters}
+
+
+def delete_entity(entity_id, session=None):
+    if session is None:
+        session = Driver.db_session()
+    markups = session.query(Reference.markup).filter(Reference.entity == entity_id).all()
+    markup_ids = [str(i[0]) for i in markups]
+    print(markup_ids)
+    docs = session.query(Markup.document).filter((Markup.markup_id.in_(markup_ids))).all()
+    for doc in docs:
+        print(doc[0])
+        # delete_document(doc[0], session=session)
+

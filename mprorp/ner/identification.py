@@ -412,7 +412,8 @@ def create_refs(doc, refs_settings, refs, session=None, commit_session=True, ver
     for i in range(len(local_entities)):
 
         if main_class[i]:
-            labels_lists[i] = list(reduce(lambda a,x: a|x, [set([labels[j], labels_from_text[j]]) for j in local_entities[i]]))
+            labels_lists[i] = list(reduce(lambda a, x: a | x, [set([labels[j],
+                                                                   labels_from_text[j]]) for j in local_entities[i]]))
             # Теперь поищем, что у нас есть по меткам из labels_set - только точное совпадение с одной из меток
             db_id = db.get_entity_by_labels(labels_lists[i], add_conditions=add_conditions, verbose=verbose)
             if (db_id is None) and create_wiki_entities:
@@ -1042,7 +1043,6 @@ def form_list_chain_spans_recursion(num_span, evaluations, eval_dict):
         chain = [s for s in num_span if num_span[s] == i]
         list_chain_spans.append(chain)
     return list_chain_spans
-
 
 
 def combine_chains(new_num, old_num, num_span, eval_number_dict):

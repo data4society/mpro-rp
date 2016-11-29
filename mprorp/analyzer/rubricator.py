@@ -556,6 +556,142 @@ def learning_rubric_model(set_id, rubric_id, savefiles = False):
     # print(b.eval(sess))
 
 
+# print lemmas with index in numbers, its index and idf
+# def print_lemmas(set_id, numbers, lemmas=None, idf=None):
+#     if idf is None:
+#         idf = {}
+#     if lemmas is None:
+#         lemmas = db.get_lemma_index(set_id)
+#     my_lemmas = [k for k in lemmas if lemmas[k] in numbers]
+    # print(numbers)
+    # print(my_lemmas)
+    # print([idf.get(k, '') for k in my_lemmas])
+    # for i in numbers:
+    #     m
+    #     print(i, [k for k in lemmas if lemmas[k] == i])
+
+
+# learn model for rubrication
+def learning_rubric_model_coeffs(set_id, doc_coefficients, rubric_id, savefiles = False):
+    """learn model for rubrication with different negative sets"""
+    # doc_coefficients = {'set_id_1': coeff_1, 'set_id_2': coeff_2, ...}
+    sets = {}
+    for set_id in doc_coefficients:
+        sets[set_id] = db.get_set_docs(set_id)
+    # get answers for rubric
+    answers = db.get_rubric_answers(set_id, rubric_id)
+
+    # get object_features, lemma_index, doc_index
+    doc_index, object_features = db.get_doc_index_object_features(set_id)
+
+    doc_number = len(doc_index)
+
+    # answers_index - answers by indexes, answers_array - array for compute cross_entropy in tensorflow
+    coeffs_array = np.zeros((doc_number, 1))
+    answers_array = np.zeros((doc_number, 1))
+    answers_index = np.zeros(doc_number, dtype=int)
+    for doc_id in doc_index:
+        answers_index[doc_index[doc_id]] = answers[doc_id]
+        answers_array[doc_index[doc_id], 0] = answers[doc_id] * 2 - 1
+        for set_id in doc_coefficients:
+            if doc_id in sets[set_id]:
+                coeffs_array[doc_index[doc_id], 0] = doc_coefficients[set_id]
+                break
+
+    # if we know answers, we can select most important features (mif):
+    # mif[k] = l:
+    # feature k from object_features is used in position l, if l >= 0
+    # if feature k ins not most important, l = -1
+    features_number = len(object_features[0])
+    # mif = np.empty(features_number)
+    # mif.fill(-1)
+    mif_number = features_number
+    mif_indexes = []
+    use_mif = features_number > optimal_features_number
+    if use_mif:
+        mif_number = optimal_features_number
+        feature_entropy = np.zeros(features_number)
+        for i in range(features_number):
+            # compute Entropic Criterion for feature i
+            feature_entropy[i] = entropy_difference(object_features[:, i], answers_index, i)
+        good_numbers = np.argsort(feature_entropy)
+        for i in range(optimal_features_number):
+            # mif[good_numbers[i]] = i
+            mif_indexes.append(int(good_numbers[i]))
+        # print_lemmas(set_id, good_numbers[0:100])
+        # print(feature_entropy[good_numbers[0:100]])
+    else:
+        for i in range(features_number):
+            mif_indexes.append(i)
+
+    x = tf.placeholder(tf.float32, shape=[None, mif_number])
+    y_ = tf.placeholder(tf.float32, shape=[None, 1])
+    co = tf.placeholder(tf.float32, shape=[None, 1])
+    w = tf.Variable(tf.truncated_normal([mif_number, 1], stddev=0.1))
+    b = tf.Variable(0.00001)
+
+    y = tf.matmul(x, w) + b
+    # take probability (sigmoid) when answer is true and -sigmoid (instead 1-sigmoid) otherwise
+    cross_entropy_array = tf.sigmoid(y) * y_ * co
+    cross_entropy = - tf.reduce_mean(cross_entropy_array)
+
+    train_step = tf.train.GradientDescentOptimizer(0.5).minimize(cross_entropy)
+    init = tf.initialize_all_variables()
+
+    sess = tf.Session()
+    sess.run(init)
+
+    indexes = [i for i in range(doc_number)]
+    # big_counter = 0
+    for i in range(5000):
+        # if i == big_counter * 100:
+        #     big_counter = round(i/100) + 1
+        #     print(i)
+        if doc_number > 150:
+            local_answers = answers_array[indexes[0:100], :]
+            local_coeffs = coeffs_array[indexes[0:100], :]
+            if use_mif:
+                sess.run(train_step,
+                         feed_dict={x: object_features[indexes[0:100], :][:, mif_indexes],
+                                    y_: local_answers, co: local_coeffs})
+            else:
+                sess.run(train_step, feed_dict={x: object_features[indexes[0:100], :],
+                                                y_: local_answers, co: local_coeffs})
+            random.shuffle(indexes)
+        else:
+            if use_mif:
+                sess.run(train_step, feed_dict={x: object_features[:, mif_indexes],
+                                                y_: answers_array, co: local_coeffs})
+            else:
+                sess.run(train_step, feed_dict={x: object_features, y_: answers_array, co: local_coeffs})
+        # my_cea = cross_entropy_array.eval(sess)
+        # print(my_cea)
+        # my_w = w.eval(sess)
+        # my_b = b.eval(sess)
+        # print(i, (sigmoid(np.dot(np.asarray(object_features), my_W) + my_b) * np.asarray(answers_array)))
+
+    model = w.eval(sess)[:, 0]
+    model = model.tolist()
+    model.append(float(b.eval(sess)))
+    if savefiles is True:
+        session = Driver.db_session()
+        my_set = session.query(TrainingSet).filter(TrainingSet.set_id == set_id).one()
+        lemm_dic = my_set.lemma_index
+        x = open('info_' + str(set_id) + '.py', 'w', encoding='utf-8')
+        x.write("rubric_id = '" + str(rubric_id) + "'\n")
+        x.write("set_id = '" + str(set_id) + "'\n")
+        x.write('lemm_dic = ' + str(my_set.lemma_index) + '\n')
+        x.write('model = ' + str(model) + '\n')
+        x.write('mif_indexes = ' + str(mif_indexes) + '\n')
+        x.write('mif_number = ' + str(mif_number))
+        x.close()
+        save_info(lemm_dic, mif_indexes, model, set_id)
+    db.put_model(rubric_id, set_id, model, mif_indexes, mif_number)
+
+    # print(W.eval(sess))
+    # print(b.eval(sess))
+
+
 # take 1 doc and few rubrics
 # save in DB doc_id, rubric_id and YES or NO
 # rubrics is a dict. key = rubric_id, value = None or set_id
