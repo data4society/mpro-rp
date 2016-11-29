@@ -91,9 +91,9 @@ def sen_division(facts):
     sentences = {}
     for fact in facts:
         if fact['sn'] not in sentences: 
-            sentences[fact['sn']] = [fact['id']]
+            sentences[fact['sn']] = [str(fact['id']) + '_' + str(fact['type'][:3])]
         else:
-            sentences[fact['sn']].append(fact['id'])
+            sentences[fact['sn']].append(str(fact['id']) + '_' + str(fact['type'][:3]))
     return sentences
 
 def pprint():

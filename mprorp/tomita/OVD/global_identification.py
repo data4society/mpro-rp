@@ -40,3 +40,6 @@ def step1(tomita_out_file, original_text):
     facts = ovd_combiner(sentences, facts)
     #дописать
     return facts
+
+for i in step1('facts.xml', 'text_no_n.txt'):
+    print(i['string'], len(i['codes']))
