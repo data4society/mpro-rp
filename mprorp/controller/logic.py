@@ -62,6 +62,7 @@ FOR_TRAINING = 1000
 FOR_RUBRICS_TRAINING = 1200  # Normal documents from crawler that marked in redactor as for training
 
 EMPTY_TEXT = 2000
+SHORT_LENGTH = 2002
 WITHOUT_RUBRICS = 2001
 
 
@@ -109,6 +110,16 @@ def router(doc_id, app_id, status):
     if status == VK_INIT_STATUS:  # to complete vk item parsing
         regular_vk_parse_item.delay(doc_id, VK_COMPLETE_STATUS, app_id=app_id)
         return
+    if "min_length_validation" in app_conf:
+        session = db_session()
+        doc = session.query(Document).filter_by(doc_id=doc_id).first()
+        if len(doc.stripped) < app_conf["min_length_validation"]:
+            status = SHORT_LENGTH
+            doc.status = status
+            session.commit()
+            session.remove()
+            return status
+        session.remove()
     if status < MORPHO_COMPLETE_STATUS and "morpho" in app_conf:  # to morpho
         regular_morpho.delay(doc_id, MORPHO_COMPLETE_STATUS, app_id=app_id)
         return
