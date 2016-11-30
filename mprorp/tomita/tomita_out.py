@@ -89,16 +89,16 @@ def find_act(file_name):
     string = open(file_name, 'r', encoding='utf-8').read()
     numb = '(\d+|[\d\.]+)'
 
-    part = '((ч.|част\w*) ?'+numb+')'
-    parts = '(' + part + '.*)'
+    part = '((ч\.|част[а-я]*) ?' + numb + ')'
+    parts = '(' + part + '.*?)'
 
-    article = '((ст.|стать\w*) ?'+numb+')'
-    articles = '(' + article + '.*)'
+    article = '((ст\.|стать[а-я]*) ?' + numb + ')'
+    articles = '(' + article + '.*?)'
 
-    paragraph = '((п.|пункт\w*) ?'+numb+')'
-    paragraphs = '(' + paragraph + '.*)'
+    paragraph = '((п\.|пункт[а-я]*) ?' + numb + ')'
+    paragraphs = '(' + paragraph + '.*?)'
 
-    KK = '(УК|КоАП|КОАП|[Уу]головн.* [Кк]одекс.? \w*)'
+    KK = '(УК |КоАП|КОАП|[Уу]головн\w*? [Кк]одекс.? [А-я ]*)'
     string = re.sub(KK, '\\1@#@', string)
     strings = string.split('@#@')
 

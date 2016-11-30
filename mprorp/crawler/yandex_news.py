@@ -2,6 +2,7 @@
 
 from imaplib import IMAP4, IMAP4_SSL
 from mprorp.db.models import *
+from mprorp.crawler.utils import send_get_request
 import datetime
 import lxml.html
 import re
@@ -11,7 +12,9 @@ def yn_start_parsing(source, app_id, session):
     """download google news start feed and feeds for every story"""
 
     server = IMAP4_SSL('imap.yandex.ru')
-    (user,password) = source.split(":")
+    #(user, password) = source.split(":")
+    user = source["user"]
+    password = source["pass"]
     server.login(user, password)
 
     server.select()
@@ -55,6 +58,10 @@ def parse_yn_item(item, app_id, session, docs):
     #print(date)
     #print(title)
     #print(desc)
+    if url[:26] == 'http://news-clck.yandex.ru':
+        text = send_get_request(url,gen_useragent=True)
+        url = re.findall(r'URL=\'.*\'', text)[0]
+        url = url[5:-1]
     if session.query(Document).filter_by(guid=app_id + url).count() == 0:
         # initial insert with guid, start status and reference to source
         new_doc = Document(guid=app_id + url, url=url, status=0, type='article')
@@ -67,6 +74,8 @@ def parse_yn_item(item, app_id, session, docs):
 
         session.add(new_doc)
         docs.append(new_doc)
+    #if len(url) >= 1000:
+    #    print("TOO LONG URL:", url)
 
 
 if __name__ == '__main__':

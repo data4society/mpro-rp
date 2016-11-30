@@ -20,9 +20,8 @@ def check_sources():
             crawler = app["crawler"]
             for source_type in crawler:
                 for source in crawler[source_type]:
-                    source_params = crawler[source_type][source]
-                    if source_params["wait"] and source_params["next_crawling_time"] < datetime.datetime.now().timestamp():
-                        source_params["wait"] = False
+                    if source["on"] and source["ready"] and source["next_crawling_time"] < datetime.datetime.now().timestamp():
+                        source["ready"] = False
                         if source_type == "vk":  # vk
                             print("START VK CRAWL")
                             regular_vk_start_parsing.delay(source, app_id=app_id)
@@ -38,8 +37,8 @@ def check_sources():
                         elif source_type == "csv_to_rubricator":  # csv
                             print("START CSV CRAWL")
                             regular_csv_start_parsing.delay(source, app_id=app_id)
-                    elif (not source_params["wait"]) and source_params["next_crawling_time"] < datetime.datetime.now().timestamp():
-                        print("wait for "+source)
+                    elif (not source["ready"]) and source["on"] and source["next_crawling_time"] < datetime.datetime.now().timestamp():
+                        print("wait for "+str(source))
 
 
 

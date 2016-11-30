@@ -46,7 +46,8 @@ def get_coordinates(facts, sourse):
           'string' : sourse[int(i[1]):int(i[1])+int(i[2])].lower(),
           'facts' : re.findall('<(\w*?)_TOMITA val="(.*?)"/>', i[4]),
           'type' : i[5],
-          'sn' : int(i[3])} for i in facts]
+          'sn' : int(i[3]),
+          'ls': int(i[1]) + int(i[2])} for i in facts]
     for fact in l:
         fact = normalization(fact)
         fact = coordinates(fact)
@@ -90,9 +91,9 @@ def sen_division(facts):
     sentences = {}
     for fact in facts:
         if fact['sn'] not in sentences: 
-            sentences[fact['sn']] = [fact['id']]
+            sentences[fact['sn']] = [str(fact['id']) + '_' + str(fact['type'][:3])]
         else:
-            sentences[fact['sn']].append(fact['id'])
+            sentences[fact['sn']].append(str(fact['id']) + '_' + str(fact['type'][:3]))
     return sentences
 
 def pprint():

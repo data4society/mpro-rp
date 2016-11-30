@@ -62,6 +62,7 @@ FOR_TRAINING = 1000
 FOR_RUBRICS_TRAINING = 1200  # Normal documents from crawler that marked in redactor as for training
 
 EMPTY_TEXT = 2000
+SHORT_LENGTH = 2002
 WITHOUT_RUBRICS = 2001
 
 
@@ -88,7 +89,8 @@ def get_apps_config():
             crawler = app["crawler"]
             for source_type in crawler:
                 for source in crawler[source_type]:
-                    crawler[source_type][source] = {"wait": True, "parse_period": crawler[source_type][source], "next_crawling_time": 0}
+                    source["ready"] = True
+                    source["next_crawling_time"] = 0
         config[app["app_id"]] = app
     variable_set("last_config", config)
     return config
@@ -99,7 +101,7 @@ def router(doc_id, app_id, status):
     """route function, that adds new tasks by incoming result (document's status)"""
     doc_id = str(doc_id)
     app_conf = apps_config[app_id]
-    logging.info("route doc: " + str(doc_id) + " status: " + str(status))
+    logging.info("route doc: " + str(doc_id) + " status: " + str(status) + " app_id: " + app_id)
     if status in [SITE_PAGE_LOADING_FAILED, EMPTY_TEXT]:
         return
     if status in [GOOGLE_NEWS_INIT_STATUS, GOOGLE_ALERTS_INIT_STATUS, YANDEX_NEWS_INIT_STATUS, CSV_INIT_STATUS]:  # to find full text of HTML page
@@ -108,6 +110,26 @@ def router(doc_id, app_id, status):
     if status == VK_INIT_STATUS:  # to complete vk item parsing
         regular_vk_parse_item.delay(doc_id, VK_COMPLETE_STATUS, app_id=app_id)
         return
+    if "min_length_validation" in app_conf:
+        session = db_session()
+        doc = session.query(Document).filter_by(doc_id=doc_id).first()
+        if len(doc.stripped) < app_conf["min_length_validation"]:
+            status = SHORT_LENGTH
+            doc.status = status
+            session.commit()
+            session.remove()
+            return status
+        session.remove()
+    if "force_rubrication" in app_conf:
+        session = db_session()
+        rubric_ids = []
+        for rubric_name in app_conf["force_rubrication"]:
+            rubric = session.query(Rubric).filter_by(name=rubric_name).first()
+            rubric_ids.append(rubric.rubric_id)
+        doc = session.query(Document).filter_by(doc_id=doc_id).first()
+        doc.rubric_ids = rubric_ids
+        session.commit()
+        session.remove()
     if status < MORPHO_COMPLETE_STATUS and "morpho" in app_conf:  # to morpho
         regular_morpho.delay(doc_id, MORPHO_COMPLETE_STATUS, app_id=app_id)
         return
@@ -168,7 +190,7 @@ def regular_gn_start_parsing(source, **kwargs):
         docs = gn_start_parsing(source, app_id, session)
         for doc in docs:
             doc.status = GOOGLE_NEWS_INIT_STATUS
-            doc.source_with_type = "google_news "+source
+            doc.source_with_type = "google_news "+source["url"]
             doc.app_id = app_id
         session.commit()
         for doc in docs:
@@ -176,11 +198,11 @@ def regular_gn_start_parsing(source, **kwargs):
         session.remove()
     except Exception as err:
         err_txt = repr(err)
-        logging.error("Неизвестная ошибка google_news краулера, source: " + source)
+        logging.error("Неизвестная ошибка google_news краулера, source: " + source["url"])
         print(err_txt)
-    source_params = apps_config[app_id]["crawler"]["google_news"][source]
-    source_params["wait"] = True
-    source_params["next_crawling_time"] = datetime.datetime.now().timestamp() + source_params["parse_period"]
+    #source_params = apps_config[app_id]["crawler"]["google_news"][source]
+    source["ready"] = True
+    source["next_crawling_time"] = datetime.datetime.now().timestamp() + source["period"]
 
 
 @app.task(ignore_result=True, time_limit=660, soft_timeout_limit=600)
@@ -192,7 +214,7 @@ def regular_ga_start_parsing(source, **kwargs):
         docs = ga_start_parsing(source, app_id, session)
         for doc in docs:
             doc.status = GOOGLE_ALERTS_INIT_STATUS
-            doc.source_with_type = "google_alerts "+source
+            doc.source_with_type = "google_alerts "+source["url"]
             doc.app_id = app_id
         session.commit()
         for doc in docs:
@@ -200,11 +222,11 @@ def regular_ga_start_parsing(source, **kwargs):
         session.remove()
     except Exception as err:
         err_txt = repr(err)
-        logging.error("Неизвестная ошибка google_alerts краулера, source: " + source)
+        logging.error("Неизвестная ошибка google_alerts краулера, source: " + source["url"])
         print(err_txt)
-    source_params = apps_config[app_id]["crawler"]["google_alerts"][source]
-    source_params["wait"] = True
-    source_params["next_crawling_time"] = datetime.datetime.now().timestamp() + source_params["parse_period"]
+    #source_params = apps_config[app_id]["crawler"]["google_alerts"][source]
+    source["ready"] = True
+    source["next_crawling_time"] = datetime.datetime.now().timestamp() + source["period"]
 
 
 @app.task(ignore_result=True, time_limit=660, soft_timeout_limit=600)
@@ -216,7 +238,7 @@ def regular_yn_start_parsing(source, **kwargs):
         docs = yn_start_parsing(source, app_id, session)
         for doc in docs:
             doc.status = YANDEX_NEWS_INIT_STATUS
-            doc.source_with_type = "yandex_news "+source
+            doc.source_with_type = "yandex_news "+source["user"]
             doc.app_id = app_id
         session.commit()
         for doc in docs:
@@ -224,11 +246,11 @@ def regular_yn_start_parsing(source, **kwargs):
         session.remove()
     except Exception as err:
         err_txt = repr(err)
-        logging.error("Неизвестная ошибка yandex_news краулера, source: " + source)
+        logging.error("Неизвестная ошибка yandex_news краулера, source: " + source["user"])
         print(err_txt)
-    source_params = apps_config[app_id]["crawler"]["yandex_news"][source]
-    source_params["wait"] = True
-    source_params["next_crawling_time"] = datetime.datetime.now().timestamp() + source_params["parse_period"]
+    #source_params = apps_config[app_id]["crawler"]["yandex_news"][source]
+    source["ready"] = True
+    source["next_crawling_time"] = datetime.datetime.now().timestamp() + source["period"]
 
 
 @app.task(ignore_result=True, time_limit=660, soft_timeout_limit=600)
@@ -240,7 +262,7 @@ def regular_csv_start_parsing(source, **kwargs):
         docs = csv_start_parsing(source, app_id, session)
         for doc in docs:
             doc.status = CSV_INIT_STATUS
-            doc.source_with_type = "csv "+source
+            doc.source_with_type = "csv "+source["name"]
             doc.app_id = app_id
         session.commit()
         for doc in docs:
@@ -248,11 +270,11 @@ def regular_csv_start_parsing(source, **kwargs):
         session.remove()
     except Exception as err:
         err_txt = repr(err)
-        logging.error("Неизвестная ошибка csv краулера, source: " + source)
+        logging.error("Неизвестная ошибка csv краулера, source: " + source["name"])
         print(err_txt)
     #source_params = apps_config[app_id]["crawler"]["csv_to_rubricator"][source]
-    #source_params["wait"] = True
-    #source_params["next_crawling_time"] = datetime.datetime.now().timestamp() + source_params["parse_period"]
+    #source["ready"] = True
+    #source["next_crawling_time"] = datetime.datetime.now().timestamp() + source["period"]
 
 
 @app.task(ignore_result=True, time_limit=660, soft_timeout_limit=600)
@@ -264,20 +286,20 @@ def regular_vk_start_parsing(source, **kwargs):
         docs = vk_start_parsing(source, app_id, session)
         for doc in docs:
             doc.status = VK_INIT_STATUS
-            doc.source_with_type = "vk "+source
+            doc.source_with_type = "vk "+source["url"]
             doc.app_id = app_id
         session.commit()
-        print("regular_vk_start_parsing commit", source)
+        print("regular_vk_start_parsing commit", source["url"])
         for doc in docs:
             router(doc.doc_id, doc.app_id, VK_INIT_STATUS)
         session.remove()
     except Exception as err:
         err_txt = repr(err)
-        logging.error("Неизвестная ошибка vk краулера, source: " + source)
+        logging.error("Неизвестная ошибка vk краулера, source: " + source["url"])
         print(err_txt)
-    source_params = apps_config[app_id]["crawler"]["vk"][source]
-    source_params["wait"] = True
-    source_params["next_crawling_time"] = datetime.datetime.now().timestamp() + source_params["parse_period"]
+    #source_params = apps_config[app_id]["crawler"]["vk"][source]
+    source["ready"] = True
+    source["next_crawling_time"] = datetime.datetime.now().timestamp() + source["period"]
 
 
 #@app.task(ignore_result=True)
