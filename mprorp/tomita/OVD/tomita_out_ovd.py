@@ -40,11 +40,11 @@ def normalization(fact):
 def get_coordinates(facts, sourse):
     text = open(facts, 'r', encoding='utf-8').read()
     sourse = open(sourse, 'r', encoding='utf-8').read()
-    facts = re.findall('<.*?_TOMITA FactID="(\d+?)" .*?pos="(\d+?)" len="(\d+?)" sn="(\d+?)".*?>(.*?)</(\w*?)_TOMITA>', text)
+    facts = re.findall('<.*?_TOMITA FactID="(\d+?)" .*?pos="(\d+?)" len="(\d+?)" sn="(\d+?)".*?>(.*?)</([A-z]*?)_TOMITA>', text)
     l = [{'id' : int(i[0]),
           'fs' : int(i[1]),
           'string' : sourse[int(i[1]):int(i[1])+int(i[2])].lower(),
-          'facts' : re.findall('<(\w*?)_TOMITA val="(.*?)"/>', i[4]),
+          'facts' : re.findall('<(.*?)_TOMITA val="(.*?)" pos', i[4]),
           'type' : i[5],
           'sn' : int(i[3]),
           'ls': int(i[1]) + int(i[2])} for i in facts]
