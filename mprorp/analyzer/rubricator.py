@@ -509,7 +509,7 @@ def learning_rubric_model(set_id, rubric_id, savefiles = False, verbose=False):
     # cross_entropy_array = tf.sigmoid(y) * y_
     # cross_entropy = tf.reduce_mean(
     #     tf.nn.softmax_cross_entropy_with_logits(y, y_))
-    cross_entropy_array = tf.log(tf.sigmoid(y)) * y_ + (1 - tf.log(tf.sigmoid(y))) * (1 - y_)
+    cross_entropy_array = tf.log(tf.sigmoid(y)) * y_ + tf.log(1- tf.sigmoid(y)) * (1 - y_)
 
     cross_entropy = - tf.reduce_mean(cross_entropy_array)
 
