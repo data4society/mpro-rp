@@ -245,7 +245,9 @@ class Rule(Base):
     # array of rubric ids for contains matching
     rubrics = Column(ARRAY(UUIDType(binary=False), ForeignKey('rubrics.rubric_id')))
     # array of entity ids for contains matching
-    entities = Column(ARRAY(UUIDType(binary=False), ForeignKey('entities.entity_id')))        
+    entities = Column(ARRAY(UUIDType(binary=False), ForeignKey('entities.entity_id')))
+    # id of application (without reference to somewhere)
+    app_id = Column(String(255))  
 
 class TrainingSet(Base):
     """sets of document for train and test models"""
