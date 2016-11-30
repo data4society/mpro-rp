@@ -288,7 +288,7 @@ def script_exec():
 
     # NER.NER_name_learning()
 
-    db.delete_entity('291151ec-f686-4ea7-a7d1-3c1666e88156')
+    db.delete_entity('b7f4eedd-ba7f-422b-9299-e43c414ceb1e') #'347f1317-eb2a-4a4b-af76-f9c2f2bd1fa9')
     # print(db.get_entity_by_labels(['Алексей'], verbose=True))
 
 script_exec()

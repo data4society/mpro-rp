@@ -15,6 +15,7 @@ from mprorp.utils import home_dir
 mystem_analyzer = Mystem(disambiguation=False)
 # words number for tf-idf model
 optimal_features_number = 300
+tf_steps = 500
 # words to exclude from model
 
 # one document morphological analysis regular
@@ -371,6 +372,8 @@ def idf_object_features_set(set_id):
     # print_lemmas(set_id, [k for k, v in enumerate(feat_max) if v == 0], lemma_index, idf)
     # check documents with 0 for all lemmas
     # print(np.min(np.sum(object_features, axis=1)))
+    print('for set_id: ', set_id)
+    print('save idf: ', idf)
 
     # save to db: idf, indexes and object_features
     db.put_training_set_params(set_id, idf,  doc_index, lemma_index, object_features)
@@ -449,11 +452,13 @@ def entropy_difference(feature, answers, num_lemma):
 
 
 # learn model for rubrication
-def learning_rubric_model(set_id, rubric_id, savefiles = False):
+def learning_rubric_model(set_id, rubric_id, savefiles = False, verbose=False):
     """learn model for rubrication"""
     # get answers for rubric
     answers = db.get_rubric_answers(set_id, rubric_id)
     # get object_features, lemma_index, doc_index
+    if verbose:
+        print('answers: ', len(answers), sum(list(answers.values())))
     doc_index, object_features = db.get_doc_index_object_features(set_id)
 
     # print(np.min(np.sum(object_features, axis=0)))
@@ -465,7 +470,8 @@ def learning_rubric_model(set_id, rubric_id, savefiles = False):
     answers_index = np.zeros(doc_number, dtype=int)
     for doc_id in doc_index:
         answers_index[doc_index[doc_id]] = answers[doc_id]
-        answers_array[doc_index[doc_id], 0] = answers[doc_id] * 2 - 1
+        # answers_array[doc_index[doc_id], 0] = answers[doc_id] * 2 - 1
+        answers_array[doc_index[doc_id], 0] = answers[doc_id]
 
     # if we know answers, we can select most important features (mif):
     # mif[k] = l:
@@ -500,10 +506,14 @@ def learning_rubric_model(set_id, rubric_id, savefiles = False):
 
     y = tf.matmul(x, w) + b
     # take probability (sigmoid) when answer is true and -sigmoid (instead 1-sigmoid) otherwise
-    cross_entropy_array = tf.sigmoid(y) * y_
+    # cross_entropy_array = tf.sigmoid(y) * y_
+    # cross_entropy = tf.reduce_mean(
+    #     tf.nn.softmax_cross_entropy_with_logits(y, y_))
+    cross_entropy_array = tf.log(tf.sigmoid(y)) * y_ + (1 - tf.log(tf.sigmoid(y))) * (1 - y_)
+
     cross_entropy = - tf.reduce_mean(cross_entropy_array)
 
-    train_step = tf.train.GradientDescentOptimizer(0.5).minimize(cross_entropy)
+    train_step = tf.train.GradientDescentOptimizer(0.005).minimize(cross_entropy)
     init = tf.initialize_all_variables()
 
     sess = tf.Session()
@@ -511,7 +521,7 @@ def learning_rubric_model(set_id, rubric_id, savefiles = False):
 
     indexes = [i for i in range(doc_number)]
     # big_counter = 0
-    for i in range(5000):
+    for i in range(tf_steps):
         # if i == big_counter * 100:
         #     big_counter = round(i/100) + 1
         #     print(i)
@@ -572,15 +582,17 @@ def learning_rubric_model(set_id, rubric_id, savefiles = False):
 
 
 # learn model for rubrication
-def learning_rubric_model_coeffs(set_id, doc_coefficients, rubric_id, savefiles = False):
+def learning_rubric_model_coeffs(set_id, doc_coefficients, rubric_id, savefiles = False, verbose=False):
     """learn model for rubrication with different negative sets"""
     # doc_coefficients = {'set_id_1': coeff_1, 'set_id_2': coeff_2, ...}
-    sets = {}
-    for set_id in doc_coefficients:
-        sets[set_id] = db.get_set_docs(set_id)
+    sets_coef = {}
+    for set_co_id in doc_coefficients:
+        sets_coef[set_co_id] = db.get_set_docs(set_co_id)
     # get answers for rubric
     answers = db.get_rubric_answers(set_id, rubric_id)
-
+    if verbose:
+        print('answers: ', len(answers), sum(list(answers.values())))
+        # print(answers)
     # get object_features, lemma_index, doc_index
     doc_index, object_features = db.get_doc_index_object_features(set_id)
 
@@ -593,9 +605,9 @@ def learning_rubric_model_coeffs(set_id, doc_coefficients, rubric_id, savefiles 
     for doc_id in doc_index:
         answers_index[doc_index[doc_id]] = answers[doc_id]
         answers_array[doc_index[doc_id], 0] = answers[doc_id] * 2 - 1
-        for set_id in doc_coefficients:
-            if doc_id in sets[set_id]:
-                coeffs_array[doc_index[doc_id], 0] = doc_coefficients[set_id]
+        for set_co_id in doc_coefficients:
+            if doc_id in sets_coef[set_co_id]:
+                coeffs_array[doc_index[doc_id], 0] = doc_coefficients[set_co_id]
                 break
 
     # if we know answers, we can select most important features (mif):
@@ -664,11 +676,14 @@ def learning_rubric_model_coeffs(set_id, doc_coefficients, rubric_id, savefiles 
                                                 y_: answers_array, co: local_coeffs})
             else:
                 sess.run(train_step, feed_dict={x: object_features, y_: answers_array, co: local_coeffs})
-        # my_cea = cross_entropy_array.eval(sess)
-        # print(my_cea)
-        # my_w = w.eval(sess)
-        # my_b = b.eval(sess)
-        # print(i, (sigmoid(np.dot(np.asarray(object_features), my_W) + my_b) * np.asarray(answers_array)))
+
+        # if verbose:
+        #     if i % 500 == 0:
+        #         my_cea = cross_entropy_array.eval(sess)
+        #         print(my_cea)
+        #         my_w = w.eval(sess)
+        #         my_b = b.eval(sess)
+        #         print(i, (sigmoid(np.dot(np.asarray(object_features), my_W) + my_b) * np.asarray(answers_array)))
 
     model = w.eval(sess)[:, 0]
     model = model.tolist()
@@ -696,9 +711,9 @@ def learning_rubric_model_coeffs(set_id, doc_coefficients, rubric_id, savefiles 
 # save in DB doc_id, rubric_id and YES or NO
 # rubrics is a dict. key = rubric_id, value = None or set_id
 # value = set_id: use model, learned with this trainingSet
-def spot_doc_rubrics2(doc_id, rubrics):
+def spot_doc_rubrics2(doc_id, rubrics, verbose=False):
     """wrap for spot_doc_rubrics with local session"""
-    db.doc_apply(doc_id, spot_doc_rubrics, rubrics)
+    db.doc_apply(doc_id, spot_doc_rubrics, rubrics, verbose=verbose)
 
 
 def spot_doc_rubrics(doc, rubrics, session=None, commit_session=True, verbose=False):
@@ -728,6 +743,8 @@ def spot_doc_rubrics(doc, rubrics, session=None, commit_session=True, verbose=Fa
     # sets[...] is dict: {'idf':..., 'lemma_index': ...}
     sets = db.get_idf_lemma_index_by_set_id(rubrics.values(), session)
     for set_id in sets:
+        # if verbose:
+        #     print('sets: ', set_id, sets[set_id])
         # compute idf for doc_id (lemmas) and set_id
         idf_doc = {}
         for lemma in lemmas:

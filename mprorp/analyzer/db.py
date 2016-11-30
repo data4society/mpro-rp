@@ -10,11 +10,11 @@ import uuid
 from sqlalchemy.orm.attributes import flag_modified
 
 
-def doc_apply(doc_id, my_def, *args):
+def doc_apply(doc_id, my_def, *args, **kwargs):
     """Apply functions my_def to doc_id and other arguments in *args """
     session = Driver.db_session()
     doc = session.query(Document).filter_by(doc_id=doc_id).first()
-    result = my_def(doc, *args)
+    result = my_def(doc, *args, **kwargs)
     session.commit()
     return result
 
@@ -853,9 +853,21 @@ def delete_entity(entity_id, session=None):
         session = Driver.db_session()
     markups = session.query(Reference.markup).filter(Reference.entity == entity_id).all()
     markup_ids = [str(i[0]) for i in markups]
-    print(markup_ids)
-    docs = session.query(Markup.document).filter((Markup.markup_id.in_(markup_ids))).all()
-    for doc in docs:
-        print(doc[0])
-        # delete_document(doc[0], session=session)
+    print('markup: ', markup_ids)
+    if len(markup_ids) > 0:
+        docs = session.query(Markup.document).filter((Markup.markup_id.in_(markup_ids))).all()
+        for doc in docs:
+            if len(doc) > 0:
+                print('doc: ', doc[0])
+                delete_document(str(doc[0]), session=session)
+    session.query(Entity).filter(Entity.entity_id == entity_id).delete()
+    session.commit()
+
+
+def get_moderated_docs(rubric_id):
+    session = Driver.db_session()
+    all_refs = session.query(Document.doc_id).join(Record).filter((Record.meta['moderated'].astext == 'true')&
+                                                                  (Document.rubric_ids.any(rubric_id))).all()
+    doc_ids = [i[0] for i in all_refs]
+    return doc_ids
 

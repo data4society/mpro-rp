@@ -2,6 +2,7 @@ import mprorp.db.dbDriver as Driver
 from mprorp.db.models import *
 import mprorp.analyzer.db as db
 import mprorp.analyzer.rubricator as rb
+import random
 
 rubric_no_name = '35ed00df-3be5-4533-9f13-7535a95dba62'
 rubrics = {
@@ -18,7 +19,14 @@ rubrics = {
     '6': {'pos': 'f079f081-d1ab-4136-ba4f-520ac59b70b8',
           'neg': 'a283ced3-32b5-4ae4-a9a6-440107c3e9e2'},# интернет
 }
-
+rubric_names = {
+    '1': 'iskustvo',
+    '2': 'uvolnenie',
+    '3': 'nasilie',
+    '4': 'lgbt',
+    '5': 'ugrozy',
+    '6': 'internet'
+}
 
 def create_training_set(rubric_id, session=None):
     if session is None:
@@ -53,7 +61,7 @@ def create_training_set(rubric_id, session=None):
     return [tr_set_t, tr_set_f, test_set_t, test_set_f]
 
 
-def add_rubric_to_doc(rubric_id, session=None):
+def add_rubric_to_doc_1200(rubric_id, session=None):
     print('Отмечаем рубрики документов в таблице')
     if session is None:
         session = Driver.db_session()
@@ -96,18 +104,18 @@ def write_sets(rubric_id, session=None):
     return new_tr_set.set_id, new_test_set.set_id
 
 
-def teach_rubricator(set_id, rubric_id, session=None):
+def teach_rubricator(set_id, rubric_id, doc_coefficients, session=None, verbose=False):
     rb.idf_object_features_set(set_id)
-    rb.learning_rubric_model(set_id, rubric_id)
-    # rb.learning_rubric_model_coeffs(set_id, doc_coefficients, rubric_id, savefiles=False)
+    rb.learning_rubric_model(set_id, rubric_id, verbose=verbose)
+    # rb.learning_rubric_model_coeffs(set_id, doc_coefficients, rubric_id, savefiles=False, verbose=verbose)
 
 
-def test_model(set_id, rubric_id, name=''):
-    model_id = rb.spot_test_set_rubric(set_id, rubric_id, training_set_id=sets[rubric_id]['train'])
+def test_model(set_id, rubric_id, tr_set=None, name=''):
+    model_id = rb.spot_test_set_rubric(set_id, rubric_id, training_set_id=tr_set)
     print('При тестировании для рубрики ', rubric_id, ' использована модель ', model_id)
-    # for doc_id in db.get_set_docs(set_id):
-    #     rb.spot_doc_rubrics2(doc_id, {rubric_id: None})
-    # model_id = db.get_model(rubric_id)["model_id"]
+    for doc_id in db.get_set_docs(set_id):
+        rb.spot_doc_rubrics2(doc_id, {rubric_id: None}, verbose=True)
+    model_id = db.get_model(rubric_id)["model_id"]
     if protocol != '':
         file_name = protocol + '_' + name + '.txt'
     result = rb.f1_score(model_id, set_id, rubric_id, protocol_file_name=protocol)
@@ -122,7 +130,7 @@ def prepare_docs(set_id):
 
 def do_exercise(rubric_id, name=''):
 
-    # add_rubric_to_doc(rubric_id)
+    add_rubric_to_doc_1200(rubric_id)
     if sets[rubric_id] is None:
         print('Создаем новые выборки')
         tr_id, test_id = write_sets(rubric_id)
@@ -184,8 +192,82 @@ def analyze_rubrics(rubric_1, rubric_2):
 
 
 # analyze_rubrics(rubric_1, rubric_2)
-print('ассоциации')
-do_exercise(rubric_1, name='ассоциации') #свобода ассоциаций
-print('собрания')
-do_exercise(rubric_2, name='собрания') #свобода собраний
+# print('ассоциации')
+# do_exercise(rubric_1, name='ассоциации') #свобода ассоциаций
+# print('собрания')
+# do_exercise(rubric_2, name='собрания') #свобода собраний
+
+def add_rubric_to_docs(rubric_id, doc_ids, session=None):
+    if session is None:
+        session = Driver.db_session()
+    for doc_id in doc_ids:
+        session.query(DocumentRubric).filter((DocumentRubric.rubric_id == rubric_id) &
+                                             (DocumentRubric.doc_id == doc_id)).delete()
+        new_id = DocumentRubric(doc_id=doc_id, rubric_id=rubric_id)
+        session.add(new_id)
+    session.commit()
+
+
+def create_sets(rubric_id):
+    session = Driver.db_session()
+    doc_ids_pos = db.get_moderated_docs(rubric_id)
+    add_rubric_to_docs(rubric_id, doc_ids_pos)
+    random.shuffle(doc_ids_pos)
+    set_pos_dev = db.put_training_set(doc_ids_pos[:10])
+    set_pos_train = db.put_training_set(doc_ids_pos[10:])
+    session.commit()
+    return set_pos_train, set_pos_dev, doc_ids_pos[10:]
+
+
+
+# rubric 6
+rubric_num = '6'
+
+# set_train, set_dev, docs_train_pos = create_sets(rubrics[rubric_num]['pos'])
+# print(rubric_names[rubric_num], 'positive', set_train, set_dev)
+# # iskustvo positive 042b0854-b213-4987-8568-11ddde77d461 77aa00f2-81b7-40d5-8bac-c9d7755d2b2e
+# # internet positive 9939f387-d3aa-4a9c-be37-064bf844db2d c2f7f817-6fed-4b0a-9a3e-014614405e7e
+# prepare_docs(set_dev)
+#
+# set_train, set_dev, docs_train_neg = create_sets(rubrics[rubric_num]['neg'])
+# print(rubric_names[rubric_num], 'negative', set_train, set_dev)
+# # iskustvo negative 47fe435c-f7c9-4a5c-9379-71b33c29a06a 377cdb8c-ccf0-4f2f-8fe6-17289709b0b1
+# # internet negative 3e936aff-a728-4b63-90f4-3f516d02560f 70bc5194-2073-4c0a-a783-86ffb4fa9fd4
+# prepare_docs(set_dev)
+#
+# # Создать общую учебную выборку: учебные-положительные, учебные-отрицательные, учебные-общеотрицательные
+# docs_train = docs_train_pos.copy()
+# docs_train.extend(docs_train_neg)
+# # позже добавим общеотрицательную выборку
+#
+# set_train = db.put_training_set(docs_train)
+# print('set_train', set_train)
+# # iskustvo set_train 1f413604-d6a7-4acb-a060-77cf6a6ddd19
+# # internet set_train 09b95033-6fe8-4df9-89e5-9472cbd2f573
+# # Каждая из частных учебных выборок передается в процедуру для указания коэффициента, а вся учебная - для обучения
+# prepare_docs(set_train)
+
+tr_id = '09b95033-6fe8-4df9-89e5-9472cbd2f573'
+test_positive = 'c2f7f817-6fed-4b0a-9a3e-014614405e7e'
+test_negative = '70bc5194-2073-4c0a-a783-86ffb4fa9fd4'
+tr_pos = '9939f387-d3aa-4a9c-be37-064bf844db2d'
+tr_neg = '3e936aff-a728-4b63-90f4-3f516d02560f'
+answers = db.get_rubric_answers(tr_id, rubrics[rubric_num]['pos'])
+print('answers: ', len(answers), sum(list(answers.values())))
+doc_c = {tr_pos: 1.23, tr_neg: 0.89}
+
+# Восстановление рубрик документов
+# add_rubric_to_docs(rubrics['1']['pos'], db.get_set_docs(test_positive))
+# add_rubric_to_docs(rubrics['1']['pos'], db.get_set_docs(tr_pos))
+
+teach_rubricator(tr_id, rubrics[rubric_num]['pos'], doc_coefficients=doc_c, verbose=True)
+# print('Обучение рубрикатора завершено')
+
+# print('Результаты рубрикатора на учебной выборке')
+# print(test_model(tr_id, rubrics[rubric_num]['pos'], tr_set=tr_id, name='tr'))
+print('Результаты рубрикатора на тестовой положительной выборке')
+print(test_model(test_positive, rubrics[rubric_num]['pos'], tr_set=tr_id, name='pos'))
+print('Результаты рубрикатора на тестовой отрицательной выборке')
+print(test_model(test_negative, rubrics[rubric_num]['pos'], tr_set=tr_id, name='neg'))
+
 
