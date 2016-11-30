@@ -217,7 +217,7 @@ def regular_yn_start_parsing(source, **kwargs):
         docs = yn_start_parsing(source, app_id, session)
         for doc in docs:
             doc.status = YANDEX_NEWS_INIT_STATUS
-            doc.source_with_type = "yandex_news "+source["name"]
+            doc.source_with_type = "yandex_news "+source["user"]
             doc.app_id = app_id
         session.commit()
         for doc in docs:
@@ -225,7 +225,7 @@ def regular_yn_start_parsing(source, **kwargs):
         session.remove()
     except Exception as err:
         err_txt = repr(err)
-        logging.error("Неизвестная ошибка yandex_news краулера, source: " + source["name"])
+        logging.error("Неизвестная ошибка yandex_news краулера, source: " + source["user"])
         print(err_txt)
     #source_params = apps_config[app_id]["crawler"]["yandex_news"][source]
     source["ready"] = True
