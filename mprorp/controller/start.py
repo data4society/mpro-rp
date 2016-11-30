@@ -38,7 +38,7 @@ def check_sources():
                             print("START CSV CRAWL")
                             regular_csv_start_parsing.delay(source, app_id=app_id)
                     elif (not source["ready"]) and source["on"] and source["next_crawling_time"] < datetime.datetime.now().timestamp():
-                        print("wait for "+source)
+                        print("wait for "+str(source))
 
 
 
