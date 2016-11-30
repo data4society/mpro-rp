@@ -44,6 +44,19 @@ def to_plain_text(txt):
     lines = [line for line in lines if line]
     return "\n".join(lines)
 
+
+def cutter(txt, length, min_paragraph_length, max_paragraph_length):
+    """cut text by words"""
+    lines = txt.split("\n")
+    if min_paragraph_length < len(lines[0]) < max_paragraph_length:
+        txt = lines[0]
+    elif len(txt) > length:
+        txt = txt[:length]
+        pos = txt.rfind(' ')
+        txt = txt[:pos] + "…"
+    return txt
+
+
 class MLStripper(HTMLParser):
     """accessory class for stripping"""
     def __init__(self):
