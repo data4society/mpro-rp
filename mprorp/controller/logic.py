@@ -181,7 +181,7 @@ def regular_gn_start_parsing(source, **kwargs):
         print(err_txt)
     #source_params = apps_config[app_id]["crawler"]["google_news"][source]
     source["ready"] = True
-    source["next_crawling_time"] = datetime.datetime.now().timestamp() + source["parse_period"]
+    source["next_crawling_time"] = datetime.datetime.now().timestamp() + source["period"]
 
 
 @app.task(ignore_result=True, time_limit=660, soft_timeout_limit=600)
@@ -205,7 +205,7 @@ def regular_ga_start_parsing(source, **kwargs):
         print(err_txt)
     #source_params = apps_config[app_id]["crawler"]["google_alerts"][source]
     source["ready"] = True
-    source["next_crawling_time"] = datetime.datetime.now().timestamp() + source["parse_period"]
+    source["next_crawling_time"] = datetime.datetime.now().timestamp() + source["period"]
 
 
 @app.task(ignore_result=True, time_limit=660, soft_timeout_limit=600)
@@ -229,7 +229,7 @@ def regular_yn_start_parsing(source, **kwargs):
         print(err_txt)
     #source_params = apps_config[app_id]["crawler"]["yandex_news"][source]
     source["ready"] = True
-    source["next_crawling_time"] = datetime.datetime.now().timestamp() + source["parse_period"]
+    source["next_crawling_time"] = datetime.datetime.now().timestamp() + source["period"]
 
 
 @app.task(ignore_result=True, time_limit=660, soft_timeout_limit=600)
@@ -253,7 +253,7 @@ def regular_csv_start_parsing(source, **kwargs):
         print(err_txt)
     #source_params = apps_config[app_id]["crawler"]["csv_to_rubricator"][source]
     #source["ready"] = True
-    #source["next_crawling_time"] = datetime.datetime.now().timestamp() + source["parse_period"]
+    #source["next_crawling_time"] = datetime.datetime.now().timestamp() + source["period"]
 
 
 @app.task(ignore_result=True, time_limit=660, soft_timeout_limit=600)
@@ -278,7 +278,7 @@ def regular_vk_start_parsing(source, **kwargs):
         print(err_txt)
     #source_params = apps_config[app_id]["crawler"]["vk"][source]
     source["ready"] = True
-    source["next_crawling_time"] = datetime.datetime.now().timestamp() + source["parse_period"]
+    source["next_crawling_time"] = datetime.datetime.now().timestamp() + source["period"]
 
 
 #@app.task(ignore_result=True)
