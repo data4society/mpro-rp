@@ -120,6 +120,16 @@ def router(doc_id, app_id, status):
             session.remove()
             return status
         session.remove()
+    if "force_rubrication" in app_conf:
+        session = db_session()
+        rubric_ids = []
+        for rubric_name in app_conf["force_rubrication"]:
+            rubric = session.query(Rubric).filter_by(name=rubric_name).first()
+            rubric_ids.append(rubric.rubric_id)
+        doc = session.query(Document).filter_by(doc_id=doc_id).first()
+        doc.rubric_ids = rubric_ids
+        session.commit()
+        session.remove()
     if status < MORPHO_COMPLETE_STATUS and "morpho" in app_conf:  # to morpho
         regular_morpho.delay(doc_id, MORPHO_COMPLETE_STATUS, app_id=app_id)
         return
