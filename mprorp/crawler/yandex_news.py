@@ -11,7 +11,9 @@ def yn_start_parsing(source, app_id, session):
     """download google news start feed and feeds for every story"""
 
     server = IMAP4_SSL('imap.yandex.ru')
-    (user,password) = source.split(":")
+    #(user, password) = source.split(":")
+    user = source["user"]
+    password = source["pass"]
     server.login(user, password)
 
     server.select()

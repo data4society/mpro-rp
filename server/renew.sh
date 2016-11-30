@@ -15,4 +15,5 @@ chown -R mprorp:mprorp /home/mprorp
 #C_FAKEFORK=1 sh -x /etc/init.d/celeryd start
 #C_FAKEFORK=1 sh -x /etc/init.d/celeryd restart
 /etc/init.d/celeryd start
+/etc/init.d/celeryd status
 echo "Renew code and restart system complete!"

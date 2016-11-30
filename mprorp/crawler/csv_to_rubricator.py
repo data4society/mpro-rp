@@ -9,7 +9,7 @@ def csv_start_parsing(source, app_id, session):
     """download google news start feed and feeds for every story"""
 
     docs = []
-    with open(relative_file_path(__file__, '../data/csv_to_rubrication/'+source+'.csv'), 'r') as csvfile:
+    with open(relative_file_path(__file__, '../data/csv_to_rubrication/'+source["name"]+'.csv'), 'r') as csvfile:
         spamreader = csv.reader(csvfile)
         for row in spamreader:
             rubric = session.query(Rubric).filter_by(name=row[0]).first()

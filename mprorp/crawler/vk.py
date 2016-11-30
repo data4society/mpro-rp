@@ -12,9 +12,9 @@ from mprorp.crawler.utils import *
 
 def vk_start_parsing(source, app_id, session):
     """download vk response and run list parsing function"""
-    print('vk start parsing source:' + source)
+    print('vk start parsing source:' + source["url"])
     # download vk response
-    req_result = send_get_request(source)
+    req_result = send_get_request(source["url"])
     # run list parsing function
     docs = vk_parse_list(req_result, app_id, session)
     print("VK CRAWL COMPLETE")

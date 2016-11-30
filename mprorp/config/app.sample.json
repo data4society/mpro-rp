@@ -26,7 +26,7 @@
         "https://api.vk.com/method/newsfeed.search?count=25&q=\"в одной фразе\"":600
       },
       "google_news":{
-        "https://news.google.com/news/section?cf=all&hl=en&pz=1&q=Вася+Пупкин&output=rss":700,
+        "https://news.google.com/news/section?cf=all&hl=en&pz=1&q=Вася+Пупкин&output=rss":700
       },
       "google_alerts":{
         "https://www.google.ru/alerts/feeds/01670104253645512148/4749341977166306530":600
