@@ -15,7 +15,8 @@ from mprorp.utils import home_dir
 mystem_analyzer = Mystem(disambiguation=False)
 # words number for tf-idf model
 optimal_features_number = 300
-tf_steps = 500
+tf_steps = 1000
+lr=10
 # words to exclude from model
 
 # one document morphological analysis regular
@@ -513,7 +514,7 @@ def learning_rubric_model(set_id, rubric_id, savefiles = False, verbose=False):
 
     cross_entropy = - tf.reduce_mean(cross_entropy_array)
 
-    train_step = tf.train.GradientDescentOptimizer(0.005).minimize(cross_entropy)
+    train_step = tf.train.GradientDescentOptimizer(learning_rate=lr).minimize(cross_entropy)
     init = tf.initialize_all_variables()
 
     sess = tf.Session()
@@ -521,6 +522,12 @@ def learning_rubric_model(set_id, rubric_id, savefiles = False, verbose=False):
 
     indexes = [i for i in range(doc_number)]
     # big_counter = 0
+    if verbose:
+        print('object_features:')
+        if use_mif:
+            print(object_features[10, :][mif_indexes])
+        else:
+            print(object_features[10, :])
     for i in range(tf_steps):
         # if i == big_counter * 100:
         #     big_counter = round(i/100) + 1
@@ -805,6 +812,8 @@ def spot_test_set_rubric(test_set_id, rubric_id, training_set_id=None):
     if training_set_id is None:
         training_set_id = db.get_set_id_by_rubric_id(rubric_id)
     model = db.get_model(rubric_id, training_set_id)
+    # print('model')
+    # print(model)
     mif_number = model['features_num']
     idf_lemma_index = db.get_idf_lemma_index_by_set_id([training_set_id])[training_set_id]
     lemma_index = idf_lemma_index['lemma_index']
@@ -813,6 +822,7 @@ def spot_test_set_rubric(test_set_id, rubric_id, training_set_id=None):
     answers = []
     for doc_id in docs:
         if docs_size[doc_id]:
+            # print(doc_id)
             features_array = np.zeros(len(lemma_index), dtype=float)
             lemmas = docs[doc_id]
             for lemma in lemmas:
@@ -824,7 +834,9 @@ def spot_test_set_rubric(test_set_id, rubric_id, training_set_id=None):
             mif = features_array[model['features']]
             mif.resize(mif_number + 1)
             mif[mif_number] = 1
+            # print(mif)
             probability = sigmoid(np.dot(mif, model['model']))
+            # print(probability)
             answers.append({'result': round(probability), 'model_id': model['model_id'],
                             'rubric_id': rubric_id, 'doc_id': doc_id, 'probability': probability})
         else:

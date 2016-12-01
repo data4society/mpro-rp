@@ -143,6 +143,7 @@ class Variable(Base):
     # value in json format
     json = Column(JSONB())
 
+
 class Api(Base):
     """contains public apis"""
     __tablename__ = 'apis'
@@ -160,6 +161,7 @@ class Api(Base):
     live = Column(Boolean())
     # id of application (without reference to somewhere)
     app_id = Column(String(255))
+
 
 class Record(Base):
     """contains converted documents for exposing to client"""
@@ -209,6 +211,7 @@ class Record(Base):
     # id of application (without reference to somewhere)
     app_id = Column(String(255))
 
+
 class Collection(Base):
     """contains document collections"""
     __tablename__ = 'collections'
@@ -233,6 +236,7 @@ class Collection(Base):
     # id of application (without reference to somewhere)
     app_id = Column(String(255))
 
+
 class Rule(Base):
     """contains rules for documents collection matching"""
     __tablename__ = 'rules'
@@ -248,6 +252,7 @@ class Rule(Base):
     entities = Column(ARRAY(UUIDType(binary=False), ForeignKey('entities.entity_id')))
     # id of application (without reference to somewhere)
     app_id = Column(String(255))  
+
 
 class TrainingSet(Base):
     """sets of document for train and test models"""

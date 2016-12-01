@@ -28,6 +28,40 @@ rubric_names = {
     '6': 'internet'
 }
 
+sets = dict()
+sets['1'] = {
+    'tr_id_pn': '1f413604-d6a7-4acb-a060-77cf6a6ddd19', # pos + neg
+    'tr_id_pnc': '858a0631-42b5-40d4-b446-e457ea1d4ff7', # pos + neg + com
+    'tr_id_pc': 'a0596a43-99fa-411e-a447-1cfc07a36b53', # pos + com
+    'tr_id_pc100': '7111ef46-9f8d-4ca4-a9c9-50a837d39116',
+    'test_positive': '77aa00f2-81b7-40d5-8bac-c9d7755d2b2e',
+    'test_negative': '377cdb8c-ccf0-4f2f-8fe6-17289709b0b1',
+    'tr_pos': '042b0854-b213-4987-8568-11ddde77d461',
+    'tr_neg': '47fe435c-f7c9-4a5c-9379-71b33c29a06a'
+}
+sets['4'] = {
+    'tr_id_pn': 'c020af3c-1e0e-403f-8ffc-8ff2c974c907', # pos + neg
+    'tr_id_pnc': '19bb2c5f-a609-44da-b96e-448918d08d19', # pos + neg + com
+    'tr_id_pc': '83fdb43a-7a31-4831-b675-ca2f6439df13', # pos + com
+    'tr_id_pc100': 'c020af3c-1e0e-403f-8ffc-8ff2c974c907',
+    'test_positive': '45f2309c-096f-47bc-b19c-fff7b58a2de5',
+    'test_negative': '5f8e26d9-0067-4d18-be6b-36ccd8a8df74',
+    'tr_pos': '6e98a44d-66f1-4d7f-adaa-83a77126b748',
+    'tr_neg': '23d197c3-467e-49d8-8a07-5336ec2b18fe'
+}
+sets['6'] = {
+    'tr_id_pn': '09b95033-6fe8-4df9-89e5-9472cbd2f573',
+    'tr_id_pnc': 'c5b4dc5b-04a5-4255-807c-655f6817bdee',
+    'tr_id_pc': 'd2b6d3ec-b533-4702-8afd-c3365141119e',
+    'tr_id_pc100': 'e44f56ac-893a-4d2c-97e8-2746ab758517',
+    'test_positive': 'c2f7f817-6fed-4b0a-9a3e-014614405e7e',
+    'test_negative': '70bc5194-2073-4c0a-a783-86ffb4fa9fd4',
+    'tr_pos': '9939f387-d3aa-4a9c-be37-064bf844db2d',
+    'tr_neg': '3e936aff-a728-4b63-90f4-3f516d02560f'
+}
+
+
+
 def create_training_set(rubric_id, session=None):
     if session is None:
         session = Driver.db_session()
@@ -104,7 +138,7 @@ def write_sets(rubric_id, session=None):
     return new_tr_set.set_id, new_test_set.set_id
 
 
-def teach_rubricator(set_id, rubric_id, doc_coefficients, session=None, verbose=False):
+def teach_rubricator(set_id, rubric_id, session=None, verbose=False):
     rb.idf_object_features_set(set_id)
     rb.learning_rubric_model(set_id, rubric_id, verbose=verbose)
     # rb.learning_rubric_model_coeffs(set_id, doc_coefficients, rubric_id, savefiles=False, verbose=verbose)
@@ -113,12 +147,12 @@ def teach_rubricator(set_id, rubric_id, doc_coefficients, session=None, verbose=
 def test_model(set_id, rubric_id, tr_set=None, name=''):
     model_id = rb.spot_test_set_rubric(set_id, rubric_id, training_set_id=tr_set)
     print('При тестировании для рубрики ', rubric_id, ' использована модель ', model_id)
-    for doc_id in db.get_set_docs(set_id):
-        rb.spot_doc_rubrics2(doc_id, {rubric_id: None}, verbose=True)
+    # for doc_id in db.get_set_docs(set_id):
+    #     rb.spot_doc_rubrics2(doc_id, {rubric_id: None}, verbose=True)
     model_id = db.get_model(rubric_id)["model_id"]
-    if protocol != '':
-        file_name = protocol + '_' + name + '.txt'
-    result = rb.f1_score(model_id, set_id, rubric_id, protocol_file_name=protocol)
+    # if protocol != '':
+    #     file_name = protocol + '_' + name + '.txt'
+    result = rb.f1_score(model_id, set_id, rubric_id)
     return result
 
 
@@ -153,8 +187,8 @@ def do_exercise(rubric_id, name=''):
     print('Результаты рубрикатора на тестовой выборке')
     print(test_model(test_id, rubric_id, name=name))
 
-rubric_1 = '19848dd0-436a-11e6-beb8-9e71128cae21'
-rubric_2 = '19848dd0-436a-11e6-beb8-9e71128cae02'
+# rubric_1 = '19848dd0-436a-11e6-beb8-9e71128cae21'
+# rubric_2 = '19848dd0-436a-11e6-beb8-9e71128cae02'
 
 # Новые большие выборки - октябрь 2016
 # sets = {rubric_1: {'train': 'bcc7f879-8745-459f-8cda-963ae51fa878',
@@ -162,16 +196,11 @@ rubric_2 = '19848dd0-436a-11e6-beb8-9e71128cae02'
 #         rubric_2: {'train': '17620f74-bf7a-4467-b6cc-e11b8acd727d',
 #                    'test':  'c3fabc6e-68c7-4a01-8ead-363dfab7b7e6'}}
 
-# Старые маленькие выборки - август 2016
-sets = {rubric_1: {'train': 'ced81603-5621-4391-9c5d-02044075cab8',
-                   'test':  'e51e4995-5c4f-48be-a23a-8b58f6854e2f'},
-        rubric_2: {'train': '5f76733a-e1f6-4ae4-8662-2915455cef53',
-                   'test':  '869df84f-8435-483b-87a0-9043f8703108'}}
-
-protocol = 'протокол'
-
-# sets = {rubric_1: None,
-#         rubric_2: None}
+# # Старые маленькие выборки - август 2016
+# sets = {rubric_1: {'train': 'ced81603-5621-4391-9c5d-02044075cab8',
+#                    'test':  'e51e4995-5c4f-48be-a23a-8b58f6854e2f'},
+#         rubric_2: {'train': '5f76733a-e1f6-4ae4-8662-2915455cef53',
+#                    'test':  '869df84f-8435-483b-87a0-9043f8703108'}}
 
 
 def analyze_rubrics(rubric_1, rubric_2):
@@ -219,55 +248,61 @@ def create_sets(rubric_id):
     return set_pos_train, set_pos_dev, doc_ids_pos[10:]
 
 
-
-# rubric 6
-rubric_num = '6'
+rubric_num = '4'
 
 # set_train, set_dev, docs_train_pos = create_sets(rubrics[rubric_num]['pos'])
 # print(rubric_names[rubric_num], 'positive', set_train, set_dev)
-# # iskustvo positive 042b0854-b213-4987-8568-11ddde77d461 77aa00f2-81b7-40d5-8bac-c9d7755d2b2e
-# # internet positive 9939f387-d3aa-4a9c-be37-064bf844db2d c2f7f817-6fed-4b0a-9a3e-014614405e7e
 # prepare_docs(set_dev)
 #
 # set_train, set_dev, docs_train_neg = create_sets(rubrics[rubric_num]['neg'])
 # print(rubric_names[rubric_num], 'negative', set_train, set_dev)
-# # iskustvo negative 47fe435c-f7c9-4a5c-9379-71b33c29a06a 377cdb8c-ccf0-4f2f-8fe6-17289709b0b1
-# # internet negative 3e936aff-a728-4b63-90f4-3f516d02560f 70bc5194-2073-4c0a-a783-86ffb4fa9fd4
 # prepare_docs(set_dev)
-#
-# # Создать общую учебную выборку: учебные-положительные, учебные-отрицательные, учебные-общеотрицательные
-# docs_train = docs_train_pos.copy()
-# docs_train.extend(docs_train_neg)
-# # позже добавим общеотрицательную выборку
-#
-# set_train = db.put_training_set(docs_train)
-# print('set_train', set_train)
-# # iskustvo set_train 1f413604-d6a7-4acb-a060-77cf6a6ddd19
-# # internet set_train 09b95033-6fe8-4df9-89e5-9472cbd2f573
-# # Каждая из частных учебных выборок передается в процедуру для указания коэффициента, а вся учебная - для обучения
-# prepare_docs(set_train)
 
-tr_id = '09b95033-6fe8-4df9-89e5-9472cbd2f573'
-test_positive = 'c2f7f817-6fed-4b0a-9a3e-014614405e7e'
-test_negative = '70bc5194-2073-4c0a-a783-86ffb4fa9fd4'
-tr_pos = '9939f387-d3aa-4a9c-be37-064bf844db2d'
-tr_neg = '3e936aff-a728-4b63-90f4-3f516d02560f'
-answers = db.get_rubric_answers(tr_id, rubrics[rubric_num]['pos'])
-print('answers: ', len(answers), sum(list(answers.values())))
-doc_c = {tr_pos: 1.23, tr_neg: 0.89}
+# common
+tr_com = '265fac6f-4b3e-466d-b7fe-fcdc90978a4e'
+tr_com100 = 'c0b20817-e5f2-4fcb-bd39-ef1f53b403a3'
+test_com = '5544e81e-6dda-458f-9f79-e40d990e6e94'
+
+# docs_c100 = list(db.get_set_docs(tr_com))
+# random.shuffle(docs_c100)
+# set_c100 = db.put_training_set(docs_c100[:100])
+# print('set_c100', set_c100)
+
+tr_id_pn = sets[rubric_num]['tr_id_pn']  # pos + neg
+tr_id_pnc = sets[rubric_num]['tr_id_pnc'] # pos + neg + com
+tr_id_pc = sets[rubric_num]['tr_id_pc']
+tr_id_pc100 = sets[rubric_num]['tr_id_pc100']
+test_positive = sets[rubric_num]['test_positive']
+test_negative = sets[rubric_num]['test_negative']
+tr_pos = sets[rubric_num]['tr_pos']
+tr_neg = sets[rubric_num]['tr_neg']
+
+# docs_train = list(db.get_set_docs(tr_pos))
+# docs_train.extend(list(db.get_set_docs(tr_neg)))
+# docs_train.extend(list(db.get_set_docs(tr_com100)))
+
+# set_train_com = db.put_training_set(docs_train)
+# print('tr_id_...', set_train_com)
 
 # Восстановление рубрик документов
-# add_rubric_to_docs(rubrics['1']['pos'], db.get_set_docs(test_positive))
-# add_rubric_to_docs(rubrics['1']['pos'], db.get_set_docs(tr_pos))
+# add_rubric_to_docs(rubrics[rubric_num]['pos'], db.get_set_docs(test_positive))
+# add_rubric_to_docs(rubrics[rubric_num]['pos'], db.get_set_docs(tr_pos))
 
-teach_rubricator(tr_id, rubrics[rubric_num]['pos'], doc_coefficients=doc_c, verbose=True)
+training_set = tr_id_pc
+# prepare_docs(tr_pos)
+# prepare_docs(tr_neg)
+teach_rubricator(training_set, rubrics[rubric_num]['pos'], verbose=True)
 # print('Обучение рубрикатора завершено')
 
-# print('Результаты рубрикатора на учебной выборке')
-# print(test_model(tr_id, rubrics[rubric_num]['pos'], tr_set=tr_id, name='tr'))
+print('Результаты рубрикатора на учебной выборке pn')
+print(test_model(tr_id_pn, rubrics[rubric_num]['pos'], tr_set=training_set, name='tr'))
+print('Результаты рубрикатора на учебной выборке com')
+print(test_model(tr_com, rubrics[rubric_num]['pos'], tr_set=training_set, name='tr'))
+print('Результаты рубрикатора на тестовой общеотрицательной выборке')
+print(test_model(test_com, rubrics[rubric_num]['pos'], tr_set=training_set, name='tr'))
 print('Результаты рубрикатора на тестовой положительной выборке')
-print(test_model(test_positive, rubrics[rubric_num]['pos'], tr_set=tr_id, name='pos'))
+print(test_model(test_positive, rubrics[rubric_num]['pos'], tr_set=training_set, name='pos'))
 print('Результаты рубрикатора на тестовой отрицательной выборке')
-print(test_model(test_negative, rubrics[rubric_num]['pos'], tr_set=tr_id, name='neg'))
+print(test_model(test_negative, rubrics[rubric_num]['pos'], tr_set=training_set, name='neg'))
 
 
