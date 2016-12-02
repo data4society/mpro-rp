@@ -32,9 +32,9 @@ for app in config_list:
         for rubr_obj in rubricator:
             new_rubr_obj = {}
             rubric = session.query(Rubric).filter_by(name=rubr_obj["rubric"]).first()
-            new_rubr_obj["rubric_id"] = rubric.rubric_id
+            new_rubr_obj["rubric_id"] = str(rubric.rubric_id)
             rubric = session.query(Rubric).filter_by(name=rubr_obj["rubric_minus"]).first()
-            new_rubr_obj["rubric_minus_id"] = rubric.rubric_id
+            new_rubr_obj["rubric_minus_id"] = str(rubric.rubric_id)
             new_rubr_obj["set_name"] = rubr_obj["set_name"]
             new_rubricator.append(new_rubr_obj)
 
