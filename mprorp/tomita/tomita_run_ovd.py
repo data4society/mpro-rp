@@ -17,7 +17,7 @@ def del_files_ovd(doc_id):
 def create_config_ovd(file_name):
     """function to create configuration file"""
     path1 = os.path.dirname(os.path.realpath(__file__))
-    dic =  path1 + '/ovd/dic_ovd.gzr'
+    dic =  path1 + '/OVD/dic_ovd.gzt"'
     config_name = 'config_' + file_name[:-4] + '.proto'
     config_file = '''encoding "utf8";
 

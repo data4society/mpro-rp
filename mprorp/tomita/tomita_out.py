@@ -98,7 +98,7 @@ def find_act(file_name):
     paragraph = '((п\.|пункт[а-я]*) ?' + numb + ')'
     paragraphs = '(' + paragraph + '.*?)'
 
-    KK = '(УК |КоАП|КОАП|[Уу]головн\w*? [Кк]одекс.? [А-я ]*)'
+    KK = '(УК\W|КоАП|УПК|КОАП|[Уу]головн\w*? [Кк]одекс.? [А-я ]*)'
     string = re.sub(KK, '\\1@#@', string)
     strings = string.split('@#@')
 

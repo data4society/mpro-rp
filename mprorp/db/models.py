@@ -183,7 +183,7 @@ class Record(Base):
     # document version
     version = Column(Integer())
     # date of original document publishing 
-    published_date = Column(TIMESTAMP())
+    published = Column(TIMESTAMP())
     # date of document creation
     created = Column(TIMESTAMP(), server_default=functions.current_timestamp())
     # date of last edition
