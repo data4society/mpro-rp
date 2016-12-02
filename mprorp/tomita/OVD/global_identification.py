@@ -3,6 +3,20 @@ from mprorp.tomita.OVD.additional import cross
 from mprorp.tomita.OVD.code_from_db import get_all_codes
 import re
 
+def codes_to_norm(fact):
+    codes = fact['codes']
+    out = []
+    if codes != []:
+        for code in codes:
+            level = str(code).count('[')
+            for n in range(level - 1):
+                code = code[0]
+            out += code
+        return out
+    else:
+        return codes
+
+
 def combiner(facts, fact_type):
     if fact_type == 'OVDFact':
         n = 2
@@ -19,7 +33,7 @@ def combiner(facts, fact_type):
     for fact1 in ovds:
         for fact2 in ovds:
             if 0 < fact2['fs'] - fact1['ls'] < n:
-                cross_codes = cross([fact1['codes'][0], fact2['codes'][0]])
+                cross_codes = cross([fact1['codes'], fact2['codes']])
                 if cross_codes != []:
                     new_fact = {'type': fact_type,
                                 'string' : fact1['string'] + ' ' + fact2['string'],
@@ -32,7 +46,6 @@ def combiner(facts, fact_type):
                     used.append(fact1)
                     used.append(fact2)
         if fact1 not in used:
-            fact1['codes'] = fact1['codes'][0]
             out.append(fact1)
     return out
 
@@ -69,16 +82,24 @@ def variants(facts):
                                               'weight' : 1/(max(loc['ls'], ovd['ls']) - min(loc['fs'], ovd['fs']))})
                         used.append(ovd)
         if ovd not in used:
-            out[ovd['id']] = {'weight' : 100000, 'fact' : ovd}
+            codes = []
+            for code in ovd['codes']:
+                codes.append(code.external_data['kladr'])
+            ovd['codes'] = codes
+            if len(codes) < 4:
+                out[ovd['id']] = {'weight' : 1, 'fact' : ovd}
+            else:
+                out[ovd['id']] = {'weight': 0, 'fact': ovd}
     return out
 
 def step1(tomita_out_file, original_text):
     facts = get_all_codes(tomita_out_file, original_text)
+    for fact in facts:
+        fact['codes'] = codes_to_norm(fact)
     facts = combiner(facts, 'OVDFact')
     facts = combiner(facts, 'LocationFact')
-    sentences = sen_division(facts)
     out = variants(facts)
-    print('sentences: ' + str(sentences) + '\n')
+    #print('sentences: ' + str(sen_division(facts)) + '\n')
     return out
 
 def pprint():
