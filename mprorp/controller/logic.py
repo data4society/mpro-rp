@@ -66,40 +66,13 @@ SHORT_LENGTH = 2002
 WITHOUT_RUBRICS = 2001
 
 
-
-rubrics_for_regular = {u'19848dd0-436a-11e6-beb8-9e71128cae02': None,
-                       u'19848dd0-436a-11e6-beb8-9e71128cae21': None}   # 404f1c89-53bd-4313-842d-d4a417c88d67
 facts = ['Person']
-
-
-def get_apps_config():
-    print("get_apps_config")
-    with open(relative_file_path(__file__, '../config/app.json')) as app_config_file:
-        config_list = json.load(app_config_file)
-    config = {}
-    for app in config_list:
-        """
-        if "ner_predict" in app:
-            ner_settings = app["ner_predict"]["ner_settings"]
-            for ind1, val1 in enumerate(ner_settings):
-                for ind2, val2 in enumerate(val1):
-                    ner_settings[ind1][ind2] = home_dir + '/weights/' + val2
-        """
-        if "crawler" in app:
-            crawler = app["crawler"]
-            for source_type in crawler:
-                for source in crawler[source_type]:
-                    source["ready"] = True
-                    source["next_crawling_time"] = 0
-        config[app["app_id"]] = app
-    variable_set("last_config", config)
-    return config
-apps_config = get_apps_config()
 
 
 def router(doc_id, app_id, status):
     """route function, that adds new tasks by incoming result (document's status)"""
     doc_id = str(doc_id)
+    apps_config = variable_get("last_config")
     app_conf = apps_config[app_id]
     logging.info("route doc: " + str(doc_id) + " status: " + str(status) + " app_id: " + app_id)
     if status in [SITE_PAGE_LOADING_FAILED, EMPTY_TEXT]:
@@ -137,7 +110,7 @@ def router(doc_id, app_id, status):
         regular_lemmas.delay(doc_id, LEMMAS_COMPLETE_STATUS, app_id=app_id)
         return
     if status < RUBRICATION_COMPLETE_STATUS and "rubrication" in app_conf:  # to rubrication
-        regular_rubrication.delay(doc_id, RUBRICATION_COMPLETE_STATUS, WITHOUT_RUBRICS, app_id=app_id)
+        regular_rubrication.delay(app_conf["rubrication"], doc_id, RUBRICATION_COMPLETE_STATUS, WITHOUT_RUBRICS, app_id=app_id)
         return
     if "tomita" in app_conf:
         grammars = list(app_conf["tomita"]["grammars"].keys())  # ['date.cxx', 'person.cxx']
@@ -182,124 +155,137 @@ def router(doc_id, app_id, status):
 
 
 @app.task(ignore_result=True, time_limit=660, soft_timeout_limit=600)
-def regular_gn_start_parsing(source, **kwargs):
+def regular_gn_start_parsing(source_key, **kwargs):
     """parsing google news request"""
+    session = db_session()
+    apps_config = variable_get("last_config",session)
     app_id = kwargs["app_id"]
+    source = apps_config[app_id]["crawler"]["google_news"][source_key]
     try:
-        session = db_session()
-        docs = gn_start_parsing(source, app_id, session)
+        docs = gn_start_parsing(source_key, app_id, session)
         for doc in docs:
             doc.status = GOOGLE_NEWS_INIT_STATUS
-            doc.source_with_type = "google_news "+source["url"]
+            doc.source_with_type = "google_news "+source_key
             doc.app_id = app_id
         session.commit()
         for doc in docs:
             router(doc.doc_id, app_id,  GOOGLE_NEWS_INIT_STATUS)
-        session.remove()
     except Exception as err:
         err_txt = repr(err)
-        logging.error("Неизвестная ошибка google_news краулера, source: " + source["url"])
+        logging.error("Неизвестная ошибка google_news краулера, source: " + source_key)
         print(err_txt)
-    #source_params = apps_config[app_id]["crawler"]["google_news"][source]
     source["ready"] = True
     source["next_crawling_time"] = datetime.datetime.now().timestamp() + source["period"]
+    variable_set("last_config", apps_config, session)
+    session.commit()
+    session.remove()
 
 
 @app.task(ignore_result=True, time_limit=660, soft_timeout_limit=600)
-def regular_ga_start_parsing(source, **kwargs):
+def regular_ga_start_parsing(source_key, **kwargs):
     """parsing google alerts request"""
+    session = db_session()
+    apps_config = variable_get("last_config",session)
+    app_id = kwargs["app_id"]
+    source = apps_config[app_id]["crawler"]["google_alerts"][source_key]
     app_id = kwargs["app_id"]
     try:
-        session = db_session()
-        docs = ga_start_parsing(source, app_id, session)
+        docs = ga_start_parsing(source_key, app_id, session)
         for doc in docs:
             doc.status = GOOGLE_ALERTS_INIT_STATUS
-            doc.source_with_type = "google_alerts "+source["url"]
+            doc.source_with_type = "google_alerts "+source_key
             doc.app_id = app_id
         session.commit()
         for doc in docs:
             router(doc.doc_id, app_id, GOOGLE_ALERTS_INIT_STATUS)
-        session.remove()
     except Exception as err:
         err_txt = repr(err)
-        logging.error("Неизвестная ошибка google_alerts краулера, source: " + source["url"])
+        logging.error("Неизвестная ошибка google_alerts краулера, source: " + source_key)
         print(err_txt)
-    #source_params = apps_config[app_id]["crawler"]["google_alerts"][source]
     source["ready"] = True
     source["next_crawling_time"] = datetime.datetime.now().timestamp() + source["period"]
+    variable_set("last_config", apps_config, session)
+    session.commit()
+    session.remove()
 
 
 @app.task(ignore_result=True, time_limit=660, soft_timeout_limit=600)
-def regular_yn_start_parsing(source, **kwargs):
+def regular_yn_start_parsing(source_key, **kwargs):
+    session = db_session()
+    apps_config = variable_get("last_config",session)
+    app_id = kwargs["app_id"]
+    source = apps_config[app_id]["crawler"]["yandex_news"][source_key]
     """parsing yandex news request"""
     app_id = kwargs["app_id"]
     try:
-        session = db_session()
-        docs = yn_start_parsing(source, app_id, session)
+        docs = yn_start_parsing(source_key, source["pass"], app_id, session)
         for doc in docs:
             doc.status = YANDEX_NEWS_INIT_STATUS
-            doc.source_with_type = "yandex_news "+source["user"]
+            doc.source_with_type = "yandex_news "+source_key
             doc.app_id = app_id
         session.commit()
         for doc in docs:
             router(doc.doc_id, app_id, YANDEX_NEWS_INIT_STATUS)
-        session.remove()
     except Exception as err:
         err_txt = repr(err)
-        logging.error("Неизвестная ошибка yandex_news краулера, source: " + source["user"])
+        logging.error("Неизвестная ошибка yandex_news краулера, source: " + source_key)
         print(err_txt)
-    #source_params = apps_config[app_id]["crawler"]["yandex_news"][source]
     source["ready"] = True
     source["next_crawling_time"] = datetime.datetime.now().timestamp() + source["period"]
+    variable_set("last_config", apps_config, session)
+    session.commit()
+    session.remove()
 
 
 @app.task(ignore_result=True, time_limit=660, soft_timeout_limit=600)
-def regular_csv_start_parsing(source, **kwargs):
-    app_id = kwargs["app_id"]
+def regular_csv_start_parsing(source_key, **kwargs):
     """parsing yandex news request"""
+    session = db_session()
+    apps_config = variable_get("last_config",session)
+    app_id = kwargs["app_id"]
+    source = apps_config[app_id]["crawler"]["csv_to_rubricator"][source_key]
     try:
-        session = db_session()
-        docs = csv_start_parsing(source, app_id, session)
+        docs = csv_start_parsing(source_key, app_id, session)
         for doc in docs:
             doc.status = CSV_INIT_STATUS
-            doc.source_with_type = "csv "+source["name"]
+            doc.source_with_type = "csv "+source_key
             doc.app_id = app_id
         session.commit()
         for doc in docs:
             router(doc.doc_id, app_id, CSV_INIT_STATUS)
-        session.remove()
     except Exception as err:
         err_txt = repr(err)
-        logging.error("Неизвестная ошибка csv краулера, source: " + source["name"])
+        logging.error("Неизвестная ошибка csv краулера, source: " + source_key)
         print(err_txt)
-    #source_params = apps_config[app_id]["crawler"]["csv_to_rubricator"][source]
-    #source["ready"] = True
-    #source["next_crawling_time"] = datetime.datetime.now().timestamp() + source["period"]
+    session.remove()
 
 
 @app.task(ignore_result=True, time_limit=660, soft_timeout_limit=600)
-def regular_vk_start_parsing(source, **kwargs):
+def regular_vk_start_parsing(source_key, **kwargs):
     """parsing vk request"""
+    session = db_session()
+    apps_config = variable_get("last_config",session)
     app_id = kwargs["app_id"]
+    source = apps_config[app_id]["crawler"]["vk"][source_key]
     try:
-        session = db_session()
-        docs = vk_start_parsing(source, app_id, session)
+        docs = vk_start_parsing(source_key, app_id, session)
         for doc in docs:
             doc.status = VK_INIT_STATUS
-            doc.source_with_type = "vk "+source["url"]
+            doc.source_with_type = "vk "+source_key
             doc.app_id = app_id
         session.commit()
-        print("regular_vk_start_parsing commit", source["url"])
+        print("regular_vk_start_parsing commit", source_key)
         for doc in docs:
             router(doc.doc_id, doc.app_id, VK_INIT_STATUS)
-        session.remove()
     except Exception as err:
         err_txt = repr(err)
-        logging.error("Неизвестная ошибка vk краулера, source: " + source["url"])
+        logging.error("Неизвестная ошибка vk краулера, source: " + source_key)
         print(err_txt)
-    #source_params = apps_config[app_id]["crawler"]["vk"][source]
     source["ready"] = True
     source["next_crawling_time"] = datetime.datetime.now().timestamp() + source["period"]
+    variable_set("last_config", apps_config, session)
+    session.commit()
+    session.remove()
 
 
 #@app.task(ignore_result=True)
@@ -356,12 +342,12 @@ def regular_lemmas(doc_id, new_status, **kwargs):
 
 #@app.task(ignore_result=True)
 @app.task()
-def regular_rubrication(doc_id, with_rubrics_status, without_rubrics_status, **kwargs):
+def regular_rubrication(rubrics, doc_id, with_rubrics_status, without_rubrics_status, **kwargs):
     """regular rubrication"""
     session, doc = get_doc(doc_id)
     # rb.spot_doc_rubrics2(doc_id, rubrics_for_regular, new_status)
     # doc.rubric_ids = ['19848dd0-436a-11e6-beb8-9e71128cae50']
-    rb.spot_doc_rubrics(doc, rubrics_for_regular, session, False)
+    rb.spot_doc_rubrics(doc, rubrics, session, False)
 
     if len(doc.rubric_ids) == 0:
         new_status = without_rubrics_status
@@ -495,5 +481,4 @@ session.remove()
 
 if __name__ == '__main__':
     print("LOGIC START")
-    print(apps_config)
     print("LOGIC FIN")

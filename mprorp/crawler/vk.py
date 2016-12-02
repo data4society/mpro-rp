@@ -10,11 +10,11 @@ from mprorp.crawler.utils import *
 #logging.basicConfig(format = u'%(filename)s[LINE:%(lineno)d]# %(levelname)-8s [%(asctime)s]  %(message)s', level = logging.DEBUG)
 
 
-def vk_start_parsing(source, app_id, session):
+def vk_start_parsing(source_url, app_id, session):
     """download vk response and run list parsing function"""
-    print('vk start parsing source:' + source["url"])
+    print('vk start parsing source:' + source_url)
     # download vk response
-    req_result = send_get_request(source["url"])
+    req_result = send_get_request(source_url)
     # run list parsing function
     docs = vk_parse_list(req_result, app_id, session)
     print("VK CRAWL COMPLETE")
