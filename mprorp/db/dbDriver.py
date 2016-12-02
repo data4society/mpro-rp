@@ -154,10 +154,13 @@ def delete_document(doc_id, session=None):
     print(doc_id, "complete deletion")
 
 
-def delete_app_documents(app_id):
+def delete_app_documents(app_id, status=-1):
     from mprorp.db.models import Document
     session = db_session()
-    docs = session.query(Document).filter_by(app_id=app_id).options(load_only("doc_id")).all()
+    if status == -1:
+        docs = session.query(Document).filter_by(app_id=app_id).options(load_only("doc_id")).all()
+    else:
+        docs = session.query(Document).filter_by(app_id=app_id, status=status).options(load_only("doc_id")).all()
     print("documents length:", len(docs))
     n = 0
     for doc in docs:
