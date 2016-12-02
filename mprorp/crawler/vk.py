@@ -30,6 +30,7 @@ def vk_parse_list(req_result, app_id, session):
         print("RESPONSE ERROR")
         print(json_obj)
     docs = []
+    guids = []
     for item in json_obj["response"]:
         if type(item) == dict:  # vk api can give Integer (Number of posts?) at the same level
             post_type = item["post_type"]
@@ -42,9 +43,11 @@ def vk_parse_list(req_result, app_id, session):
 
             # Skip item if we have any row in Document table with same guid (url)
             # skip all not 'post' items
-            if post_type == 'post' and session.query(Document).filter_by(guid=app_id + url).count() == 0:
+            guid = app_id + url
+            if post_type == 'post' and guid not in guids and session.query(Document).filter_by(guid=guid).count() == 0:
+                guids.append(guid)
                 # initial insert with guid start status and reference to source
-                new_doc = Document(guid=app_id + url, url=url, type='vk', meta=item)
+                new_doc = Document(guid=guid, url=url, type='vk', meta=item)
                 docs.append(new_doc)
                 session.add(new_doc)
                 # further parsing

@@ -20,6 +20,7 @@ def yn_start_parsing(source_user, source_pass, app_id, session):
     server.select()
     rv, data = server.search(None, '(UNSEEN)')
     docs = []
+    guids = []
     if rv != 'OK':
         # print("No messages found!")
         return docs
@@ -37,11 +38,11 @@ def yn_start_parsing(source_user, source_pass, app_id, session):
             ol = tree_mail.find("body").find("ol")
             items = ol.findall("li")
             for item in items:
-                parse_yn_item(item, app_id, session, docs)
+                parse_yn_item(item, app_id, session, docs, guids)
     print("YN CRAWL COMPLETE")
     return docs
 
-def parse_yn_item(item, app_id, session, docs):
+def parse_yn_item(item, app_id, session, docs, guids):
     a = item.find("a")
     url = a.get("href")
     title = a.text_content()
@@ -62,9 +63,11 @@ def parse_yn_item(item, app_id, session, docs):
         text = send_get_request(url,gen_useragent=True)
         url = re.findall(r'URL=\'.*\'', text)[0]
         url = url[5:-1]
-    if session.query(Document).filter_by(guid=app_id + url).count() == 0:
+    guid = app_id + url
+    if guid not in guids and session.query(Document).filter_by(guid=guid).count() == 0:
         # initial insert with guid, start status and reference to source
-        new_doc = Document(guid=app_id + url, url=url, status=0, type='article')
+        guids.append(guid)
+        new_doc = Document(guid=guid, url=url, status=0, type='article')
         new_doc.published_date = date
         new_doc.title = title
         meta = dict()
