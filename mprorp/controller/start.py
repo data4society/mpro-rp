@@ -7,7 +7,7 @@ from mprorp.db.models import *
 
 import datetime
 
-from mprorp.controller.logic import regular_gn_start_parsing, regular_ga_start_parsing, regular_vk_start_parsing, regular_yn_start_parsing, regular_csv_start_parsing, apps_config
+from mprorp.controller.logic import regular_gn_start_parsing, regular_ga_start_parsing, regular_vk_start_parsing, regular_yn_start_parsing, regular_csv_start_parsing
 from sqlalchemy.orm import load_only
 
 
