@@ -10,6 +10,7 @@ from mprorp.utils import relative_file_path
 with open(relative_file_path(__file__, 'config/app.json')) as app_config_file:
     config_list = json.load(app_config_file)
 config = {}
+session = db_session()
 for app in config_list:
     """
     if "ner_predict" in app:
@@ -36,9 +37,12 @@ for app in config_list:
             new_rubr_obj["rubric_minus_id"] = rubric.rubric_id
             new_rubr_obj["set_name"] = rubr_obj["set_name"]
             new_rubricator.append(new_rubr_obj)
+
         app["rubrication"] = new_rubricator
     config[app["app_id"]] = app
-variable_set("last_config", config)
+variable_set("last_config", config, session)
+session.commit()
+session.remove()
 
 # create Celery instance and load config
 print("STARTING CELERY APP")
