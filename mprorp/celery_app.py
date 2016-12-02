@@ -20,7 +20,8 @@ for app in config_list:
     if "crawler" in app:
         crawler = app["crawler"]
         for source_type in crawler:
-            for source in crawler[source_type]:
+            for source_key in crawler[source_type]:
+                source = crawler[source_type][source_key]
                 source["ready"] = True
                 source["next_crawling_time"] = 0
     config[app["app_id"]] = app
