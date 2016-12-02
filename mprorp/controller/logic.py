@@ -190,7 +190,7 @@ def regular_ga_start_parsing(source_key, **kwargs):
     session = db_session()
     apps_config = variable_get("last_config",session)
     app_id = kwargs["app_id"]
-    source = apps_config[app_id]["crawler"]["google_news"][source_key]
+    source = apps_config[app_id]["crawler"]["google_alerts"][source_key]
     app_id = kwargs["app_id"]
     try:
         docs = ga_start_parsing(source_key, app_id, session)
@@ -217,7 +217,7 @@ def regular_yn_start_parsing(source_key, **kwargs):
     session = db_session()
     apps_config = variable_get("last_config",session)
     app_id = kwargs["app_id"]
-    source = apps_config[app_id]["crawler"]["google_news"][source_key]
+    source = apps_config[app_id]["crawler"]["yandex_news"][source_key]
     """parsing yandex news request"""
     app_id = kwargs["app_id"]
     try:
@@ -246,7 +246,7 @@ def regular_csv_start_parsing(source_key, **kwargs):
     session = db_session()
     apps_config = variable_get("last_config",session)
     app_id = kwargs["app_id"]
-    source = apps_config[app_id]["crawler"]["google_news"][source_key]
+    source = apps_config[app_id]["crawler"]["csv_to_rubricator"][source_key]
     try:
         docs = csv_start_parsing(source_key, app_id, session)
         for doc in docs:
@@ -269,7 +269,7 @@ def regular_vk_start_parsing(source_key, **kwargs):
     session = db_session()
     apps_config = variable_get("last_config",session)
     app_id = kwargs["app_id"]
-    source = apps_config[app_id]["crawler"]["google_news"][source_key]
+    source = apps_config[app_id]["crawler"]["vk"][source_key]
     try:
         docs = vk_start_parsing(source_key, app_id, session)
         for doc in docs:
