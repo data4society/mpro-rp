@@ -179,6 +179,7 @@ def prediction(learn_class):
 def comparison():
     # 6. Comparison
 
+    compar = dict()
     NER_config = NER.Config()
     NER_config.learn_type = NER_settings
 
@@ -199,8 +200,8 @@ def comparison():
                                             feature_list=NER_config.feature_answer)
     tomita_loc = db.get_ner_feature_dict(set_id=dev_set, feature_type=tomita_type,
                                             feature_list=['Loc'])
-    print(answers)
-    print(predict)
+    # print(answers)
+    # print(predict)
     for doc_id in answers:
         doc = session.query(Document).filter_by(doc_id=doc_id).first()
         print(doc.stripped)
@@ -213,14 +214,16 @@ def comparison():
         for key in answers[doc_id]:
             if predict[doc_id].get(key, None) != answers[doc_id][key]:
                 add_difference(diff, key, answers[doc_id][key], predict[doc_id].get(key, None), tomita_loc[doc_id].get(key, None))
+                print(predict[doc_id].get(key, None), answers[doc_id][key])
         for key in predict[doc_id]:
             if answers[doc_id].get(key, None) is None:
                 add_difference(diff, key, None, predict[doc_id][key], tomita_loc[doc_id].get(key, None))
-        for elem in doc.morpho:
-            sent_i = elem.get('sentence_index', None)
-            if sent_i is not None and sent_i in diff:
-                if elem['word_index'] in diff[sent_i]:
-                    print(elem['text'], diff[sent_i][elem['word_index']])
+                print(predict[doc_id].get(key, None), None)
+        # for elem in doc.morpho:
+        #     sent_i = elem.get('sentence_index', None)
+        #     if sent_i is not None and sent_i in diff:
+        #         if elem['word_index'] in diff[sent_i]:
+        #             print(elem['text'], diff[sent_i][elem['word_index']])
 
 
 def add_difference(diff, key, ans, pred, add_feature=None):
@@ -282,13 +285,13 @@ def script_exec():
     # doc_id = get_doc_id('aab933fa-5a72-7b5b-b8a1-0af3f02563fc')
     # doc_id = 'f98e75ea-feee-480d-80cc-fe5b4a21e727'
     # print(doc_id)
+    prediction('name')
     # identification_doc(doc_id)
-    # prediction()
-    # comparison()
+    comparison()
 
     # NER.NER_name_learning()
 
-    db.delete_entity('b7f4eedd-ba7f-422b-9299-e43c414ceb1e') #'347f1317-eb2a-4a4b-af76-f9c2f2bd1fa9')
+    # db.delete_entity('b7f4eedd-ba7f-422b-9299-e43c414ceb1e') #'347f1317-eb2a-4a4b-af76-f9c2f2bd1fa9')
     # print(db.get_entity_by_labels(['Алексей'], verbose=True))
 
 script_exec()
