@@ -871,3 +871,8 @@ def get_moderated_docs(rubric_id):
     doc_ids = [i[0] for i in all_refs]
     return doc_ids
 
+
+def get_set_id_by_name(set_name, session=None):
+    if session is None:
+        session = Driver.db_session()
+    return str(session.query(TrainingSet.set_id).filter(TrainingSet.name == set_name).one()[0])

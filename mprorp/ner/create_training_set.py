@@ -248,7 +248,39 @@ def create_sets(rubric_id):
     return set_pos_train, set_pos_dev, doc_ids_pos[10:]
 
 
-rubric_num = '4'
+def give_name_to_sets():
+    session = Driver.db_session()
+    for i in sets:
+        for set_name in sets[i]:
+            Tr_set = session.query(TrainingSet).filter(TrainingSet.set_id == sets[i][set_name]).one()
+            # Tr_set.name = rubric_names[i] + '_' + set_name
+            print(i, set_name, Tr_set.set_id, Tr_set.name)
+    Tr_set = session.query(TrainingSet).filter(TrainingSet.set_id == tr_com).one()
+    # Tr_set.name = 'tr_com'
+    print(Tr_set.set_id, Tr_set.name)
+    Tr_set = session.query(TrainingSet).filter(TrainingSet.set_id == tr_com100).one()
+    # Tr_set.name = 'tr_com100'
+    print(Tr_set.set_id, Tr_set.name)
+    Tr_set = session.query(TrainingSet).filter(TrainingSet.set_id == test_com).one()
+    # Tr_set.name = 'test_com'
+    print(Tr_set.set_id, Tr_set.name)
+    # session.commit()
+
+
+# common
+tr_com = '265fac6f-4b3e-466d-b7fe-fcdc90978a4e'
+tr_com100 = 'c0b20817-e5f2-4fcb-bd39-ef1f53b403a3'
+test_com = '5544e81e-6dda-458f-9f79-e40d990e6e94'
+
+# give_name_to_sets()
+
+# conf = [{'rubric_id': rubrics['4']['pos'], 'rubric_minus_id': rubrics['4']['neg'], 'set_name': 'lgbt_tr_id_pc'},
+#         {'rubric_id': rubrics['6']['pos'], 'rubric_minus_id': rubrics['6']['neg'], 'set_name': 'internet_tr_id_pn'}]
+#
+# doc_id = 'f98e75ea-feee-480d-80cc-fe5b4a21e727'
+# rb.spot_doc_rubrics2(doc_id, conf, verbose=True)
+
+rubric_num = '1'
 
 # set_train, set_dev, docs_train_pos = create_sets(rubrics[rubric_num]['pos'])
 # print(rubric_names[rubric_num], 'positive', set_train, set_dev)
@@ -258,10 +290,6 @@ rubric_num = '4'
 # print(rubric_names[rubric_num], 'negative', set_train, set_dev)
 # prepare_docs(set_dev)
 
-# common
-tr_com = '265fac6f-4b3e-466d-b7fe-fcdc90978a4e'
-tr_com100 = 'c0b20817-e5f2-4fcb-bd39-ef1f53b403a3'
-test_com = '5544e81e-6dda-458f-9f79-e40d990e6e94'
 
 # docs_c100 = list(db.get_set_docs(tr_com))
 # random.shuffle(docs_c100)
