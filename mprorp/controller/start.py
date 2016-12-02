@@ -14,6 +14,7 @@ from sqlalchemy.orm import load_only
 @app.task(ignore_result=True)
 def check_sources():
     """check sources and start crawling if need"""
+    apps_config = variable_get("last_config")
     for app_id in apps_config:
         app = apps_config[app_id]
         if "crawler" in app:
@@ -40,6 +41,7 @@ def check_sources():
                             regular_csv_start_parsing.delay(source_key, app_id=app_id)
                     elif (not source["ready"]) and source["on"] and source["next_crawling_time"] < datetime.datetime.now().timestamp():
                         print("wait for "+source_key)
+    variable_set("last_config", apps_config)
 
 
 
