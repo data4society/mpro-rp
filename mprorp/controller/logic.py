@@ -66,9 +66,6 @@ SHORT_LENGTH = 2002
 WITHOUT_RUBRICS = 2001
 
 
-
-rubrics_for_regular = {u'19848dd0-436a-11e6-beb8-9e71128cae02': None,
-                       u'19848dd0-436a-11e6-beb8-9e71128cae21': None}   # 404f1c89-53bd-4313-842d-d4a417c88d67
 facts = ['Person']
 
 
@@ -113,7 +110,7 @@ def router(doc_id, app_id, status):
         regular_lemmas.delay(doc_id, LEMMAS_COMPLETE_STATUS, app_id=app_id)
         return
     if status < RUBRICATION_COMPLETE_STATUS and "rubrication" in app_conf:  # to rubrication
-        regular_rubrication.delay(doc_id, RUBRICATION_COMPLETE_STATUS, WITHOUT_RUBRICS, app_id=app_id)
+        regular_rubrication.delay(app_conf["rubrication"], doc_id, RUBRICATION_COMPLETE_STATUS, WITHOUT_RUBRICS, app_id=app_id)
         return
     if "tomita" in app_conf:
         grammars = list(app_conf["tomita"]["grammars"].keys())  # ['date.cxx', 'person.cxx']
@@ -345,12 +342,12 @@ def regular_lemmas(doc_id, new_status, **kwargs):
 
 #@app.task(ignore_result=True)
 @app.task()
-def regular_rubrication(doc_id, with_rubrics_status, without_rubrics_status, **kwargs):
+def regular_rubrication(rubrics, doc_id, with_rubrics_status, without_rubrics_status, **kwargs):
     """regular rubrication"""
     session, doc = get_doc(doc_id)
     # rb.spot_doc_rubrics2(doc_id, rubrics_for_regular, new_status)
     # doc.rubric_ids = ['19848dd0-436a-11e6-beb8-9e71128cae50']
-    rb.spot_doc_rubrics(doc, rubrics_for_regular, session, False)
+    rb.spot_doc_rubrics(doc, rubrics, session, False)
 
     if len(doc.rubric_ids) == 0:
         new_status = without_rubrics_status

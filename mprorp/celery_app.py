@@ -3,6 +3,7 @@ from celery import Celery
 import mprorp.celeryconfig as celeryconfig
 
 from mprorp.db.dbDriver import *
+from mprorp.db.models import *
 import json
 from mprorp.utils import relative_file_path
 
@@ -24,6 +25,18 @@ for app in config_list:
                 source = crawler[source_type][source_key]
                 source["ready"] = True
                 source["next_crawling_time"] = 0
+    if "rubrication" in app:
+        rubricator = app["rubrication"]
+        new_rubricator = []
+        for rubr_obj in rubricator:
+            new_rubr_obj = {}
+            rubric = session.query(Rubric).filter_by(name=rubr_obj["rubric"]).first()
+            new_rubr_obj["rubric_id"] = rubric.rubric_id
+            rubric = session.query(Rubric).filter_by(name=rubr_obj["rubric_minus"]).first()
+            new_rubr_obj["rubric_minus_id"] = rubric.rubric_id
+            new_rubr_obj["set_name"] = rubr_obj["set_name"]
+            new_rubricator.append(new_rubr_obj)
+        app["rubrication"] = new_rubricator
     config[app["app_id"]] = app
 variable_set("last_config", config)
 
