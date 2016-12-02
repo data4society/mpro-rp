@@ -37,7 +37,8 @@ sets['1'] = {
     'test_positive': '77aa00f2-81b7-40d5-8bac-c9d7755d2b2e',
     'test_negative': '377cdb8c-ccf0-4f2f-8fe6-17289709b0b1',
     'tr_pos': '042b0854-b213-4987-8568-11ddde77d461',
-    'tr_neg': '47fe435c-f7c9-4a5c-9379-71b33c29a06a'
+    'tr_neg': '47fe435c-f7c9-4a5c-9379-71b33c29a06a',
+    'test_pn': 'a467dd1d-8028-4446-b9d7-203b773b375c'
 }
 sets['4'] = {
     'tr_id_pn': 'c020af3c-1e0e-403f-8ffc-8ff2c974c907', # pos + neg
@@ -47,7 +48,8 @@ sets['4'] = {
     'test_positive': '45f2309c-096f-47bc-b19c-fff7b58a2de5',
     'test_negative': '5f8e26d9-0067-4d18-be6b-36ccd8a8df74',
     'tr_pos': '6e98a44d-66f1-4d7f-adaa-83a77126b748',
-    'tr_neg': '23d197c3-467e-49d8-8a07-5336ec2b18fe'
+    'tr_neg': '23d197c3-467e-49d8-8a07-5336ec2b18fe',
+    'test_pn': ''
 }
 sets['6'] = {
     'tr_id_pn': '09b95033-6fe8-4df9-89e5-9472cbd2f573',
@@ -57,7 +59,8 @@ sets['6'] = {
     'test_positive': 'c2f7f817-6fed-4b0a-9a3e-014614405e7e',
     'test_negative': '70bc5194-2073-4c0a-a783-86ffb4fa9fd4',
     'tr_pos': '9939f387-d3aa-4a9c-be37-064bf844db2d',
-    'tr_neg': '3e936aff-a728-4b63-90f4-3f516d02560f'
+    'tr_neg': '3e936aff-a728-4b63-90f4-3f516d02560f',
+    'test_pn': ''
 }
 
 
@@ -302,12 +305,13 @@ tr_id_pc = sets[rubric_num]['tr_id_pc']
 tr_id_pc100 = sets[rubric_num]['tr_id_pc100']
 test_positive = sets[rubric_num]['test_positive']
 test_negative = sets[rubric_num]['test_negative']
+test_pn = sets[rubric_num]['test_pn']
 tr_pos = sets[rubric_num]['tr_pos']
 tr_neg = sets[rubric_num]['tr_neg']
 
-# docs_train = list(db.get_set_docs(tr_pos))
+# docs_train = list(db.get_set_docs(test_positive))
 # docs_train.extend(list(db.get_set_docs(tr_neg)))
-# docs_train.extend(list(db.get_set_docs(tr_com100)))
+# docs_train.extend(list(db.get_set_docs(test_negative)))
 
 # set_train_com = db.put_training_set(docs_train)
 # print('tr_id_...', set_train_com)
@@ -319,7 +323,7 @@ tr_neg = sets[rubric_num]['tr_neg']
 training_set = tr_id_pc
 # prepare_docs(tr_pos)
 # prepare_docs(tr_neg)
-teach_rubricator(training_set, rubrics[rubric_num]['pos'], verbose=True)
+# teach_rubricator(training_set, rubrics[rubric_num]['pos'], verbose=True)
 # print('Обучение рубрикатора завершено')
 
 print('Результаты рубрикатора на учебной выборке pn')
@@ -328,9 +332,8 @@ print('Результаты рубрикатора на учебной выбо�
 print(test_model(tr_com, rubrics[rubric_num]['pos'], tr_set=training_set, name='tr'))
 print('Результаты рубрикатора на тестовой общеотрицательной выборке')
 print(test_model(test_com, rubrics[rubric_num]['pos'], tr_set=training_set, name='tr'))
-print('Результаты рубрикатора на тестовой положительной выборке')
-print(test_model(test_positive, rubrics[rubric_num]['pos'], tr_set=training_set, name='pos'))
-print('Результаты рубрикатора на тестовой отрицательной выборке')
-print(test_model(test_negative, rubrics[rubric_num]['pos'], tr_set=training_set, name='neg'))
+print('Результаты рубрикатора на тестовой выборке')
+print(test_model(test_pn, rubrics[rubric_num]['pos'], tr_set=training_set, name='test'))
+
 
 
