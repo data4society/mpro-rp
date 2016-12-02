@@ -8,13 +8,13 @@ import lxml.html
 import re
 
 
-def yn_start_parsing(source, app_id, session):
+def yn_start_parsing(source_user, source_pass, app_id, session):
     """download google news start feed and feeds for every story"""
 
     server = IMAP4_SSL('imap.yandex.ru')
     #(user, password) = source.split(":")
-    user = source["user"]
-    password = source["pass"]
+    user = source_user
+    password = source_pass
     server.login(user, password)
 
     server.select()

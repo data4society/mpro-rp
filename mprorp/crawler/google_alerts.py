@@ -11,10 +11,10 @@ from mprorp.crawler.utils import send_get_request
 import datetime
 
 
-def ga_start_parsing(source, app_id, session):
+def ga_start_parsing(source_url, app_id, session):
     """download google news start feed and feeds for every story"""
     # download google news start feed
-    req_result = send_get_request(source["url"], has_encoding=True)
+    req_result = send_get_request(source_url, has_encoding=True)
     root_xml = etree.fromstring(req_result)
 
     #print(len(root_xml.findall("{http://www.w3.org/2005/Atom}entry")))
