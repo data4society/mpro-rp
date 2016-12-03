@@ -211,14 +211,32 @@ def comparison():
             predict[doc_id] = {}
         if tomita_loc.get(doc_id, None) is None:
             tomita_loc[doc_id] = {}
+        all_keys = set()
         for key in answers[doc_id]:
+            all_keys.add(key)
             if predict[doc_id].get(key, None) != answers[doc_id][key]:
                 add_difference(diff, key, answers[doc_id][key], predict[doc_id].get(key, None), tomita_loc[doc_id].get(key, None))
-                print(predict[doc_id].get(key, None), answers[doc_id][key])
         for key in predict[doc_id]:
+            all_keys.add(key)
             if answers[doc_id].get(key, None) is None:
                 add_difference(diff, key, None, predict[doc_id][key], tomita_loc[doc_id].get(key, None))
-                print(predict[doc_id].get(key, None), None)
+        for key in all_keys:
+            pred = predict[doc_id].get(key, None)
+            ans = answers[doc_id].get(key, None)
+            if pred is not None:
+                if compar.get(pred, None) is None:
+                    compar[pred] = {'t_p': 0, 't_n': 0, 'f_p': 0, 'f_n': 0}
+                if pred == ans:
+                    compar[pred]['t_p'] += 1
+                else:
+                    compar[pred]['f_p'] += 1
+            elif ans is not None:
+                if compar.get(ans, None) is None:
+                    compar[ans] = {'t_p': 0, 't_n': 0, 'f_p': 0, 'f_n': 0}
+                compar[ans]['f_n'] += 1
+    print(compar)
+
+
         # for elem in doc.morpho:
         #     sent_i = elem.get('sentence_index', None)
         #     if sent_i is not None and sent_i in diff:
@@ -285,7 +303,7 @@ def script_exec():
     # doc_id = get_doc_id('aab933fa-5a72-7b5b-b8a1-0af3f02563fc')
     # doc_id = 'f98e75ea-feee-480d-80cc-fe5b4a21e727'
     # print(doc_id)
-    prediction('name')
+    # prediction('name')
     # identification_doc(doc_id)
     comparison()
 

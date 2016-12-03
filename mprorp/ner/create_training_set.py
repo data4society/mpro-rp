@@ -323,7 +323,7 @@ tr_neg = sets[rubric_num]['tr_neg']
 training_set = tr_id_pc
 # prepare_docs(tr_pos)
 # prepare_docs(tr_neg)
-# teach_rubricator(training_set, rubrics[rubric_num]['pos'], verbose=True)
+teach_rubricator(training_set, rubrics[rubric_num]['pos'], verbose=True)
 # print('Обучение рубрикатора завершено')
 
 print('Результаты рубрикатора на учебной выборке pn')

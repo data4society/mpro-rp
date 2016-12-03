@@ -15,8 +15,9 @@ from mprorp.utils import home_dir
 mystem_analyzer = Mystem(disambiguation=False)
 # words number for tf-idf model
 optimal_features_number = 300
-tf_steps = 1000
+tf_steps = 5000
 lr=10
+l2 = 0.001
 # words to exclude from model
 
 # one document morphological analysis regular
@@ -512,7 +513,7 @@ def learning_rubric_model(set_id, rubric_id, savefiles = False, verbose=False):
     #     tf.nn.softmax_cross_entropy_with_logits(y, y_))
     cross_entropy_array = tf.log(tf.sigmoid(y)) * y_ + tf.log(1- tf.sigmoid(y)) * (1 - y_)
 
-    cross_entropy = - tf.reduce_mean(cross_entropy_array)
+    cross_entropy = - tf.reduce_mean(cross_entropy_array) + tf.reduce_mean(w * w) * l2
 
     train_step = tf.train.GradientDescentOptimizer(learning_rate=lr).minimize(cross_entropy)
     init = tf.initialize_all_variables()
