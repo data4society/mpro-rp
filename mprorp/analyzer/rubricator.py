@@ -14,10 +14,10 @@ from mprorp.utils import home_dir
 # initialization mystem
 mystem_analyzer = Mystem(disambiguation=False)
 # words number for tf-idf model
-optimal_features_number = 300
-tf_steps = 5000
+optimal_features_number = 500
+tf_steps = 40000
 lr=10
-l2 = 0.001
+l2 = 0.005
 # words to exclude from model
 
 # one document morphological analysis regular
@@ -374,8 +374,8 @@ def idf_object_features_set(set_id):
     # print_lemmas(set_id, [k for k, v in enumerate(feat_max) if v == 0], lemma_index, idf)
     # check documents with 0 for all lemmas
     # print(np.min(np.sum(object_features, axis=1)))
-    print('for set_id: ', set_id)
-    print('save idf: ', idf)
+    # print('for set_id: ', set_id)
+    # print('save idf: ', idf)
 
     # save to db: idf, indexes and object_features
     db.put_training_set_params(set_id, idf,  doc_index, lemma_index, object_features)
