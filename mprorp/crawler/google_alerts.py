@@ -20,15 +20,16 @@ def ga_start_parsing(source_url, app_id, session):
     #print(len(root_xml.findall("{http://www.w3.org/2005/Atom}entry")))
     items = root_xml.findall("{http://www.w3.org/2005/Atom}entry")
     docs = []
+    guids = []
     for item in items:
         # if no story id was found we parse item from start feed
-        parse_ga_item(item, app_id, session, docs)
+        parse_ga_item(item, app_id, session, docs, guids)
 
     print("GNA CRAWL COMPLETE")
     return docs
 
 
-def parse_ga_item(item, app_id, session, docs):
+def parse_ga_item(item, app_id, session, docs, guids):
     """parses one news item and create new Document object"""
     title = strip_tags('<html><body>' + item.find("{http://www.w3.org/2005/Atom}title").text + '</body></html>')
     gnews_link = item.find("{http://www.w3.org/2005/Atom}link").get("href")
@@ -39,10 +40,12 @@ def parse_ga_item(item, app_id, session, docs):
     date_text = item.find("{http://www.w3.org/2005/Atom}published").text
     date = datetime.datetime.strptime(date_text, "%Y-%m-%dT%H:%M:%SZ") #2016-10-04T00:56:15Z
     desc = strip_tags('<html><body>' + item.find("{http://www.w3.org/2005/Atom}content").text + '</body></html>')
+    guid = app_id + url
 
-    if session.query(Document).filter_by(guid=app_id + url).count() == 0:
+    if guid not in guids and session.query(Document).filter_by(guid=guid).count() == 0:
         # initial insert with guid, start status and reference to source
-        new_doc = Document(guid=app_id + url, url=url, status=0, type='article')
+        guids.append(guid)
+        new_doc = Document(guid=guid, url=url, status=0, type='article')
         new_doc.published_date = date
         new_doc.title = "GA:" + title
         meta = dict()

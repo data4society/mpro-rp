@@ -19,13 +19,14 @@ def gn_start_parsing(source_url, app_id, session):
     # print(len(channel.findall("item")))
     items = channel.findall("item")
     docs = []
+    guids = []
     for item in items:
         desc = item.find("description").text
         # find story id for every item
         ncls = re.findall(r'ncl=([A-Za-z0-9-_]+)',desc)
         # if no story id was found we parse item from start feed
         if len(ncls) == 0:
-            parse_gn_item(item, app_id, session, docs)
+            parse_gn_item(item, app_id, session, docs, guids)
         else:
             for ncl in ncls:
                 # download google news story feed
@@ -35,13 +36,13 @@ def gn_start_parsing(source_url, app_id, session):
                 # print(len(sub_channel.findall("item")))
                 sub_items = sub_channel.findall("item")
                 for sub_item in sub_items:
-                    parse_gn_item(sub_item, app_id, session, docs)
+                    parse_gn_item(sub_item, app_id, session, docs, guids)
 
     print("GN CRAWL COMPLETE")
     return docs
 
 
-def parse_gn_item(item, app_id, session, docs):
+def parse_gn_item(item, app_id, session, docs, guids):
     """parses one news item and create new Document object"""
     title = item.find("title").text
     gnews_link = item.find("link").text
@@ -56,10 +57,11 @@ def parse_gn_item(item, app_id, session, docs):
 
     pos = title.find(' - '+publisher)
     title = title[:pos]
-
-    if session.query(Document).filter_by(guid=app_id + url).count() == 0:
+    guid = app_id + url
+    if guid not in guids and session.query(Document).filter_by(guid=guid).count() == 0:
         # initial insert with guid, start status and reference to source
-        new_doc = Document(guid=app_id + url, url=url, status=0, type='article')
+        guids.append(guid)
+        new_doc = Document(guid=guid, url=url, status=0, type='article')
         new_doc.published_date = date
         new_doc.title = title
         meta = dict()
