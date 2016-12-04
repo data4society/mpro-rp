@@ -37,7 +37,7 @@ def combiner(facts, fact_type):
                 if cross_codes != []:
                     new_fact = {'type': fact_type,
                                 'string' : fact1['string'] + ' ' + fact2['string'],
-                                'id' : str(fact1['id']) + str(fact2['id']),
+                                'id' : str(fact1['id']) + '_' +  str(fact2['id']),
                                 'sn' : fact1['sn'],
                                 'fs' : fact1['fs'],
                                 'ls' : fact2['ls'],
@@ -70,7 +70,7 @@ def variants(facts):
                                          'fs' : ovd['fs'],
                                          'ls' : ovd['ls'],
                                          'loc_used' : loc['string'],
-                                         'code' : ovd_code.external_data['kladr']},
+                                         'codes' : [ovd_code.external_data['kladr']]},
                                               'weight' : 1/(max(loc['ls'], ovd['ls']) - min(loc['fs'], ovd['fs']))}]
                         else:
                             out[ovd['id']].append({'fact' : {'type' : 'OVDVariant',
@@ -78,7 +78,7 @@ def variants(facts):
                                          'fs' : ovd['fs'],
                                          'ls' : ovd['ls'],
                                          'loc_used' : loc['string'],
-                                         'code' : ovd_code.external_data['kladr']},
+                                         'codes' : [ovd_code.external_data['kladr']]},
                                               'weight' : 1/(max(loc['ls'], ovd['ls']) - min(loc['fs'], ovd['fs']))})
                         used.append(ovd)
         if ovd not in used:
@@ -87,9 +87,9 @@ def variants(facts):
                 codes.append(code.external_data['kladr'])
             ovd['codes'] = codes
             if len(codes) < 4:
-                out[ovd['id']] = {'weight' : 1, 'fact' : ovd}
+                out[ovd['id']] = [{'weight' : 1, 'fact' : ovd}]
             else:
-                out[ovd['id']] = {'weight': 0, 'fact': ovd}
+                out[ovd['id']] = [{'weight': 0, 'fact': ovd}]
     return out
 
 def step1(tomita_out_file, original_text):
@@ -99,8 +99,25 @@ def step1(tomita_out_file, original_text):
     facts = combiner(facts, 'OVDFact')
     facts = combiner(facts, 'LocationFact')
     out = variants(facts)
+    out = step2(out)
     #print('sentences: ' + str(sen_division(facts)) + '\n')
     return out
+
+def step2(variantss):
+    max_facts = {}
+    for idd in variantss:
+        max_weight = 0
+        for fact in variantss[idd]:
+            if fact['weight'] > max_weight:
+                max_weight = fact['weight']
+        for fact in variantss[idd]:
+            if fact['weight'] == max_weight and len(fact['fact']['codes']) < 4:
+                if str(fact['fact']['fs']) + ':' + str(fact['fact']['ls']) not in max_facts:
+                    max_facts[str(fact['fact']['fs']) + ':' + str(fact['fact']['ls'])] = fact['fact']['codes']
+                else:
+                    max_facts[str(fact['fact']['fs']) + ':' + str(fact['fact']['ls'])] += fact['fact']['codes']
+    return max_facts
+
 
 def pprint():
     f = open('text_no_n.txt', 'r', encoding='utf-8').read()
