@@ -283,7 +283,7 @@ test_com = '5544e81e-6dda-458f-9f79-e40d990e6e94'
 # doc_id = 'f98e75ea-feee-480d-80cc-fe5b4a21e727'
 # rb.spot_doc_rubrics2(doc_id, conf, verbose=True)
 
-rubric_num = '1'
+rubric_num = '4'
 
 # set_train, set_dev, docs_train_pos = create_sets(rubrics[rubric_num]['pos'])
 # print(rubric_names[rubric_num], 'positive', set_train, set_dev)
@@ -309,12 +309,12 @@ test_pn = sets[rubric_num]['test_pn']
 tr_pos = sets[rubric_num]['tr_pos']
 tr_neg = sets[rubric_num]['tr_neg']
 
-# docs_train = list(db.get_set_docs(test_positive))
+docs_train = list(db.get_set_docs(test_positive))
 # docs_train.extend(list(db.get_set_docs(tr_neg)))
-# docs_train.extend(list(db.get_set_docs(test_negative)))
-
-# set_train_com = db.put_training_set(docs_train)
-# print('tr_id_...', set_train_com)
+docs_train.extend(list(db.get_set_docs(test_negative)))
+set_train_com = db.put_training_set(docs_train)
+print('tr_id_...', set_train_com)
+exit()
 
 # Восстановление рубрик документов
 # add_rubric_to_docs(rubrics[rubric_num]['pos'], db.get_set_docs(test_positive))

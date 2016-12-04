@@ -301,11 +301,12 @@ def script_exec():
     # create_answers('oc_class_loc')
     # prediction('name')
     # doc_id = get_doc_id('aab933fa-5a72-7b5b-b8a1-0af3f02563fc')
-    # doc_id = 'f98e75ea-feee-480d-80cc-fe5b4a21e727'
+    doc_id = 'f98e75ea-feee-480d-80cc-fe5b4a21e727'
+    print(db.get_doc_text(doc_id))
     # print(doc_id)
     # prediction('name')
-    # identification_doc(doc_id)
-    comparison()
+    identification_doc(doc_id)
+    # comparison()
 
     # NER.NER_name_learning()
 
