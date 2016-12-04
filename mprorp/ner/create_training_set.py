@@ -49,7 +49,7 @@ sets['4'] = {
     'test_negative': '5f8e26d9-0067-4d18-be6b-36ccd8a8df74',
     'tr_pos': '6e98a44d-66f1-4d7f-adaa-83a77126b748',
     'tr_neg': '23d197c3-467e-49d8-8a07-5336ec2b18fe',
-    'test_pn': ''
+    'test_pn': 'a5a0f8db-ae75-4055-a080-e93ac6c81b39'
 }
 sets['6'] = {
     'tr_id_pn': '09b95033-6fe8-4df9-89e5-9472cbd2f573',
