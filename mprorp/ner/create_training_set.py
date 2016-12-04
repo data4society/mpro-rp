@@ -312,8 +312,8 @@ tr_neg = sets[rubric_num]['tr_neg']
 docs_train = list(db.get_set_docs(test_positive))
 # docs_train.extend(list(db.get_set_docs(tr_neg)))
 docs_train.extend(list(db.get_set_docs(test_negative)))
-set_train_com = db.put_training_set(docs_train)
-print('tr_id_...', set_train_com)
+new_set = db.put_training_set(docs_train)
+print('new_set...', new_set)
 exit()
 
 # Восстановление рубрик документов
