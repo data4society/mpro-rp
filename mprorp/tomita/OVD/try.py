@@ -3,6 +3,8 @@ from mprorp.db.dbDriver import *
 from mprorp.db.models import *
 from mprorp.data.kladr import mvd_root
 from mprorp.tomita.tomita_run_ovd import run_tomita_ovd
+from mprorp.tomita.tomita_run import *
+from mprorp.ner.tomita_to_markup import *
 import re
 
 session = db_session()
@@ -12,11 +14,11 @@ session = db_session()
 #!!!!СТРОКА СОДЕРЖИТ СТРОКУ a = session.query(Document).filter(Document.stripped.contains('отдел полиции №3')).all()
 
 a = session.query(Document).filter(Document.doc_id == '521d71f9-907e-4547-bfe1-77cc789e0220').all()
-#print(len(a))
-out = run_tomita_ovd(a[0], n=1)
-print(out)
+#run_tomita2('ovd.cxx', '521d71f9-907e-4547-bfe1-77cc789e0220')
+out = convert_tomita_result_to_markup(a[0], ['person.cxx'])
+out = convert_tomita_result_to_markup(a[0], ['ovd.cxx'])
 #for text in a:
 #    print(text.doc_id)
 #    out = run_tomita_ovd(text)
-#    print(out)
+#   print(out)
 #    print('\n')

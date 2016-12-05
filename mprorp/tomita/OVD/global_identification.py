@@ -70,7 +70,7 @@ def variants(facts):
                                          'fs' : ovd['fs'],
                                          'ls' : ovd['ls'],
                                          'loc_used' : loc['string'],
-                                         'codes' : [ovd_code.external_data['kladr']]},
+                                         'codes' : [str(ovd_code.entity_id).replace("UUID('", '').replace("')", '')]},
                                               'weight' : 1/(max(loc['ls'], ovd['ls']) - min(loc['fs'], ovd['fs']))}]
                         else:
                             out[ovd['id']].append({'fact' : {'type' : 'OVDVariant',
@@ -78,13 +78,13 @@ def variants(facts):
                                          'fs' : ovd['fs'],
                                          'ls' : ovd['ls'],
                                          'loc_used' : loc['string'],
-                                         'codes' : [ovd_code.external_data['kladr']]},
+                                         'codes' : [str(ovd_code.entity_id).replace("UUID('", '').replace("')", '')]},
                                               'weight' : 1/(max(loc['ls'], ovd['ls']) - min(loc['fs'], ovd['fs']))})
                         used.append(ovd)
         if ovd not in used:
             codes = []
             for code in ovd['codes']:
-                codes.append(code.external_data['kladr'])
+                codes.append(str(code.entity_id).replace("UUID('", '').replace("')", ''))
             ovd['codes'] = codes
             if len(codes) < 4:
                 out[ovd['id']] = [{'weight' : 1, 'fact' : ovd}]
