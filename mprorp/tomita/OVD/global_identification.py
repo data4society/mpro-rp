@@ -92,7 +92,7 @@ def variants(facts):
                 out[ovd['id']] = [{'weight': 0, 'fact': ovd}]
     return out
 
-def step1(tomita_out_file, original_text):
+def step1(tomita_out_file, original_text, n):
     facts = get_all_codes(tomita_out_file, original_text)
     for fact in facts:
         fact['codes'] = codes_to_norm(fact)
@@ -100,6 +100,7 @@ def step1(tomita_out_file, original_text):
     facts = combiner(facts, 'LocationFact')
     out = variants(facts)
     out = step2(out)
+    out = max_amount_of_codes(out, n)
     #print('sentences: ' + str(sen_division(facts)) + '\n')
     return out
 
@@ -117,6 +118,16 @@ def step2(variantss):
                 else:
                     max_facts[str(fact['fact']['fs']) + ':' + str(fact['fact']['ls'])] += fact['fact']['codes']
     return max_facts
+
+def max_amount_of_codes(codes, n):
+    out = {}
+    for coord in codes:
+        if 0 < len(codes[coord]) <= n:
+            if n == 1:
+                out[coord] = codes[coord][0]
+            else:
+                out[coord] = codes[coord]
+    return out
 
 
 def pprint():

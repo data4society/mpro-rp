@@ -68,8 +68,8 @@ def start_tomita_ovd(doc):
     output_name = 'facts_' + file_name[:-4] + '.xml'
     return output_name, file_name
 
-def run_tomita_ovd(doc):
+def run_tomita_ovd(doc, n=1):
     out_name, file_name = start_tomita_ovd(doc)
-    results = step1(out_name, file_name)
+    results = step1(out_name, file_name, n)
     del_files_ovd(str(doc.doc_id))
     return results
