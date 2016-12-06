@@ -14,7 +14,8 @@ from mprorp.utils import home_dir
 # initialization mystem
 mystem_analyzer = Mystem(disambiguation=False)
 # words number for tf-idf model
-optimal_features_number = 500
+feature_selection = 2 # 1 - entropy_difference, 2 - mutual_information
+optimal_features_number = 50
 tf_steps = 40000
 lr=10
 l2 = 0.005
@@ -438,6 +439,32 @@ def entropy_difference(feature, answers, num_lemma):
     return - (entropy_answers - result)
 
 
+def mutual_information(feature, answers, num_lemma):
+    # http://nlp.stanford.edu/IR-book/html/htmledition/mutual-information-1.html
+    N = np.zeros((2, 2), dtype=int)
+    for j in range(len(feature)):
+        if feature[j] == 0:
+            if answers[j] == 0:
+                N[0, 0] += 1
+            else:
+                N[0, 1] += 1
+        else:
+            if answers[j] == 0:
+                N[1, 0] += 1
+            else:
+                N[1, 1] += 1
+    sumN = N[0, 0] + N[1, 0] + N[0, 1]+N[1, 1]
+    if num_lemma < 20:
+        print(N[0,:], N[1,:])
+    def part(i, j):
+        if N[i, j] > 0:
+            return N[i, j]/sumN * math.log2(sumN * N[i,j]/(N[i, 0]+N[i, 1])/(N[0, j]+N[1, j]))
+        else:
+            return 0
+
+    return - (part(1,1) + part(0,1) + part(1,0) + part(0,0))
+
+
 # print lemmas with index in numbers, its index and idf
 # def print_lemmas(set_id, numbers, lemmas=None, idf=None):
 #     if idf is None:
@@ -490,7 +517,17 @@ def learning_rubric_model(set_id, rubric_id, savefiles = False, verbose=False):
         feature_entropy = np.zeros(features_number)
         for i in range(features_number):
             # compute Entropic Criterion for feature i
-            feature_entropy[i] = entropy_difference(object_features[:, i], answers_index, i)
+            if feature_selection == 1:
+                feature_entropy[i] = entropy_difference(object_features[:, i], answers_index, i)
+            else:
+                feature_entropy[i] = mutual_information(object_features[:, i], answers_index, i)
+                if i < 20:
+                    print('MI', feature_entropy[i])
+            if i < 20:
+                print('E', entropy_difference(object_features[:, i], answers_index, i))
+
+                print('---')
+
         good_numbers = np.argsort(feature_entropy)
         for i in range(optimal_features_number):
             # mif[good_numbers[i]] = i
