@@ -297,16 +297,31 @@ def get_doc_id(rec_id):
 
 def script_exec():
     # create_sets('oc_class_person')
-    # NER.NER_learning_by_config({"class": 1, "tags": 1, "use_special_tags": 0})
+    NER.NER_learning_by_config({"class": 1, "tags": 1, "use_special_tags": 0})
     # create_answers('oc_class_loc')
     # prediction('name')
-    # doc_id = get_doc_id('aab933fa-5a72-7b5b-b8a1-0af3f02563fc')
-    doc_id = 'f98e75ea-feee-480d-80cc-fe5b4a21e727'
-    print(db.get_doc_text(doc_id))
+    rec_set = ['756c27e4-3036-aed7-6b3b-8813dc00352a',
+               'a43dc00b-f780-0937-76e1-d685fbd3c322',
+               '1f3f9f95-d24b-b63a-ff34-9b7eb6f75656']
+    for rec_id in rec_set:
+        doc_id = get_doc_id(rec_id)
+        doc = session.query(Document).filter_by(doc_id=doc_id).first()
+        print(doc.stripped)
+        NER.NER_predict(doc, [{"class": 1, "tags": 1, "use_special_tags": 0}],
+                        session, commit_session=True, verbose=True)
+
+    # 756c27e4-3036-aed7-6b3b-8813dc00352a
+    # a43dc00b-f780-0937-76e1-d685fbd3c322
+    # 1f3f9f95-d24b-b63a-ff34-9b7eb6f75656
+    # doc_id = 'f98e75ea-feee-480d-80cc-fe5b4a21e727'
+    # print(db.get_doc_text(doc_id))
     # print(doc_id)
     # prediction('name')
-    identification_doc(doc_id)
+    # identification_doc(doc_id)
     # comparison()
+    # set_t = set(set_docs['name']['train'])
+    # set_d = set(set_docs['name']['dev'])
+    # print(len(set_d), len(set_t), len(set_d & set_t))
 
     # NER.NER_name_learning()
 

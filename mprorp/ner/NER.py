@@ -56,13 +56,13 @@ class Config(object):
     # pre_embedding = True
     # train_embedding = False
 
-    embed_size = 50
-    hidden_size = 100
-    l2_embed = 0.001 # 0.00001
-    l2_2lay = 0.00325 # 0.000325
+    embed_size = 1000 #50
+    hidden_size = 500 #100
+    l2_embed = 0.00001 # 0.001
+    l2_2lay = 0.000325 # 0.00325
     window_size = 7 # 11
-    pre_embedding = False
-    train_embedding = True
+    pre_embedding = True
+    train_embedding = False
 
     batch_size = 64 # 128
     label_size = 5
