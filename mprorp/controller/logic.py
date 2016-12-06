@@ -209,7 +209,7 @@ def regular_ga_start_parsing(source_key, **kwargs):
     session.remove()
 
 
-@app.task(ignore_result=True, time_limit=660, soft_timeout_limit=600)
+@app.task(ignore_result=True, time_limit=660, soft_timeout_limit=51)
 def regular_yn_start_parsing(source_key, **kwargs):
     session = db_session()
     apps_config = variable_get("last_config",session)
