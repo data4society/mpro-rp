@@ -31,7 +31,7 @@ def run_tomita(doc, grammar, session=None, commit_session=True):
         os.remove(file_name1, dir_fd=None)
         return out
     elif grammar == 'ovd.cxx':
-        out = run_tomita_ovd(doc, n=1)
+        out = run_tomita_ovd(doc, n=5)
         db.put_tomita_result(str(doc.doc_id), grammar, out, session, commit_session)
         return out
     else:
