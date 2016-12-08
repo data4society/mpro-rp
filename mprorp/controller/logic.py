@@ -154,7 +154,7 @@ def router(doc_id, app_id, status):
     return status
 
 
-@app.task(ignore_result=True, time_limit=660, soft_timeout_limit=600)
+@app.task(ignore_result=True, time_limit=660, soft_time_limit=600)
 def regular_gn_start_parsing(source_key, **kwargs):
     """parsing google news request"""
     session = db_session()
@@ -181,7 +181,7 @@ def regular_gn_start_parsing(source_key, **kwargs):
     session.remove()
 
 
-@app.task(ignore_result=True, time_limit=660, soft_timeout_limit=600)
+@app.task(ignore_result=True, time_limit=660, soft_time_limit=600)
 def regular_ga_start_parsing(source_key, **kwargs):
     """parsing google alerts request"""
     session = db_session()
@@ -209,7 +209,7 @@ def regular_ga_start_parsing(source_key, **kwargs):
     session.remove()
 
 
-@app.task(ignore_result=True, time_limit=660, soft_timeout_limit=51)
+@app.task(ignore_result=True, time_limit=660, soft_time_limit=600)
 def regular_yn_start_parsing(source_key, **kwargs):
     session = db_session()
     apps_config = variable_get("last_config",session)
@@ -237,7 +237,7 @@ def regular_yn_start_parsing(source_key, **kwargs):
     session.remove()
 
 
-@app.task(ignore_result=True, time_limit=660, soft_timeout_limit=600)
+@app.task(ignore_result=True, time_limit=660, soft_time_limit=600)
 def regular_csv_start_parsing(source_key, **kwargs):
     """parsing yandex news request"""
     session = db_session()
@@ -260,7 +260,7 @@ def regular_csv_start_parsing(source_key, **kwargs):
     session.remove()
 
 
-@app.task(ignore_result=True, time_limit=660, soft_timeout_limit=600)
+@app.task(ignore_result=True, time_limit=660, soft_time_limit=600)
 def regular_vk_start_parsing(source_key, **kwargs):
     """parsing vk request"""
     session = db_session()
