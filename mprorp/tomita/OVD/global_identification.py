@@ -63,7 +63,7 @@ def variants(facts):
         for loc in locs:
             for ovd_code in ovd['codes']:
                 for loc_code in loc['codes']:
-                    if loc_code.kladr_id[:-1] in ovd_code.external_data['kladr']:
+                    if cut_kladr(loc_code.kladr_id) in ovd_code.external_data['kladr']:
                         if ovd['id'] not in out:
                             out[ovd['id']] = [{'fact' : {'type' : 'OVDVariant',
                                          'string' : ovd['string'],
@@ -71,7 +71,7 @@ def variants(facts):
                                          'ls' : ovd['ls'],
                                          'loc_used' : loc['string'],
                                          'codes' : [str(ovd_code.entity_id).replace("UUID('", '').replace("')", '')]},
-                                              'weight' : 1/(max(loc['ls'], ovd['ls']) - min(loc['fs'], ovd['fs']))}]
+                                         'weight' : 1/(max(loc['ls'], ovd['ls']) - min(loc['fs'], ovd['fs']))}]
                         else:
                             out[ovd['id']].append({'fact' : {'type' : 'OVDVariant',
                                          'string' : ovd['string'],
@@ -79,7 +79,7 @@ def variants(facts):
                                          'ls' : ovd['ls'],
                                          'loc_used' : loc['string'],
                                          'codes' : [str(ovd_code.entity_id).replace("UUID('", '').replace("')", '')]},
-                                              'weight' : 1/(max(loc['ls'], ovd['ls']) - min(loc['fs'], ovd['fs']))})
+                                         'weight' : 1/(max(loc['ls'], ovd['ls']) - min(loc['fs'], ovd['fs']))})
                         used.append(ovd)
         if ovd not in used:
             codes = []
@@ -99,7 +99,10 @@ def step1(tomita_out_file, original_text, n):
     facts = combiner(facts, 'OVDFact')
     facts = combiner(facts, 'LocationFact')
     out = variants(facts)
+    for i in out:
+        print(i, out[i])
     out = step2(out)
+    print(out)
     out = max_amount_of_codes(out, n)
     #print('sentences: ' + str(sen_division(facts)) + '\n')
     return out
@@ -128,6 +131,30 @@ def max_amount_of_codes(codes, n):
             else:
                 out[coord] = codes[coord]
     return out
+
+def cut_kladr(code):
+    if len(code) > 12:
+        r1 = code[0:3]
+        r2 = code[3:6]
+        c = code[6:9]
+        p = code[9:13]
+        other = code[13:]
+        parts = ((r1,r1+r2+c+p+other), (r2,r2+c+p+other), (c,c+p+other), (p,p+other), (other,other))
+    else:
+        r1 = code[0:3]
+        r2 = code[3:6]
+        c = code[6:9]
+        p = code[9:len(code)]
+        other = ''
+        parts = ((r1,r1+r2+c+p+other), (r2,r2+c+p+other), (c,c+p+other), (p,p+other), (other,other))
+    kladr = ''
+    for part in parts:
+        if part[1].count('0') != len(part[1]):
+            kladr += part[0]
+        else:
+            return kladr
+    return kladr
+
 
 
 def pprint():
