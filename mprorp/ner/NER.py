@@ -307,6 +307,7 @@ class NERModel(LanguageModel):
                 wv_array.append(wv_dict[word])
                 count += 1
             self.wv = np.array(wv_array, dtype=np.float32)
+            self.word_to_num = word_to_num
 
         # -------------------------------------------------
         self.config.label_size = len(self.tag_to_num)
@@ -587,7 +588,8 @@ class NERModel(LanguageModel):
             self.load_data_file(self.config.doc.doc_id, session, debug=False)
 
         self.add_placeholders()
-        window = self.add_embedding(self.config.pre_embedding if self.config.new_model else False)
+        # window = self.add_embedding(self.config.pre_embedding if self.config.new_model else False)
+        window = self.add_embedding(self.config.pre_embedding)
         y = self.add_model(window)
 
         self.loss = self.add_loss_op(y)
@@ -698,7 +700,11 @@ def NER_learning(filename_params, filename_tf, config=None):
                     output_file, protocol=3)
         output_file.close()
         init = tf.initialize_all_variables()
-        saver = tf.train.Saver()
+        # var_for_saving = {'Layer1/W:0', 'Layer1/b1:0', 'Layer1/Wf:0', 'Layer2/U:0', 'Layer2/b2:0'}
+        var_for_saving = {}
+        for v in tf.trainable_variables():
+            var_for_saving[v.name] = v
+        saver = tf.train.Saver(var_for_saving)
 
         with tf.Session() as session:
             best_val_loss = float('inf')
@@ -720,7 +726,9 @@ def NER_learning(filename_params, filename_tf, config=None):
                 if val_loss < best_val_loss:
                     best_val_loss = val_loss
                     best_val_epoch = epoch
-
+                    # model_for_saving = {}
+                    # model_for_saving['W'] =
+                    # save_session(session, filename_tf)
                     saver.save(session, filename_tf)
                 if epoch - best_val_epoch > config.early_stopping:
                     break
@@ -768,11 +776,23 @@ def NER_predict_set(doc, filename_params, filename_tf, values, session_db, commi
         model = NERModel(params, session=session_db)
 
         init = tf.initialize_all_variables()
-        saver = tf.train.Saver()
+        var_for_saving = {}
+        for v in tf.trainable_variables():
+            var_for_saving[v.name] = v
+        saver = tf.train.Saver(var_for_saving)
+        var_for_init = []
+        for v in tf.all_variables():
+            if v.name == 'Embedding:0':
+                if v.name not in var_for_saving.keys():
+                    var_for_init.append(v)
+        op_init = tf.initialize_variables(var_for_init)
 
         with tf.Session() as session:
 
             saver.restore(session, filename_tf)
+
+            session.run(op_init)
+
             print('dev: lemma, answer, ner answer')
             print('=-=-=')
             _, predictions = model.predict(session, model.X_test, np.ones(len(model.X_test), dtype=int), features=model.feat_test)

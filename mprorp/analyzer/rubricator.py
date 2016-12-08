@@ -23,7 +23,7 @@ l2 = 0.005
 
 # one document morphological analysis regular
 
-run_stop_lemmas = False #Использование файла для чтения стоп-лемм
+run_stop_lemmas = False # Использование файла для чтения стоп-лемм
 stop_lemmas_filename = home_dir + '/lex_count' # Имя файла, содержащего стоп-леммы
 stop_lemmas_count = 1000 # Порог, при превышении которго лемма считается не интересной и попадает в стоп-леммы
 

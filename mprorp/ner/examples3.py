@@ -302,13 +302,16 @@ def script_exec():
     # prediction('name')
     rec_set = ['756c27e4-3036-aed7-6b3b-8813dc00352a',
                'a43dc00b-f780-0937-76e1-d685fbd3c322',
-               '1f3f9f95-d24b-b63a-ff34-9b7eb6f75656']
+               '1f3f9f95-d24b-b63a-ff34-9b7eb6f75656',
+               'd1b44788-bfb6-36b2-d001-713af427127c']
     for rec_id in rec_set:
         doc_id = get_doc_id(rec_id)
+        # identification_doc(doc_id)
         doc = session.query(Document).filter_by(doc_id=doc_id).first()
         print(doc.stripped)
         NER.NER_predict(doc, [{"class": 1, "tags": 1, "use_special_tags": 0}],
                         session, commit_session=True, verbose=True)
+        identification_doc(doc_id)
 
     # 756c27e4-3036-aed7-6b3b-8813dc00352a
     # a43dc00b-f780-0937-76e1-d685fbd3c322
