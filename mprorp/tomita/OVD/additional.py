@@ -52,7 +52,9 @@ def OVD_codes(norms, session):
         elif fact_name == 'Name':
             out.append(OVD(norms[fact_name], session, Name=True))
         elif fact_name == 'Location':
-            out.append(OVD(norms[fact_name], session, Location=True))
+            a = OVD(norms[fact_name], session, Location=True)
+            if a is not None:
+                out.append(a)
         else:
             out.append(OVD(norms[fact_name], session))
     out = cross(out)
@@ -78,6 +80,8 @@ def OVD(ovd, session, Numb=False, Name=False, Location=False):
         for code in all_codes:
             if loc in code.data['name'].lower():
                 codes.append(code)
+        if codes == []:
+            return None
     else:
         name = ovd[0]
         codes = typess(name, session)
