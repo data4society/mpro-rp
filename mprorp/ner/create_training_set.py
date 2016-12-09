@@ -40,6 +40,17 @@ sets['1'] = {
     'tr_neg': '47fe435c-f7c9-4a5c-9379-71b33c29a06a',
     'test_pn': 'a467dd1d-8028-4446-b9d7-203b773b375c'
 }
+sets['3'] = {
+    'tr_id_pn': 'c5498c2f-b11a-4094-97fb-6e002f6c3a52', # pos + neg
+    'tr_id_pnc': 'bfc3d5ab-0d1c-4531-b333-84712b0c0113', # pos + neg + com
+    'tr_id_pc': '90898161-57dc-4ce7-8239-ef3a7b1cd2d1', # pos + com
+    'tr_id_pc100': '06c530b3-a8e9-4d08-9883-128689996f7b',
+    'test_positive': '848408ce-b69d-4d6d-8360-795f183303a0',
+    'test_negative': 'f1dc071f-6c71-4a18-bc10-0273f1b69952',
+    'tr_pos': '916f13a2-4d43-4bdc-ba52-ed9feadfe387',
+    'tr_neg': '105ca410-7d84-4eff-9e45-9b8c29507bb6',
+    'test_pn': 'a65e5faf-c46e-485b-bc5b-1c8ebe54efeb'
+}
 sets['4'] = {
     'tr_id_pn': 'c020af3c-1e0e-403f-8ffc-8ff2c974c907', # pos + neg
     'tr_id_pnc': '19bb2c5f-a609-44da-b96e-448918d08d19', # pos + neg + com
@@ -251,23 +262,22 @@ def create_sets(rubric_id):
     return set_pos_train, set_pos_dev, doc_ids_pos[10:]
 
 
-def give_name_to_sets():
+def give_name_to_sets(rub_num):
     session = Driver.db_session()
-    for i in sets:
-        for set_name in sets[i]:
-            Tr_set = session.query(TrainingSet).filter(TrainingSet.set_id == sets[i][set_name]).one()
-            # Tr_set.name = rubric_names[i] + '_' + set_name
-            print(i, set_name, Tr_set.set_id, Tr_set.name)
-    Tr_set = session.query(TrainingSet).filter(TrainingSet.set_id == tr_com).one()
-    # Tr_set.name = 'tr_com'
-    print(Tr_set.set_id, Tr_set.name)
-    Tr_set = session.query(TrainingSet).filter(TrainingSet.set_id == tr_com100).one()
-    # Tr_set.name = 'tr_com100'
-    print(Tr_set.set_id, Tr_set.name)
-    Tr_set = session.query(TrainingSet).filter(TrainingSet.set_id == test_com).one()
-    # Tr_set.name = 'test_com'
-    print(Tr_set.set_id, Tr_set.name)
-    # session.commit()
+    for set_name in sets[rub_num]:
+        Tr_set = session.query(TrainingSet).filter(TrainingSet.set_id == sets[rub_num][set_name]).one()
+        Tr_set.name = rubric_names[rub_num] + '_' + set_name
+        print(rub_num, set_name, Tr_set.set_id, Tr_set.name)
+    # Tr_set = session.query(TrainingSet).filter(TrainingSet.set_id == tr_com).one()
+    # # Tr_set.name = 'tr_com'
+    # print(Tr_set.set_id, Tr_set.name)
+    # Tr_set = session.query(TrainingSet).filter(TrainingSet.set_id == tr_com100).one()
+    # # Tr_set.name = 'tr_com100'
+    # print(Tr_set.set_id, Tr_set.name)
+    # Tr_set = session.query(TrainingSet).filter(TrainingSet.set_id == test_com).one()
+    # # Tr_set.name = 'test_com'
+    # print(Tr_set.set_id, Tr_set.name)
+    session.commit()
 
 
 # common
@@ -283,9 +293,12 @@ test_com = '5544e81e-6dda-458f-9f79-e40d990e6e94'
 # doc_id = 'f98e75ea-feee-480d-80cc-fe5b4a21e727'
 # rb.spot_doc_rubrics2(doc_id, conf, verbose=True)
 
-rubric_num = '4'
+rubric_num = '3'
 
-# set_train, set_dev, docs_train_pos = create_sets(rubrics[rubric_num]['pos'])
+give_name_to_sets(rubric_num)
+exit()
+
+# set_train, set_dev, docs_train_pos = create_sets(rubrics[rubric_num]['pos'], )
 # print(rubric_names[rubric_num], 'positive', set_train, set_dev)
 # prepare_docs(set_dev)
 #
@@ -293,11 +306,12 @@ rubric_num = '4'
 # print(rubric_names[rubric_num], 'negative', set_train, set_dev)
 # prepare_docs(set_dev)
 
-
 # docs_c100 = list(db.get_set_docs(tr_com))
 # random.shuffle(docs_c100)
 # set_c100 = db.put_training_set(docs_c100[:100])
 # print('set_c100', set_c100)
+
+
 
 tr_id_pn = sets[rubric_num]['tr_id_pn']  # pos + neg
 tr_id_pnc = sets[rubric_num]['tr_id_pnc'] # pos + neg + com
@@ -309,12 +323,12 @@ test_pn = sets[rubric_num]['test_pn']
 tr_pos = sets[rubric_num]['tr_pos']
 tr_neg = sets[rubric_num]['tr_neg']
 
-# docs_train = list(db.get_set_docs(test_positive))
+docs_train = list(db.get_set_docs(tr_pos))
+docs_train.extend(list(db.get_set_docs(tr_com100)))
 # docs_train.extend(list(db.get_set_docs(tr_neg)))
-# docs_train.extend(list(db.get_set_docs(test_negative)))
-# new_set = db.put_training_set(docs_train)
-# print('new_set...', new_set)
-# exit()
+new_set = db.put_training_set(docs_train)
+print('new_set...', new_set)
+exit()
 
 # Восстановление рубрик документов
 # add_rubric_to_docs(rubrics[rubric_num]['pos'], db.get_set_docs(test_positive))

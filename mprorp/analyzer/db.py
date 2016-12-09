@@ -92,13 +92,15 @@ def put_training_set_params(set_id, idf,  doc_index, lemma_index, object_feature
 
 
 # writing new training set in db
-def put_training_set(doc_id_array, session=None, commit_session=True):
+def put_training_set(doc_id_array, name=None, session=None, commit_session=True):
     """writing new training set in db"""
     if session is None:
         session = Driver.db_session()
     new_set = TrainingSet()
     new_set.doc_ids = doc_id_array
     new_set.doc_num = len(doc_id_array)
+    if name is not None:
+        new_set.name = name
     session.add(new_set)
     if commit_session:
         session.commit()
