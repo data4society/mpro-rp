@@ -13,7 +13,7 @@ session = db_session()
 
 #!!!!СТРОКА СОДЕРЖИТ СТРОКУ a = session.query(Document).filter(Document.stripped.contains('отдел полиции №3')).all()
 
-a = session.query(Document).filter(Document.doc_id == '0229dc23-91cd-4645-9035-63702652a4a3').all()
+a = session.query(Document).filter(Document.doc_id == '63bfdd24-9ff3-49fa-9773-814ba5db67d6').all()
 #run_tomita2('ovd.cxx', '521d71f9-907e-4547-bfe1-77cc789e0220')
 #out = convert_tomita_result_to_markup(a[0], ['person.cxx'])
 #out = convert_tomita_result_to_markup(a[0], ['ovd.cxx'])

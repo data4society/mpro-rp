@@ -105,7 +105,7 @@ def variants2(facts, old):
         for loc in locs:
             if loc['string'] != 'рф':
                 for ovd_code in ovd['codes']:
-                    if loc['string'].lower() in ovd_code.name.lower():
+                    if loc['string'].lower() in ovd_code.data['name'].lower():
                         if ovd['id'] not in out:
                             out[ovd['id']] = [{'fact': {'type': 'OVDVariant',
                                                         'string': ovd['string'],
@@ -137,7 +137,11 @@ def step1(tomita_out_file, original_text, n):
     facts = combiner(facts, 'LocationFact')
     out = variants1(facts)
     out = variants2(facts, out)
+    #print(out)
     out = step2(out)
+    #print(out)
+    out = step3(out)
+    #print(out)
     out = max_amount_of_codes(out, n)
     #print('sentences: ' + str(sen_division(facts)) + '\n')
     return out
@@ -156,6 +160,15 @@ def step2(variantss):
                 else:
                     max_facts[str(fact['fact']['fs']) + ':' + str(fact['fact']['ls'])] += fact['fact']['codes']
     return max_facts
+
+def step3(arr):
+    out = {}
+    for coord in arr:
+        codes = arr[coord]
+        codes = set(codes)
+        codes = list(codes)
+        out[coord] = codes
+    return out
 
 def max_amount_of_codes(codes, n):
     out = {}
