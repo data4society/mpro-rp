@@ -144,6 +144,8 @@ def step1(tomita_out_file, original_text, n):
     #print(out)
     out = max_amount_of_codes(out, n)
     #print('sentences: ' + str(sen_division(facts)) + '\n')
+    for idd in out:
+        out[idd] = out[idd][0]
     return out
 
 def step2(variantss):
