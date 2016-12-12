@@ -23,7 +23,7 @@ International -> Word<kwtype='inter'>;
 RusOrg -> Word<kwtype='rusorg'>;
 
 // Аббревиатура Rus
-Org1 -> AnyWord<wfl="[А-Я][А-Я][А-Я]+", ~dict> | AnyWord<wfl="[А-Я][а-я]+([А-Я][а-я]+)+", ~dict>;
+Org1 -> AnyWord<wfl="[А-Я][А-Я][А-Я]+", ~dict, kwtype=~'OVD'> | AnyWord<wfl="[А-Я][а-я]+([А-Я][а-я]+)+", ~dict, kwtype=~'OVD'>;
 
 // Аббревиатура Eng
 Org3 -> AnyWord<wfl="[A-Z][A-Z][A-Z]+"> | AnyWord<wfl="[A-Z][a-z]+([A-Z][a-z]+)+"> | AnyWord<wfl="[a-z]+([A-Z][a-z]+)+">;

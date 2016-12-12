@@ -3,6 +3,7 @@ import os
 from mprorp.utils import home_dir
 import os.path as path
 import subprocess as sp
+from mprorp.tomita.tomita_run import create_file
 
 def create_file_ovd(doc):
     """function to create input file"""
@@ -58,7 +59,7 @@ def start_tomita_ovd(doc):
     tomita_path = path.join(home_path, 'bin')
     os.chdir(tomita_path)
     # создаем файл с текстом
-    file_name = create_file_ovd(doc)
+    file_name = create_file(doc)
     # создаем config.proto
     create_config_ovd(file_name)
     # запускаем tomitaparser.exe
