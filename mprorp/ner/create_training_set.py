@@ -295,8 +295,7 @@ test_com = '5544e81e-6dda-458f-9f79-e40d990e6e94'
 
 rubric_num = '3'
 
-give_name_to_sets(rubric_num)
-exit()
+# give_name_to_sets(rubric_num)
 
 # set_train, set_dev, docs_train_pos = create_sets(rubrics[rubric_num]['pos'], )
 # print(rubric_names[rubric_num], 'positive', set_train, set_dev)
@@ -323,12 +322,11 @@ test_pn = sets[rubric_num]['test_pn']
 tr_pos = sets[rubric_num]['tr_pos']
 tr_neg = sets[rubric_num]['tr_neg']
 
-docs_train = list(db.get_set_docs(tr_pos))
-docs_train.extend(list(db.get_set_docs(tr_com100)))
+# docs_train = list(db.get_set_docs(tr_pos))
+# docs_train.extend(list(db.get_set_docs(tr_com100)))
 # docs_train.extend(list(db.get_set_docs(tr_neg)))
-new_set = db.put_training_set(docs_train)
-print('new_set...', new_set)
-exit()
+# new_set = db.put_training_set(docs_train)
+# print('new_set...', new_set)
 
 # Восстановление рубрик документов
 # add_rubric_to_docs(rubrics[rubric_num]['pos'], db.get_set_docs(test_positive))

@@ -415,6 +415,7 @@ def create_refs(doc, refs_settings, refs, session=None, commit_session=True, ver
             labels_lists[i] = list(reduce(lambda a, x: a | x, [set([labels[j],
                                                                    labels_from_text[j]]) for j in local_entities[i]]))
             # Теперь поищем, что у нас есть по меткам из labels_set - только точное совпадение с одной из меток
+            print('get_entity_by_labels', )
             db_id = db.get_entity_by_labels(labels_lists[i], add_conditions=add_conditions, verbose=verbose)
             if (db_id is None) and create_wiki_entities:
                 # Ищем сущности в викиданных
