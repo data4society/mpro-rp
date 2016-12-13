@@ -392,7 +392,7 @@ def regular_morpho_features(doc_id, new_status, **kwargs):
 
 
 #@app.task(ignore_result=True)
-@app.task()
+@app.task(time_limit=190, soft_time_limit=180)
 def regular_NER_predict(ner_settings, doc_id, new_status, **kwargs):
     """NER computing"""
     session, doc = get_doc(doc_id)

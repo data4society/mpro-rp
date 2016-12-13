@@ -46,26 +46,18 @@ def Location(loc, session, city, level):
 
 def OVD_codes(norms, session):
     out = []
-    if 'Location' not in str(norms):
-        for fact_name in norms:
-            if fact_name == 'Numb':
-                out.append(OVD(norms[fact_name], session, Numb=True))
-            elif fact_name == 'Name':
-                out.append(OVD(norms[fact_name], session, Name=True))
-            else:
-                out.append(OVD(norms[fact_name], session))
-        out = cross(out)
-    else:
-        for fact_name in norms:
-            if fact_name == 'Numb':
-                out.append(OVD(norms[fact_name], session, Numb=True))
-            elif fact_name == 'Name':
-                out.append(OVD(norms[fact_name], session, Name=True))
-            elif fact_name == 'Location':
-                out.append(OVD(norms[fact_name], session, Location=True))
-            else:
-                out.append(OVD(norms[fact_name], session))
-        out = from_dbtypes_to_codes(out, session)
+    for fact_name in norms:
+        if fact_name == 'Numb':
+            out.append(OVD(norms[fact_name], session, Numb=True))
+        elif fact_name == 'Name':
+            out.append(OVD(norms[fact_name], session, Name=True))
+        elif fact_name == 'Location':
+            a = OVD(norms[fact_name], session, Location=True)
+            if a is not None:
+                out.append(a)
+        else:
+            out.append(OVD(norms[fact_name], session))
+    out = cross(out)
     return out
 
 def OVD(ovd, session, Numb=False, Name=False, Location=False):
@@ -83,8 +75,13 @@ def OVD(ovd, session, Numb=False, Name=False, Location=False):
             if code.data["jurisdiction"] == "eaf0a69a-74d7-4e1a-9187-038a202c7698" and name in code.data['name'].lower():
                 codes.append(code)
     elif Location is True:
-        name = ovd[0]
-        codes = session.query(KLADR).filter(KLADR.name_lemmas.has_key(name)).all()
+        loc = ovd[0].lower()
+        all_codes = session.query(Entity).filter(Entity.data["jurisdiction"].astext == "eaf0a69a-74d7-4e1a-9187-038a202c7698").all()
+        for code in all_codes:
+            if loc in code.data['name'].lower():
+                codes.append(code)
+        if codes == []:
+            return None
     else:
         name = ovd[0]
         codes = typess(name, session)
@@ -122,24 +119,6 @@ def get_types(name):
         if '_' + name + '_' in type:
             return types[type]
 
-def from_dbtypes_to_codes(out, session):
-    new_out = []
-    for arr in out:
-        new_arr = []
-        for code in arr:
-            if 'mprorp.db.models.KLADR' in str(type(code)):
-                new_arr.append(code.kladr_id[:-1])
-            else:
-                new_arr.append(code.external_data['kladr'])
-        new_out.append(new_arr)
-    new_out = new_cross(new_out)
-    out = []
-    for code in new_out:
-        object = session.query(Entity).filter(Entity.data["jurisdiction"].astext == "eaf0a69a-74d7-4e1a-9187-038a202c7698",
-                                              Entity.external_data['kladr'].astext.contains(code)).first()
-        if object is not None:
-            out.append(object)
-    return out
 
 def new_cross(arr):
     out = []

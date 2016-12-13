@@ -198,18 +198,20 @@ def upd_ovds_tables():
                     try:
                         kladr_obj = session.query(KLADR).options(load_only("name","type")).filter_by(kladr_id=code).one()
                         full_address.append(geoobject_name(kladr_obj.name, kladr_obj.type))
-                        if row[6]:
-                            full_address.append(row[6])
                     except Exception as err:
                         print("Error with code", code, "from row", row)
                         full_address = "Error"
                         bad = True
                         break
-                if type(full_address) == "list":
+                #print(full_address)
+                #print(type(full_address))
+                if type(full_address) is list:
+                    if row[6]:
+                        full_address.append(row[6])
                     full_address = ", ".join(full_address)
                 #if bad:
                 #    continue
-                #print(full_address)
+                print(full_address)
                 #print(row)
                 #print(kladr)
                 n += 1
@@ -356,9 +358,9 @@ def geoobject_name(name, type):
 if __name__ == '__main__':
     #print(mystem.analyze("ильгощинский"))
     #print(morph.parse("ильгощинский обрыв"))
-    import_kladr()
-    upd_kladr()
-    import_ovds()
+    #import_kladr()
+    #upd_kladr()
+    #import_ovds()
     upd_ovds_tables()
     #get_kladr_examples()
     #session = db_session()
