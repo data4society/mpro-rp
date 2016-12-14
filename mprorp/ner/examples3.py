@@ -298,7 +298,7 @@ def get_doc_id(rec_id):
 def script_exec():
 
     # create_sets('oc_class_person')
-    # NER.NER_learning_by_config({"class": 1, "tags": 1, "use_special_tags": 0})
+    NER.NER_learning_by_config({"class": 1, "tags": 1, "use_special_tags": 0})
     # create_answers('oc_class_loc')
     # prediction('name')
     rec_set = ['d1b44788-bfb6-36b2-d001-713af427127c',
@@ -306,10 +306,10 @@ def script_exec():
                'a43dc00b-f780-0937-76e1-d685fbd3c322',
                '1f3f9f95-d24b-b63a-ff34-9b7eb6f75656']
     # rec_set = db.get_set_docs(sets['name']['dev'])
-    doc_set = ['664db67f-cc86-4933-82c0-20a555a38281']
+    # doc_set = ['664db67f-cc86-4933-82c0-20a555a38281']
     # for rec_id in rec_set:
-    for doc_id in doc_set:
-        # doc_id = get_doc_id(rec_id)
+    for rec_id in rec_set:
+        doc_id = get_doc_id(rec_id)
         # identification_doc(doc_id)
         doc = session.query(Document).filter_by(doc_id=doc_id).first()
         if doc is None:

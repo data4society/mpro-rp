@@ -40,6 +40,17 @@ sets['1'] = {
     'tr_neg': '47fe435c-f7c9-4a5c-9379-71b33c29a06a',
     'test_pn': 'a467dd1d-8028-4446-b9d7-203b773b375c'
 }
+sets['2'] = {
+    'tr_id_pn': 'b75dc32c-0b20-4dbc-af87-3bb2a24e5938', # pos + neg
+    'tr_id_pnc': '5f128ce8-2c82-4ccd-a4a5-4b09c7c91ea5', # pos + neg + com
+    'tr_id_pc': '908f2892-0b67-48c0-bc47-d128bfa0cd3f', # pos + com
+    'tr_id_pc100': '829d2db3-3ec2-4c4a-b986-9e2e3deaaee1',
+    'test_positive': 'c1293b5e-d1d4-4567-b6fa-c5a830c60d6a',
+    'test_negative': 'ce6a4102-1f11-4811-a5c7-e2d8ef7c2231',
+    'tr_pos': 'd23977ef-2dd2-46b2-84da-9b23b8ff71de',
+    'tr_neg': 'f5989784-24f4-46e7-9b73-887c23bdd344',
+    'test_pn': '63f12eb5-fa8b-4dff-b2d8-27ada121dcc0'
+}
 sets['3'] = {
     'tr_id_pn': 'c5498c2f-b11a-4094-97fb-6e002f6c3a52', # pos + neg
     'tr_id_pnc': 'bfc3d5ab-0d1c-4531-b333-84712b0c0113', # pos + neg + com
@@ -62,6 +73,17 @@ sets['4'] = {
     'tr_neg': '23d197c3-467e-49d8-8a07-5336ec2b18fe',
     'test_pn': 'a5a0f8db-ae75-4055-a080-e93ac6c81b39'
 }
+sets['5'] = {
+    'tr_id_pn': '3bfb9d28-ee48-4021-857c-8d9e916a70d2', # pos + neg
+    'tr_id_pnc': 'c4b9b04a-0686-4541-b247-8d2e8e28bdbc', # pos + neg + com
+    'tr_id_pc': '7d02ca6c-fe4b-4a8c-abb4-e833529dedb4', # pos + com
+    'tr_id_pc100': '27ecb9c4-9e7e-4805-b3dd-846a0512b848',
+    'test_positive': 'e28daae0-f239-4bf1-a9af-8e4070d83f26',
+    'test_negative': 'b7b645d0-c7d8-4c4c-8bed-9f7be061bcfe',
+    'tr_pos': '98601bf3-84ce-47d3-8002-bb7355a23280',
+    'tr_neg': '0382d97e-1806-4abd-8897-c143ba0f3a9b',
+    'test_pn': '59090417-e05c-4151-99d0-9e8432a22288'
+}
 sets['6'] = {
     'tr_id_pn': '09b95033-6fe8-4df9-89e5-9472cbd2f573',
     'tr_id_pnc': 'c5b4dc5b-04a5-4255-807c-655f6817bdee',
@@ -73,7 +95,17 @@ sets['6'] = {
     'tr_neg': '3e936aff-a728-4b63-90f4-3f516d02560f',
     'test_pn': '0706a451-d995-41d4-af9b-e8e0451ca465'
 }
-
+sets['04'] = {
+    'tr_id_pn': 'e9a40771-88fd-4060-8a17-55c49f30925f', # pos + neg
+    'tr_id_pnc': 'c9047cad-2784-4251-b55f-e4d3507b4d38', # pos + neg + com
+    'tr_id_pc': 'e262d71b-bc9f-4de6-9841-c1719524a757', # pos + com
+    'tr_id_pc100': 'ad425b5d-c22c-4502-8d4a-a62f4b12b8cc',
+    'test_positive': '53d0f42a-9f48-4a54-9293-434ad108eacb',
+    'test_negative': 'aeb689e7-a28c-4adf-a4ff-82ab343d761b',
+    'tr_pos': '5969de73-831f-4714-9d86-50aded34ba18',
+    'tr_neg': 'e4855bc6-c528-4bcc-8faf-e9e625856cff',
+    'test_pn': '9574e5a5-9f6d-45a0-b50a-9680a8e2385f'
+}
 
 
 def create_training_set(rubric_id, session=None):
@@ -251,22 +283,24 @@ def add_rubric_to_docs(rubric_id, doc_ids, session=None):
     session.commit()
 
 
-def create_sets(rubric_id):
+def create_sets(rubric_id, test_count=10):
     session = Driver.db_session()
     doc_ids_pos = db.get_moderated_docs(rubric_id)
+    print('Найдено', len(doc_ids_pos), 'документов')
     add_rubric_to_docs(rubric_id, doc_ids_pos)
     random.shuffle(doc_ids_pos)
-    set_pos_dev = db.put_training_set(doc_ids_pos[:10])
-    set_pos_train = db.put_training_set(doc_ids_pos[10:])
+    set_pos_dev = db.put_training_set(doc_ids_pos[:test_count])
+    set_pos_train = db.put_training_set(doc_ids_pos[test_count:])
     session.commit()
-    return set_pos_train, set_pos_dev, doc_ids_pos[10:]
+    return set_pos_train, set_pos_dev, doc_ids_pos[test_count:]
 
 
-def give_name_to_sets(rub_num):
+def give_name_to_sets(rub_num, version=''):
+    set_num = version + rub_num
     session = Driver.db_session()
-    for set_name in sets[rub_num]:
+    for set_name in sets[set_num]:
         Tr_set = session.query(TrainingSet).filter(TrainingSet.set_id == sets[rub_num][set_name]).one()
-        Tr_set.name = rubric_names[rub_num] + '_' + set_name
+        Tr_set.name = rubric_names[rub_num] + '_' + set_name + '_' + version
         print(rub_num, set_name, Tr_set.set_id, Tr_set.name)
     # Tr_set = session.query(TrainingSet).filter(TrainingSet.set_id == tr_com).one()
     # # Tr_set.name = 'tr_com'
@@ -293,17 +327,21 @@ test_com = '5544e81e-6dda-458f-9f79-e40d990e6e94'
 # doc_id = 'f98e75ea-feee-480d-80cc-fe5b4a21e727'
 # rb.spot_doc_rubrics2(doc_id, conf, verbose=True)
 
-rubric_num = '3'
+rubric_num = '4'
+version = '0'
+set_num = version + rubric_num
 
-# give_name_to_sets(rubric_num)
+# give_name_to_sets(rubric_num, version)
+# exit()
 
-# set_train, set_dev, docs_train_pos = create_sets(rubrics[rubric_num]['pos'], )
+# set_train, set_dev, docs_train_pos = create_sets(rubrics[rubric_num]['pos'], 20)
 # print(rubric_names[rubric_num], 'positive', set_train, set_dev)
 # prepare_docs(set_dev)
-#
-# set_train, set_dev, docs_train_neg = create_sets(rubrics[rubric_num]['neg'])
+# #
+# set_train, set_dev, docs_train_neg = create_sets(rubrics[rubric_num]['neg'], 40)
 # print(rubric_names[rubric_num], 'negative', set_train, set_dev)
 # prepare_docs(set_dev)
+
 
 # docs_c100 = list(db.get_set_docs(tr_com))
 # random.shuffle(docs_c100)
@@ -312,22 +350,23 @@ rubric_num = '3'
 
 
 
-tr_id_pn = sets[rubric_num]['tr_id_pn']  # pos + neg
-tr_id_pnc = sets[rubric_num]['tr_id_pnc'] # pos + neg + com
-tr_id_pc = sets[rubric_num]['tr_id_pc']
-tr_id_pc100 = sets[rubric_num]['tr_id_pc100']
-test_positive = sets[rubric_num]['test_positive']
-test_negative = sets[rubric_num]['test_negative']
-test_pn = sets[rubric_num]['test_pn']
-tr_pos = sets[rubric_num]['tr_pos']
-tr_neg = sets[rubric_num]['tr_neg']
+tr_id_pn = sets[set_num]['tr_id_pn']  # pos + neg
+tr_id_pnc = sets[set_num]['tr_id_pnc'] # pos + neg + com
+tr_id_pc = sets[set_num]['tr_id_pc']
+tr_id_pc100 = sets[set_num]['tr_id_pc100']
+test_positive = sets[set_num]['test_positive']
+test_negative = sets[set_num]['test_negative']
+test_pn = sets[set_num]['test_pn']
+tr_pos = sets[set_num]['tr_pos']
+tr_neg = sets[set_num]['tr_neg']
 
-# docs_train = list(db.get_set_docs(tr_pos))
-# docs_train.extend(list(db.get_set_docs(tr_com100)))
-# docs_train.extend(list(db.get_set_docs(tr_neg)))
+# docs_train = list(db.get_set_docs(test_positive))
+# docs_train.extend(list(db.get_set_docs(test_negative)))
+# docs_train.extend(list(db.get_set_docs(tr_com)))
 # new_set = db.put_training_set(docs_train)
 # print('new_set...', new_set)
-
+#
+# exit()
 # Восстановление рубрик документов
 # add_rubric_to_docs(rubrics[rubric_num]['pos'], db.get_set_docs(test_positive))
 # add_rubric_to_docs(rubrics[rubric_num]['pos'], db.get_set_docs(tr_pos))

@@ -50,23 +50,23 @@ class Config(object):
 
     new_model = True
 
-    # embed_size = 1000
-    # hidden_size = 500 # 500
-    # l2_embed = 0.000002 # 0.00001
-    # l2_2lay = 0.00005 # 0.000325
-    # window_size = 11 # 11
-    # pre_embedding = True
-    # train_embedding = False
-
-    embed_size = 1000 #50
-    hidden_size = 500 #100
-    l2_embed = 0.00001 # 0.001
-    l2_2lay = 0.000325 # 0.00325
+    embed_size = 1000
+    hidden_size = 500 # 500
+    l2_embed = 0.001
+    l2_2lay = 0.00325
     window_size = 7 # 11
     pre_embedding = True
     train_embedding = False
 
-    batch_size = 64 # 128
+    # embed_size = 50
+    # hidden_size = 100
+    # l2_embed = 0.001
+    # l2_2lay =  0.00325
+    # window_size = 7 # 11
+    # pre_embedding = False
+    # train_embedding = True
+
+    batch_size = 256 # 128
     label_size = 5
     max_epochs = 24
     early_stopping = 6
@@ -89,8 +89,8 @@ class Config(object):
     # features = ['Org', 'Person', 'Loc', 'Date', 'Prof', 'morpho', 'Capital']
 
     # features = ['morpho', 'Capital', 'Prof', 'Loc']
-    # features = ['morpho', 'Capital', 'Prof', 'Loc']
-    features = ['morpho', 'Person']
+    features = ['morpho', 'Capital', 'Prof', 'Loc']
+    # features = ['morpho', 'Person']
     print(features)
     features_length = 0
     for feat in features:
