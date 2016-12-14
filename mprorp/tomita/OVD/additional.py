@@ -8,6 +8,20 @@ def cross(arr):
         out = out & i
     return list(out)
 
+def new_cross(arr):
+    out = []
+    for i in arr[0]:
+        for ii in arr[1]:
+            if i in ii:
+                out.append(ii)
+    for i in arr[1]:
+        for ii in arr[0]:
+            if i in ii:
+                out.append(ii)
+    out = set(out)
+    return list(out)
+
+
 def Location(loc, session, city, level):
     if len(loc[0]) != 1:
         for i in range(len(loc)):
@@ -113,22 +127,8 @@ def get_types(name):
              '_линейный управление_лу_управление на транспорт_' : ['линейное управление', 'лу ', 'управление на транспорте'],
              '_линейный отдел_лоп_ло_': ['линейный отдел', 'лоп', 'ло '],
              '_линейный пункт_лпп_' : ['линейный пункт', 'лпп'],
-             '_отдел полиция_отделение полиция_оп_омвд_' : ['отдел полиции', 'отделение полиции', 'оп ', 'омвд'],
+             '_отдел полиция_отделение полиция_оп_омвд_' : ['отдел полиции', 'отделение полиции', 'оп ', 'омвд', 'мвд'],
              '_пункт полиция_пп_': ['пункт полиции', 'пп']}
     for type in types:
         if '_' + name + '_' in type:
             return types[type]
-
-
-def new_cross(arr):
-    out = []
-    for i in arr[0]:
-        for ii in arr[1]:
-            if i in ii:
-                out.append(i)
-    for i in arr[1]:
-        for ii in arr[0]:
-            if i in ii:
-                out.append(i)
-    out = set(out)
-    return list(out)
