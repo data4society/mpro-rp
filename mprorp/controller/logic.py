@@ -175,6 +175,8 @@ def regular_gn_start_parsing(source_key, **kwargs):
         err_txt = repr(err)
         logging.error("Неизвестная ошибка google_news краулера, source: " + source_key)
         print(err_txt)
+    apps_config = variable_get("last_config", session)
+    source = apps_config[app_id]["crawler"]["yandex_news"][source_key]
     source["ready"] = True
     source["next_crawling_time"] = datetime.datetime.now().timestamp() + source["period"]
     variable_set("last_config", apps_config, session)
@@ -205,6 +207,8 @@ def regular_ga_start_parsing(source_key, **kwargs):
         err_txt = repr(err)
         logging.error("Неизвестная ошибка google_alerts краулера, source: " + source_key)
         print(err_txt)
+    apps_config = variable_get("last_config", session)
+    source = apps_config[app_id]["crawler"]["yandex_news"][source_key]
     source["ready"] = True
     source["next_crawling_time"] = datetime.datetime.now().timestamp() + source["period"]
     variable_set("last_config", apps_config, session)
@@ -218,7 +222,7 @@ def regular_yn_start_parsing(source_key, **kwargs):
     """parsing yandex news request"""
     print("YN CRAWL START: "+source_key)
     session = db_session()
-    apps_config = variable_get("last_config",session)
+    apps_config = variable_get("last_config", session)
     app_id = kwargs["app_id"]
     source = apps_config[app_id]["crawler"]["yandex_news"][source_key]
     """parsing yandex news request"""
@@ -236,6 +240,8 @@ def regular_yn_start_parsing(source_key, **kwargs):
         err_txt = repr(err)
         logging.error("Неизвестная ошибка yandex_news краулера, source: " + source_key)
         print(err_txt)
+    apps_config = variable_get("last_config", session)
+    source = apps_config[app_id]["crawler"]["yandex_news"][source_key]
     source["ready"] = True
     source["next_crawling_time"] = datetime.datetime.now().timestamp() + source["period"]
     variable_set("last_config", apps_config, session)
@@ -291,6 +297,8 @@ def regular_vk_start_parsing(source_key, **kwargs):
         err_txt = repr(err)
         logging.error("Неизвестная ошибка vk краулера, source: " + source_key)
         print(err_txt)
+    apps_config = variable_get("last_config", session)
+    source = apps_config[app_id]["crawler"]["yandex_news"][source_key]
     source["ready"] = True
     source["next_crawling_time"] = datetime.datetime.now().timestamp() + source["period"]
     variable_set("last_config", apps_config, session)
