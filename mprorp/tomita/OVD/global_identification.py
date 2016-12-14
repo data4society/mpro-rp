@@ -1,5 +1,6 @@
 from mprorp.tomita.OVD.tomita_out_ovd import sen_division
-from mprorp.tomita.OVD.additional import cross
+from mprorp.analyzer.db import *
+from mprorp.tomita.OVD.additional import cross, new_cross
 from mprorp.tomita.OVD.code_from_db import get_all_codes
 import re
 
@@ -12,16 +13,26 @@ def codes_to_norm(fact):
             for n in range(level - 1):
                 code = code[0]
             out += code
+        for n in range(len(out)):
+            if fact['type'] == 'OVDFact':
+                out[n] = out[n].external_data['kladr']
+            else:
+                out[n] = cut_kladr(out[n].kladr_id)
         return out
     else:
         return codes
 
+def loc_to_ovd(ovd, loc):
+    if loc in ovd:
+        return True
+    else:
+        return False
 
 def combiner(facts, fact_type):
     if fact_type == 'OVDFact':
         n = 2
     else:
-        n = 100
+        n = 5
     out = []
     used = []
     ovds = []
@@ -33,7 +44,10 @@ def combiner(facts, fact_type):
     for fact1 in ovds:
         for fact2 in ovds:
             if 0 < fact2['fs'] - fact1['ls'] < n:
-                cross_codes = cross([fact1['codes'], fact2['codes']])
+                if fact_type == 'OVDFact':
+                    cross_codes = cross([fact1['codes'], fact2['codes']])
+                else:
+                    cross_codes = new_cross([fact1['codes'], fact2['codes']])
                 if cross_codes != []:
                     new_fact = {'type': fact_type,
                                 'string' : fact1['string'] + ' ' + fact2['string'],
@@ -45,14 +59,15 @@ def combiner(facts, fact_type):
                     out.append(new_fact)
                     used.append(fact1)
                     used.append(fact2)
-        if fact1 not in used:
-            out.append(fact1)
+    for fact in ovds:
+        if fact not in used:
+            out.append(fact)
     return out
 
-def variants1(facts):
-    out = {}
+def variants(facts):
     ovds = []
-    locs =[]
+    locs = []
+    out = []
     used = []
     for fact in facts:
         if fact['type'] == 'OVDFact':
@@ -63,71 +78,19 @@ def variants1(facts):
         for loc in locs:
             for ovd_code in ovd['codes']:
                 for loc_code in loc['codes']:
-                    if cut_kladr(loc_code.kladr_id) in ovd_code.external_data['kladr']:
-                        if ovd['id'] not in out:
-                            out[ovd['id']] = [{'fact' : {'type' : 'OVDVariant',
+                    if loc_to_ovd(ovd_code, loc_code) is True:
+                        out.append(({'type' : 'OVDVariant',
                                          'string' : ovd['string'],
                                          'fs' : ovd['fs'],
                                          'ls' : ovd['ls'],
                                          'loc_used' : loc['string'],
-                                         'codes' : [str(ovd_code.entity_id).replace("UUID('", '').replace("')", '')]},
-                                         'weight' : 1/(max(loc['ls'], ovd['ls']) - min(loc['fs'], ovd['fs']))}]
-                        else:
-                            out[ovd['id']].append({'fact' : {'type' : 'OVDVariant',
-                                         'string' : ovd['string'],
-                                         'fs' : ovd['fs'],
-                                         'ls' : ovd['ls'],
-                                         'loc_used' : loc['string'],
-                                         'codes' : [str(ovd_code.entity_id).replace("UUID('", '').replace("')", '')]},
-                                         'weight' : 1/(max(loc['ls'], ovd['ls']) - min(loc['fs'], ovd['fs']))})
+                                         'codes' : [ovd_code]},
+                                     1 / (max(loc['fs'], ovd['fs']) - min(loc['ls'], ovd['ls']))))
                         used.append(ovd)
         if ovd not in used:
-            codes = []
-            for code in ovd['codes']:
-                codes.append(str(code.entity_id).replace("UUID('", '').replace("')", ''))
-            ovd['codes'] = codes
-            if len(codes) < 4:
-                out[ovd['id']] = [{'weight' : 1, 'fact' : ovd}]
-            else:
-                out[ovd['id']] = [{'weight': 0, 'fact': ovd}]
+            out.append((ovd, 0))
     return out
 
-def variants2(facts, old):
-    out = {}
-    ovds = []
-    locs = []
-    for fact in facts:
-        if fact['type'] == 'OVDFact':
-            ovds.append(fact)
-        else:
-            locs.append(fact)
-    for ovd in ovds:
-        for loc in locs:
-            if loc['string'] != 'рф':
-                for ovd_code in ovd['codes']:
-                    if loc['string'].lower() in ovd_code.data['name'].lower():
-                        if ovd['id'] not in out:
-                            out[ovd['id']] = [{'fact': {'type': 'OVDVariant',
-                                                        'string': ovd['string'],
-                                                        'fs': ovd['fs'],
-                                                        'ls': ovd['ls'],
-                                                        'loc_used': loc['string'],
-                                                        'codes': [str(ovd_code.entity_id).replace("UUID('", '').replace("')",'')]},
-                                                        'weight': 1 / (max(loc['ls'], ovd['ls']) - min(loc['fs'], ovd['fs']))}]
-                        else:
-                            out[ovd['id']].append({'fact': {'type': 'OVDVariant',
-                                                            'string': ovd['string'],
-                                                            'fs': ovd['fs'],
-                                                            'ls': ovd['ls'],
-                                                            'loc_used': loc['string'],
-                                                            'codes': [str(ovd_code.entity_id).replace("UUID('", '').replace("')",'')]},
-                                                            'weight': 1 / (max(loc['ls'], ovd['ls']) - min(loc['fs'], ovd['fs']))})
-    for idd in out:
-        if idd not in old:
-            old[idd] = out[idd]
-        else:
-            old[idd] += out[idd]
-    return old
 
 def step1(tomita_out_file, original_text, n):
     facts = get_all_codes(tomita_out_file, original_text)
@@ -135,51 +98,67 @@ def step1(tomita_out_file, original_text, n):
         fact['codes'] = codes_to_norm(fact)
     facts = combiner(facts, 'OVDFact')
     facts = combiner(facts, 'LocationFact')
-    out = variants1(facts)
-    out = variants2(facts, out)
-    #print(out)
-    out = step2(out)
-    #print(out)
-    out = step3(out)
-    #print(out)
+    facts = variants(facts)
+    out = step2(facts)
     out = max_amount_of_codes(out, n)
-    #print('sentences: ' + str(sen_division(facts)) + '\n')
-    for idd in out:
-        out[idd] = out[idd][0]
+    out = step3(out)
+    out = step4(out)
     return out
 
-def step2(variantss):
-    max_facts = {}
-    for idd in variantss:
-        max_weight = 0
-        for fact in variantss[idd]:
-            if fact['weight'] > max_weight:
-                max_weight = fact['weight']
-        for fact in variantss[idd]:
-            if fact['weight'] == max_weight and len(fact['fact']['codes']) < 4:
-                if str(fact['fact']['fs']) + ':' + str(fact['fact']['ls']) not in max_facts:
-                    max_facts[str(fact['fact']['fs']) + ':' + str(fact['fact']['ls'])] = fact['fact']['codes']
-                else:
-                    max_facts[str(fact['fact']['fs']) + ':' + str(fact['fact']['ls'])] += fact['fact']['codes']
-    return max_facts
+def step2(facts):
+    out_all = []
+    out = []
+    max_weight = 0
+    fs1 = -1
+    for fact in facts:
+        fs = fact[0]['fs']
+        if fs == fs1:
+            if fact[1] > max_weight:
+                max_weight = fact[1]
+                out = [fact]
+            elif fact[1] == max_weight:
+                out.append(fact)
+        else:
+            if out != []:
+                out_all.append(out)
+            fs1 = fs
+            max_weight = 0
+            if fact[1] > max_weight:
+                max_weight = fact[1]
+                out = [fact]
+            elif fact[1] == max_weight:
+                out.append(fact)
+    out_all.append(out)
+    return out_all
 
 def step3(arr):
     out = {}
-    for coord in arr:
-        codes = arr[coord]
-        codes = set(codes)
-        codes = list(codes)
-        out[coord] = codes
+    for facts in arr:
+        for fact in facts:
+            idd = str(fact[0]['fs']) + ':' + str(fact[0]['ls'])
+            if idd not in out:
+                out[idd] = fact[0]['codes']
+            else:
+                out[idd] += fact[0]['codes']
     return out
 
-def max_amount_of_codes(codes, n):
+def step4(facts):
+    session = db_session()
     out = {}
-    for coord in codes:
-        if 0 < len(codes[coord]) <= n:
-            if n == 1:
-                out[coord] = codes[coord][0]
-            else:
-                out[coord] = codes[coord]
+    for fact in facts:
+        codes = facts[fact]
+        out2 = []
+        for code in codes:
+            idd = str(session.query(Entity).filter(Entity.external_data['kladr'].astext == code).first().entity_id).replace("UUID('", '').replace("')", '')
+            out2.append(idd)
+        out[fact] = out2[0]
+    return out
+
+def max_amount_of_codes(facts, n):
+    out = []
+    for fact in facts:
+        if 0 < len(fact) < n:
+            out.append(fact)
     return out
 
 def cut_kladr(code):
@@ -204,17 +183,3 @@ def cut_kladr(code):
         else:
             return kladr
     return kladr
-
-
-
-def pprint():
-    f = open('text_no_n.txt', 'r', encoding='utf-8').read()
-    print('original text: ' + f)
-    out = step1('facts.xml', 'text_no_n.txt')
-    for i in out:
-        print('id: ' + str(i))
-        for ii in out[i]:
-            print('weight: ' + str(ii['weight']))
-            print('ovd: ' + str(ii['fact']))
-            print('original string: ' + f[ii['fact']['fs']:ii['fact']['ls']])
-            print('\n')
