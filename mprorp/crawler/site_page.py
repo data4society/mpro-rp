@@ -26,7 +26,7 @@ def find_full_text(doc):
     title = doc.title
     if title == None:
         title = ''
-    content, doc.title = rf_doc.summary(title=title)
+    content, doc.title, page_meta = rf_doc.summary(title=title)
 
     if content.strip() == '':
         logging.error("Получен пустой текст url: " + url)
@@ -37,6 +37,7 @@ def find_full_text(doc):
     parsed_url = urlparse.urlparse(url)
     publisher_url = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_url)
     meta["publisher"]['url'] = publisher_url
+    meta["page_meta"] = page_meta
 
     if stripped == '':
         raise ValueError('Empty text')
