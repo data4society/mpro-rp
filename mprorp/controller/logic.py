@@ -157,6 +157,7 @@ def router(doc_id, app_id, status):
 @app.task(ignore_result=True, time_limit=660, soft_time_limit=600)
 def regular_gn_start_parsing(source_key, **kwargs):
     """parsing google news request"""
+    print("GN CRAWL START: "+source_key)
     session = db_session()
     apps_config = variable_get("last_config",session)
     app_id = kwargs["app_id"]
@@ -179,11 +180,13 @@ def regular_gn_start_parsing(source_key, **kwargs):
     variable_set("last_config", apps_config, session)
     session.commit()
     session.remove()
+    print("GN CRAWL COMPLETE: "+source_key)
 
 
 @app.task(ignore_result=True, time_limit=660, soft_time_limit=600)
 def regular_ga_start_parsing(source_key, **kwargs):
     """parsing google alerts request"""
+    print("GA CRAWL START: "+source_key)
     session = db_session()
     apps_config = variable_get("last_config",session)
     app_id = kwargs["app_id"]
@@ -207,10 +210,13 @@ def regular_ga_start_parsing(source_key, **kwargs):
     variable_set("last_config", apps_config, session)
     session.commit()
     session.remove()
+    print("GA CRAWL COMPLETE: "+source_key)
 
 
 @app.task(ignore_result=True, time_limit=660, soft_time_limit=600)
 def regular_yn_start_parsing(source_key, **kwargs):
+    """parsing yandex news request"""
+    print("YN CRAWL START: "+source_key)
     session = db_session()
     apps_config = variable_get("last_config",session)
     app_id = kwargs["app_id"]
@@ -235,11 +241,13 @@ def regular_yn_start_parsing(source_key, **kwargs):
     variable_set("last_config", apps_config, session)
     session.commit()
     session.remove()
+    print("YN CRAWL COMPLETE: "+source_key)
 
 
 @app.task(ignore_result=True, time_limit=660, soft_time_limit=600)
 def regular_csv_start_parsing(source_key, **kwargs):
-    """parsing yandex news request"""
+    """parsing csv"""
+    print("CSV CRAWL START: "+source_key)
     session = db_session()
     apps_config = variable_get("last_config",session)
     app_id = kwargs["app_id"]
@@ -258,11 +266,13 @@ def regular_csv_start_parsing(source_key, **kwargs):
         logging.error("Неизвестная ошибка csv краулера, source: " + source_key)
         print(err_txt)
     session.remove()
+    print("CSV CRAWL COMPLETE: "+source_key)
 
 
 @app.task(ignore_result=True, time_limit=660, soft_time_limit=600)
 def regular_vk_start_parsing(source_key, **kwargs):
     """parsing vk request"""
+    print("VK CRAWL START: "+source_key)
     session = db_session()
     apps_config = variable_get("last_config",session)
     app_id = kwargs["app_id"]
@@ -286,6 +296,7 @@ def regular_vk_start_parsing(source_key, **kwargs):
     variable_set("last_config", apps_config, session)
     session.commit()
     session.remove()
+    print("VK CRAWL COMPLETE: "+source_key)
 
 
 #@app.task(ignore_result=True)

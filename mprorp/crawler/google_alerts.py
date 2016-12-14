@@ -25,7 +25,6 @@ def ga_start_parsing(source_url, app_id, session):
         # if no story id was found we parse item from start feed
         parse_ga_item(item, app_id, session, docs, guids)
 
-    print("GNA CRAWL COMPLETE")
     return docs
 
 

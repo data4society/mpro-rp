@@ -24,20 +24,16 @@ def check_sources():
                     source = crawler[source_type][source_key]
                     if source["on"] and source["ready"] and source["next_crawling_time"] < datetime.datetime.now().timestamp():
                         source["ready"] = False
+                        print("ADD "+source_type+" CRAWL "+source_key)
                         if source_type == "vk":  # vk
-                            print("START VK CRAWL")
                             regular_vk_start_parsing.delay(source_key, app_id=app_id)
                         elif source_type == "google_news":  # google_news
-                            print("START GOOGLE NEWS CRAWL")
                             regular_gn_start_parsing.delay(source_key, app_id=app_id)
                         elif source_type == "google_alerts":  # google alerts
-                            print("START GOOGLE ALERTS CRAWL")
                             regular_ga_start_parsing.delay(source_key, app_id=app_id)
                         elif source_type == "yandex_news":  # yandex news
-                            print("START YANDEX NEWS CRAWL")
                             regular_yn_start_parsing.delay(source_key, app_id=app_id)
                         elif source_type == "csv_to_rubricator":  # csv
-                            print("START CSV CRAWL")
                             regular_csv_start_parsing.delay(source_key, app_id=app_id)
                     elif (not source["ready"]) and source["on"] and source["next_crawling_time"] < datetime.datetime.now().timestamp():
                         print("wait for "+source_key)
