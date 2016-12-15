@@ -14,7 +14,8 @@ from sqlalchemy.orm import load_only
 @app.task(ignore_result=True)
 def check_sources():
     """check sources and start crawling if need"""
-    apps_config = variable_get("last_config")
+    session = db_session()
+    apps_config = variable_get("last_config", 0, session)
     for app_id in apps_config:
         app = apps_config[app_id]
         if "crawler" in app:
@@ -22,8 +23,10 @@ def check_sources():
             for source_type in crawler:
                 for source_key in crawler[source_type]:
                     source = crawler[source_type][source_key]
-                    if source["on"] and source["ready"] and source["next_crawling_time"] < datetime.datetime.now().timestamp():
-                        source["ready"] = False
+                    source_status = session.query(SourceStatus).filter_by(app_id=app_id, type=source_type, source_key=source_key).first()
+                    if source["on"] and source_status.ready and source_status.next_crawling_time < datetime.datetime.now().timestamp():
+                        #source["ready"] = False
+                        source_status.ready = False
                         print("ADD "+source_type+" CRAWL "+source_key)
                         if source_type == "vk":  # vk
                             regular_vk_start_parsing.delay(source_key, app_id=app_id)
@@ -37,7 +40,9 @@ def check_sources():
                             regular_csv_start_parsing.delay(source_key, app_id=app_id)
                     elif (not source["ready"]) and source["on"] and source["next_crawling_time"] < datetime.datetime.now().timestamp():
                         print("wait for "+source_key)
-    variable_set("last_config", apps_config)
+    # variable_set("last_config", apps_config)
+    session.commit()
+    session.remove()
 
 
 
