@@ -51,6 +51,8 @@ THRESHOLD_RATIO = 0.1# ++++++++0.666
 TITLE_DENSITY_THRESHOLD = 0.005
 MAX_TITLE_CHECKING = 10
 mystem = Mystem()
+#mystem.start()
+print("READABILITY FUSION INIT MYSTEM")
 
 
 class Unparseable(ValueError):
@@ -168,7 +170,6 @@ class Document:
 
         """
 
-        mystem.start()
         try:
             ruthless = True
             while True:
@@ -258,7 +259,7 @@ class Document:
             else:
                 from readability.compat.three import raise_with_traceback
             raise_with_traceback(Unparseable, sys.exc_info()[2], str_(e))
-        mystem.close()
+        #mystem.close()
 
     def get_article(self, candidates, best_candidate, html_partial=False):
         # Now that we have the top candidate, look through its siblings for
@@ -638,7 +639,7 @@ class Document:
         text = elem.text_content()
         time = datetime.datetime.now()
         text_lemmas = mystem.lemmatize(text)
-        mystem.close()
+        #mystem.close()
         time = datetime.datetime.now() - time
         print(time)
         rate = 0
