@@ -28,7 +28,7 @@ for app in config_list:
                 #source = crawler[source_type][source_key]
                 #source["ready"] = True
                 #source["next_crawling_time"] = 0
-                source_status = SourceStatus(app=app["app_id"], type=source_type, source_key=source_key)
+                source_status = SourceStatus(app_id=app["app_id"], type=source_type, source_key=source_key)
                 session.add(source_status)
     if "rubrication" in app:
         rubricator = app["rubrication"]
