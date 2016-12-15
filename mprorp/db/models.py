@@ -5,6 +5,7 @@ from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR, ARRAY
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import text, functions
 from sqlalchemy import UniqueConstraint
+from sqlalchemy.schema import Index
 
 from mprorp.db.dbDriver import Base
 
@@ -303,6 +304,8 @@ class Rubric(Base):
     name = Column(String(255), nullable=False)
     # creation date
     created = Column(TIMESTAMP(), server_default=functions.current_timestamp())
+    # counter sample rubric
+    counter = Column(Boolean(), server_default="False")
     # parent reference
     parent_id = Column(UUIDType(binary=False), ForeignKey('rubrics.rubric_id'))
     # rubric description
@@ -410,6 +413,8 @@ class Entity(Base):
     data = Column(JSONB())
     # tsv vector for indexing
     tsv = Column(TSVECTOR())
+
+    __table_args__ = (Index("entities_created_idx", "created"),)
 
 
 class Markup(Base):
