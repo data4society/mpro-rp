@@ -38,7 +38,7 @@ def check_sources():
                             regular_yn_start_parsing.delay(source_key, app_id=app_id)
                         elif source_type == "csv_to_rubricator":  # csv
                             regular_csv_start_parsing.delay(source_key, app_id=app_id)
-                    elif (not source["ready"]) and source["on"] and source["next_crawling_time"] < datetime.datetime.now().timestamp():
+                    elif (not source_status.ready) and source["on"] and source_status.next_crawling_time < datetime.datetime.now().timestamp():
                         print("wait for "+source_key)
     # variable_set("last_config", apps_config)
     session.commit()
