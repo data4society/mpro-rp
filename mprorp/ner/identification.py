@@ -418,9 +418,13 @@ def create_refs(doc, refs_settings, refs, session=None, commit_session=True, ver
             print('get_entity_by_labels', )
             db_id = db.get_entity_by_labels(labels_lists[i], add_conditions=add_conditions, verbose=verbose)
             if (db_id is None) and create_wiki_entities:
+                best_label = None
                 # Ищем сущности в викиданных
                 found_items = dict()
                 for l in labels_lists[i]:
+                    if len(l) < 2:
+                        # Это инициал, который ни с чем не "склеился"
+                        continue
                     if wiki_search.is_given_name(l):
                         # Это просто имя - такое как
                         # Алексей, Татьяна
@@ -428,9 +432,12 @@ def create_refs(doc, refs_settings, refs, session=None, commit_session=True, ver
                     wiki_ids_l = wiki_search.find_human(l)
                     for elem in wiki_ids_l:
                         found_items[elem['id']] = elem
+                        best_label = l
                 if len(found_items) == 1:
                     wiki_id = list(found_items.keys())[0]
                     ext_data = {'wiki_id': wiki_id}
+                    # Раз мы что-то нашли, причем один раз, то метка, по котоой это найдено - точно наилучший вариант имени
+                    names[i] = best_label
                     if verbose:
                         print(labels_lists[i])
                     data = None

@@ -295,6 +295,7 @@ class NERModel(LanguageModel):
                 for word in words_for_embedding:
                     if word in model_w2v.vocab:
                         wv_dict[word] = model_w2v[word]
+                print('found words', len(wv_dict), wv_dict.keys())
                 model_w2v = None
 
             if self.config.word_unkn in wv_dict:

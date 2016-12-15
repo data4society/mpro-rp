@@ -297,8 +297,8 @@ def get_doc_id(rec_id):
 
 def script_exec():
 
-    # create_sets('oc_class_person')
-    NER.NER_learning_by_config({"class": 1, "tags": 1, "use_special_tags": 0})
+    create_sets('oc_class_person')
+    # NER.NER_learning_by_config({"class": 1, "tags": 1, "use_special_tags": 0})
     # create_answers('oc_class_loc')
     # prediction('name')
     rec_set = ['d1b44788-bfb6-36b2-d001-713af427127c',

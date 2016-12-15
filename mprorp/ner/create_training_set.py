@@ -297,10 +297,14 @@ def create_sets(rubric_id, test_count=10):
 
 def give_name_to_sets(rub_num, version=''):
     set_num = version + rub_num
+    print(set_num)
     session = Driver.db_session()
     for set_name in sets[set_num]:
-        Tr_set = session.query(TrainingSet).filter(TrainingSet.set_id == sets[rub_num][set_name]).one()
-        Tr_set.name = rubric_names[rub_num] + '_' + set_name + '_' + version
+        Tr_set = session.query(TrainingSet).filter(TrainingSet.set_id == sets[set_num][set_name]).one()
+        new_set_name = rubric_names[rub_num] + '_' + set_name
+        if version != '':
+            new_set_name += '_' + version
+        Tr_set.name = new_set_name
         print(rub_num, set_name, Tr_set.set_id, Tr_set.name)
     # Tr_set = session.query(TrainingSet).filter(TrainingSet.set_id == tr_com).one()
     # # Tr_set.name = 'tr_com'
@@ -331,8 +335,8 @@ rubric_num = '4'
 version = '0'
 set_num = version + rubric_num
 
-# give_name_to_sets(rubric_num, version)
-# exit()
+give_name_to_sets(rubric_num, version=version)
+exit()
 
 # set_train, set_dev, docs_train_pos = create_sets(rubrics[rubric_num]['pos'], 20)
 # print(rubric_names[rubric_num], 'positive', set_train, set_dev)
