@@ -98,10 +98,13 @@ def step1(tomita_out_file, original_text, n):
         fact['codes'] = codes_to_norm(fact)
     facts = combiner(facts, 'OVDFact')
     facts = combiner(facts, 'LocationFact')
+    print(facts)
     facts = variants(facts)
+    print(facts)
     out = step2(facts)
     out = max_amount_of_codes(out, n)
     out = step3(out)
+    print(out)
     out = step4(out)
     return out
 
@@ -157,7 +160,7 @@ def step4(facts):
 def max_amount_of_codes(facts, n):
     out = []
     for fact in facts:
-        if 0 < len(fact) < n:
+        if 0 < len(fact) <= n:
             out.append(fact)
     return out
 

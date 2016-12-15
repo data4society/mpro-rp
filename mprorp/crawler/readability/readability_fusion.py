@@ -178,17 +178,31 @@ class Document:
                     h1 = self.html.find(".//h1")
                     if h1 != None:
                         title_text = h1.text_content()
-                        print("h1",title_text)
                 else:
                     title_text = title
-                print(title_text)
                 if title_text == '':
                     title_text = self.short_title()  # self.html.find(".//title").text_content()  #self.title()
                 title_text = to_plain_text(title_text)
-                print(title_text)
                 self.title_lemmas = mystem.lemmatize(title_text)
                 #mystem.close()
                 self.title_lemmas = [word for word in self.title_lemmas if len(word.strip())>2]
+                meta = dict()
+                metatag = self.html.find(".//title")
+                if metatag is not None:
+                    meta["title"] = metatag.text_content()
+                metatag = self.html.find(".//meta[@name='abstract']")
+                if metatag is not None:
+                    meta["abstract"] = metatag.get('content', '')
+                metatag = self.html.find(".//meta[@name='author']")
+                if metatag is not None:
+                    meta["author"] = metatag.get('content', '')
+                metatag = self.html.find(".//meta[@name='description']")
+                if metatag is not None:
+                    meta["description"] = metatag.get('content', '')
+                metatag = self.html.find(".//meta[@name='keywords']")
+                if metatag is not None:
+                    meta["keywords"] = metatag.get('content', '')
+                self.meta = meta
                 for i in self.tags(self.html, 'script', 'style'):
                     i.drop_tree()
                 for i in self.tags(self.html, 'body'):
@@ -236,7 +250,7 @@ class Document:
                     # Loop through and try again.
                     continue
                 else:
-                    return cleaned_article, title_text
+                    return cleaned_article, title_text, self.meta
         except Exception as e:
             log.exception('error getting summary: ')
             if sys.version_info[0] == 2:

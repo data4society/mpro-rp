@@ -38,7 +38,6 @@ def gn_start_parsing(source_url, app_id, session):
                 for sub_item in sub_items:
                     parse_gn_item(sub_item, app_id, session, docs, guids)
 
-    print("GN CRAWL COMPLETE")
     return docs
 
 

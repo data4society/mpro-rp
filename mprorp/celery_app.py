@@ -11,6 +11,8 @@ with open(relative_file_path(__file__, 'config/app.json')) as app_config_file:
     config_list = json.load(app_config_file)
 config = {}
 session = db_session()
+session.execute("TRUNCATE TABLE sourcestatuses")
+session.commit()
 for app in config_list:
     """
     if "ner_predict" in app:
@@ -23,9 +25,11 @@ for app in config_list:
         crawler = app["crawler"]
         for source_type in crawler:
             for source_key in crawler[source_type]:
-                source = crawler[source_type][source_key]
-                source["ready"] = True
-                source["next_crawling_time"] = 0
+                #source = crawler[source_type][source_key]
+                #source["ready"] = True
+                #source["next_crawling_time"] = 0
+                source_status = SourceStatus(app_id=app["app_id"], type=source_type, source_key=source_key)
+                session.add(source_status)
     if "rubrication" in app:
         rubricator = app["rubrication"]
         new_rubricator = []

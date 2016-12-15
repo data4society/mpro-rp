@@ -38,6 +38,23 @@ class Source(Base):
     wait = Column(Boolean(), server_default="False")
 
 
+class SourceStatus(Base):
+    """sources for crawler and other"""
+    __tablename__ = 'sourcestatuses'
+
+    # id of application (without reference to somewhere)
+    app_id = Column(String(255))
+    # type of source (vk, gn, etc)
+    type = Column(String(255))
+    # source_key (url, login, etc)
+    source_key = Column(String(1023))
+    # time for next crawling the source
+    next_crawling_time = Column(Float(), server_default='0')
+    # Is it waits or in work now
+    ready = Column(Boolean(), server_default="True")
+    __table_args__ = (PrimaryKeyConstraint(app_id, type, source_key),)
+
+
 class Theme(Base):
     """theme object"""
     __tablename__ = 'themes'

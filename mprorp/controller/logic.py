@@ -157,6 +157,7 @@ def router(doc_id, app_id, status):
 @app.task(ignore_result=True, time_limit=660, soft_time_limit=600)
 def regular_gn_start_parsing(source_key, **kwargs):
     """parsing google news request"""
+    print("GN CRAWL START: "+source_key)
     session = db_session()
     apps_config = variable_get("last_config",session)
     app_id = kwargs["app_id"]
@@ -174,16 +175,18 @@ def regular_gn_start_parsing(source_key, **kwargs):
         err_txt = repr(err)
         logging.error("Неизвестная ошибка google_news краулера, source: " + source_key)
         print(err_txt)
-    source["ready"] = True
-    source["next_crawling_time"] = datetime.datetime.now().timestamp() + source["period"]
-    variable_set("last_config", apps_config, session)
+    source_status = session.query(SourceStatus).filter_by(app_id=app_id, type='google_news', source_key=source_key).first()
+    source_status.ready = True
+    source_status.next_crawling_time = datetime.datetime.now().timestamp() + source["period"]
     session.commit()
     session.remove()
+    print("GN CRAWL COMPLETE: "+source_key)
 
 
 @app.task(ignore_result=True, time_limit=660, soft_time_limit=600)
 def regular_ga_start_parsing(source_key, **kwargs):
     """parsing google alerts request"""
+    print("GA CRAWL START: "+source_key)
     session = db_session()
     apps_config = variable_get("last_config",session)
     app_id = kwargs["app_id"]
@@ -202,17 +205,20 @@ def regular_ga_start_parsing(source_key, **kwargs):
         err_txt = repr(err)
         logging.error("Неизвестная ошибка google_alerts краулера, source: " + source_key)
         print(err_txt)
-    source["ready"] = True
-    source["next_crawling_time"] = datetime.datetime.now().timestamp() + source["period"]
-    variable_set("last_config", apps_config, session)
+    source_status = session.query(SourceStatus).filter_by(app_id=app_id, type='google_alerts', source_key=source_key).first()
+    source_status.ready = True
+    source_status.next_crawling_time = datetime.datetime.now().timestamp() + source["period"]
     session.commit()
     session.remove()
+    print("GA CRAWL COMPLETE: "+source_key)
 
 
 @app.task(ignore_result=True, time_limit=660, soft_time_limit=600)
 def regular_yn_start_parsing(source_key, **kwargs):
+    """parsing yandex news request"""
+    print("YN CRAWL START: "+source_key)
     session = db_session()
-    apps_config = variable_get("last_config",session)
+    apps_config = variable_get("last_config", session)
     app_id = kwargs["app_id"]
     source = apps_config[app_id]["crawler"]["yandex_news"][source_key]
     """parsing yandex news request"""
@@ -230,16 +236,18 @@ def regular_yn_start_parsing(source_key, **kwargs):
         err_txt = repr(err)
         logging.error("Неизвестная ошибка yandex_news краулера, source: " + source_key)
         print(err_txt)
-    source["ready"] = True
-    source["next_crawling_time"] = datetime.datetime.now().timestamp() + source["period"]
-    variable_set("last_config", apps_config, session)
+    source_status = session.query(SourceStatus).filter_by(app_id=app_id, type='yandex_news', source_key=source_key).first()
+    source_status.ready = True
+    source_status.next_crawling_time = datetime.datetime.now().timestamp() + source["period"]
     session.commit()
     session.remove()
+    print("YN CRAWL COMPLETE: "+source_key)
 
 
 @app.task(ignore_result=True, time_limit=660, soft_time_limit=600)
 def regular_csv_start_parsing(source_key, **kwargs):
-    """parsing yandex news request"""
+    """parsing csv"""
+    print("CSV CRAWL START: "+source_key)
     session = db_session()
     apps_config = variable_get("last_config",session)
     app_id = kwargs["app_id"]
@@ -258,11 +266,13 @@ def regular_csv_start_parsing(source_key, **kwargs):
         logging.error("Неизвестная ошибка csv краулера, source: " + source_key)
         print(err_txt)
     session.remove()
+    print("CSV CRAWL COMPLETE: "+source_key)
 
 
 @app.task(ignore_result=True, time_limit=660, soft_time_limit=600)
 def regular_vk_start_parsing(source_key, **kwargs):
     """parsing vk request"""
+    print("VK CRAWL START: "+source_key)
     session = db_session()
     apps_config = variable_get("last_config",session)
     app_id = kwargs["app_id"]
@@ -281,11 +291,12 @@ def regular_vk_start_parsing(source_key, **kwargs):
         err_txt = repr(err)
         logging.error("Неизвестная ошибка vk краулера, source: " + source_key)
         print(err_txt)
-    source["ready"] = True
-    source["next_crawling_time"] = datetime.datetime.now().timestamp() + source["period"]
-    variable_set("last_config", apps_config, session)
+    source_status = session.query(SourceStatus).filter_by(app_id=app_id, type='yandex_news', source_key=source_key).first()
+    source_status.ready = True
+    source_status.next_crawling_time = datetime.datetime.now().timestamp() + source["period"]
     session.commit()
     session.remove()
+    print("VK CRAWL COMPLETE: "+source_key)
 
 
 #@app.task(ignore_result=True)

@@ -39,7 +39,6 @@ def yn_start_parsing(source_user, source_pass, app_id, session):
             items = ol.findall("li")
             for item in items:
                 parse_yn_item(item, app_id, session, docs, guids)
-    print("YN CRAWL COMPLETE")
     return docs
 
 def parse_yn_item(item, app_id, session, docs, guids):
