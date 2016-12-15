@@ -49,9 +49,10 @@ class SourceStatus(Base):
     # source_key (url, login, etc)
     source_key = Column(String(1023))
     # time for next crawling the source
-    next_crawling_time = Column(TIMESTAMP(), server_default=0)
+    next_crawling_time = Column(Float(), server_default='0')
     # Is it waits or in work now
     ready = Column(Boolean(), server_default="True")
+    __table_args__ = (PrimaryKeyConstraint(app_id, type, source_key),)
 
 
 class Theme(Base):
