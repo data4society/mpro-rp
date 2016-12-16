@@ -104,6 +104,8 @@ def morpho():
                 if count % 100 == 0:
                     print(count)
                 count += 1
+                if count < 1500:
+                    continue
                 rb.morpho_doc2(str(doc_id))
     print('morpho - done')
 
