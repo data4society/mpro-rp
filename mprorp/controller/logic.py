@@ -66,9 +66,6 @@ SHORT_LENGTH = 2002
 WITHOUT_RUBRICS = 2001
 
 
-facts = ['Person']
-
-
 def router(doc_id, app_id, status):
     """route function, that adds new tasks by incoming result (document's status)"""
     doc_id = str(doc_id)

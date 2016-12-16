@@ -7,7 +7,8 @@ import datetime
 import json
 import math
 
-from mprorp.analyzer.pymystem3_w import Mystem
+# from mprorp.analyzer.pymystem3_w import Mystem
+from mprorp.controller.init import global_mystem as mystem
 from sqlalchemy.orm.attributes import flag_modified
 
 from mprorp.utils import *
@@ -22,7 +23,7 @@ THEMING_SOURCE = "title_morpho"  #""title"  # "morpho"
 THEMING_GEOMETRIA = "shar"
 TITLE_PRIORITY = 1
 
-mystem = Mystem()
+# mystem = Mystem()
 
 def words_renew():
     print("hi")
@@ -34,7 +35,7 @@ def words_renew():
     docs = session.query(Document) \
         .filter(Document.created > last_theme_words_renew.json["value"], Document.title != None) \
         .options(load_only("title")).all()
-    mystem.start()
+    # mystem.start()
     objects = dict()
     i = 0
     #last_theme_words_renew = Variable(name="last_theme_words_renew",json=dict())
@@ -95,7 +96,7 @@ def words_renew():
         #break
     session.commit()
     session.remove()
-    mystem.close()
+    # mystem.close()
 
 
 def check_middle():
@@ -393,7 +394,7 @@ def print_by_themes():
 
 
 def mass_themization():
-    mystem.start()
+    # mystem.start()
     session = db_session()
     docs = session.query(Document).options(load_only("doc_id")). \
         join(Source, Source.source_id == Document.source_id).filter(Document.status == 1001, Document.theme_id == None,
@@ -439,7 +440,7 @@ def mass_themization():
     # print(docs)
     # doc.status = new_status
     # session.commit()
-    mystem.close()
+    # mystem.close()
     # router(doc.doc_id, new_status)
     # doc = session.query(Document).filter_by(doc_id="8c429c1a-54c6-4256-81ba-5db619032937").first()
     # reg_theming(doc, session)
