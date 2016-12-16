@@ -39,11 +39,16 @@ sets = dict()
 #                         'dev': 'cff51852-6d37-4873-bef5-4d088b50a0a3'}
 
 # set for database 46.101.162.206
-sets['oc_class_person'] = {'train': '4fb42fd1-a0cf-4f39-9206-029255115d01',
-                           'dev': 'f861ee9d-5973-460d-8f50-92fca9910345'}
+# sets['oc_class_person'] = {'train': '4fb42fd1-a0cf-4f39-9206-029255115d01',
+#                            'dev': 'f861ee9d-5973-460d-8f50-92fca9910345'}
 
 sets['name'] = {'train': '3a21671e-5ac0-478e-ba14-3bb0ac3059e3', # '2e366853-4533-4bd5-a66e-92a834a1a2ca'
                 'dev': '375fa594-6c76-4f82-84f0-9123b89307c4'}
+
+# огромные выборки: 29313 и 7328
+sets['name'] = {'train': '5fc21192-9a45-41b1-bf6b-df75877b60eb', # '2e366853-4533-4bd5-a66e-92a834a1a2ca'
+                'dev': '5684de0c-c6a1-43ef-b004-daefeeaf5e4a'}
+
 
 # sets['oc_class_org'] = {'train': '78f8c9fb-e385-442e-93b4-aa1a18e952d0',
 #                         'dev': '299c8bd1-4e39-431d-afa9-398b2fb23f69'}
@@ -71,8 +76,8 @@ filename_tf = home_dir + '/weights/ner_oc_' + filename_part + '.weights'
 filename_params = home_dir + '/weights/ner_oc_' + filename_part + '.params'
 
 
-def create_sets(cl):
-    docs = db.get_docs_for_entity_class(cl, markup_type='51', session=session)
+def create_sets(cl, markup_type='51'):
+    docs = db.get_docs_for_entity_class(cl, markup_type=markup_type, session=session)
     random.shuffle(docs)
     train_num = round(len(docs) * 0.8)
     sets[cl]['train'] = str(db.put_training_set(docs[:train_num]))
@@ -80,15 +85,44 @@ def create_sets(cl):
     print(sets)
 
 
+def create_sets_56(markup_type='56'):
+    docs = db.get_docs_by_markup_type(markup_type=markup_type, session=session)
+    random.shuffle(docs)
+    train_num = round(len(docs) * 0.8)
+    set_train_56 = str(db.put_training_set(docs[:train_num]))
+    set_dev_56 = str(db.put_training_set(docs[train_num:len(docs)]))
+    print(train_num, set_train_56)
+    print(len(docs) - train_num, set_dev_56)
+
+
 def morpho():
     # 2. morpho and other steps for docs from sets
-
+    count = 0
     for cl in set_docs:
         for set_type in set_docs[cl]:
             for doc_id in set_docs[cl][set_type]:
+                if count % 100 == 0:
+                    print(count)
+                count += 1
                 rb.morpho_doc2(str(doc_id))
     print('morpho - done')
 
+
+def check_morpho():
+    count = 0
+    count_done = 0
+    for cl in set_docs:
+        for set_type in set_docs[cl]:
+            for doc_id in set_docs[cl][set_type]:
+                if count % 100 == 0:
+                    print('count',count, count_done)
+                if count_done % 100 == 0:
+                    print('count_done',count, count_done)
+                count += 1
+                doc = session.query(Document).filter_by(doc_id=doc_id).first()
+                if len(doc.morpho) > 0:
+                    count_done += 1
+    print('morpho chek - done')
 
 def capital():
     for cl in set_docs:
@@ -297,7 +331,11 @@ def get_doc_id(rec_id):
 
 def script_exec():
 
-    create_sets('oc_class_person')
+    # create_sets_56()
+    # check_morpho()
+    # exit()
+    morpho()
+    exit()
     # NER.NER_learning_by_config({"class": 1, "tags": 1, "use_special_tags": 0})
     # create_answers('oc_class_loc')
     # prediction('name')

@@ -602,6 +602,16 @@ def get_references_for_doc(markup_id, session=None):
     return result
 
 
+def get_docs_by_markup_type(markup_type='51', session=None):
+
+    if session is None:
+        session = Driver.db_session()
+
+    res = session.query(Markup.document).filter((Markup.type == markup_type)).distinct().all()
+
+    return [str(r.document) for r in res]
+
+
 def get_docs_for_entity_class(entity_class, markup_type='51', session=None):
 
     if session is None:
