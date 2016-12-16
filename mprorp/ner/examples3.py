@@ -120,7 +120,7 @@ def check_morpho():
                     print('count_done',count, count_done)
                 count += 1
                 doc = session.query(Document).filter_by(doc_id=doc_id).first()
-                if len(doc.morpho) > 0:
+                if doc.morpho is not None:
                     count_done += 1
     print('morpho chek - done')
 
