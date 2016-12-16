@@ -1,6 +1,7 @@
 import re
-from mprorp.analyzer.pymystem3_w import Mystem
-mystem = Mystem()
+# from mprorp.analyzer.pymystem3_w import Mystem
+from mprorp.controller.init import global_mystem as mystem
+# mystem = Mystem()
 
 def coordinates(fact):
     parameters = {}

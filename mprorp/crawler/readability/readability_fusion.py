@@ -23,7 +23,8 @@ from lxml.html import HtmlElement
 
 from lxml import etree
 
-from mprorp.analyzer.pymystem3_w import Mystem
+# from mprorp.analyzer.pymystem3_w import Mystem
+from mprorp.controller.init import global_mystem as mystem
 from mprorp.crawler.utils import to_plain_text
 import datetime
 
@@ -50,7 +51,7 @@ REGEXES = {
 THRESHOLD_RATIO = 0.1# ++++++++0.666
 TITLE_DENSITY_THRESHOLD = 0.005
 MAX_TITLE_CHECKING = 10
-mystem = Mystem()
+#mystem = Mystem()
 #mystem.start()
 print("READABILITY FUSION INIT MYSTEM")
 

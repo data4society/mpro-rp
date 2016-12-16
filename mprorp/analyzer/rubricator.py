@@ -106,7 +106,7 @@ def morpho_doc2(doc_id):
 def morpho_doc(doc, verbose=False):
     """morphological analysis for document """
     doc_text = doc.stripped
-    mystem_analyzer.start()
+    # mystem_analyzer.start()
     # new_morpho = mystem_analyzer.analyze(doc_text)
     new_morpho = mystem_analyzer.analyze(doc_text)
 
@@ -274,7 +274,7 @@ def morpho_doc(doc, verbose=False):
         print('Error: different length: text - ', len(doc_text), ' last symbol in morpho: ', start_offset2)
         print('    doc_id: ', doc.doc_id)
     doc.morpho = morpho_list
-    mystem_analyzer.close()
+    # mystem_analyzer.close()
 
 
 # counting lemmas frequency for one document
@@ -991,7 +991,7 @@ def calculate_indicators_lemmas(session=None):
     lex_doc_count_150 = {}
 
     docs = session.query(Document.stripped).filter(Document.stripped != '').all()
-    mystem_analyzer.start()
+    # mystem_analyzer.start()
     for doc in docs:
         doc_text = doc[0]
         lex_doc = calculate_doc_lemmas(doc_text)
@@ -1018,7 +1018,7 @@ def calculate_indicators_lemmas(session=None):
                 else:
                     lex_doc_count_150[lex_doc_key] = 1
 
-    mystem_analyzer.close()
+    # mystem_analyzer.close()
 
     l = lambda x: x[1]
     #print(sorted(lex_count.items(), key=l, reverse=True))
