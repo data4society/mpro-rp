@@ -106,6 +106,17 @@ sets['04'] = {
     'tr_neg': 'e4855bc6-c528-4bcc-8faf-e9e625856cff',
     'test_pn': '9574e5a5-9f6d-45a0-b50a-9680a8e2385f'
 }
+sets['06'] = {
+    'tr_id_pn': 'f2a966a4-16a0-431b-84ab-6518137c94c2', # pos + neg
+    'tr_id_pnc': 'd8566fd9-a2fa-4f5f-8e35-38703d0e6f4c', # pos + neg + com
+    'tr_id_pc': '3873aeb3-f70f-440f-9037-af127dd4e00d', # pos + com
+    'tr_id_pc100': '2ddca0d4-b514-4979-87fe-6d6826791cd6',
+    'test_positive': '25eb5af9-8021-40ea-ab69-bd95adc6d752',
+    'test_negative': 'd1e5dadb-f5bf-4cd5-9ce9-841bd1b71eb8',
+    'tr_pos': '8c20da89-a46f-4b52-9411-e07f3c198bd2',
+    'tr_neg': 'f35f33ca-c363-4f6f-a0fa-cad89345107c',
+    'test_pn': '9f380071-151e-41ed-bcdb-5c8d69002970'
+}
 
 
 def create_training_set(rubric_id, session=None):
@@ -331,17 +342,17 @@ test_com = '5544e81e-6dda-458f-9f79-e40d990e6e94'
 # doc_id = 'f98e75ea-feee-480d-80cc-fe5b4a21e727'
 # rb.spot_doc_rubrics2(doc_id, conf, verbose=True)
 
-rubric_num = '4'
+rubric_num = '6'
 version = '0'
 set_num = version + rubric_num
 
-give_name_to_sets(rubric_num, version=version)
-exit()
+# give_name_to_sets(rubric_num, version=version)
+# exit()
 
 # set_train, set_dev, docs_train_pos = create_sets(rubrics[rubric_num]['pos'], 20)
 # print(rubric_names[rubric_num], 'positive', set_train, set_dev)
 # prepare_docs(set_dev)
-# #
+#
 # set_train, set_dev, docs_train_neg = create_sets(rubrics[rubric_num]['neg'], 40)
 # print(rubric_names[rubric_num], 'negative', set_train, set_dev)
 # prepare_docs(set_dev)
@@ -364,20 +375,19 @@ test_pn = sets[set_num]['test_pn']
 tr_pos = sets[set_num]['tr_pos']
 tr_neg = sets[set_num]['tr_neg']
 
-# docs_train = list(db.get_set_docs(test_positive))
-# docs_train.extend(list(db.get_set_docs(test_negative)))
+# docs_train = list(db.get_set_docs(tr_pos))
+# docs_train.extend(list(db.get_set_docs(tr_neg)))
 # docs_train.extend(list(db.get_set_docs(tr_com)))
 # new_set = db.put_training_set(docs_train)
 # print('new_set...', new_set)
 #
-# exit()
 # Восстановление рубрик документов
 # add_rubric_to_docs(rubrics[rubric_num]['pos'], db.get_set_docs(test_positive))
 # add_rubric_to_docs(rubrics[rubric_num]['pos'], db.get_set_docs(tr_pos))
 
 training_set = tr_id_pc
-# prepare_docs(tr_pos)
-# prepare_docs(tr_neg)
+prepare_docs(tr_pos)
+prepare_docs(tr_neg)
 teach_rubricator(training_set, rubrics[rubric_num]['pos'])
 # print('Обучение рубрикатора завершено')
 
