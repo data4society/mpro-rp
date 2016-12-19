@@ -110,21 +110,41 @@ def morpho():
     print('morpho - done')
 
 
-def check_morpho():
+def morpho_with_check(doc_list):
     count = 0
-    count_done = 0
-    for cl in set_docs:
-        for set_type in set_docs[cl]:
-            for doc_id in set_docs[cl][set_type]:
-                if count % 100 == 0:
-                    print('count',count, count_done)
-                if count_done % 100 == 0:
-                    print('count_done',count, count_done)
-                count += 1
-                doc = session.query(Document).filter_by(doc_id=doc_id).first()
-                if doc.morpho is not None:
-                    count_done += 1
-    print('morpho chek - done')
+    bad_list = []
+    for doc_id in doc_list:
+        if count % 500 == 0:
+            print('count',count)
+        count += 1
+        try:
+            doc = session.query(Document).filter_by(doc_id=doc_id).first()
+            if doc.morpho is None:
+                rb.morpho_doc(doc)
+                session.commit()
+        except:
+            bad_list.add(doc_id)
+    return bad_list
+
+
+def capital_embedding_morpho_feature(doc_list, start_doc = 0):
+    count = 0
+    bad_list = []
+    for doc_id in doc_list[start_doc:]:
+        if count % 2 == 0:
+            print('count',count)
+        count += 1
+        # try:
+        doc = session.query(Document).filter_by(doc_id=doc_id).first()
+        ner_feature.create_capital_feature(doc, session=session, commit_session=False)
+        ner_feature.create_embedding_feature(doc, session=session, commit_session=False)
+        ner_feature.create_morpho_feature(doc,session=session, commit_session=False)
+        session.commit()
+        # except:
+        #     bad_list.append(doc_id)
+        #     print('except:', doc_id)
+    return bad_list
+
 
 def capital():
     for cl in set_docs:
@@ -334,8 +354,37 @@ def get_doc_id(rec_id):
 def script_exec():
 
     # create_sets_56()
-    # check_morpho()
-    # exit()
+    # bad_list = set_docs['name']['train']
+    # print('start train')
+    # past_count = 0
+    # while (len(bad_list) > 0) and (len(bad_list) != past_count):
+    #     past_count = len(bad_list)
+    #     bad_list = morpho_with_check(bad_list)
+    #     print('morpho tried for', past_count, 'rest', len(bad_list))
+    # print('train stopped. past_count = ', len(bad_list))
+    # bad_list = set_docs['name']['dev']
+    # print('start dev')
+    # past_count = 0
+    # while (len(bad_list) > 0) and (len(bad_list) != past_count):
+    #     past_count = len(bad_list)
+    #     bad_list = morpho_with_check(bad_list)
+    #     print('morpho tried for', past_count, 'rest', len(bad_list))
+    # print('train stopped. past_count = ', len(bad_list))
+
+    bad_list = set_docs['name']['train']
+    print('start train')
+    past_count = 0
+    start_count = 18000
+    while (len(bad_list) > 0) and (len(bad_list) != past_count):
+        past_count = len(bad_list)
+        bad_list = capital_embedding_morpho_feature(bad_list, start_count)
+        start_count = 0
+        print('feature tried for', past_count, 'rest', len(bad_list))
+    if len(bad_list) > 0:
+        print('bad list:', bad_list)
+    print('train stopped. past_count = ', len(bad_list))
+
+    exit()
     morpho()
     exit()
     # NER.NER_learning_by_config({"class": 1, "tags": 1, "use_special_tags": 0})

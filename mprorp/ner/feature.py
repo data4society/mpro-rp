@@ -153,7 +153,8 @@ def create_embedding_feature2(doc_id):
 def create_embedding_feature(doc, session=None, commit_session=True):
     """create lemmas to look for in embedding"""
     doc_id = doc.doc_id
-    morpho = db.get_morpho(doc_id)
+    # morpho = db.get_morpho(doc_id)
+    morpho = doc.morpho
     values = []
     for element in morpho:
         if element.get('word_index', -1) != -1:
@@ -186,7 +187,8 @@ def create_morpho_feature2(doc_id):
 def create_morpho_feature(doc, session=None, commit_session=True):
     """create feature for NER from morpho features"""
     doc_id = doc.doc_id
-    morpho = db.get_morpho(doc_id)
+    # morpho = db.get_morpho(doc_id)
+    morpho = doc.morpho
     values = []
     for element in morpho:
         if element.get('word_index', -1) != -1:
@@ -218,7 +220,7 @@ def create_capital_feature(doc, session=None, commit_session=True):
     """create feature for NER from capital features"""
     doc_id = doc.doc_id
     values = []
-    morpho = db.get_morpho(doc_id)
+    morpho = doc.morpho
     for element in morpho:
         if element.get('word_index', -1) != -1:
             text = element.get('text', '').strip()

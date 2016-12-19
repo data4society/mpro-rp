@@ -104,7 +104,7 @@ def morpho_doc2(doc_id):
 
 
 def morpho_doc(doc, verbose=False):
-    """morphological analysis for document """
+    """morphologicapl analysis for document """
     doc_text = doc.stripped
     # mystem_analyzer.start()
     # new_morpho = mystem_analyzer.analyze(doc_text)
