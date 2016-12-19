@@ -1,3 +1,5 @@
+import sys
+sys.path.insert(0, '..')
 from mprorp.utils import home_dir
 from gensim.models import word2vec
 
