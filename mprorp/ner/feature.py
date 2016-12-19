@@ -224,13 +224,14 @@ def create_capital_feature(doc, session=None, commit_session=True):
     for element in morpho:
         if element.get('word_index', -1) != -1:
             text = element.get('text', '').strip()
-            try:
+            if text == '':
+                values.append({'word_index': element['word_index'],
+                               'sentence_index': element['sentence_index'],
+                               'value': [0, 0]})
+            else:
                 values.append({'word_index': element['word_index'],
                                'sentence_index': element['sentence_index'],
                                'value': [1 if text[0].isupper() else 0, 0 if len(text) == 1 or text[1:].islower() else 1]})
-            except IndexError:
-                print('IndexError: string index out of range:', '"' + text + '"')
-                print(doc_id)
     if len(values) > 0:
         db.put_ner_feature(doc_id, values, ner_feature_types['Capital'], 'Capital', session, commit_session)
 
