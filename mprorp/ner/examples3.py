@@ -374,7 +374,7 @@ def script_exec():
     bad_list = set_docs['name']['train']
     print('start train')
     past_count = 0
-    start_count = 18120
+    start_count = 20320
     while (len(bad_list) > 0) and (len(bad_list) != past_count):
         past_count = len(bad_list)
         bad_list = capital_embedding_morpho_feature(bad_list, start_count)
