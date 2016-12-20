@@ -11,7 +11,7 @@ from mprorp.crawler.utils import send_get_request
 import datetime
 
 
-def ga_start_parsing(source_url, app_id, session):
+def ga_start_parsing(source_url, blacklist, app_id, session):
     """download google news start feed and feeds for every story"""
     # download google news start feed
     req_result = send_get_request(source_url, has_encoding=True)
@@ -23,17 +23,20 @@ def ga_start_parsing(source_url, app_id, session):
     guids = []
     for item in items:
         # if no story id was found we parse item from start feed
-        parse_ga_item(item, app_id, session, docs, guids)
+        parse_ga_item(item, blacklist, app_id, session, docs, guids)
 
     return docs
 
 
-def parse_ga_item(item, app_id, session, docs, guids):
+def parse_ga_item(item, blacklist, app_id, session, docs, guids):
     """parses one news item and create new Document object"""
     title = strip_tags('<html><body>' + item.find("{http://www.w3.org/2005/Atom}title").text + '</body></html>')
     gnews_link = item.find("{http://www.w3.org/2005/Atom}link").get("href")
     parsed_uri = urlparse.urlparse(gnews_link)
     url = urlparse.parse_qs(parsed_uri.query)['url'][0]
+    if check_url_with_blacklist(url, blacklist):
+        print("BLACKLIST STOP: "+url)
+        return
     parsed_uri = urlparse.urlparse(url)
     publisher = parsed_uri.netloc
     date_text = item.find("{http://www.w3.org/2005/Atom}published").text

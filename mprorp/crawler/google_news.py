@@ -6,11 +6,11 @@ import urllib.parse as urlparse
 
 from mprorp.db.models import *
 
-from mprorp.crawler.utils import send_get_request
+from mprorp.crawler.utils import send_get_request, check_url_with_blacklist
 import datetime
 
 
-def gn_start_parsing(source_url, app_id, session):
+def gn_start_parsing(source_url, blacklist, app_id, session):
     """download google news start feed and feeds for every story"""
     # download google news start feed
     req_result = send_get_request(source_url,'utf-8')
@@ -26,7 +26,7 @@ def gn_start_parsing(source_url, app_id, session):
         ncls = re.findall(r'ncl=([A-Za-z0-9-_]+)',desc)
         # if no story id was found we parse item from start feed
         if len(ncls) == 0:
-            parse_gn_item(item, app_id, session, docs, guids)
+            parse_gn_item(item, blacklist, app_id, session, docs, guids)
         else:
             for ncl in ncls:
                 # download google news story feed
@@ -36,16 +36,19 @@ def gn_start_parsing(source_url, app_id, session):
                 # print(len(sub_channel.findall("item")))
                 sub_items = sub_channel.findall("item")
                 for sub_item in sub_items:
-                    parse_gn_item(sub_item, app_id, session, docs, guids)
+                    parse_gn_item(sub_item, blacklist, app_id, session, docs, guids)
 
     return docs
 
 
-def parse_gn_item(item, app_id, session, docs, guids):
+def parse_gn_item(item, blacklist, app_id, session, docs, guids):
     """parses one news item and create new Document object"""
     title = item.find("title").text
     gnews_link = item.find("link").text
     url = urlparse.parse_qs(urlparse.urlparse(gnews_link).query)['url'][0]
+    if check_url_with_blacklist(url, blacklist):
+        print("BLACKLIST STOP: "+url)
+        return
     date_text = item.find("pubDate").text
 
     date = datetime.datetime.strptime(date_text, "%a, %d %b %Y %H:%M:%S %Z") #Mon, 13 Jun 2016 14:54:42 GMT

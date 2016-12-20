@@ -3,9 +3,10 @@
 from mprorp.db.models import *
 import csv
 from mprorp.utils import relative_file_path
+from mprorp.crawler.utils import check_url_with_blacklist
 import datetime
 
-def csv_start_parsing(source_name, app_id, session):
+def csv_start_parsing(source_name, blacklist, app_id, session):
     """download google news start feed and feeds for every story"""
 
     docs = []
@@ -15,6 +16,9 @@ def csv_start_parsing(source_name, app_id, session):
         for row in spamreader:
             rubric = session.query(Rubric).filter_by(name=row[0]).first()
             url = row[1]
+            if check_url_with_blacklist(url, blacklist):
+                print("BLACKLIST STOP: "+url)
+                return
             date = datetime.datetime.fromtimestamp(datetime.datetime.now().timestamp())
             guid = app_id + url
             if guid not in guids:

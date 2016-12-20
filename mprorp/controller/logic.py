@@ -159,8 +159,9 @@ def regular_gn_start_parsing(source_key, **kwargs):
     apps_config = variable_get("last_config",session)
     app_id = kwargs["app_id"]
     source = apps_config[app_id]["crawler"]["google_news"][source_key]
+    blacklist = apps_config[app_id]["blacklist"] if "blacklist" in apps_config[app_id] else []
     try:
-        docs = gn_start_parsing(source_key, app_id, session)
+        docs = gn_start_parsing(source_key, blacklist, app_id, session)
         for doc in docs:
             doc.status = GOOGLE_NEWS_INIT_STATUS
             doc.source_with_type = "google_news "+source_key
@@ -188,9 +189,9 @@ def regular_ga_start_parsing(source_key, **kwargs):
     apps_config = variable_get("last_config",session)
     app_id = kwargs["app_id"]
     source = apps_config[app_id]["crawler"]["google_alerts"][source_key]
-    app_id = kwargs["app_id"]
+    blacklist = apps_config[app_id]["blacklist"] if "blacklist" in apps_config[app_id] else []
     try:
-        docs = ga_start_parsing(source_key, app_id, session)
+        docs = ga_start_parsing(source_key, blacklist, app_id, session)
         for doc in docs:
             doc.status = GOOGLE_ALERTS_INIT_STATUS
             doc.source_with_type = "google_alerts "+source_key
@@ -218,10 +219,9 @@ def regular_yn_start_parsing(source_key, **kwargs):
     apps_config = variable_get("last_config", session)
     app_id = kwargs["app_id"]
     source = apps_config[app_id]["crawler"]["yandex_news"][source_key]
-    """parsing yandex news request"""
-    app_id = kwargs["app_id"]
+    blacklist = apps_config[app_id]["blacklist"] if "blacklist" in apps_config[app_id] else []
     try:
-        docs = yn_start_parsing(source_key, source["pass"], app_id, session)
+        docs = yn_start_parsing(source_key, blacklist, source["pass"], app_id, session)
         for doc in docs:
             doc.status = YANDEX_NEWS_INIT_STATUS
             doc.source_with_type = "yandex_news "+source_key
@@ -249,8 +249,9 @@ def regular_csv_start_parsing(source_key, **kwargs):
     apps_config = variable_get("last_config",session)
     app_id = kwargs["app_id"]
     source = apps_config[app_id]["crawler"]["csv_to_rubricator"][source_key]
+    blacklist = apps_config[app_id]["blacklist"] if "blacklist" in apps_config[app_id] else []
     try:
-        docs = csv_start_parsing(source_key, app_id, session)
+        docs = csv_start_parsing(source_key, blacklist, app_id, session)
         for doc in docs:
             doc.status = CSV_INIT_STATUS
             doc.source_with_type = "csv "+source_key

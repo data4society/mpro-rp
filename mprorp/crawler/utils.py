@@ -3,6 +3,7 @@ from requests import Request, Session
 from html.parser import HTMLParser
 import re
 from user_agent import generate_user_agent, generate_navigator
+from urllib.parse import urlparse
 
 
 def send_get_request(url, encoding='', gen_useragent=False, has_encoding=False):
@@ -43,6 +44,29 @@ def to_plain_text(txt):
     lines = [line.strip('\t\n\r').strip() for line in lines]
     lines = [line for line in lines if line]
     return "\n".join(lines)
+
+
+def check_url_with_blacklist(url, blacklist):
+    """get domains for checking in blacklist"""
+    # example.com=>[example.com, *example.com]
+    # www.example.com=>[example.com, *example.com]
+    # sub.example.com=>[sub.example.com, *example.com]
+    o = urlparse(url)
+    domain = o.netloc
+    parts = domain.split(".")
+    lp = len(parts)
+    if lp == 2:
+        domains_to_check = [domain, "*"+domain]
+    else:
+        sl_domain = parts[lp-2]+"."+parts[lp-1]
+        if lp == 3 and parts[0] == "www":
+            domains_to_check = [sl_domain, "*"+sl_domain]
+        else:
+            domains_to_check = [domain, "*"+sl_domain]
+    for domain in domains_to_check:
+        if domain in blacklist:
+            return True
+    return False
 
 
 def cutter(txt, length, min_paragraph_length, max_paragraph_length):
