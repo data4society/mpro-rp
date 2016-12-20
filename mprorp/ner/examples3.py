@@ -132,7 +132,7 @@ def capital_embedding_morpho_feature(doc_list, start_doc = 0):
     bad_list = []
     for doc_id in doc_list[start_doc:]:
         if count % 2 == 0:
-            print('count',count)
+            print('count',start_doc + count)
         count += 1
         # try:
         doc = session.query(Document).filter_by(doc_id=doc_id).first()
@@ -371,10 +371,10 @@ def script_exec():
     #     print('morpho tried for', past_count, 'rest', len(bad_list))
     # print('train stopped. past_count = ', len(bad_list))
 
-    bad_list = set_docs['name']['train']
+    bad_list = set_docs['name']['dev']
     print('start train')
     past_count = 0
-    start_count = 23480
+    start_count = 0
     while (len(bad_list) > 0) and (len(bad_list) != past_count):
         past_count = len(bad_list)
         bad_list = capital_embedding_morpho_feature(bad_list, start_count)
