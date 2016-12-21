@@ -9,6 +9,8 @@ if __name__ == '__main__':
     print("STARTING NER LEARNING")
     #NER_person_learning()
     apps_config = variable_get("last_config")
+    NER_learning_by_config({"class": 1, "tags": 1, "use_special_tags": 0})
+    """
     for app_id in apps_config:
         app = apps_config[app_id]
         if "ner_predict" in app:
@@ -17,4 +19,5 @@ if __name__ == '__main__':
                 print("START LEARNING WITH SETTINGS", settings)
                 NER_learning_by_config(settings)
                 print("COMPLETE LEARNING WITH SETTINGS", settings)
+    """
     print("LEARNING COMPLETE")
