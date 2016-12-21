@@ -9,7 +9,7 @@ server {
 
     # for accessing celery log
     location /celery_log.txt {
-        root /home/mprorp;
+        root /home/mprorp/mpro-rp-dev;
         charset utf-8;
     }
 
