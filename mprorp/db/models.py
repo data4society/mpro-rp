@@ -66,6 +66,8 @@ class Theme(Base):
     last_renew_time = Column(TIMESTAMP())
     # words of docs titles with their reits
     words = Column(JSONB())
+    # id of application (without reference to somewhere)
+    app_id = Column(String(255))
 
 
 class ThemeWord(Base):
