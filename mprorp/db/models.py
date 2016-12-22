@@ -426,6 +426,8 @@ class Markup(Base):
     markup_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
     # document
     document = Column(UUIDType(binary=False), ForeignKey('documents.doc_id'))
+    doc = relationship(Document)
+
     name = Column(String(255))
     # data
     data = Column(JSONB())
