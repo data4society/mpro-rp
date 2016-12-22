@@ -25,8 +25,10 @@ sets['oc_class_person'] = {'train': '2e366853-4533-4bd5-a66e-92a834a1a2ca',
                            'dev': 'f861ee9d-5973-460d-8f50-92fca9910345'}
 # sets['name'] = {'train': '4fb42fd1-a0cf-4f39-9206-029255115d01',
 #                 'dev': 'f861ee9d-5973-460d-8f50-92fca9910345'}
-sets['name'] = {'train': '3a21671e-5ac0-478e-ba14-3bb0ac3059e3',
-                'dev': '375fa594-6c76-4f82-84f0-9123b89307c4'}
+# sets['name'] = {'train': '3a21671e-5ac0-478e-ba14-3bb0ac3059e3',
+#                 'dev': '375fa594-6c76-4f82-84f0-9123b89307c4'}
+sets['name'] = {'train': '6bdc99ea-0176-4892-954d-d89ae8d253d3',
+                'dev': 'a067d48c-4da4-4f7d-a116-0f11add07275'}
 sets['oc_class_org'] = {'train': '78f8c9fb-e385-442e-93b4-aa1a18e952d0',
                         'dev': '299c8bd1-4e39-431d-afa9-398b2fb23f69'}
 sets['oc_class_loc'] = {'train': '74210e3e-0127-4b21-b4b7-0b55855ca02e',

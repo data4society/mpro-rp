@@ -46,8 +46,13 @@ sets['name'] = {'train': '3a21671e-5ac0-478e-ba14-3bb0ac3059e3', # '2e366853-453
                 'dev': '375fa594-6c76-4f82-84f0-9123b89307c4'}
 
 # огромные выборки: 29313 и 7328
-sets['name'] = {'train': '5fc21192-9a45-41b1-bf6b-df75877b60eb', # '2e366853-4533-4bd5-a66e-92a834a1a2ca'
-                'dev': '5684de0c-c6a1-43ef-b004-daefeeaf5e4a'}
+# sets['name'] = {'train': '5fc21192-9a45-41b1-bf6b-df75877b60eb', # '2e366853-4533-4bd5-a66e-92a834a1a2ca'
+#                 'dev': '5684de0c-c6a1-43ef-b004-daefeeaf5e4a'}
+
+# огромные выборки: 29774 и 7443
+sets['name'] = {'train': '6bdc99ea-0176-4892-954d-d89ae8d253d3', # '2e366853-4533-4bd5-a66e-92a834a1a2ca'
+                'dev': 'a067d48c-4da4-4f7d-a116-0f11add07275'}
+
 
 
 # sets['oc_class_org'] = {'train': '78f8c9fb-e385-442e-93b4-aa1a18e952d0',
@@ -354,22 +359,24 @@ def get_doc_id(rec_id):
 def script_exec():
 
     # create_sets_56()
-    # bad_list = set_docs['name']['train']
-    # print('start train')
-    # past_count = 0
-    # while (len(bad_list) > 0) and (len(bad_list) != past_count):
-    #     past_count = len(bad_list)
-    #     bad_list = morpho_with_check(bad_list)
-    #     print('morpho tried for', past_count, 'rest', len(bad_list))
-    # print('train stopped. past_count = ', len(bad_list))
-    # bad_list = set_docs['name']['dev']
-    # print('start dev')
-    # past_count = 0
-    # while (len(bad_list) > 0) and (len(bad_list) != past_count):
-    #     past_count = len(bad_list)
-    #     bad_list = morpho_with_check(bad_list)
-    #     print('morpho tried for', past_count, 'rest', len(bad_list))
-    # print('train stopped. past_count = ', len(bad_list))
+    bad_list = set_docs['name']['train']
+    print('start morpho train')
+    past_count = 0
+    while (len(bad_list) > 0) and (len(bad_list) != past_count):
+        past_count = len(bad_list)
+        bad_list = morpho_with_check(bad_list)
+        print('morpho tried for', past_count, 'rest', len(bad_list))
+    print('train stopped. past_count = ', len(bad_list))
+    bad_list = set_docs['name']['dev']
+    print('start morpho dev')
+    past_count = 0
+    while (len(bad_list) > 0) and (len(bad_list) != past_count):
+        past_count = len(bad_list)
+        bad_list = morpho_with_check(bad_list)
+        print('morpho tried for', past_count, 'rest', len(bad_list))
+    print('train stopped. past_count = ', len(bad_list))
+
+    exit()
 
     bad_list = set_docs['name']['dev']
     print('start train')
@@ -387,7 +394,7 @@ def script_exec():
     exit()
     morpho()
     exit()
-    # NER.NER_learning_by_config({"class": 1, "tags": 1, "use_special_tags": 0})
+    NER.NER_learning_by_config({"class": 1, "tags": 1, "use_special_tags": 0})
     # create_answers('oc_class_loc')
     # prediction('name')
     rec_set = ['d1b44788-bfb6-36b2-d001-713af427127c',
