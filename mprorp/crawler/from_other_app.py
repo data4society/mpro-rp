@@ -12,6 +12,7 @@ def other_app_cloning(other_app_id, blacklist, url_domain, fields_to_clone, comp
     docs = []
     for origin_doc in origin_docs:
         url = origin_doc.url
+        origin_doc_id = origin_doc.doc_id
         if check_url_with_blacklist(url, blacklist):
             print("BLACKLIST STOP: " + url)
             break
@@ -19,10 +20,10 @@ def other_app_cloning(other_app_id, blacklist, url_domain, fields_to_clone, comp
         for field in fields_to_clone:
             setattr(new_doc, field, getattr(origin_doc, field))
         new_doc.guid = app_id+url
-        record_id = session.query(Record).filter_by(source=origin_doc.doc_id).options(load_only("document_id")).first().document_id
+        record_id = session.query(Record).filter_by(source=origin_doc_id).options(load_only("document_id")).first().document_id
         new_doc.url = url_domain+'/#page=inbox,documentId='+record_id+',app='+other_app_id
         meta = origin_doc.meta
-        meta["source_record_id"] = origin_doc.doc_id
+        meta["source_record_id"] = origin_doc_id
         new_doc.meta = meta
         session.add(new_doc)
         docs.append(new_doc)
