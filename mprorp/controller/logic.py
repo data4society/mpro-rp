@@ -19,12 +19,14 @@ from mprorp.crawler.yandex_news import yn_start_parsing
 from mprorp.crawler.google_alerts import ga_start_parsing
 from mprorp.crawler.vk import vk_start_parsing, vk_parse_item
 from mprorp.crawler.csv_to_rubricator import csv_start_parsing
+from mprorp.crawler.from_other_app import other_app_cloning
 
 from mprorp.analyzer.theming.themer import regular_themization
 
 from mprorp.utils import home_dir, relative_file_path
 from mprorp.ner.NER import NER_predict
 from mprorp.ner.identification import create_markup_regular
+from mprorp.analyzer.rubrication_by_comparing import reg_rubrication_by_comparing
 
 import json
 import datetime
@@ -36,6 +38,7 @@ GOOGLE_NEWS_INIT_STATUS = 30
 GOOGLE_ALERTS_INIT_STATUS = 20
 YANDEX_NEWS_INIT_STATUS = 40
 CSV_INIT_STATUS = 50
+OTHER_APP_INIT_STATUS = 60
 #GOOGLE_NEWS_COMPLETE_STATUS = 21
 SITE_PAGE_LOADING_FAILED = 91
 SITE_PAGE_COMPLETE_STATUS = 99
@@ -52,6 +55,7 @@ NER_PREDICT_COMPLETE_STATUS = 350
 MARKUP_COMPLETE_STATUS = 400
 THEMING_COMPLETE_STATUS = 500
 NER_ENTITIES_COMPLETE_STATUS = 850
+RUBRICATION_BY_COMPARING_COMPLETE_STATUS = 950
 REGULAR_PROCESSES_FINISH_STATUS = 1000
 
 VALIDATION_AND_CONVERTING_COMPLETE = 1001  # mpro redactor sets this and next status
@@ -92,12 +96,8 @@ def router(doc_id, app_id, status):
         session.remove()
     if "force_rubrication" in app_conf:
         session = db_session()
-        rubric_ids = []
-        for rubric_name in app_conf["force_rubrication"]:
-            rubric = session.query(Rubric).filter_by(name=rubric_name).first()
-            rubric_ids.append(rubric.rubric_id)
         doc = session.query(Document).filter_by(doc_id=doc_id).first()
-        doc.rubric_ids = rubric_ids
+        doc.rubric_ids = app_conf["force_rubrication"]
         session.commit()
         session.remove()
     if status < MORPHO_COMPLETE_STATUS and "morpho" in app_conf:  # to morpho
@@ -137,6 +137,9 @@ def router(doc_id, app_id, status):
         return
     if "tomita_entities" in app_conf and status < NER_ENTITIES_COMPLETE_STATUS:  # to ner entities
         tomita_entities.delay(app_conf["tomita_entities"], doc_id, NER_ENTITIES_COMPLETE_STATUS, app_id=app_id)
+        return
+    if "rubrication_by_comparing" in app_conf and status < RUBRICATION_BY_COMPARING_COMPLETE_STATUS:  # to set theme
+        regular_rubrication_by_comparing.delay(app_conf["rubrication_by_comparing"], doc_id, RUBRICATION_BY_COMPARING_COMPLETE_STATUS, app_id=app_id)
         return
 
     # finish regular procedures:
@@ -268,6 +271,32 @@ def regular_csv_start_parsing(source_key, **kwargs):
         print(err_txt)
     session.remove()
     print("CSV CRAWL COMPLETE: "+source_key)
+
+
+@app.task(ignore_result=True, time_limit=660, soft_time_limit=600)
+def regular_other_app_start_parsing(source_key, **kwargs):
+    """cloning docs from other app"""
+    print("OA CRAWL START: "+source_key)
+    session = db_session()
+    apps_config = variable_get("last_config", session)
+    app_id = kwargs["app_id"]
+    source = apps_config[app_id]["crawler"]["other_app"][source_key]
+    blacklist = apps_config[app_id]["blacklist"] if "blacklist" in apps_config[app_id] else []
+    try:
+        docs = other_app_cloning(source_key, blacklist, source["url_domain"], source["fields_to_clone"], app_id, session)
+        for doc in docs:
+            doc.status = OTHER_APP_INIT_STATUS
+            doc.source_with_type = "other_app "+source_key
+            doc.app_id = app_id
+        session.commit()
+        for doc in docs:
+            router(doc.doc_id, app_id, OTHER_APP_INIT_STATUS)
+    except Exception as err:
+        err_txt = repr(err)
+        logging.error("Неизвестная ошибка other_app краулера, source: " + source_key)
+        print(err_txt)
+    session.remove()
+    print("OA CRAWL COMPLETE: "+source_key)
 
 
 @app.task(ignore_result=True, time_limit=660, soft_time_limit=600)
@@ -446,6 +475,16 @@ def tomita_entities(grammars_of_tomita_classes, doc_id, new_status, **kwargs):
     session, doc = get_doc(doc_id)
     #grammars_of_tomita_classes = ['loc.cxx', 'org.cxx', 'norm_act.cxx']
     convert_tomita_result_to_markup(doc, grammars_of_tomita_classes, session=session, commit_session=False)
+    return set_doc(doc, new_status, session)
+
+
+
+#@app.task(ignore_result=True)
+@app.task()
+def regular_rubrication_by_comparing(config, doc_id, new_status, **kwargs):
+    """rubrication by comparing with clone source"""
+    session, doc = get_doc(doc_id)
+    reg_rubrication_by_comparing(doc, config, session)
     return set_doc(doc, new_status, session)
 
 

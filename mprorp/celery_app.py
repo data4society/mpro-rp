@@ -13,6 +13,10 @@ config = {}
 session = db_session()
 session.execute("TRUNCATE TABLE sourcestatuses")
 session.commit()
+rubrics = session.query(Rubric).all()
+rubric_ids_by_names = {}
+for rubric in rubrics:
+    rubric_ids_by_names[rubric.name] = str(rubric.rubric_id)
 for app in config_list:
     """
     if "ner_predict" in app:
@@ -30,19 +34,27 @@ for app in config_list:
                 #source["next_crawling_time"] = 0
                 source_status = SourceStatus(app_id=app["app_id"], type=source_type, source_key=source_key)
                 session.add(source_status)
+                if "force_rubrication" in crawler[source_type][source_key]:
+                    rubrics = crawler[source_type][source_key]["force_rubrication"]
+                    rubric_ids = []
+                    for rubr_name in rubrics:
+                        rubric_ids.append(rubric_ids_by_names[rubr_name])
+                    crawler[source_type][source_key]["force_rubrication"] = rubric_ids
     if "rubrication" in app:
         rubricator = app["rubrication"]
         new_rubricator = []
         for rubr_obj in rubricator:
             new_rubr_obj = {}
-            rubric = session.query(Rubric).filter_by(name=rubr_obj["rubric"]).first()
-            new_rubr_obj["rubric_id"] = str(rubric.rubric_id)
-            rubric = session.query(Rubric).filter_by(name=rubr_obj["rubric_minus"]).first()
-            new_rubr_obj["rubric_minus_id"] = str(rubric.rubric_id)
+            new_rubr_obj["rubric_id"] = rubric_ids_by_names[rubr_obj["rubric"]]
+            new_rubr_obj["rubric_minus_id"] = rubric_ids_by_names[rubr_obj["rubric_minus"]]
             new_rubr_obj["set_name"] = rubr_obj["set_name"]
             new_rubricator.append(new_rubr_obj)
-
         app["rubrication"] = new_rubricator
+
+    if "rubrication_by_compare" in app:
+        app["rubrication_by_compare"]["rubrics"]["good"] = rubric_ids_by_names[app["rubrication_by_compare"]["rubrics"]["good"]]
+        app["rubrication_by_compare"]["rubrics"]["bad"] = rubric_ids_by_names[app["rubrication_by_compare"]["rubrics"]["bad"]]
+
     config[app["app_id"]] = app
 variable_set("last_config", config, session)
 session.commit()
