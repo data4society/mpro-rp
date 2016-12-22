@@ -99,12 +99,6 @@ def router(doc_id, app_id, status):
         doc.rubric_ids = app_conf["force_rubrication"]
         session.commit()
         session.remove()
-    if "force_type" in app_conf:
-        session = db_session()
-        doc = session.query(Document).filter_by(doc_id=doc_id).first()
-        doc.type = app_conf["force_type"]
-        session.commit()
-        session.remove()
     if status < MORPHO_COMPLETE_STATUS and "morpho" in app_conf:  # to morpho
         regular_morpho.delay(doc_id, MORPHO_COMPLETE_STATUS, app_id=app_id)
         return
