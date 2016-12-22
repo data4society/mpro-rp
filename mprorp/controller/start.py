@@ -27,7 +27,13 @@ def check_sources():
                     if source["on"] and source_status.ready and source_status.next_crawling_time < datetime.datetime.now().timestamp():
                         #source["ready"] = False
                         source_status.ready = False
-                        print("ADD "+source_type+" CRAWL "+source_key)
+                        if "clear_old" in source:
+                            docs = session.query(Document).filter_by(source_with_type=source_type+" "+source_key).options(load_only("doc_id")).first()
+                            print("CLEAR OLD: DELETING "+len(docs)+" DOCS WHERE TYPE="+source_type+" AND SOURCE="+source_key)
+                            for doc in docs:
+                                delete_document(str(doc.doc_id),session)
+
+                        print("ADD " + source_type + " CRAWL " + source_key)
                         if source_type == "vk":  # vk
                             regular_vk_start_parsing.delay(source_key, app_id=app_id)
                         elif source_type == "google_news":  # google_news

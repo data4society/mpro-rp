@@ -148,8 +148,8 @@ def delete_document(doc_id, session=None):
         "DELETE FROM changes c USING records r WHERE c.document_id = r.document_id AND r.source = '" + doc_id + "'")
     session.execute("DELETE FROM records WHERE source = '" + doc_id + "'")
     session.execute("DELETE FROM documents WHERE doc_id = '" + doc_id + "'")
-    session.commit()
     if not has_session:
+        session.commit()
         session.remove()
     print(doc_id, "complete deletion")
 
