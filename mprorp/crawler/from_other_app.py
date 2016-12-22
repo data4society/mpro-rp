@@ -12,7 +12,7 @@ def other_app_cloning(other_app_id, blacklist, url_domain, fields_to_clone, comp
     docs = []
     for origin_doc in origin_docs:
         url = origin_doc.url
-        origin_doc_id = origin_doc.doc_id
+        origin_doc_id = str(origin_doc.doc_id)
         if check_url_with_blacklist(url, blacklist):
             print("BLACKLIST STOP: " + url)
             break
