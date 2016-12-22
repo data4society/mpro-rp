@@ -136,7 +136,7 @@ def capital_embedding_morpho_feature(doc_list, start_doc = 0):
     count = 0
     bad_list = []
     for doc_id in doc_list[start_doc:]:
-        if count % 2 == 0:
+        if count % 200 == 0:
             print('count',start_doc + count)
         count += 1
         # try:
