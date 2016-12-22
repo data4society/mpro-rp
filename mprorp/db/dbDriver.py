@@ -130,7 +130,7 @@ def dropall_and_create():
     Base.metadata.create_all(engine)
 
 
-def delete_document(doc_id, session=None):
+def delete_document(doc_id, session=None, force_commit=False):
     has_session = True
     if not session:
         has_session = False
@@ -151,6 +151,8 @@ def delete_document(doc_id, session=None):
     if not has_session:
         session.commit()
         session.remove()
+    elif force_commit:
+        session.commit()
     print(doc_id, "complete deletion")
 
 
@@ -164,7 +166,7 @@ def delete_app_documents(app_id, status=-1):
     print("documents length:", len(docs))
     n = 0
     for doc in docs:
-        delete_document(str(doc.doc_id), session)
+        delete_document(str(doc.doc_id), session, True)
         n += 1
         print(n)
     session.remove()
