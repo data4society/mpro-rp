@@ -376,9 +376,9 @@ def script_exec():
     #     print('morpho tried for', past_count, 'rest', len(bad_list))
     # print('train stopped. past_count = ', len(bad_list))
 
-
-    bad_list = set_docs['name']['train']
-    print('start features train')
+    set_type = 'dev'
+    bad_list = set_docs['name'][set_type]
+    print('start features', set_type)
     past_count = 0
     start_count = 0
     while (len(bad_list) > 0) and (len(bad_list) != past_count):
@@ -388,7 +388,7 @@ def script_exec():
         print('feature tried for', past_count, 'rest', len(bad_list))
     if len(bad_list) > 0:
         print('bad list:', bad_list)
-    print('train features stopped. past_count = ', len(bad_list))
+    print(set_type, 'features stopped. past_count = ', len(bad_list))
 
     exit()
     morpho()
