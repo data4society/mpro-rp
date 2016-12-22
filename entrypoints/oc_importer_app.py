@@ -27,5 +27,7 @@ if __name__ == '__main__':
             if i % 100 == 0:
                 print(i)
                 session.commit()
+    print(i)
+    session.commit()
     session.remove()
     print("IMPORT COMPLETE")
