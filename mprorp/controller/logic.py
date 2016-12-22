@@ -171,6 +171,8 @@ def regular_gn_start_parsing(source_key, **kwargs):
             doc.status = GOOGLE_NEWS_INIT_STATUS
             doc.source_with_type = "google_news "+source_key
             doc.app_id = app_id
+            if "force_type" in source:
+                doc.type = source["force_type"]
         session.commit()
         for doc in docs:
             router(doc.doc_id, app_id,  GOOGLE_NEWS_INIT_STATUS)
@@ -201,6 +203,8 @@ def regular_ga_start_parsing(source_key, **kwargs):
             doc.status = GOOGLE_ALERTS_INIT_STATUS
             doc.source_with_type = "google_alerts "+source_key
             doc.app_id = app_id
+            if "force_type" in source:
+                doc.type = source["force_type"]
         session.commit()
         for doc in docs:
             router(doc.doc_id, app_id, GOOGLE_ALERTS_INIT_STATUS)
@@ -231,6 +235,8 @@ def regular_yn_start_parsing(source_key, **kwargs):
             doc.status = YANDEX_NEWS_INIT_STATUS
             doc.source_with_type = "yandex_news "+source_key
             doc.app_id = app_id
+            if "force_type" in source:
+                doc.type = source["force_type"]
         session.commit()
         for doc in docs:
             router(doc.doc_id, app_id, YANDEX_NEWS_INIT_STATUS)
@@ -261,6 +267,8 @@ def regular_csv_start_parsing(source_key, **kwargs):
             doc.status = CSV_INIT_STATUS
             doc.source_with_type = "csv "+source_key
             doc.app_id = app_id
+            if "force_type" in source:
+                doc.type = source["force_type"]
         session.commit()
         for doc in docs:
             router(doc.doc_id, app_id, CSV_INIT_STATUS)
@@ -287,6 +295,8 @@ def regular_other_app_start_parsing(source_key, **kwargs):
             doc.status = source["start_status"]
             doc.source_with_type = "other_app "+source_key
             doc.app_id = app_id
+            if "force_type" in source:
+                doc.type = source["force_type"]
         session.commit()
         for doc in docs:
             router(doc.doc_id, app_id, source["start_status"])
@@ -312,6 +322,8 @@ def regular_vk_start_parsing(source_key, **kwargs):
             doc.status = VK_INIT_STATUS
             doc.source_with_type = "vk "+source_key
             doc.app_id = app_id
+            if "force_type" in source:
+                doc.type = source["force_type"]
         session.commit()
         print("regular_vk_start_parsing commit", source_key)
         for doc in docs:
