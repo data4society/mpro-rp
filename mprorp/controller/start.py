@@ -28,7 +28,7 @@ def check_sources():
                         #source["ready"] = False
                         source_status.ready = False
                         if "clear_old" in source:
-                            docs = session.query(Document).filter_by(source_with_type=source_type+" "+source_key).options(load_only("doc_id")).first()
+                            docs = session.query(Document).filter_by(source_with_type=source_type+" "+source_key).options(load_only("doc_id")).all()
                             print("CLEAR OLD: DELETING "+len(docs)+" DOCS WHERE TYPE="+source_type+" AND SOURCE="+source_key)
                             for doc in docs:
                                 delete_document(str(doc.doc_id),session)
