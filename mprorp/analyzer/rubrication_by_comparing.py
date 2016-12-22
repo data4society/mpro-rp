@@ -5,7 +5,7 @@ from mprorp.db.models import *
 def reg_rubrication_by_comparing(doc, config, session):
     """compare all needed fields from doc an it's source"""
     rubrics = config["rubrics"]
-    fields = config["fields"]
+    fields = config["fields_to_compare"]
     origin_doc = session.query(Document).filter_by(doc_id=doc.meta["source_record_id"]).one()
     good = "good"
     for field in fields:
