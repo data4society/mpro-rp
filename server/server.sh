@@ -9,7 +9,7 @@ apt-get -y upgrade
 dpkg-reconfigure tzdata # change server timezone
 apt-get -y install mc python-virtualenv rabbitmq-server python3-pip libpq-dev nginx
 apt-get -y build-dep python3-lxml
-apt-get -y libblas-dev liblapack-dev libatlas-base-dev gfortran
+apt-get -y install libblas-dev liblapack-dev libatlas-base-dev gfortran
 
 
 # we'll run our app in virtualenv '/home/mprorp/mprorpenv'

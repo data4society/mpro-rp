@@ -20,7 +20,7 @@ from mprorp.crawler.google_alerts import ga_start_parsing
 from mprorp.crawler.vk import vk_start_parsing, vk_parse_item
 from mprorp.crawler.csv_to_rubricator import csv_start_parsing
 
-from mprorp.analyzer.theming.themer import reg_theming
+from mprorp.analyzer.theming.themer import regular_themization
 
 from mprorp.utils import home_dir, relative_file_path
 from mprorp.ner.NER import NER_predict
@@ -129,8 +129,11 @@ def router(doc_id, app_id, status):
     if "ner_predict" in app_conf and status < NER_PREDICT_COMPLETE_STATUS:  # to NER
         regular_NER_predict.delay(app_conf["ner_predict"]["ner_settings"], doc_id, NER_PREDICT_COMPLETE_STATUS, app_id=app_id)
         return
-    if "markup" in app_conf and status < MARKUP_COMPLETE_STATUS:  # to createb markup
+    if "markup" in app_conf and status < MARKUP_COMPLETE_STATUS:  # to create markup
         regular_create_markup.delay(app_conf["markup"], doc_id, MARKUP_COMPLETE_STATUS, app_id=app_id)
+        return
+    if "theming" in app_conf and status < THEMING_COMPLETE_STATUS:  # to set theme
+        regular_theming.delay(doc_id, THEMING_COMPLETE_STATUS, app_id=app_id)
         return
     if "tomita_entities" in app_conf and status < NER_ENTITIES_COMPLETE_STATUS:  # to ner entities
         tomita_entities.delay(app_conf["tomita_entities"], doc_id, NER_ENTITIES_COMPLETE_STATUS, app_id=app_id)
@@ -159,8 +162,9 @@ def regular_gn_start_parsing(source_key, **kwargs):
     apps_config = variable_get("last_config",session)
     app_id = kwargs["app_id"]
     source = apps_config[app_id]["crawler"]["google_news"][source_key]
+    blacklist = apps_config[app_id]["blacklist"] if "blacklist" in apps_config[app_id] else []
     try:
-        docs = gn_start_parsing(source_key, app_id, session)
+        docs = gn_start_parsing(source_key, blacklist, app_id, session)
         for doc in docs:
             doc.status = GOOGLE_NEWS_INIT_STATUS
             doc.source_with_type = "google_news "+source_key
@@ -188,9 +192,9 @@ def regular_ga_start_parsing(source_key, **kwargs):
     apps_config = variable_get("last_config",session)
     app_id = kwargs["app_id"]
     source = apps_config[app_id]["crawler"]["google_alerts"][source_key]
-    app_id = kwargs["app_id"]
+    blacklist = apps_config[app_id]["blacklist"] if "blacklist" in apps_config[app_id] else []
     try:
-        docs = ga_start_parsing(source_key, app_id, session)
+        docs = ga_start_parsing(source_key, blacklist, app_id, session)
         for doc in docs:
             doc.status = GOOGLE_ALERTS_INIT_STATUS
             doc.source_with_type = "google_alerts "+source_key
@@ -218,10 +222,9 @@ def regular_yn_start_parsing(source_key, **kwargs):
     apps_config = variable_get("last_config", session)
     app_id = kwargs["app_id"]
     source = apps_config[app_id]["crawler"]["yandex_news"][source_key]
-    """parsing yandex news request"""
-    app_id = kwargs["app_id"]
+    blacklist = apps_config[app_id]["blacklist"] if "blacklist" in apps_config[app_id] else []
     try:
-        docs = yn_start_parsing(source_key, source["pass"], app_id, session)
+        docs = yn_start_parsing(source_key, blacklist, source["pass"], app_id, session)
         for doc in docs:
             doc.status = YANDEX_NEWS_INIT_STATUS
             doc.source_with_type = "yandex_news "+source_key
@@ -249,8 +252,9 @@ def regular_csv_start_parsing(source_key, **kwargs):
     apps_config = variable_get("last_config",session)
     app_id = kwargs["app_id"]
     source = apps_config[app_id]["crawler"]["csv_to_rubricator"][source_key]
+    blacklist = apps_config[app_id]["blacklist"] if "blacklist" in apps_config[app_id] else []
     try:
-        docs = csv_start_parsing(source_key, app_id, session)
+        docs = csv_start_parsing(source_key, blacklist, app_id, session)
         for doc in docs:
             doc.status = CSV_INIT_STATUS
             doc.source_with_type = "csv "+source_key
@@ -423,7 +427,7 @@ def regular_create_markup(markup_settings, doc_id, new_status, **kwargs):
 def regular_theming(doc_id, new_status, **kwargs):
     """regular theming"""
     session, doc = get_doc(doc_id)
-    reg_theming(doc, session)
+    regular_themization(doc, session)
     return set_doc(doc, new_status, session)
 
 

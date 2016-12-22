@@ -135,8 +135,9 @@ def reg_theming_shar(doc, doc_main_words_func, session):
     #print("AAA",session.query(Theme).count())
     #print(doc.title)
     #print(doc.lemmas)
+    app_id = doc.app_id
     themes = session.query(Theme) \
-        .filter(Theme.last_renew_time > datetime.datetime.fromtimestamp(doc.created.timestamp()-MAX_THEME_PAUSE)) \
+        .filter(Theme.app_id == app_id, Theme.last_renew_time > datetime.datetime.fromtimestamp(doc.created.timestamp()-MAX_THEME_PAUSE)) \
         .all()
 
     doc_main_words = doc_main_words_func(doc, session)
@@ -174,7 +175,7 @@ def reg_theming_shar(doc, doc_main_words_func, session):
                 d.theme = best_theme
 
     else:
-        best_theme = Theme(words=dict())
+        best_theme = Theme(app_id=app_id, words=dict())
         session.add(best_theme)
         best_theme_words = best_theme.words
     #print(best_reit)
@@ -297,7 +298,7 @@ def reg_theming(doc, session):
     print(doc.title)
     #print(doc.lemmas)
     themes = session.query(Theme) \
-        .filter(Theme.last_renew_time > datetime.datetime.fromtimestamp(doc.created.timestamp()-MAX_THEME_PAUSE)) \
+        .filter(Theme.app_id == doc.app_id, Theme.last_renew_time > datetime.datetime.fromtimestamp(doc.created.timestamp()-MAX_THEME_PAUSE)) \
         .all()
     #print(len(themes))
     #print("BBB")
@@ -391,6 +392,22 @@ def print_by_themes():
             print(doc_obj.title)
 
     session.remove()
+
+
+def regular_themization(doc, session):
+    # mystem.start()
+    app_id = doc.app_id
+    if THEMING_GEOMETRIA == "shar":
+        func = reg_theming_shar
+    if THEMING_SOURCE == "title":
+        func_source = main_words_by_title
+    if THEMING_SOURCE == "morpho":
+        func_source = main_words_by_morpho
+    if THEMING_SOURCE == "lemmas":
+        func_source = main_words_by_lemmas
+    if THEMING_SOURCE == "title_morpho":
+        func_source = main_words_by_title_and_morpho
+    func(doc, func_source, session)
 
 
 def mass_themization():

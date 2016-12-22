@@ -2,13 +2,13 @@
 
 from imaplib import IMAP4, IMAP4_SSL
 from mprorp.db.models import *
-from mprorp.crawler.utils import send_get_request
+from mprorp.crawler.utils import send_get_request, check_url_with_blacklist
 import datetime
 import lxml.html
 import re
 
 
-def yn_start_parsing(source_user, source_pass, app_id, session):
+def yn_start_parsing(source_user, blacklist, source_pass, app_id, session):
     """download google news start feed and feeds for every story"""
 
     server = IMAP4_SSL('imap.yandex.ru')
@@ -38,12 +38,19 @@ def yn_start_parsing(source_user, source_pass, app_id, session):
             ol = tree_mail.find("body").find("ol")
             items = ol.findall("li")
             for item in items:
-                parse_yn_item(item, app_id, session, docs, guids)
+                parse_yn_item(item, blacklist, app_id, session, docs, guids)
     return docs
 
-def parse_yn_item(item, app_id, session, docs, guids):
+def parse_yn_item(item, blacklist, app_id, session, docs, guids):
     a = item.find("a")
     url = a.get("href")
+    if url[:26] == 'http://news-clck.yandex.ru':
+        text = send_get_request(url,gen_useragent=True)
+        url = re.findall(r'URL=\'.*\'', text)[0]
+        url = url[5:-1]
+    if check_url_with_blacklist(url, blacklist):
+        print("BLACKLIST STOP: "+url)
+        return
     title = a.text_content()
     title = re.sub(r'(\r\n|\n|\r)+', ' ', title)
     date_and_source = item.find("font").text
@@ -58,10 +65,6 @@ def parse_yn_item(item, app_id, session, docs, guids):
     #print(date)
     #print(title)
     #print(desc)
-    if url[:26] == 'http://news-clck.yandex.ru':
-        text = send_get_request(url,gen_useragent=True)
-        url = re.findall(r'URL=\'.*\'', text)[0]
-        url = url[5:-1]
     guid = app_id + url
     if guid not in guids and session.query(Document).filter_by(guid=guid).count() == 0:
         # initial insert with guid, start status and reference to source

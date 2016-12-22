@@ -66,6 +66,8 @@ class Theme(Base):
     last_renew_time = Column(TIMESTAMP())
     # words of docs titles with their reits
     words = Column(JSONB())
+    # id of application (without reference to somewhere)
+    app_id = Column(String(255))
 
 
 class ThemeWord(Base):
@@ -424,6 +426,8 @@ class Markup(Base):
     markup_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
     # document
     document = Column(UUIDType(binary=False), ForeignKey('documents.doc_id'))
+    doc = relationship(Document)
+
     name = Column(String(255))
     # data
     data = Column(JSONB())
