@@ -51,9 +51,9 @@ for app in config_list:
             new_rubricator.append(new_rubr_obj)
         app["rubrication"] = new_rubricator
 
-    if "rubrication_by_compare" in app:
-        app["rubrication_by_compare"]["rubrics"]["good"] = rubric_ids_by_names[app["rubrication_by_compare"]["rubrics"]["good"]]
-        app["rubrication_by_compare"]["rubrics"]["bad"] = rubric_ids_by_names[app["rubrication_by_compare"]["rubrics"]["bad"]]
+    if "rubrication_by_comparing" in app:
+        app["rubrication_by_comparing"]["rubrics"]["good"] = rubric_ids_by_names[app["rubrication_by_comparing"]["rubrics"]["good"]]
+        app["rubrication_by_comparing"]["rubrics"]["bad"] = rubric_ids_by_names[app["rubrication_by_comparing"]["rubrics"]["bad"]]
 
     config[app["app_id"]] = app
 variable_set("last_config", config, session)
