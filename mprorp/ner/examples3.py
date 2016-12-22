@@ -359,27 +359,26 @@ def get_doc_id(rec_id):
 def script_exec():
 
     # create_sets_56()
+    # bad_list = set_docs['name']['train']
+    # print('start morpho train')
+    # past_count = 0
+    # while (len(bad_list) > 0) and (len(bad_list) != past_count):
+    #     past_count = len(bad_list)
+    #     bad_list = morpho_with_check(bad_list)
+    #     print('morpho tried for', past_count, 'rest', len(bad_list))
+    # print('train stopped. past_count = ', len(bad_list))
+    # bad_list = set_docs['name']['dev']
+    # print('start morpho dev')
+    # past_count = 0
+    # while (len(bad_list) > 0) and (len(bad_list) != past_count):
+    #     past_count = len(bad_list)
+    #     bad_list = morpho_with_check(bad_list)
+    #     print('morpho tried for', past_count, 'rest', len(bad_list))
+    # print('train stopped. past_count = ', len(bad_list))
+
+
     bad_list = set_docs['name']['train']
-    print('start morpho train')
-    past_count = 0
-    while (len(bad_list) > 0) and (len(bad_list) != past_count):
-        past_count = len(bad_list)
-        bad_list = morpho_with_check(bad_list)
-        print('morpho tried for', past_count, 'rest', len(bad_list))
-    print('train stopped. past_count = ', len(bad_list))
-    bad_list = set_docs['name']['dev']
-    print('start morpho dev')
-    past_count = 0
-    while (len(bad_list) > 0) and (len(bad_list) != past_count):
-        past_count = len(bad_list)
-        bad_list = morpho_with_check(bad_list)
-        print('morpho tried for', past_count, 'rest', len(bad_list))
-    print('train stopped. past_count = ', len(bad_list))
-
-    exit()
-
-    bad_list = set_docs['name']['dev']
-    print('start train')
+    print('start features train')
     past_count = 0
     start_count = 0
     while (len(bad_list) > 0) and (len(bad_list) != past_count):
@@ -389,7 +388,7 @@ def script_exec():
         print('feature tried for', past_count, 'rest', len(bad_list))
     if len(bad_list) > 0:
         print('bad list:', bad_list)
-    print('train stopped. past_count = ', len(bad_list))
+    print('train features stopped. past_count = ', len(bad_list))
 
     exit()
     morpho()
