@@ -100,6 +100,7 @@ def step1(tomita_out_file, original_text, n):
     facts = combiner(facts, 'LocationFact')
     facts = variants(facts)
     out = step2(facts)
+    print(out)
     out = max_amount_of_codes(out, n)
     out = step3(out)
     out = step4(out)
@@ -147,12 +148,13 @@ def step4(facts):
     out = {}
     for fact in facts:
         codes = facts[fact]
-        out2 = []
-        for code in codes:
-            idd = str(session.query(Entity).filter(Entity.external_data['kladr'].astext == code).first().entity_id).replace("UUID('", '').replace("')", '')
-            out2.append(idd)
-        if out2 != []:
-            out[fact] = out2[0]
+        if len(codes) == 1:
+            out2 = []
+            for code in codes:
+                idd = str(session.query(Entity).filter(Entity.external_data['kladr'].astext == code).first().entity_id).replace("UUID('", '').replace("')", '')
+                out2.append(idd)
+            if out2 != []:
+                out[fact] = out2[0]
     return out
 
 def max_amount_of_codes(facts, n):

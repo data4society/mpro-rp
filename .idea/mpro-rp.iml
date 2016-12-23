@@ -5,4 +5,8 @@
     <orderEntry type="jdk" jdkName="Remote Python 3.4.3 Vagrant VM at D:\PyCharmProjects\mpro-rp (/usr/bin/python3)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
+  <component name="TestRunnerService">
+    <option name="projectConfiguration" value="Nosetests" />
+    <option name="PROJECT_TEST_RUNNER" value="Nosetests" />
+  </component>
 </module>
