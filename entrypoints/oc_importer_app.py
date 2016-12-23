@@ -97,6 +97,7 @@ def import_mentions():
             lines = data.split("\n")
             lines = [line.strip('\t\n\r').strip() for line in lines]
             lines = [line for line in lines if line]
+            lines = [line.replace("  ", " ") for line in lines]
             for line in lines:
                 segments = line.split(" ")
                 if len(segments)<3:
@@ -107,7 +108,7 @@ def import_mentions():
                 reference_ids = []
                 ind = 2
                 while segments[ind] != '#':
-                    reference_ids.append(str(session.query(Reference).filter_by(outer_id=segments[ind]).options(
+                    reference_ids.append(str(session.query(Reference).filter_by(outer_id=int(segments[ind])).options(
                         load_only("reference_id")).first().reference_id))
                     ind += 1
                 mention.reference_ids = reference_ids
