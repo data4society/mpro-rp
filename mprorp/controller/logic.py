@@ -104,12 +104,13 @@ def router(doc_id, app_id, status):
         doc = session.query(Document).filter_by(doc_id=doc_id).first()
         record_id = str(
             session.query(Record).filter_by(source=doc.meta["source_record_id"]).options(load_only("document_id")).first().document_id)
-        if "configurator" in app_conf:
-            doc.url = app_conf["force_url_doomain"] + '/#page=configurator,documentId=' + record_id + ',app=' + \
-                      doc.source_with_type.split(" ")[1]
+        source_app_id = doc.source_with_type.split(" ")[1]
+        source_app_conf = apps_config[source_app_id]
+        if "configurator" in source_app_conf:
+            doc.url = app_conf["force_url_doomain"] + '/#page=configurator,documentId=' + record_id + ',app=' + source_app_id
         else:
-            doc.url = app_conf["force_url_doomain"] + '/#page=inbox,documentId=' + record_id + ',app=' + \
-                      doc.source_with_type.split(" ")[1]
+            doc.url = app_conf["force_url_doomain"] + '/#page=inbox,documentId=' + record_id + ',app=' + source_app_id
+
         session.commit()
         session.remove()
     if status < MORPHO_COMPLETE_STATUS and "morpho" in app_conf:  # to morpho
