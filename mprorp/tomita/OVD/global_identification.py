@@ -151,7 +151,8 @@ def step4(facts):
         for code in codes:
             idd = str(session.query(Entity).filter(Entity.external_data['kladr'].astext == code).first().entity_id).replace("UUID('", '').replace("')", '')
             out2.append(idd)
-        out[fact] = out2[0]
+        if out2 != []:
+            out[fact] = out2[0]
     return out
 
 def max_amount_of_codes(facts, n):
