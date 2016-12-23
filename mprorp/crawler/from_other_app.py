@@ -5,7 +5,7 @@ from mprorp.db.models import *
 from sqlalchemy.orm import load_only
 
 
-def other_app_cloning(other_app_id, blacklist, url_domain, fields_to_clone, complete_status, app_id, session):
+def other_app_cloning(other_app_id, blacklist, fields_to_clone, complete_status, app_id, session):
     """download google news start feed and feeds for every story"""
     # download google news start feed
     origin_docs = session.query(Document).filter_by(app_id=other_app_id, status=complete_status).all()

@@ -290,7 +290,7 @@ def regular_other_app_start_parsing(source_key, **kwargs):
     source = apps_config[app_id]["crawler"]["other_app"][source_key]
     blacklist = apps_config[app_id]["blacklist"] if "blacklist" in apps_config[app_id] else []
     try:
-        docs = other_app_cloning(source_key, blacklist, source["url_domain"], source["fields_to_clone"], source["source_status"], app_id, session)
+        docs = other_app_cloning(source_key, blacklist, source["fields_to_clone"], source["source_status"], app_id, session)
         for doc in docs:
             doc.status = source["start_status"]
             doc.source_with_type = "other_app "+source_key
