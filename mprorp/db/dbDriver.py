@@ -163,7 +163,7 @@ def delete_app_documents(app_id, status=-1):
         docs = session.query(Document).filter_by(app_id=app_id).options(load_only("doc_id")).all()
     else:
         docs = session.query(Document).filter_by(app_id=app_id, status=status).options(load_only("doc_id")).all()
-    print("documents length:", len(docs))
+    print("ATTENTION!!! DELETING FROM APP: "+app_id+" documents length:", len(docs))
     n = 0
     for doc in docs:
         delete_document(str(doc.doc_id), session, True)

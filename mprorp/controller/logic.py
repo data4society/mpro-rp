@@ -99,6 +99,14 @@ def router(doc_id, app_id, status):
         doc.rubric_ids = app_conf["force_rubrication"]
         session.commit()
         session.remove()
+    if "force_url_doomain" in app_conf:
+        session = db_session()
+        record_id = str(
+            session.query(Record).filter_by(source=doc_id).options(load_only("document_id")).first().document_id)
+        doc = session.query(Document).filter_by(doc_id=doc_id).first()
+        doc.url = app_conf["force_url_doomain"] + '/#page=inbox,documentId=' + record_id + ',app=' + doc.source_with_type.split(" ")[1]
+        session.commit()
+        session.remove()
     if status < MORPHO_COMPLETE_STATUS and "morpho" in app_conf:  # to morpho
         regular_morpho.delay(doc_id, MORPHO_COMPLETE_STATUS, app_id=app_id)
         return
