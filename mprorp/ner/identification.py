@@ -134,7 +134,7 @@ def create_answers_span_feature_for_doc(doc, spans, markup_type='56', session=No
                     max_index = i
             minmax_index[ref_id] = {'min':min_index, 'max':max_index}
         else:
-            print('zero chain', ref)
+            print('zero chain. dic_id:', str(doc.doc_id), ref)
     for i in sentence_refs:
         concat_chains_create_values(i, sentence_refs[i], minmax_index, refs, values, verbose=verbose)
 

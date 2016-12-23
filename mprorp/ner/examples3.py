@@ -207,7 +207,7 @@ def create_big_set_name_answers():
     for set_type in ['train', 'dev']:
         for doc_id in set_docs['name'][set_type]:
             count += 1
-            # if count > 5:
+            # if count > 500:
             #     break
             if count%1000 == 0:
                 print(count)
@@ -217,6 +217,9 @@ def create_big_set_name_answers():
                 print('doc not found')
                 continue
             # print(doc.stripped)
+            if doc is None:
+                print('doc not found')
+                continue
             create_answers_span_feature_for_doc(doc, ['name', 'surname'])
 
 
