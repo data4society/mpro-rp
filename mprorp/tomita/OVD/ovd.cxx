@@ -6,7 +6,7 @@ Q -> Word+;
 Quote -> Q<quoted> interp(OVDFact_TOMITA.Name_TOMITA::not_norm);
 
 //ОВД
-ovd -> Word<kwtype="OVD"> interp(OVDFact_TOMITA.OVD_TOMITA::not_norm) Word<kwtype="RUS">*;
+ovd -> Word<kwtype="OVD2"> interp(OVDFact_TOMITA.OVD_TOMITA::not_norm) Word<kwtype="RUS">*;
 OVD_N -> ovd '№' AnyWord<wfl="[0-9]+"> interp(OVDFact_TOMITA.Numb_TOMITA::not_norm) | AnyWord<wfl="[0-9]+"> interp(OVDFact_TOMITA.Numb_TOMITA::not_norm) ovd;
 OVD_Q -> ovd Quote | OVD_N Quote;
 
