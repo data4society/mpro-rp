@@ -32,7 +32,9 @@ def get_ref_from_morpho(reference, morpho, verbose=False):
             if elem['start_offset2'] == start_ref:
 
                 if (consider_right_symbol and elem['end_offset2'] <= end_ref) or (
-                            not consider_right_symbol and elem['end_offset2'] < end_ref):
+                            not consider_right_symbol and elem['end_offset2'] < end_ref) or (
+                            elem['end_offset2'] == end_ref) or (
+                            elem['end_offset2'] == end_ref + 1):
 
                     sent_index = elem.get('sentence_index', None)
                     if sent_index is None:
@@ -82,172 +84,100 @@ def get_ref_from_morpho(reference, morpho, verbose=False):
     return span_chain, sent_index
 
 
-# def create_answers_span_feature_for_doc(doc, spans, session=None, commit_session=True, verbose=False):
-#     """Create answers like oc_span_last_name,     """
+def create_answers_span_feature_for_doc(doc, spans, markup_type='56', bad_list=set(), session=None, commit_session=True, verbose=False):
+    """Create answers from name/surname """
 #
 #     # let find markup for entity_class
-#     main_entity_class = entity_class
-#     ignore_no_ref_from_mention = False
-#     if entity_class == 'name':
-#         main_entity_class = 'oc_class_person'
-#         ignore_no_ref_from_mention = True
+
+    markup_id = db.get_markup_by_doc_and_markup_type(doc_id=doc.doc_id, markup_type = markup_type, session=session)
+
+    if verbose:
+        print('markup_id: ', markup_id, ' doc_id: ', doc.doc_id)
+
+    references = db.get_references_for_doc(markup_id, session)
+    morpho = doc.morpho
+
+    sent_dict = {}
+    if verbose:
+        sent_print = {}
+        for element in morpho:
+
+            if 'sentence_index' in element:
+                if element['sentence_index'] not in sent_print:
+                    sent_print[element['sentence_index']] = ""
+                sent_print[element['sentence_index']] += element.get("text", "") + " "
+
+    values = {}
+
+    refs = {}
+    minmax_index = {}
+    sentence_refs = {}
+
+    for ref in references:
+
+        ref_class = ref[2]
+        if ref_class not in spans:
+                continue
+        ref_id = ref[3]
+        span_chain, sent_index_ref = get_ref_from_morpho(ref, morpho, verbose=verbose)
+        if len(span_chain) > 0:
+            if sentence_refs.get(sent_index_ref, None) is None:
+                sentence_refs[sent_index_ref] = []
+            sentence_refs[sent_index_ref].append(ref_id)
+            refs[ref_id] = (sent_index_ref, span_chain, ref_class)
+            min_index = span_chain[0]
+            max_index = span_chain[0]
+            for i in span_chain:
+                if i < min_index:
+                    min_index = i
+                if i > max_index:
+                    max_index = i
+            minmax_index[ref_id] = {'min':min_index, 'max':max_index}
+        else:
+            # print('zero chain. dic_id:', str(doc.doc_id), ref)
+            bad_list.add(str(doc.doc_id))
+    for i in sentence_refs:
+        concat_chains_create_values(i, sentence_refs[i], minmax_index, refs, values, verbose=verbose)
+
+    if len(values) > 0:
+        db.put_ner_feature_dict(doc.doc_id, values, feature.ner_feature_types['name_answers'],
+                                 None, session, commit_session)
 #
-#     markup_id = db.get_markup_for_doc_and_class(doc_id=doc.doc_id, entity_class=main_entity_class,
-#                                                 markup_type = markup_types[main_entity_class], session=session)
-#
-#     if verbose:
-#         print('markup_id: ', markup_id, ' doc_id: ', doc.doc_id)
-#
-#     references = db.get_references_for_doc(markup_id, session)
-#     morpho = doc.morpho
-#
-#     sent_dict = {}
-#     if verbose:
-#         sent_print = {}
-#         for element in morpho:
-#
-#             if 'sentence_index' in element:
-#                 if element['sentence_index'] not in sent_print:
-#                     sent_print[element['sentence_index']] = ""
-#                 sent_print[element['sentence_index']] += element.get("text", "") + " "
-#
-#     values = {}
-#
-#     refs = {}
-#
-#     for ref in references:
-#
-#         ref_class = ref[2]
-#         if entity_class == 'name':
-#             if ref_class not in ['oc_span_first_name', 'oc_span_last_name', 'oc_span_middle_name',
-#                                  'oc_span_foreign_name', 'oc_span_nickname']:
-#                 continue
-#         ref_id = ref[3]
-#         # if verbose:
-#             # print(ref_id)
-#         span_chain, sent_index_ref = get_ref_from_morpho(ref, morpho, verbose=verbose)
-#         # if verbose:
-#             # print(span_chain)
-#         if len(span_chain) > 0:
-#             refs[ref_id] = (sent_index_ref, span_chain, ref_class)
-#             # if ref_class == 'oc_class_person':
-#             #     if element['sentence_index'] not in sent_dict:
-#             #         sent_dict[element['sentence_index']] = {}
-#             #
-#             #     for word_index in span_chain:
-#             #         sent_dict[sent_index_ref][word_index] = ref_class
-#
-#                 # word_list.append((element['sentence_index'], element['word_index']))
-#                 # word_list_all.append((element['sentence_index'], element['word_index']))
-#                 # values[(element['sentence_index'], element['word_index'], value)] = [1]
-#     # if verbose:
-#         # print('refs: ', refs)
-#     # Mentions
-#     mentions = db.get_mentions(markup_id, main_entity_class, session)
-#     sent_chains = {}
-#     for mention in mentions:
-#         sent_indexes = set()
-#         # Соберем индексы предложений, которые затронуты mention
-#         for ref_id in mention[1]:
-#             ref = refs.get(str(ref_id), None)
-#             if ref is None:
-#                 if ignore_no_ref_from_mention:
-#                     continue
-#                 else:
-#                     print('Error: ref from mention not found')
-#                     print('    mention: ', mention[0])
-#                     print('    reference: ', str(ref_id))
-#                     print('    text: ')
-#                     print(doc.stripped)
-#                     print('    morpho: ')
-#                     print(doc.morpho)
-#                     raise Exception('Error: ref from mention not found')
-#             sent_indexes |= {ref[0]}
-#         # Если оказалось, затронуто более одного предложения - сообщим
-#         if len(sent_indexes) > 1:
-#             if verbose:
-#                 print('Mystery: refs from mention have difference sentence indexes')
-#                 print('    mention: ', mention[0])
-#                 # print('    refs: ', list((str(r_id), refs[str(r_id)][0]) for r_id in mention[1]))
-#                 print('    sent_index: ', sent_indexes)
-#         # Отдельно по каждому предложению:
-#         # Соберем все участвующие слова из предложения, отсортируем и разобьем на непрерывные цепочки
-#         for sent_index in sent_indexes:
-#             words = []
-#             for ref_id in mention[1]:
-#                 ref = refs.get(str(ref_id), None)
-#                 if ref is None:
-#                     continue
-#                 if sent_index == ref[0]:
-#                     words.extend(ref[1])
-#             if len(words) == 0:
-#                 continue
-#             words.sort()
-#             # if verbose:
-#             #     print(sent_index, words)
-#             curr_ind = None
-#             chain = []
-#             if sent_chains.get(sent_index, None) is None:
-#                 sent_chains[sent_index] = []
-#             for ind in words:
-#                 if curr_ind is not None:
-#                     if ind > curr_ind:
-#                         if ind > curr_ind + 1:
-#                             sent_chains[sent_index].append(chain)
-#                             chain = []
-#                         curr_ind = ind
-#                         chain.append(ind)
-#                 else:
-#                     curr_ind = ind
-#                     chain.append(ind)
-#
-#             if len(chain) > 0:
-#                 sent_chains[sent_index].append(chain)
-#     # Eliminate inserted chains and add rest chains to values
-#     if verbose:
-#         print(sent_chains)
-#     for sent_index in sent_chains:
-#         chains = {}
-#         for chain in sent_chains[sent_index]:
-#             if chains.get(chain[0], None) is None:
-#                 chains[chain[0]] = chain
-#             else:
-#                 if len(chain) > len(chains[chain[0]]):
-#                     chains[chain[0]] = chain
-#         # if verbose:
-#         #     print(sent_index, chains)
-#         chain_indexes = list(chains.keys())
-#         chain_indexes.sort()
-#         old_chain = []
-#         for first_word in chain_indexes:
-#             len_old_chain = len(old_chain)
-#             if len_old_chain > 0:
-#                 if first_word <= old_chain[len_old_chain - 1]: # first_word chain starts before chain ends
-#                     len_new = len(chains[first_word])
-#                     if first_word + len_new - 1 > old_chain[len_old_chain - 1]: # i is not inserted in chain
-#                         print('sentence: ', sent_index)
-#                         print('chains: ', old_chain, chains[first_word])
-#                         raise Exception('Crossing chains')
-#                     # else first_word chain is inserted in old_chain
-#                 else:
-#                     create_values(old_chain, sent_index, entity_class, values, verbose=verbose)
-#                     old_chain = chains[first_word]
-#             else:
-#                 old_chain = chains[first_word]
-#         if len(old_chain) > 0:
-#             create_values(old_chain, sent_index, entity_class, values, verbose=verbose)
-#
-#     if len(values) > 0:
-#         db.put_ner_feature_dict(doc.doc_id, values, feature.ner_feature_types[entity_class + '_answers'],
-#                                  None, session, commit_session)
-#
+
+
+def concat_chains_create_values(sent_index, list_refs, minmax_index, refs, values, verbose=False):
+    first_index = {minmax_index[ref]['min']:ref for ref in list_refs}
+    # print(first_index)
+    sorted_indexes = list(first_index.keys())
+    sorted_indexes.sort()
+    chain = [sorted_indexes[0]]
+    last_ref = first_index[sorted_indexes[0]]
+    last_max = minmax_index[last_ref]['max']
+    last_class = refs[last_ref][2]
+    for i in range(1,len(sorted_indexes)):
+        new_index = sorted_indexes[i]
+        new_ref = first_index[new_index]
+        new_class = refs[new_ref][2]
+        if len(chain) > 0:
+            if (new_index == last_max + 1) and (last_class != new_class):
+                chain.append(new_index)
+                create_values(chain, sent_index, 'name', values, verbose=verbose)
+                chain = []
+            else:
+                create_values(chain, sent_index, 'name', values, verbose=verbose)
+                chain = [new_index]
+        else:
+            chain = [new_index]
+        last_class = new_class
+        last_max = minmax_index[new_ref]['max']
+    if len(chain) > 0:
+        create_values(chain, sent_index, 'name', values, verbose=verbose)
 
 
 def create_answers_feature_for_doc(doc, entity_class='oc_class_person', session=None, commit_session=True, verbose=False):
     """Create answers like classname_B, classname_I, ..., classname_BS, classname_IE.
     for example name_BS, name_IE
     """
-
     # let find markup for entity_class
     main_entity_class = entity_class
     ignore_no_ref_from_mention = False

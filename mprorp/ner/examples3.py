@@ -8,6 +8,7 @@ from mprorp.tomita.grammars.config import config as grammar_config
 from mprorp.tomita.tomita_run import run_tomita2
 import mprorp.ner.feature as ner_feature
 from mprorp.ner.identification import create_answers_feature_for_doc
+from mprorp.ner.identification import create_answers_span_feature_for_doc
 from mprorp.db.models import *
 from mprorp.ner.identification import create_markup_regular
 from mprorp.utils import home_dir
@@ -201,6 +202,32 @@ def create_answers(cla=None):
     session.commit()
 
 
+def create_big_set_name_answers():
+    count = 0
+    bad_list = set()
+    not_found_docs = []
+    for set_type in ['train', 'dev']:
+        for doc_id in set_docs['name'][set_type]:
+            count += 1
+            # if count > 500:
+            #     break
+            if count%100 == 0:
+                print(count)
+            try:
+                doc = session.query(Document).filter_by(doc_id=doc_id).first()
+            except:
+                not_found_docs.append(doc_id)
+                # print('doc not found')
+                continue
+            # print(doc.stripped)
+            if doc is None:
+                not_found_docs.append(doc_id)
+                # print('doc not found')
+                continue
+            create_answers_span_feature_for_doc(doc, ['name', 'surname'], bad_list=bad_list)
+    print('not found docs:', not_found_docs)
+    print('docs with zero chains:', list(bad_list))
+
 def learning():
     # 4. Обучение и запись модели в файл
     if not os.path.exists(home_dir + "/weights"):
@@ -376,22 +403,23 @@ def script_exec():
     #     print('morpho tried for', past_count, 'rest', len(bad_list))
     # print('train stopped. past_count = ', len(bad_list))
 
-    set_type = 'dev'
-    bad_list = set_docs['name'][set_type]
-    print('start features', set_type)
-    past_count = 0
-    start_count = 0
-    while (len(bad_list) > 0) and (len(bad_list) != past_count):
-        past_count = len(bad_list)
-        bad_list = capital_embedding_morpho_feature(bad_list, start_count)
-        start_count = 0
-        print('feature tried for', past_count, 'rest', len(bad_list))
-    if len(bad_list) > 0:
-        print('bad list:', bad_list)
-    print(set_type, 'features stopped. past_count = ', len(bad_list))
+    # set_type = 'dev' # 'train'
+    # bad_list = set_docs['name'][set_type]
+    # print('start features', set_type)
+    # past_count = 0
+    # start_count = 0
+    # while (len(bad_list) > 0) and (len(bad_list) != past_count):
+    #     past_count = len(bad_list)
+    #     bad_list = capital_embedding_morpho_feature(bad_list, start_count)
+    #     start_count = 0
+    #     print('feature tried for', past_count, 'rest', len(bad_list))
+    # if len(bad_list) > 0:
+    #     print('bad list:', bad_list)
+    # print(set_type, 'features stopped. past_count = ', len(bad_list))
 
-    exit()
-    morpho()
+
+
+    create_big_set_name_answers()
     exit()
     NER.NER_learning_by_config({"class": 1, "tags": 1, "use_special_tags": 0})
     # create_answers('oc_class_loc')
