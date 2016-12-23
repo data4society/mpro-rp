@@ -3,7 +3,7 @@ sys.path.insert(0, '..')
 from mprorp.utils import home_dir
 from mprorp.analyzer.db import *
 
-koap__file_path = home_dir + '/norm_act/table.csv'
+koap__file_path = home_dir + '/norm_act/KOAP.csv'
 session = db_session()
 f = open(koap__file_path, 'r', encoding='utf-8')
 print('KoAP import START')

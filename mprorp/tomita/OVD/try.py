@@ -35,7 +35,8 @@ def try_ovd(doc_id=None, source_id=None):
 #new_entity = Entity(name='KOAP', entity_class='norm_act', data={'Matvey_try':1})
 #session.add(new_entity)
 #session.commit()
-#a = session.query(Entity).filter(Entity.entity_class == 'norm_act').all()
-#for entity in a:
-#    db.delete_entity(entity.entity_id)
+a = session.query(Entity).filter(Entity.entity_class == 'norm_act').all()
+print(len(a))
+for entity in a:
+    db.delete_entity(entity.entity_id)
 
