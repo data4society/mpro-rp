@@ -204,24 +204,29 @@ def create_answers(cla=None):
 
 def create_big_set_name_answers():
     count = 0
+    bad_list = set()
+    not_found_docs = []
     for set_type in ['train', 'dev']:
         for doc_id in set_docs['name'][set_type]:
             count += 1
             # if count > 500:
             #     break
-            if count%1000 == 0:
+            if count%100 == 0:
                 print(count)
             try:
                 doc = session.query(Document).filter_by(doc_id=doc_id).first()
             except:
-                print('doc not found')
+                not_found_docs.append(doc_id)
+                # print('doc not found')
                 continue
             # print(doc.stripped)
             if doc is None:
-                print('doc not found')
+                not_found_docs.append(doc_id)
+                # print('doc not found')
                 continue
-            create_answers_span_feature_for_doc(doc, ['name', 'surname'])
-
+            create_answers_span_feature_for_doc(doc, ['name', 'surname'], bad_list=bad_list)
+    print('not found docs:', not_found_docs)
+    print('docs with zero chains:', list(bad_list))
 
 def learning():
     # 4. Обучение и запись модели в файл

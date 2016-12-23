@@ -84,7 +84,7 @@ def get_ref_from_morpho(reference, morpho, verbose=False):
     return span_chain, sent_index
 
 
-def create_answers_span_feature_for_doc(doc, spans, markup_type='56', session=None, commit_session=True, verbose=False):
+def create_answers_span_feature_for_doc(doc, spans, markup_type='56', bad_list=set(), session=None, commit_session=True, verbose=False):
     """Create answers from name/surname """
 #
 #     # let find markup for entity_class
@@ -134,7 +134,8 @@ def create_answers_span_feature_for_doc(doc, spans, markup_type='56', session=No
                     max_index = i
             minmax_index[ref_id] = {'min':min_index, 'max':max_index}
         else:
-            print('zero chain. dic_id:', str(doc.doc_id), ref)
+            # print('zero chain. dic_id:', str(doc.doc_id), ref)
+            bad_list.add(str(doc.doc_id))
     for i in sentence_refs:
         concat_chains_create_values(i, sentence_refs[i], minmax_index, refs, values, verbose=verbose)
 
