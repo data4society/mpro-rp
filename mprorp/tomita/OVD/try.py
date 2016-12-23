@@ -16,9 +16,6 @@ def try_ovd(doc_id=None, source_id=None):
         doc_id = session.query(Record).filter(Record.document_id == source_id).first().source
     a = session.query(Document).filter(Document.doc_id == doc_id).all()
     print(a[0].doc_id)
-    #run_tomita2('ovd.cxx', doc_id)
-    #out = convert_tomita_result_to_markup(a[0], ['person.cxx'])
-    #out = convert_tomita_result_to_markup(a[0], ['ovd.cxx'])
     out = run_tomita(a[0], 'ovd.cxx')
     print(out)
     if out == {}:
@@ -29,9 +26,16 @@ def try_ovd(doc_id=None, source_id=None):
             print(out[i], ovd.name, ovd.external_data['kladr'])
 
 
-try_ovd(source_id='7986e161-518d-6021-e5cf-58cbc3b79ec7')
+#try_ovd(source_id='0bb08b45-b50d-5c9e-5f6f-64dd9da208ec')
 #print(session.query(Entity).filter(Entity.external_data['kladr'].astext == '63000005000003400').first().entity_id)
 #print(session.query(Entity).filter(Entity.external_data['kladr'].astext == '61000001000031700').first().name)
 #a = get_ner_feature_dict('23d197c3-467e-49d8-8a07-5336ec2b18fe', 'fb8fc548-0464-40b7-a998-04a6e1b95eb6', 'Person')
 #a = get_ner_feature_one_feature_dict('00000f42-e066-4062-b380-1a3361e66c64', 'Person', session)
 #print(a)
+#new_entity = Entity(name='KOAP', entity_class='norm_act', data={'Matvey_try':1})
+#session.add(new_entity)
+#session.commit()
+#a = session.query(Entity).filter(Entity.entity_class == 'norm_act').all()
+#for entity in a:
+#    db.delete_entity(entity.entity_id)
+
