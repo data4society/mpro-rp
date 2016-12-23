@@ -100,7 +100,6 @@ def step1(tomita_out_file, original_text, n):
     facts = combiner(facts, 'LocationFact')
     facts = variants(facts)
     out = step2(facts)
-    print(out)
     out = max_amount_of_codes(out, n)
     out = step3(out)
     out = step4(out)

@@ -29,7 +29,7 @@ def try_ovd(doc_id=None, source_id=None):
             print(out[i], ovd.name, ovd.external_data['kladr'])
 
 
-try_ovd(source_id='cfa1c87d-5f67-1db4-7c41-9313830a3206')
+try_ovd(source_id='7986e161-518d-6021-e5cf-58cbc3b79ec7')
 #print(session.query(Entity).filter(Entity.external_data['kladr'].astext == '63000005000003400').first().entity_id)
 #print(session.query(Entity).filter(Entity.external_data['kladr'].astext == '61000001000031700').first().name)
 #a = get_ner_feature_dict('23d197c3-467e-49d8-8a07-5336ec2b18fe', 'fb8fc548-0464-40b7-a998-04a6e1b95eb6', 'Person')
