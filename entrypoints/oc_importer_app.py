@@ -33,7 +33,7 @@ def import_docs_and_markups():
 
 def import_references():
     session = db_session()
-    markups = select([Markup.document, Markup.name, Markup.document], Markup.type == '56').fetchall()
+    markups = select([Markup.markup_id, Markup.name, Markup.document], Markup.type == '56').fetchall()
     print(len(markups))
     mypath = home_dir + '/opencorpora'
     onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]

@@ -18,7 +18,7 @@ def other_app_cloning(other_app_id, blacklist, fields_to_clone, complete_status,
             if check_url_with_blacklist(url, blacklist):
                 print("BLACKLIST STOP: " + url)
                 break
-            new_doc = Document(app_id=app_id, guid=guid)
+            new_doc = Document(app_id=app_id, guid=guid, type=origin_doc.type)
             for field in fields_to_clone:
                 setattr(new_doc, field, getattr(origin_doc, field))
             #record_id = str(session.query(Record).filter_by(source=origin_doc_id).options(load_only("document_id")).first().document_id)
