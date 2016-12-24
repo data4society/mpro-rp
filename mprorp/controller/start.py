@@ -31,6 +31,14 @@ def check_sources():
                         if "clear_old" in source:
                             print(
                                 "CLEAR OLD: START DELETING DOCS WHERE APP=" + app_id + " AND TYPE=" + source_type + " AND SOURCE=" + source_key)
+                            session.execute("DELETE FROM markups m USING documents d WHERE m.document = d.doc_id AND d.app_id = '" + app_id + "' AND d.source_with_type = '" + source_type+" "+source_key + "'")
+                            session.execute("DELETE FROM rubricationresults r USING documents d WHERE r.doc_id = d.doc_id AND d.app_id = '" + app_id + "' AND d.source_with_type = '" + source_type+" "+source_key + "'")
+                            session.execute("DELETE FROM documentrubrics r USING documents d WHERE r.doc_id = d.doc_id AND d.app_id = '" + app_id + "' AND d.source_with_type = '" + source_type+" "+source_key + "'")
+                            session.execute("DELETE FROM tomita_results r USING documents d WHERE r.doc_id = d.doc_id AND d.app_id = '" + app_id + "' AND d.source_with_type = '" + source_type+" "+source_key + "'")
+                            session.execute("DELETE FROM objectfeatures r USING documents d WHERE r.doc_id = d.doc_id AND d.app_id = '" + app_id + "' AND d.source_with_type = '" + source_type+" "+source_key + "'")
+                            session.execute("DELETE FROM ner_features r USING documents d WHERE r.doc_id = d.doc_id AND d.app_id = '" + app_id + "' AND d.source_with_type = '" + source_type+" "+source_key + "'")
+                            session.execute(
+                                "DELETE FROM changes c USING records r, documents d WHERE c.document_id = r.document_id AND r.source = d.doc_id AND d.app_id = '" + app_id + "' AND d.source_with_type = '" + source_type+" "+source_key + "'")
                             session.execute(
                                 "DELETE FROM records r USING documents d WHERE r.source = d.doc_id AND d.app_id = '" + app_id + "' AND d.source_with_type = '" + source_type+" "+source_key + "'")
                             session.execute(
