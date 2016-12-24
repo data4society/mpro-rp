@@ -27,13 +27,19 @@ def check_sources():
                     if source["on"] and source_status.ready and source_status.next_crawling_time < datetime.datetime.now().timestamp():
                         #source["ready"] = False
                         source_status.ready = False
-                        """
+
                         if "clear_old" in source:
-                            docs = session.query(Document).filter_by(source_with_type=source_type+" "+source_key).options(load_only("doc_id")).all()
-                            print("CLEAR OLD: DELETING "+str(len(docs))+" DOCS WHERE TYPE="+source_type+" AND SOURCE="+source_key)
-                            for doc in docs:
-                                delete_document(str(doc.doc_id), session)
-                        """
+                            print(
+                                "CLEAR OLD: START DELETING DOCS WHERE APP=" + app_id + " AND TYPE=" + source_type + " AND SOURCE=" + source_key)
+                            session.execute(
+                                "DELETE FROM records r USING documents d WHERE r.source = d.doc_id AND d.app_id = '" + app_id + "' AND d.source_with_type = '" + source_type+" "+source_key + "'")
+                            session.execute(
+                                "DELETE FROM documents d WHERE d.app_id = '" + app_id + "' AND d.source_with_type = '" + source_type + " " + source_key + "'")
+                            #docs = session.query(Document).filter_by(source_with_type=source_type+" "+source_key).options(load_only("doc_id")).all()
+                            print("COMPLETE DELETING DOCS WHERE APP="+app_id+" AND TYPE="+source_type+" AND SOURCE="+source_key)
+                            #for doc in docs:
+                                #delete_document(str(doc.doc_id), session)
+
                         print("ADD " + source_type + " CRAWL " + source_key)
                         if source_type == "vk":  # vk
                             regular_vk_start_parsing.delay(source_key, app_id=app_id)
@@ -52,8 +58,6 @@ def check_sources():
     # variable_set("last_config", apps_config)
     session.commit()
     session.remove()
-
-
 
 
 if __name__ == "__main__":

@@ -12,7 +12,9 @@ def reg_rubrication_by_comparing(doc, config, session):
         if not js_compare(getattr(origin_doc, field), getattr(doc, field)):
             good = "bad"
             break
-    doc.rubric_ids = [rubrics[good]]
+    if not doc.rubric_ids:
+        doc.rubric_ids = list()
+    doc.rubric_ids.append(rubrics[good])
 
 
 def ordered(obj):
