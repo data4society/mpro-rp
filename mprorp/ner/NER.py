@@ -21,18 +21,22 @@ from gensim.models import word2vec
 import mprorp.ner.feature as feature
 
 sets = dict()
-sets['oc_class_person'] = {'train': '2e366853-4533-4bd5-a66e-92a834a1a2ca',
-                           'dev': 'f861ee9d-5973-460d-8f50-92fca9910345'}
-# sets['name'] = {'train': '4fb42fd1-a0cf-4f39-9206-029255115d01',
+# sets['oc_class_person'] = {'train': '2e366853-4533-4bd5-a66e-92a834a1a2ca',
+#                            'dev': 'f861ee9d-5973-460d-8f50-92fca9910345'}
+# sets['name'] = {'train': '4fb42fd1-a0cf-4f39-9206-029255115d01', # Исходная выборка 274 + 77
 #                 'dev': 'f861ee9d-5973-460d-8f50-92fca9910345'}
+
+sets['name'] = {'train': 'cec10937-dbe8-4416-b22a-bb45e5061c1c', # Промежуточная выборка 5000 документов
+                'dev': '189a077f-3a80-4a48-84a9-1cc1aa10b69e'}
+
 # sets['name'] = {'train': '3a21671e-5ac0-478e-ba14-3bb0ac3059e3',
 #                 'dev': '375fa594-6c76-4f82-84f0-9123b89307c4'}
-sets['name'] = {'train': '6bdc99ea-0176-4892-954d-d89ae8d253d3',
-                'dev': 'a067d48c-4da4-4f7d-a116-0f11add07275'}
-sets['oc_class_org'] = {'train': '78f8c9fb-e385-442e-93b4-aa1a18e952d0',
-                        'dev': '299c8bd1-4e39-431d-afa9-398b2fb23f69'}
-sets['oc_class_loc'] = {'train': '74210e3e-0127-4b21-b4b7-0b55855ca02e',
-                        'dev': '352df6b5-7659-4f8c-a68d-364400a5f0da'}
+# sets['name_bs'] = {'train': '6bdc99ea-0176-4892-954d-d89ae8d253d3', # 37 000 документов - повторная загрузка
+#                    'dev': 'a067d48c-4da4-4f7d-a116-0f11add07275'}
+# sets['oc_class_org'] = {'train': '78f8c9fb-e385-442e-93b4-aa1a18e952d0',
+#                         'dev': '299c8bd1-4e39-431d-afa9-398b2fb23f69'}
+# sets['oc_class_loc'] = {'train': '74210e3e-0127-4b21-b4b7-0b55855ca02e',
+#                         'dev': '352df6b5-7659-4f8c-a68d-364400a5f0da'}
 
 
 class Config(object):
@@ -701,6 +705,7 @@ def NER_learning(filename_params, filename_tf, config=None):
             raise Exception('Not train pre-embedding allowed only from file')
     with tf.Graph().as_default():
         model = NERModel({'config': config})
+        print('data loaded')
         output_file = open(filename_params, 'wb')
         pickle.dump({'words': model.word_to_num, 'tags': model.tag_to_num, 'config': model.config},
                     output_file, protocol=3)

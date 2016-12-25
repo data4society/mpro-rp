@@ -1,4 +1,5 @@
 import mprorp.ner.NER as NER
+from mprorp.ner.NER import sets
 import os
 import mprorp.db.dbDriver as Driver
 from mprorp.db.models import Document
@@ -23,7 +24,7 @@ session = Driver.db_session()
 # найденные таким оразом, документы складываем в выборки: учебную и тестовую
 # sets = {"oc_class_org": {}, "oc_class_loc": {}}
 
-sets = dict()
+# sets = dict()
 
 # sets for database 139.162.170.98
 # sets['oc_class_person'] = {'train': '2e366853-4533-4bd5-a66e-92a834a1a2ca',
@@ -43,16 +44,16 @@ sets = dict()
 # sets['oc_class_person'] = {'train': '4fb42fd1-a0cf-4f39-9206-029255115d01',
 #                            'dev': 'f861ee9d-5973-460d-8f50-92fca9910345'}
 
-sets['name'] = {'train': '3a21671e-5ac0-478e-ba14-3bb0ac3059e3', # '2e366853-4533-4bd5-a66e-92a834a1a2ca'
-                'dev': '375fa594-6c76-4f82-84f0-9123b89307c4'}
+# sets['name'] = {'train': '3a21671e-5ac0-478e-ba14-3bb0ac3059e3', # '2e366853-4533-4bd5-a66e-92a834a1a2ca'
+#                 'dev': '375fa594-6c76-4f82-84f0-9123b89307c4'}
 
 # огромные выборки: 29313 и 7328
 # sets['name'] = {'train': '5fc21192-9a45-41b1-bf6b-df75877b60eb', # '2e366853-4533-4bd5-a66e-92a834a1a2ca'
 #                 'dev': '5684de0c-c6a1-43ef-b004-daefeeaf5e4a'}
 
 # огромные выборки: 29774 и 7443
-sets['name'] = {'train': '6bdc99ea-0176-4892-954d-d89ae8d253d3', # '2e366853-4533-4bd5-a66e-92a834a1a2ca'
-                'dev': 'a067d48c-4da4-4f7d-a116-0f11add07275'}
+# sets['name'] = {'train': '6bdc99ea-0176-4892-954d-d89ae8d253d3', # '2e366853-4533-4bd5-a66e-92a834a1a2ca'
+#                 'dev': 'a067d48c-4da4-4f7d-a116-0f11add07275'}
 
 
 
@@ -82,23 +83,27 @@ filename_tf = home_dir + '/weights/ner_oc_' + filename_part + '.weights'
 filename_params = home_dir + '/weights/ner_oc_' + filename_part + '.params'
 
 
-def create_sets(cl, markup_type='51'):
+def create_sets(cl, markup_type='51', doc_number=None):
     docs = db.get_docs_for_entity_class(cl, markup_type=markup_type, session=session)
     random.shuffle(docs)
-    train_num = round(len(docs) * 0.8)
+    if doc_number is None:
+        doc_number = len(docs)
+    train_num = round(doc_number * 0.8)
     sets[cl]['train'] = str(db.put_training_set(docs[:train_num]))
-    sets[cl]['dev'] = str(db.put_training_set(docs[train_num:len(docs)]))
+    sets[cl]['dev'] = str(db.put_training_set(docs[train_num:doc_number]))
     print(sets)
 
 
-def create_sets_56(markup_type='56'):
+def create_sets_56(markup_type='56', doc_number=None):
     docs = db.get_docs_by_markup_type(markup_type=markup_type, session=session)
     random.shuffle(docs)
-    train_num = round(len(docs) * 0.8)
+    if doc_number is None:
+        doc_number = len(docs)
+    train_num = round(doc_number * 0.8)
     set_train_56 = str(db.put_training_set(docs[:train_num]))
-    set_dev_56 = str(db.put_training_set(docs[train_num:len(docs)]))
+    set_dev_56 = str(db.put_training_set(docs[train_num:doc_number]))
     print(train_num, set_train_56)
-    print(len(docs) - train_num, set_dev_56)
+    print(doc_number - train_num, set_dev_56)
 
 
 def morpho():
@@ -385,7 +390,7 @@ def get_doc_id(rec_id):
 
 def script_exec():
 
-    # create_sets_56()
+    # create_sets_56(doc_number=5000)
     # bad_list = set_docs['name']['train']
     # print('start morpho train')
     # past_count = 0
@@ -417,23 +422,31 @@ def script_exec():
     #     print('bad list:', bad_list)
     # print(set_type, 'features stopped. past_count = ', len(bad_list))
 
-
-
-    create_big_set_name_answers()
+    # create_big_set_name_answers()
+    # exit()
+    NER.NER_learning_by_config({"class": 1, "tags": 2, "use_special_tags": 0})
     exit()
-    NER.NER_learning_by_config({"class": 1, "tags": 1, "use_special_tags": 0})
     # create_answers('oc_class_loc')
     # prediction('name')
     rec_set = ['d1b44788-bfb6-36b2-d001-713af427127c',
                '756c27e4-3036-aed7-6b3b-8813dc00352a',
                'a43dc00b-f780-0937-76e1-d685fbd3c322',
                '1f3f9f95-d24b-b63a-ff34-9b7eb6f75656']
+    doc_set = ['7232cfa3-a820-4c2f-b186-c57e58db2bb7',
+               '177097e8-0e9e-4392-a586-7bb0c4dfe2c9',
+               '68870091-58cb-4719-9089-5da62398ce65',
+               '31f8194a-b292-4d52-a6ca-27bb1cec5da2']
     # rec_set = db.get_set_docs(sets['name']['dev'])
     # doc_set = ['664db67f-cc86-4933-82c0-20a555a38281']
+    for doc_id in doc_set:
+        doc = session.query(Document).filter_by(doc_id=doc_id).first()
+        rb.morpho_doc(doc)
+    session.commit()
+    capital_embedding_morpho_feature(doc_set)
     # for rec_id in rec_set:
-    for rec_id in rec_set:
-        doc_id = get_doc_id(rec_id)
+    #     doc_id = get_doc_id(rec_id)
         # identification_doc(doc_id)
+    for doc_id in doc_set:
         doc = session.query(Document).filter_by(doc_id=doc_id).first()
         if doc is None:
             print('No document', doc_id)
