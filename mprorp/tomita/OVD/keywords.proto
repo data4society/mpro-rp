@@ -1,6 +1,7 @@
 import "base.proto";     
 import "articles_base.proto";
 message OVD: TAuxDicArticle {}
+message OVD2: TAuxDicArticle {}
 message Dis: TAuxDicArticle {}
 message Vil: TAuxDicArticle {}
 message Reg: TAuxDicArticle {}
