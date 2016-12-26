@@ -1,5 +1,7 @@
 from mprorp.db.models import *
-from mprorp.data.kladr import mvd_root
+
+
+mvd_root = 'eaf0a69a-74d7-4e1a-9187-038a202c7698'
 
 
 def cross(arr):
