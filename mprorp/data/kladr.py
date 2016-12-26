@@ -95,7 +95,7 @@ def import_ovds():
                 external_data = dict()
                 data["name"] = row[0]
                 external_data["kladr"] = row[i]
-                data["jurisdiction"] = mvd_root
+                data["jurisdiction"] = [mvd_root]
                 entity = Entity(name=row[0], data=data, external_data=external_data, entity_class='org')
                 #continue
                 session.add(entity)

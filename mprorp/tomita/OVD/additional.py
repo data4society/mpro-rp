@@ -1,4 +1,6 @@
 from mprorp.db.models import *
+from mprorp.data.kladr import mvd_root
+
 
 def cross(arr):
     for i in range(len(arr)):
@@ -78,22 +80,31 @@ def OVD(ovd, session, Numb=False, Name=False, Location=False):
     codes = []
     if Numb is True:
         numb = ovd[0]
+        """
         all_codes = session.query(Entity).filter(Entity.data.has_key("jurisdiction")).all()
         for code in all_codes:
             if code.data["jurisdiction"] == "eaf0a69a-74d7-4e1a-9187-038a202c7698" and numb in code.data['name']:
                 codes.append(code)
+        """
+        codes = session.query(Entity).filter(Entity.data["jurisdiction"].astext == '["'+mvd_root+'"]', Entity.name.like("%"+numb+"%")).all()
     elif Name is True:
         name = ovd[0]
+        """
         all_codes = session.query(Entity).filter(Entity.data.has_key("jurisdiction")).all()
         for code in all_codes:
             if code.data["jurisdiction"] == "eaf0a69a-74d7-4e1a-9187-038a202c7698" and name in code.data['name'].lower():
                 codes.append(code)
+        """
+        codes = session.query(Entity).filter(Entity.data["jurisdiction"].astext == '["'+mvd_root+'"]', Entity.name.ilike("%"+name+"%")).all()
     elif Location is True:
         loc = ovd[0].lower()
+        """
         all_codes = session.query(Entity).filter(Entity.data["jurisdiction"].astext == "eaf0a69a-74d7-4e1a-9187-038a202c7698").all()
         for code in all_codes:
             if loc in code.data['name'].lower():
                 codes.append(code)
+        """
+        codes = session.query(Entity).filter(Entity.data["jurisdiction"].astext == '["'+mvd_root+'"]', Entity.name.ilike("%"+loc+"%")).all()
         if codes == []:
             return None
     else:
@@ -106,16 +117,24 @@ def typess(name, session):
     name = name.lower()
     if name != 'овд':
         types = get_types(name)
+        """
         all_codes = session.query(Entity).filter(Entity.data.has_key("jurisdiction")).all()
         for code in all_codes:
             for type in types:
                 if code.data["jurisdiction"] == "eaf0a69a-74d7-4e1a-9187-038a202c7698" and type in code.name.lower():
                     codes.append(code)
+        """
+        for type in types:
+            codes.extend(session.query(Entity).filter(Entity.data["jurisdiction"].astext == '["' + mvd_root + '"]',
+                                         Entity.name.ilike("%" + type + "%")).all())
     else:
+        """
         all_codes = session.query(Entity).filter(Entity.data.has_key("jurisdiction")).all()
         for code in all_codes:
             if code.data["jurisdiction"] == "eaf0a69a-74d7-4e1a-9187-038a202c7698":
                 codes.append(code)
+        """
+        codes = session.query(Entity).filter(Entity.data["jurisdiction"].astext == '["' + mvd_root + '"]').all()
     return codes
 
 def get_types(name):
