@@ -23,11 +23,11 @@ import mprorp.ner.feature as feature
 sets = dict()
 # sets['oc_class_person'] = {'train': '2e366853-4533-4bd5-a66e-92a834a1a2ca',
 #                            'dev': 'f861ee9d-5973-460d-8f50-92fca9910345'}
-# sets['name'] = {'train': '4fb42fd1-a0cf-4f39-9206-029255115d01', # Исходная выборка 274 + 77
-#                 'dev': 'f861ee9d-5973-460d-8f50-92fca9910345'}
+sets['name'] = {'train': '4fb42fd1-a0cf-4f39-9206-029255115d01', # Исходная выборка 274 + 77
+                'dev': 'f861ee9d-5973-460d-8f50-92fca9910345'}
 
-sets['name'] = {'train': 'cec10937-dbe8-4416-b22a-bb45e5061c1c', # Промежуточная выборка 5000 документов
-                'dev': '189a077f-3a80-4a48-84a9-1cc1aa10b69e'}
+# sets['name'] = {'train': 'cec10937-dbe8-4416-b22a-bb45e5061c1c', # Промежуточная выборка 5000 документов
+#                 'dev': '189a077f-3a80-4a48-84a9-1cc1aa10b69e'}
 
 # sets['name'] = {'train': '3a21671e-5ac0-478e-ba14-3bb0ac3059e3',
 #                 'dev': '375fa594-6c76-4f82-84f0-9123b89307c4'}
@@ -84,8 +84,10 @@ class Config(object):
     dev_set = u'f861ee9d-5973-460d-8f50-92fca9910345'
 
     embedding_for_word_count = 6
-    pre_embedding_from_file = home_dir + '/embeddings/news_win20.model.bin'
-    embedding = 'first_test_embedding'
+    # pre_embedding_from_file = home_dir + '/embeddings/news_win20.model.bin'
+    pre_embedding_from_file = ''
+    # embedding = 'first_test_embedding'
+    embedding = 'second_embedding_1000'
     word_unkn = 'etiraz_UNKN'
 
     feature_answer = ['person_answer']
@@ -701,8 +703,8 @@ def NER_learning(filename_params, filename_tf, config=None):
     if not config.train_embedding:
         if not config.pre_embedding:
             raise Exception('Not train embedding allowed for pre-embedding only')
-        elif config.pre_embedding_from_file == '':
-            raise Exception('Not train pre-embedding allowed only from file')
+        # elif config.pre_embedding_from_file == '':
+        #     raise Exception('Not train pre-embedding allowed only from file')
     with tf.Graph().as_default():
         model = NERModel({'config': config})
         print('data loaded')

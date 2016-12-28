@@ -768,6 +768,11 @@ def get_doc_text(doc_id, session=None):
     return session.query(Document.stripped).filter(Document.doc_id == doc_id).one().stripped
 
 
+def is_name(lemma, session=None):
+    if session is None:
+        session = Driver.db_session()
+    res = session.query(Gazetteer.name).filter((Gazetteer.name == 'names') & Gazetteer.lemmas.any(lemma.title())).all()
+    return len(res) > 0
 
 
 

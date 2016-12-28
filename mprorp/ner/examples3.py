@@ -379,7 +379,7 @@ def identification_doc(doc_id):
     }
 
     doc = session.query(Document).filter_by(doc_id=doc_id).first()
-    print(doc.stripped)
+    # print(doc.stripped)
     create_markup_regular(doc, settings_list, verbose=True)
 
 
@@ -425,32 +425,36 @@ def script_exec():
     # create_big_set_name_answers()
     # exit()
     NER.NER_learning_by_config({"class": 1, "tags": 2, "use_special_tags": 0})
-    exit()
+    # exit()
     # create_answers('oc_class_loc')
     # prediction('name')
     rec_set = ['d1b44788-bfb6-36b2-d001-713af427127c',
                '756c27e4-3036-aed7-6b3b-8813dc00352a',
                'a43dc00b-f780-0937-76e1-d685fbd3c322',
                '1f3f9f95-d24b-b63a-ff34-9b7eb6f75656']
+    rec_set = ['5063bc12-df66-98b9-0342-84b3e41691a8']
     doc_set = ['7232cfa3-a820-4c2f-b186-c57e58db2bb7',
                '177097e8-0e9e-4392-a586-7bb0c4dfe2c9',
                '68870091-58cb-4719-9089-5da62398ce65',
                '31f8194a-b292-4d52-a6ca-27bb1cec5da2']
     # rec_set = db.get_set_docs(sets['name']['dev'])
     # doc_set = ['664db67f-cc86-4933-82c0-20a555a38281']
-    for doc_id in doc_set:
-        doc = session.query(Document).filter_by(doc_id=doc_id).first()
-        rb.morpho_doc(doc)
-    session.commit()
+    doc_set = []
+    for rec_id in rec_set:
+        doc_set.append(get_doc_id(rec_id))
+
+    # for doc_id in doc_set:
+    #     doc = session.query(Document).filter_by(doc_id=doc_id).first()
+    #     rb.morpho_doc(doc)
+    # session.commit()
     capital_embedding_morpho_feature(doc_set)
-    # for rec_id in rec_set:
-    #     doc_id = get_doc_id(rec_id)
-        # identification_doc(doc_id)
+
     for doc_id in doc_set:
         doc = session.query(Document).filter_by(doc_id=doc_id).first()
         if doc is None:
             print('No document', doc_id)
         print(doc.stripped)
+        print('Morpho', doc.morpho)
         NER.NER_predict(doc, [{"class": 1, "tags": 1, "use_special_tags": 0}],
                         session, commit_session=True, verbose=True)
         identification_doc(doc_id)

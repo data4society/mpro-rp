@@ -516,7 +516,8 @@ def create_refs(doc, refs_settings, refs, session=None, commit_session=True, ver
                     if len(l) < 2:
                         # Это инициал, который ни с чем не "склеился"
                         continue
-                    if wiki_search.is_given_name(l):
+                    # if wiki_search.is_given_name(l):
+                    if db.is_name(l):
                         # Это просто имя - такое как
                         # Алексей, Татьяна
                         continue
