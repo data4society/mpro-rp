@@ -23,11 +23,11 @@ import mprorp.ner.feature as feature
 sets = dict()
 # sets['oc_class_person'] = {'train': '2e366853-4533-4bd5-a66e-92a834a1a2ca',
 #                            'dev': 'f861ee9d-5973-460d-8f50-92fca9910345'}
-sets['name'] = {'train': '4fb42fd1-a0cf-4f39-9206-029255115d01', # Исходная выборка 274 + 77
-                'dev': 'f861ee9d-5973-460d-8f50-92fca9910345'}
+# sets['name'] = {'train': '4fb42fd1-a0cf-4f39-9206-029255115d01', # Исходная выборка 274 + 77
+#                 'dev': 'f861ee9d-5973-460d-8f50-92fca9910345'}
 
-# sets['name'] = {'train': 'cec10937-dbe8-4416-b22a-bb45e5061c1c', # Промежуточная выборка 5000 документов
-#                 'dev': '189a077f-3a80-4a48-84a9-1cc1aa10b69e'}
+sets['name'] = {'train': 'cec10937-dbe8-4416-b22a-bb45e5061c1c', # Промежуточная выборка 5000 документов
+                'dev': '189a077f-3a80-4a48-84a9-1cc1aa10b69e'}
 
 # sets['name'] = {'train': '3a21671e-5ac0-478e-ba14-3bb0ac3059e3',
 #                 'dev': '375fa594-6c76-4f82-84f0-9123b89307c4'}
@@ -144,11 +144,18 @@ class NERModel(LanguageModel):
         # Load the starter word vectors
         training_set = self.config.training_set
         #  train_set_words[doc_id] = [(sentence, word, [lemma1, lemma2]), ... (...)]
+        if verbose:
+            print('start reading training words', time.clock())
         train_set_words = db.get_ner_feature(set_id=training_set, feature='embedding')
+        if verbose:
+            print('reading training words - ok', time.clock())
+            print('start reading dev words', time.clock())
 
         dev_set = self.config.dev_set
         #  dev_set_words[doc_id] = [(sentence, word, [lemma1, lemma2]), ... (...)]
         dev_set_words = db.get_ner_feature(set_id=dev_set, feature='embedding')
+        if verbose:
+            print('reading dev words - ok', time.clock())
 
         # collect words from set
 
@@ -165,7 +172,11 @@ class NERModel(LanguageModel):
             #     print(words_for_embedding)
 
             if self.config.pre_embedding_from_file == '':
+                if verbose:
+                    print('start reading training embeddings', time.clock())
                 wv_dict = db.get_multi_word_embedding(self.config.embedding, words_for_embedding.keys())
+                if verbose:
+                    print('reading training embeddings - ок', time.clock())
             else:
                 model_w2v = word2vec.Word2Vec.load_word2vec_format(self.config.pre_embedding_from_file, binary=True)
                 wv_dict = {}
@@ -218,12 +229,14 @@ class NERModel(LanguageModel):
         self.wv = np.array(wv_array, dtype=np.float32)
         # model_w2v = None
 
-
         if verbose:
             print(self.config.feature_answer)
             print(self.config.feature_type)
+            print('start reading training answers', time.clock())
         answers = db.get_ner_feature_dict(set_id=training_set, feature_type=self.config.feature_type,
                                           feature_list=self.config.feature_answer)
+        if verbose:
+            print('reading training answers - ок', time.clock())
 
         tagnames = [0]
         for doc_id in answers:
@@ -249,7 +262,11 @@ class NERModel(LanguageModel):
 
         features_set = {}
         for feat in self.config.features:
+            if verbose:
+                print('start reading training feature'. feat, time.clock())
             features_set[feat] = db.get_ner_feature_dict(set_id=training_set, feature=feat)
+            if verbose:
+                print('reading training feature'. feat, '- ok', time.clock())
 
         self.feat_train, self.X_train, self.y_train, _, _ = du.docs_to_windows2(train_set_words, word_to_num,
                                                         tag_to_num, answers,
@@ -592,7 +609,7 @@ class NERModel(LanguageModel):
         self.config = params['config']
         # self.load_data(debug=False)
         if self.config.new_model:
-            self.load_data_db(debug=False, verbose=False)
+            self.load_data_db(debug=False, verbose=True)
 
         else:
             self.word_to_num = params['words']
