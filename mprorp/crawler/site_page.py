@@ -49,8 +49,13 @@ def find_full_text(doc):
 
 
 if __name__ == '__main__':
+    session = db_session()
+    doc_id = str(session.query(Record).filter_by(document_id='810fd23b-0449-fcb4-2ab4-a4d3e47e5c47').first().source)
+    doc = session.query(Document).filter_by(doc_id=doc_id).first()
+    find_full_text(doc)
+    print(doc.stripped)
 
-    find_full_text(Document(url="http://echo-oren.ru/2016/09/16/11327",meta=dict()))
+
     exit()
     articles = select(Document.doc_id, Document.source_id == '71dc5343-c27d-44bf-aa76-f4d8085317fe').fetchall()
     print(len(articles))

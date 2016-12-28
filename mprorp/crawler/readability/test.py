@@ -11,6 +11,7 @@ import urllib.request
 from urllib.error import *
 from readability.encoding import get_encoding
 import html
+import datetime
 
 # links whick blocked by cloudflare firewall
 cloudflare_links = ['http://podrobnosti.ua/2115445-frantsuzy-edut-rassledovat-zaderzhanie-sbu-terrorista.html', 'http://ryb.ru/2016/06/21/348972',
@@ -22,7 +23,7 @@ cloudflare_links = ['http://podrobnosti.ua/2115445-frantsuzy-edut-rassledovat-za
     'http://u-f.ru/News/politics/u9/2016/06/18/101730',
     'http://newsday24.org/11294-savchenko-ustala-ot-takoy-zhizni.html']
 
-bad_links = ['http://www.gazeta.kg/news/important/99343-sud-arestoval-rukovoditeley-lagerya-na-syamozere.html', 'http://pskov.riasv.ru/news/vo_frantsii_arestovali_krupnogo_pskovskogo_zemlevl/1110912/', 'http://vzglyadpenza.ru/2016/06/gricak-govorit-chto-siriyci-priezzhali-v-ukrainskoe/', 'http://podrobnosti.ua/2115445-frantsuzy-edut-rassledovat-zaderzhanie-sbu-terrorista.html', 'http://poliksal.ru/novosti-v-mire/45953-savchenko-prizvala-zapad-ostanovit-rossiyu-na-ukrainskoy-granice.html', 'http://ryb.ru/2016/06/21/348972', 'http://ryb.ru/2016/06/21/348890', 'http://ryb.ru/2016/06/21/349088', 'http://poliksal.ru/novosti-rosii/45899-novye-shokiruyuschie-zayavleniya-savchenko-ona-rasskazala-miru-o-planah-kremlya-zavoevat-evropu.html', 'http://poliksal.ru/novosti-v-mire/45894-v-strasburge-savchenko-prizvala-evropu-dressirovat-rossiyu.html', 'http://svodka.net/index.php?option=com_content&view=article&id=40969:v-lnr-boeviki-zaderjali-ukrainskuyu-jurnalistku&catid=236:obshestvoekonomika', 'http://www.aysor.am/ru/news/2016/06/21/%D1%81%D0%B5%D1%84%D0%B8%D0%BB%D1%8F%D0%BD/1100847', 'http://news.am/rus/news/333253.html', 'http://lratvakan.com/news/212802.html', 'http://news.am/rus/news/333232.html', 'http://news.am/rus/news/333247.html', 'http://u-f.ru/News/politics/u9/2016/06/18/101730', 'http://07kbr.ru/2016/06/18/mariya-zaxarova-v-efire-rt-prizvala-dzhona-kerri-byt-terpelivym/', 'http://topre.ru/2016/06/18/zaharova-k-bolelschikam-vo-francii-v-ryade-sluchaev.html', 'http://echospb.ru/2016/06/22/v-sb-ukraini-soobschili-chto-v-gosudarstve-net-baz-po/', 'http://belrynok.ru/2016/06/v-lnr-soobschili-o-zaderzhanii-zhurnalistiki-iz-ivano/', 'http://www.ukrinform.ru/rubric-politycs/2038213-savcenko-segodna-mena-100-izbrali-by-prezidentom.html', 'http://www.gazeta.kg/news/important/99364-tragediya-v-karelii-poslednie-novosti-ot-21062016-podrobnosti-video-direktor-lagerya-i-ego-zamestitel-otpravleny-za-reshetku-na-2-mesyaca.html', 'http://morning-news.ru/2016/06/v-lnr-soobschili-o-zaderzhanii-ukrainskoy-zhurnalistki/', 'http://newsday24.org/11294-savchenko-ustala-ot-takoy-zhizni.html', 'http://vzglyadpenza.ru/2016/06/za-shpionazh-v-lnr-soobschili-o-zaderzhanii-ukrainskoy/', 'http://replyua.net/news/politika-v-mire/31892-nadezhda-savchenko-uspeshno-sdala-test-na-politicheskoy-scene.html', 'http://24science.ru/11294-savchenko-ustala-ot-takoy-zhizni.html', 'http://bk55.ru/news/article/77109/', 'http://blagoveshensk.riasv.ru/news/pogibshie_na_syamozere_deti_ne_znali_kak_pravilno_/1111499/', 'http://petrozavodsk.riasv.ru/news/k_gibeli_shkolnikov_v_karelii_mogut_bit_prichastni/1111543/', 'http://news.rin.ru/news/370634/', 'http://kirov.monavista.ru/news/1757611/', 'http://e-gorlovka.com.ua/id/2016/kirovskie-narodnie-izbranniki-ne-dogovorilis-o-soveschanii-229116.html', 'http://govoritmoskva.ru/news/84017/', 'http://kirov.monavista.ru/news/1757301/', 'http://kirov.monavista.ru/news/1757254/', 'http://vzglyadpenza.ru/2016/06/sud-arestoval-rukovoditelya-russkogo-avtorskogo-obschestva/', 'http://vologda.riasv.ru/news/pochemu_gendirektor_rao_fedotov_pered_arestom_poda/1132927/', 'http://navkolo.me/vo-vnukovo-shvachen-yurist-evgenii-vasilevoy-60190.html', 'http://nash-sport.com/2016/06/28/yurista-evgenii-vasilevoy-arestovali-v-aeroportu-vnukovo.html', 'http://ryb.ru/2016/06/28/356345', 'http://slawyanka.info/archives/437654', 'http://newsler.info/217192-zhiteli-rf-zaderzhani-v-ispanii-po-podozreniyu-v-otmivanii', 'http://murmansk.riasv.ru/news/v_murmanskoy_oblasti_politseyskie_zaderzhali_napav/1128687/', 'http://murmansk.riasv.ru/news/segodnya_v_umvd_rossii_po_murmanskoy_oblasti_nagra/1127565/', 'http://www.kasparov.ru/material.php?id=5772224A88215&section_id=43452BE8655FB', 'http://rueconomics.ru/181782-popytki-obelit-nikitu-belyh-provalilis', 'http://svodka.net/analitika/obozrenie/47247', 'http://shkvarki.org/za-rubezhem/item/8297-v-tsentre-mogileva-militsiya-razognala-detskij-prazdnik-a-organizatorov-zabrala-v-otdelenie', 'http://euroradio.fm/ru/mogilevskaya-miliciya-prokommentirovala-zaderzhanie-organizatora-detskogo-prazdnika', 'https://charter97.org/ru/news/2016/6/27/210893/', 'https://charter97.org/ru/news/2016/6/27/210823/', 'http://ijevsk.jjew.ru/news/zashchita_obzhalovala_arest_gubernatora_kirovskoy_/1149958/', 'http://rostovnadonu.riasv.ru/news/gendirektora_rossiyskogo_avtorskogo_obshchestva_po/1133686/', 'http://kaliningrad.monavista.ru/news/1758247/', 'http://fn-volga.ru/news/view/id/50928', 'http://gigamir.net/money/economics/pub2671949', 'http://navkolo.me/v-ispanii-zaderzhani-zhiteli-rossii-po-podozreniyu-v-60350.html', 'http://www.mk.ru/social/2016/06/28/zaderzhannogo-o-vnukovo-advokata-vasilevoy-otpustili.html', 'http://newsler.info/217330-sbu-provela-obisk-u-harkovskoy-kommunistki-aleksandrovskoy', 'http://ryb.ru/2016/06/29/357003', 'http://navkolo.me/v-chest-dnya-konstitucii-v-harkove-obiskivali-glavnuyu-60561.html', 'http://echospb.ru/2016/06/27/zamglavi-leyboristskoy-partii-uotson-prizval-uyti-v/', 'http://newsler.info/216758-v-britanii-podali-v-otstavku-sem-tenevih-ministrov', 'http://mk-london.co.uk/news/u489/2016/06/27/13494', 'https://meduza.io/feature/2016/06/27/brekzit-posledstviya', 'http://vladivostok.monavista.ru/news/1750611/', 'http://svodka.net/index.php?option=com_content&view=article&id=45900:da-ya-rabotal-v-usherb-sebe&catid=77:obozrenie', 'http://vladivostok.monavista.ru/news/1749309/', 'http://kaliningrad.monavista.ru/news/1758294/', 'http://vladivostok.monavista.ru/news/1749142/', 'http://e-gorlovka.com.ua/id/2016/sbu-provelo-obisk-u-osnovnoy-harkovskoy-kommunistki-229556.html', 'http://poliksal.ru/proishestviya/47611-nikita-belyh-prodolzhaet-golodovku-i-zayavlyaet-o-podstave-pochemu-gubernator-uporno-ne-priznaetsya-vo-vzyatkah.html', 'http://w-n.com.ua/archives/4181', 'http://www.ukrinform.ru/rubric-politycs/2041863-aleksandrovskoj-svetit-10-let.html']
+bad_links = ['http://kaliningradfirst.ru/207107', 'http://vzglyadpenza.ru/2016/06/gricak-govorit-chto-siriyci-priezzhali-v-ukrainskoe/', 'http://avtoinsider.com/rukovoditel-sbu-v-dnepre-i-oblasti-net-lagerya-dzhihadistov/', 'http://ryb.ru/2016/06/21/348972', 'http://ryb.ru/2016/06/21/348890', 'http://ryb.ru/2016/06/21/349088', 'http://lastnews.com.ua/novosti-ukraini/515506-ne-zhelayu-nikomu-imet-takogo-soseda-kak-rossiya.html', 'http://svodka.net/index.php?option=com_content&view=article&id=40969:v-lnr-boeviki-zaderjali-ukrainskuyu-jurnalistku&catid=236:obshestvoekonomika', 'http://newsera.ru/2016/06/187085/terroristi-lnr-soobschili-chto-yakobi-zaderzhali.html', 'http://lratvakan.com/news/212802.html', 'http://07kbr.ru/2016/06/18/mariya-zaxarova-v-efire-rt-prizvala-dzhona-kerri-byt-terpelivym/', 'http://topre.ru/2016/06/18/zaharova-k-bolelschikam-vo-francii-v-ryade-sluchaev.html', 'http://echospb.ru/2016/06/22/v-sb-ukraini-soobschili-chto-v-gosudarstve-net-baz-po/', 'http://belrynok.ru/2016/06/v-lnr-soobschili-o-zaderzhanii-zhurnalistiki-iz-ivano/', 'http://lastnews.com.ua/novosti-ukraini/515565-v-lnr-zaderzhali-zhurnalistku-iz-ivano-frankovska.html', 'http://morning-news.ru/2016/06/v-lnr-soobschili-o-zaderzhanii-ukrainskoy-zhurnalistki/', 'http://newsday24.org/11294-savchenko-ustala-ot-takoy-zhizni.html', 'http://www.moscow-post.com/news/society/vitse-premjer_karelii_popal_pod_podozrenie94812/', 'http://lastnews.com.ua/novosti-ukraini/515616-plenenie-ukrainskoy-zhurnalistki-v-luganske-poyavilas-reakciya-redakcii.html', 'http://avtoinsider.com/v-lnr-soobschili-chto-zaderzhali-ukrainskuyu-zhurnalistku/', 'http://vzglyadpenza.ru/2016/06/za-shpionazh-v-lnr-soobschili-o-zaderzhanii-ukrainskoy/', 'http://szaopressa.com/2016/06/22/rabotniki-gosbezopasnosti-lnr-zaderzhali-zhurnalistku-za.html', 'http://24science.ru/11294-savchenko-ustala-ot-takoy-zhizni.html', 'http://lastnews.com.ua/novosti-mira/515433-propavshego-v-karelii-malchika-nachali-iskat-v-lesu.html', 'http://kirov.monavista.ru/news/1757611/', 'http://e-gorlovka.com.ua/id/2016/kirovskie-narodnie-izbranniki-ne-dogovorilis-o-soveschanii-229116.html', 'http://kirov.monavista.ru/news/1757301/', 'http://kirov.monavista.ru/news/1757254/', 'http://vzglyadpenza.ru/2016/06/sud-arestoval-rukovoditelya-russkogo-avtorskogo-obschestva/', 'http://newsera.ru/2016/06/193894/obiski-v-russkom-avtorskom-obschestve-provodyatsya-po-delu.html', 'http://nash-sport.com/2016/06/28/yurista-evgenii-vasilevoy-arestovali-v-aeroportu-vnukovo.html', 'http://ryb.ru/2016/06/28/356345', 'http://newsler.info/217192-zhiteli-rf-zaderzhani-v-ispanii-po-podozreniyu-v-otmivanii', 'http://lastnews.com.ua/novosti-ukraini/524191-delo-russkoy-mafii-v-ispanii-zaderzhali-6-rossiyan-i-ukrainca.html', 'http://www.kasparov.ru/material.php?id=5772224A88215&section_id=43452BE8655FB', 'http://svodka.net/analitika/obozrenie/47247', 'http://kaliningrad.monavista.ru/news/1758247/', 'http://www.mk.ru/social/2016/06/28/zaderzhannogo-o-vnukovo-advokata-vasilevoy-otpustili.html', 'http://www.moscow-post.com/society/zaderzhan_advokat_evgenii_vasiljevoj21442/', 'http://newsler.info/217330-sbu-provela-obisk-u-harkovskoy-kommunistki-aleksandrovskoy', 'http://ryb.ru/2016/06/29/357003', 'http://mynewsonline24.ru/inopressa/135769-sbu-provela-obisk-u-eks-lidera-kommunisticheskoy-partii-harkova-alli-aleksandrovskoy.html', 'http://echospb.ru/2016/06/27/zamglavi-leyboristskoy-partii-uotson-prizval-uyti-v/', 'http://newsler.info/216758-v-britanii-podali-v-otstavku-sem-tenevih-ministrov', 'http://mynewsonline24.ru/inopressa/134296-uvolen-britanskiy-tenevoy-ministr-krizis-leyboristov.html', 'http://vladivostok.monavista.ru/news/1750611/', 'http://svodka.net/index.php?option=com_content&view=article&id=45900:da-ya-rabotal-v-usherb-sebe&catid=77:obozrenie', 'http://vladivostok.monavista.ru/news/1749309/', 'http://kaliningrad.monavista.ru/news/1758294/', 'http://szaopressa.com/2016/06/29/u-osnovnoy-kommunistki-harkovskoy-oblasti-sbu-provela-obisk.html', 'http://vladivostok.monavista.ru/news/1749142/', 'http://e-gorlovka.com.ua/id/2016/sbu-provelo-obisk-u-osnovnoy-harkovskoy-kommunistki-229556.html', 'http://mynewsonline24.ru/inopressa/135820-sbu-arestovala-rukovoditelya-kommunisticheskoy-partii-harkova-allu-aleksandrovskuyu.html', 'http://lastnews.com.ua/novosti-ukraini/524795-prokuratura-nazvala-prichiny-zaderzhki-aleksandrovskoy-podozrenie-obyavleno-i-ee-synu.html', 'http://mynewsonline24.ru/inopressa/135817-generalnaya-prokuratura-podtverdila-otstavku-brata-nikiti-belih.html', 'http://lastnews.com.ua/novosti-ukraini/524817-sbu-podozrevaet-aleksandrovskuyu-v-rabote-na-rossiyu.html']
 
 
 def create_table(func, out_path):
@@ -48,17 +49,25 @@ def create_table_with_confidence(func, out_path):
         with open('corpus/readability_corpus.csv', 'r') as csvfile:
             spamreader = csv.reader(csvfile)
             ind = 1
+            time = 0
             for row in spamreader:
                 if not row[0] in bad_links:
+                    title = row[2]
+                    row = row[0:2]
+                    print(row[0])
                     with open('corpus/docs/' + str(ind) + '.html', 'rb') as f:
                         text0 = f.read()
-                        text, confidence = func(text0)
-                        text1, confidence = func(text0, '', False)
+                        time1 = datetime.datetime.now()
+                        text, confidence = func(text0, title)
+                        delta = datetime.datetime.now()-time1
+                        time += delta.total_seconds()
+                        text1, confidence = func(text0, title, False)
                         row.append(text)
                         row.append(confidence)
                         row.append(text1)
                         spamwriter.writerow(row)
                 ind += 1
+            print("WORKING TIME: ", time)
 
 def create_table_remote(func, out_path):
     """create table with results from remote pages"""
@@ -68,6 +77,7 @@ def create_table_remote(func, out_path):
             spamreader = csv.reader(csvfile)
             for row in spamreader:
                 if not row[0] in bad_links:
+                    row = row[0:2]
                     row.append(func(row[0]))
                     print(row[0])
                     spamwriter.writerow(row)
@@ -80,11 +90,16 @@ def create_estimates_table(in_path, out_path):
         with open(in_path, 'r') as csvfile:
             spamreader = csv.reader(csvfile)
             for row in spamreader:
-                row.append(get_compare_estimate(row[1],row[2]))
-                #row.append(get_compare_estimate(row[1],row[4]))
+                est1 = get_compare_estimate(row[1], row[2])
+                est2 = get_compare_estimate(row[1], row[4])
+                row.append(est1)
+                row.append(est2)
                 # print(row[3])
                 spamwriter.writerow(row)
-                print("@");
+                if est1 < est2:
+                    print("bad: ", row[0])
+                elif est2 < est1:
+                    print("good: ", row[0])
 
 
 def get_final_estimate(in_path):
@@ -182,7 +197,8 @@ def create_corpus():
             #    continue
             #print(url)
             try:
-                html_source = urllib.request.urlopen(url, timeout=10).read()
+                #html_source = urllib.request.urlopen(url, timeout=10).read()
+                html_source = send_get_request(url, has_encoding=True, gen_useragent=True)
                 encoding = get_encoding(html_source) or 'utf-8'
                 decoded_page = html_source.decode(encoding, 'replace')
                 #print(decoded_page)
@@ -209,9 +225,13 @@ def create_corpus():
 
 if __name__ == '__main__':
     """start testing from here"""
+    #with open('corpus/test.html', 'rb') as f:
+    #with open('corpus/docs/272.html', 'rb') as f:
+    #    html_source = f.read()
+    #    text, confidence = read2.find_full_text(html_source, 'Глава РАО Сергей Федотов останется в СИЗО как минимум до…')
+    #    print(text)
+    #exit()
     """
-    with open('corpus/test.html', 'rb') as f:
-        html_source = f.read()
     from readability.htmls import build_doc
     from lxml.html import HtmlElement
 
@@ -232,6 +252,7 @@ if __name__ == '__main__':
             # sum += len(child)#self.comp_score(len(child), 1, 0)
     exit()
     """
+    """
     #url = 'http://www.gazeta.kg/news/important/99343-sud-arestoval-rukovoditeley-lagerya-na-syamozere.html'
     #html_source = urllib.request.urlopen(url, timeout=10).read()
     #with open('corpus/docs/' + str(75) + '.html', 'rb') as f:
@@ -239,14 +260,15 @@ if __name__ == '__main__':
     #print(read2.find_full_text(html_source))
     #exit()
 
-    #create_corpus()
-    #exit()
+    create_corpus()
+    """
     #estimate_estimate()
     #print(len(bad_links))
-    #create_table_with_confidence(read2.find_full_text, 'corpus/read2.csv')
-    #create_estimates_table('corpus/read2.csv', 'corpus/read2_estimates.csv')
-    #print('Алгоритм readability2')
-    #get_final_estimate('corpus/read2_estimates.csv')
+    create_table_with_confidence(read2.find_full_text, 'corpus/read2.csv')
+    create_estimates_table('corpus/read2.csv', 'corpus/read2_estimates.csv')
+    print('Алгоритм readability fusion')
+    get_final_estimate('corpus/read2_estimates.csv')
+    exit()
 
     #create_table(kingwkb.find_full_text().find_full_text, 'corpus/kingwkb.csv')
     #create_estimates_table('corpus/kingwkb.csv', 'corpus/kingwkb_estimates.csv')

@@ -5,6 +5,7 @@ import re
 import sys
 import math
 
+import html
 from collections import defaultdict
 from lxml.etree import tostring
 from lxml.etree import tounicode
@@ -20,13 +21,15 @@ from readability.htmls import shorten_title
 from readability.compat import str_
 from readability.debug import describe, text_content
 from lxml.html import HtmlElement
-
 from lxml import etree
 
 # from mprorp.analyzer.pymystem3_w import Mystem
 from mprorp.controller.init import global_mystem as mystem
 from mprorp.crawler.utils import to_plain_text
-import datetime
+from mprorp.crawler.readability.shingling import get_compare_estimate
+
+from mprorp.utils import levenshtein_norm_distance
+
 
 log = logging.getLogger("readability.readability")
 
@@ -37,8 +40,10 @@ REGEXES = {
     'negativeRe': re.compile('combx|comment|com-|contact|foot|footer|footnote|masthead|media|meta|outbrain|promo|related|scroll|shoutbox|sidebar|sponsor|shopping|tags|tool|widget', re.I),
     'divToPElementsRe': re.compile('<(a|blockquote|dl|div|img|ol|p|pre|table|ul)', re.I),
     'rfBadContent': re.compile('footer|textarea|comment', re.I),
-    'rfBadStart': re.compile('Читайте|Пишите|Смотрите|Подробнее читайте|Подписывайтесь', re.I),
+    'rfBadStart': re.compile('Метки:|Рубрики:|Новости партнеров|Просмотров:|Темы:', re.I),
+    'rfBadStartWithLink': re.compile('Читайте|Пишите|Смотрите|Подробнее читайте|Подписывайтесь|Читать дальше|Хотите поделиться|Подпишитесь', re.I),
     'rfBadSearch': re.compile('Ctrl\+Enter', re.I),
+    'rfBadSearchWithLink': re.compile('Подписывайтесь на наш', re.I),
 
     #'replaceBrsRe': re.compile('(<br[^>]*>[ \n\r\t]*){2,}',re.I),
     #'replaceFontsRe': re.compile('<(\/?)font[^>]*>',re.I),
@@ -124,6 +129,7 @@ class Document:
 
     def _html(self, force=False):
         if force or self.html is None:
+            #print(html.unescape(self.input.decode("utf-8")))
             self.html = self._parse(self.input)
             if self.xpath:
                 root = self.html.getroottree()
@@ -156,7 +162,7 @@ class Document:
         return get_title(self._html(True))
 
     def short_title(self):
-        return shorten_title(self._html(True))
+        return shorten_title(self._html(False))
 
     def get_clean_html(self):
          return clean_attributes(tounicode(self.html))
@@ -175,15 +181,23 @@ class Document:
             ruthless = True
             while True:
                 self._html(True)
+                #print(html.unescape(etree.tostring(self.html, pretty_print=True).decode("utf-8")))
+                #exit()
                 title_text = ''
-                if title == '':
+                #if title == '':
+                #    h1 = self.html.find(".//h1")
+                #    if h1 != None:
+                #        title_text = h1.text_content()
+                #else:
+                #    title_text = title
+                title_text = self.short_title()  # self.html.find(".//title").text_content()  #self.title()
+                if title_text == '':
                     h1 = self.html.find(".//h1")
                     if h1 != None:
                         title_text = h1.text_content()
-                else:
-                    title_text = title
-                if title_text == '':
-                    title_text = self.short_title()  # self.html.find(".//title").text_content()  #self.title()
+                if title != '':
+                    if levenshtein_norm_distance(title_text, title) > 0.5:
+                        title_text = title
                 title_text = to_plain_text(title_text)
                 self.title_lemmas = mystem.lemmatize(title_text)
                 #mystem.close()
@@ -222,7 +236,6 @@ class Document:
                     'sum': 0,
                     'node': None
                 }
-
                 self.compute(self.html, res, candidates)
                 best_candidate = self.select_best_candidate(candidates)
                 #print(res)
@@ -262,55 +275,61 @@ class Document:
             raise_with_traceback(Unparseable, sys.exc_info()[2], str_(e))
         #mystem.close()
 
-    def get_article(self, candidates, best_candidate, html_partial=False):
+    def get_article(self, candidates, best_candidate, html_partial=False, with_siblings=True):
         # Now that we have the top candidate, look through its siblings for
         # content that might also be related.
         # Things like preambles, content split by ads that we removed, etc.
-        sibling_score_threshold = max([
-            10,
-            best_candidate['content_score'] * 0.2])
-        # create a new html document with a html->body->div
         if html_partial:
             output = fragment_fromstring('<div/>')
         else:
             output = document_fromstring('<div/>')
         best_elem = best_candidate['elem']
-        parent = best_elem.getparent()
-        siblings = parent.getchildren() if parent is not None else [best_elem]
-        for sibling in siblings:
-            # in lxml there no concept of simple text
-            # if isinstance(sibling, NavigableString): continue
-            append = False
-            if sibling is best_elem:
-                append = True
-            sibling_key = sibling  # HashableElement(sibling)
-            if sibling_key in candidates and \
-                candidates[sibling_key]['content_score'] >= sibling_score_threshold:
-                append = True
-
-            if sibling.tag == "p":
-                link_density = self.get_link_density(sibling)
-                node_content = sibling.text or ""
-                node_length = len(node_content)
-
-                if node_length > 80 and link_density < 0.25:
+        if with_siblings:
+            sibling_score_threshold = max([
+                10,
+                best_candidate['content_score'] * 0.2])
+            # create a new html document with a html->body->div
+            parent = best_elem.getparent()
+            siblings = parent.getchildren() if parent is not None else [best_elem]
+            for sibling in siblings:
+                # in lxml there no concept of simple text
+                # if isinstance(sibling, NavigableString): continue
+                append = False
+                if sibling is best_elem:
                     append = True
-                elif node_length <= 80 \
-                    and link_density == 0 \
-                    and re.search('\.( |$)', node_content):
+                sibling_key = sibling  # HashableElement(sibling)
+                if sibling_key in candidates and \
+                    candidates[sibling_key]['content_score'] >= sibling_score_threshold:
                     append = True
-            append = False
-            if append:
-                # We don't want to append directly to output, but the div
-                # in html->body->div
-                if html_partial:
-                    output.append(sibling)
-                else:
-                    output.getchildren()[0].getchildren()[0].append(sibling)
+
+                if sibling.tag == "p":
+                    link_density = self.get_link_density(sibling)
+                    node_content = sibling.text or ""
+                    node_length = len(node_content)
+
+                    if node_length > 80 and link_density < 0.25:
+                        append = True
+                    elif node_length <= 80 \
+                        and link_density == 0 \
+                        and re.search('\.( |$)', node_content):
+                        append = True
+                #append = False
+                if append:
+                    # We don't want to append directly to output, but the div
+                    # in html->body->div
+                    if html_partial:
+                        output.append(sibling)
+                    else:
+                        output.getchildren()[0].getchildren()[0].append(sibling)
         #if output is not None:
         #    output.append(best_elem)
-        output.append(best_elem)
+        else:
+            if html_partial:
+                output.append(best_elem)
+            else:
+                output.getchildren()[0].getchildren()[0].append(best_elem)
         return output
+
 
     def compute(self, elem, res, candidates, linked=False):
         chars = 0
@@ -433,11 +452,6 @@ class Document:
 
         return best_candidate
 
-    def recursia(self, elem):
-        children = elem.getchildren()
-        #print(describe(elem))
-        for child in children:
-            self.recursia(child)
 
     def get_link_density(self, elem):
         link_length = 0
@@ -448,57 +462,6 @@ class Document:
         total_length = text_length(elem)
         return float(link_length) / max(total_length, 1)
 
-    def score_paragraphs(self, ):
-        MIN_LEN = self.min_text_length
-        candidates = {}
-        ordered = []
-        for elem in self.tags(self._html(), "p", "pre", "td"):
-            parent_node = elem.getparent()
-            if parent_node is None:
-                continue
-            grand_parent_node = parent_node.getparent()
-
-            inner_text = clean(elem.text_content() or "")
-            inner_text_len = len(inner_text)
-
-            # If this paragraph is less than 25 characters
-            # don't even count it.
-            if inner_text_len < MIN_LEN:
-                continue
-
-            if parent_node not in candidates:
-                candidates[parent_node] = self.score_node(parent_node)
-                ordered.append(parent_node)
-
-            if grand_parent_node is not None and grand_parent_node not in candidates:
-                candidates[grand_parent_node] = self.score_node(
-                    grand_parent_node)
-                ordered.append(grand_parent_node)
-
-            #content_score = 1
-            #content_score += len(inner_text.split(','))
-            #content_score += min((inner_text_len / 100), 3)
-            #if elem not in candidates:
-            #    candidates[elem] = self.score_node(elem)
-
-            #WTF? candidates[elem]['content_score'] += content_score
-            #candidates[parent_node]['content_score'] += content_score
-            #if grand_parent_node is not None:
-            #    candidates[grand_parent_node]['content_score'] += content_score / 2.0
-
-        # Scale the final candidates score based on link density. Good content
-        # should have a relatively small link density (5% or less) and be
-        # mostly unaffected by this operation.
-        for elem in ordered:
-            candidate = candidates[elem]
-            ld = self.get_link_density(elem)
-            score = candidate['content_score']
-
-            #("Branch %6.3f %s link density %.3f -> %6.3f" % (score,describe(elem),ld,score * (1 - ld)))
-            #print(describe(elem), score)#, ld, score * (1 - ld))
-            #candidate['content_score'] *= (1 - ld)
-
-        return candidates
 
     def class_weight(self, e):
         weight = 0
@@ -541,31 +504,6 @@ class Document:
         score = (chars / tags) * math.log2((chars + 1) / (hyperchars + 1))
         return score
 
-    def score_node(self, elem):
-        children = elem.getchildren()
-        sum = 0
-        for child in children:
-            sum += self.score_tag(child)
-        #print(describe(elem), sum)
-        s = "%s %s %s" % (elem.get('class', ''), elem.get('id', ''), elem.tag)
-        #print(s)
-        if REGEXES['rfBadContent'].search(s):
-            sum = 0.1*sum
-        return {
-            'content_score': sum,
-            'elem': elem
-        }
-
-        content_score = self.class_weight(elem)
-        name = elem.tag.lower()
-        if name == "div":
-            content_score += 5
-        elif name in ["pre", "td", "blockquote"]:
-            content_score += 3
-        elif name in ["address", "ol", "ul", "dl", "dd", "dt", "li", "form"]:
-            content_score -= 3
-        elif name in ["h1", "h2", "h3", "h4", "h5", "h6", "th"]:
-            content_score -= 5
 
     def remove_unlikely_candidates(self):
         #print(etree.tostring(self.html, pretty_print=True))
@@ -638,11 +576,7 @@ class Document:
 
     def score_title_rate(self, elem):
         text = elem.text_content()
-        time = datetime.datetime.now()
         text_lemmas = mystem.lemmatize(text)
-        #mystem.close()
-        time = datetime.datetime.now() - time
-        print(time)
         rate = 0
         for lemma in text_lemmas:
             if lemma in self.title_lemmas:
@@ -661,14 +595,11 @@ class Document:
             if self.class_weight(header) < 0 or self.get_link_density(header) > 0.33:
                 header.drop_tree()
 
-
         if fusion_clearing:
-            for p in self.tags(node, "p", "div"):
-                txt = p.text_content()
-                if (re.match(REGEXES["rfBadStart"], txt) and self.get_link_density(p) > 0) or re.match(REGEXES["rfBadSearch"], txt):
-                    print(describe(p))
-                    p.drop_tree()
-
+            #print("FUSION CLEANING")
+            self.rf_sanitize(node)
+            #print(etree.tostring(node, pretty_print=True).decode("unicode-escape"))
+            #exit()
 
         for elem in self.tags(node, "form", "textarea"):
             elem.drop_tree()
@@ -806,71 +737,48 @@ class Document:
                     el.drop_tree()
                 else:
                     #log.debug("Not removing %s of length %s: %s" % (describe(el), content_length, text_content(el)))
-                    pass;
+                    pass
 
         self.html = node
-        self.recursia(node)
         return self.get_clean_html()
 
+    def rf_sanitize(self, elem):
+        p_or_div = elem.tag in ['p', 'div']
 
-def main():
-    VERBOSITY = {
-        1: logging.WARNING,
-        2: logging.INFO,
-        3: logging.DEBUG
-    }
-
-    from optparse import OptionParser
-    parser = OptionParser(usage="%prog: [options] [file]")
-    parser.add_option('-v', '--verbose', action='count', default=0)
-    parser.add_option('-b', '--browser', default=None, action='store_true', help="open in browser")
-    parser.add_option('-l', '--log', default=None, help="save logs into file (appended)")
-    parser.add_option('-u', '--url', default=None, help="use URL instead of a local file")
-    parser.add_option('-x', '--xpath', default=None, help="add original xpath")
-    parser.add_option('-p', '--positive-keywords', default=None, help="positive keywords (separated with comma)", action='store')
-    parser.add_option('-n', '--negative-keywords', default=None, help="negative keywords (separated with comma)", action='store')
-    (options, args) = parser.parse_args()
-
-    if options.verbose:
-        logging.basicConfig(level=VERBOSITY[options.verbose], filename=options.log,
-            format='%(asctime)s: %(levelname)s: %(message)s (at %(filename)s: %(lineno)d)')
-
-    if not (len(args) == 1 or options.url):
-        parser.print_help()
-        sys.exit(1)
-
-    file = None
-    if options.url:
-        headers = {'User-Agent': 'Mozilla/5.0'}
-        if sys.version_info[0] == 3:
-            import urllib.request, urllib.parse, urllib.error
-            request = urllib.request.Request(options.url, None, headers)
-            file = urllib.request.urlopen(request)
+        has_children = False
+        has_p_or_div = False
+        children = elem.xpath("child::node()")
+        if len(children):
+            was_children = True
         else:
-            import urllib2
-            request = urllib2.Request(options.url, None, headers)
-            file = urllib2.urlopen(request)
-    else:
-        file = open(args[0], 'rt')
-    try:
-        doc = Document(file.read(),
-            url=options.url,
-            positive_keywords = options.positive_keywords,
-            negative_keywords = options.negative_keywords,
-        )
-        if options.browser:
-            from readability.browser import open_in_browser
-            result = '<h2>' + doc.short_title() + '</h2><br/>' + doc.summary()
-            open_in_browser(result)
-        else:
-            enc = sys.__stdout__.encoding or 'utf-8' # XXX: this hack could not always work, better to set PYTHONIOENCODING
-            result = 'Title:' + doc.short_title() + '\n' + doc.summary()
-            if sys.version_info[0] == 3:
-                print(result)
+            was_children = False
+        for child in children:
+            if isinstance(child, HtmlElement):
+                has_p_or_div0, was_dropped = self.rf_sanitize(child)
+                has_p_or_div = has_p_or_div or has_p_or_div0
+                if not was_dropped:
+                    has_children = True
+            #elif str(child).strip():
             else:
-                print(result.encode(enc, 'replace'))
-    finally:
-        file.close()
+                has_children = True
+        to_drop = False
+        if not has_children and was_children:
+            to_drop = True
+        elif not has_p_or_div and p_or_div:
+            txt = elem.text_content().strip()
+            if (self.get_link_density(elem) > 0 and (
+                        re.match(REGEXES["rfBadStartWithLink"], txt) or re.search(REGEXES["rfBadSearchWithLink"], txt))) \
+                    or re.match(REGEXES["rfBadStart"], txt) or re.search(REGEXES["rfBadSearch"], txt):
+                print("fusion_clearing: ", txt)
+                to_drop = True
+        if to_drop:
+            #print(describe(elem))
+            elem.drop_tree()
+            p_or_div = False
+            has_p_or_div = False
+        #print(to_drop, p_or_div, has_p_or_div, has_children)
+        return p_or_div or has_p_or_div, to_drop
+
 
 if __name__ == '__main__':
-    main()
+    pass

@@ -11,6 +11,7 @@ readability-lxml
 gspread
 oauth2client
 beautifulsoup4
+python-levenshtein
 
 user_agent
 docopt>=0.6.1,<0.7
