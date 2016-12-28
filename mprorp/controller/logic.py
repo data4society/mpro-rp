@@ -24,6 +24,7 @@ from mprorp.crawler.from_other_app import other_app_cloning
 from mprorp.analyzer.theming.themer import regular_themization
 
 from mprorp.utils import home_dir, relative_file_path
+from mprorp.ner.feature import create_capital_feature
 from mprorp.ner.NER import NER_predict
 from mprorp.ner.identification import create_markup_regular
 from mprorp.analyzer.rubrication_by_comparing import reg_rubrication_by_comparing
@@ -45,6 +46,7 @@ SITE_PAGE_COMPLETE_STATUS = 99
 MORPHO_COMPLETE_STATUS = 100
 LEMMAS_COMPLETE_STATUS = 101
 RUBRICATION_COMPLETE_STATUS = 102
+CAPITAL_FEATURE_COMPLETE_STATUS = 150
 
 TOMITA_FIRST_COMPLETE_STATUS = 200
 NER_TOMITA_FEATURES_COMPLETE_STATUS = 300
@@ -113,14 +115,17 @@ def router(doc_id, app_id, status):
 
         session.commit()
         session.remove()
-    if status < MORPHO_COMPLETE_STATUS and "morpho" in app_conf:  # to morpho
+    if "morpho" in app_conf and status < MORPHO_COMPLETE_STATUS :  # to morpho
         regular_morpho.delay(doc_id, MORPHO_COMPLETE_STATUS, app_id=app_id)
         return
-    if status < LEMMAS_COMPLETE_STATUS and "lemmas" in app_conf:  # to lemmas
+    if "lemmas" in app_conf and status < LEMMAS_COMPLETE_STATUS:  # to lemmas
         regular_lemmas.delay(doc_id, LEMMAS_COMPLETE_STATUS, app_id=app_id)
         return
-    if status < RUBRICATION_COMPLETE_STATUS and "rubrication" in app_conf:  # to rubrication
+    if "rubrication" in app_conf and status < RUBRICATION_COMPLETE_STATUS:  # to rubrication
         regular_rubrication.delay(app_conf["rubrication"], doc_id, RUBRICATION_COMPLETE_STATUS, WITHOUT_RUBRICS, app_id=app_id)
+        return
+    if "capital_feature" in app_conf and status < CAPITAL_FEATURE_COMPLETE_STATUS:  # to create capital feature
+        regular_capital_feature.delay(doc_id, CAPITAL_FEATURE_COMPLETE_STATUS, app_id=app_id)
         return
     if "tomita" in app_conf:
         grammars = list(app_conf["tomita"]["grammars"].keys())  # ['date.cxx', 'person.cxx']
@@ -407,6 +412,15 @@ def regular_rubrication(rubrics, doc_id, with_rubrics_status, without_rubrics_st
         new_status = without_rubrics_status
     else:
         new_status = with_rubrics_status
+    return set_doc(doc, new_status, session)
+
+
+#@app.task(ignore_result=True)
+@app.task()
+def regular_capital_feature(doc_id, new_status, **kwargs):
+    """create capital feature"""
+    session, doc = get_doc(doc_id)
+    create_capital_feature(doc, session, False)
     return set_doc(doc, new_status, session)
 
 
