@@ -26,7 +26,14 @@ def loc_to_ovd(ovd, loc):
     if loc in ovd:
         return True
     else:
-        return False
+        if len(loc) > 12:
+            loc = cut_kladr(loc[0:11])
+            if loc in ovd:
+                return True
+            else:
+                return False
+        else:
+            return False
 
 def combiner(facts, fact_type):
     if fact_type == 'OVDFact':
@@ -159,8 +166,12 @@ def step4(facts):
 def max_amount_of_codes(facts, n):
     out = []
     for fact in facts:
-        if 0 < len(fact) <= n:
-            out.append(fact)
+        b = []
+        for i in fact:
+            if i not in b:
+                b.append(i)
+        if 0 < len(b) <= n:
+            out.append(b)
     return out
 
 def cut_kladr(code):
@@ -170,14 +181,13 @@ def cut_kladr(code):
         c = code[6:9]
         p = code[9:13]
         other = code[13:]
-        parts = ((r1,r1+r2+c+p+other), (r2,r2+c+p+other), (c,c+p+other), (p,p+other), (other,other))
     else:
         r1 = code[0:3]
         r2 = code[3:6]
         c = code[6:9]
         p = code[9:len(code)]
         other = ''
-        parts = ((r1,r1+r2+c+p+other), (r2,r2+c+p+other), (c,c+p+other), (p,p+other), (other,other))
+    parts = ((r1,r1+r2+c+p+other), (r2,r2+c+p+other), (c,c+p+other), (p,p+other), (other,other))
     kladr = ''
     for part in parts:
         if part[1].count('0') != len(part[1]):
