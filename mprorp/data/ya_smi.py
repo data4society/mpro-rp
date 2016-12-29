@@ -8,10 +8,10 @@ from lxml.html import document_fromstring
 import csv
 
 
-def ya_smi_import():
-    with open('ya_smi/ya_smi.json', 'r') as f:
+def ya_smi_import(file_in, file_out):
+    with open(file_in, 'r') as f:
         json_source = f.read()
-    with open('ya_smi/out.csv', 'w') as csvnewfile:
+    with open(file_out, 'w') as csvnewfile:
         spamwriter = csv.writer(csvnewfile)
         json_obj = json.loads(json_source)
         filters = json_obj["filters"]
