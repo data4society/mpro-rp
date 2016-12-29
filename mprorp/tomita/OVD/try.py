@@ -27,7 +27,7 @@ def try_ovd(doc_id=None, source_id=None):
             print(out[i], ovd.name, ovd.external_data['kladr'])
 
 
-try_ovd(source_id='4bfde85c-02af-d39b-cecb-2f8af9c052d7')
+try_ovd(source_id='dd98ee12-4a57-7877-2feb-dc84b6741ff1')
 #print(f1())
 #print(session.query(Entity).filter(Entity.external_data['kladr'].astext == '63000005000003400').first().entity_id)
 #print(session.query(Entity).filter(Entity.external_data['kladr'].astext == '61000001000031700').first().name)
