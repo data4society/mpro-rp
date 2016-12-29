@@ -1,4 +1,5 @@
 from mprorp.db.models import *
+from mprorp.tomita.OVD.city_levenshtein import min_distance, cities
 
 
 mvd_root = 'eaf0a69a-74d7-4e1a-9187-038a202c7698'
@@ -100,6 +101,7 @@ def OVD(ovd, session, Numb=False, Name=False, Location=False):
         codes = session.query(Entity).filter(Entity.data["jurisdiction"].astext == '["'+mvd_root+'"]', Entity.name.ilike("%"+name+"%")).all()
     elif Location is True:
         loc = ovd[0].lower()
+        levenshtein = min_distance(loc, cities)
         """
         all_codes = session.query(Entity).filter(Entity.data["jurisdiction"].astext == "eaf0a69a-74d7-4e1a-9187-038a202c7698").all()
         for code in all_codes:
@@ -107,6 +109,8 @@ def OVD(ovd, session, Numb=False, Name=False, Location=False):
                 codes.append(code)
         """
         codes = session.query(Entity).filter(Entity.data["jurisdiction"].astext == '["'+mvd_root+'"]', Entity.name.ilike("%"+loc+"%")).all()
+        for city in levenshtein:
+            codes += session.query(Entity).filter(Entity.data["jurisdiction"].astext == '["'+mvd_root+'"]', Entity.name.ilike("%"+city+"%")).all()
         if codes == []:
             return None
     else:
@@ -148,7 +152,7 @@ def get_types(name):
              '_линейный управление_лу_управление на транспорт_' : ['линейное управление', 'лу ', 'управление на транспорте'],
              '_линейный отдел_лоп_ло_': ['линейный отдел', 'лоп', 'ло '],
              '_линейный пункт_лпп_' : ['линейный пункт', 'лпп'],
-             '_отдел полиция_отделение полиция_оп_омвд_' : ['отдел полиции', 'отделение полиции', 'оп ', 'омвд'],
+             '_отдел полиция_отделение полиция_оп_омвд_' : ['отдел полиции', 'отделение полиции', 'оп ', 'омвд', 'отдел мвд'],
              '_пункт полиция_пп_': ['пункт полиции', 'пп']}
     for type in types:
         if '_' + name + '_' in type:
