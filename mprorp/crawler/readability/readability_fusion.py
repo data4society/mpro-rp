@@ -40,7 +40,7 @@ REGEXES = {
     'negativeRe': re.compile('combx|comment|com-|contact|foot|footer|footnote|masthead|media|meta|outbrain|promo|related|scroll|shoutbox|sidebar|sponsor|shopping|tags|tool|widget', re.I),
     'divToPElementsRe': re.compile('<(a|blockquote|dl|div|img|ol|p|pre|table|ul)', re.I),
     'rfBadContent': re.compile('footer|textarea|comment', re.I),
-    'rfBadStart': re.compile('Метки:|Рубрики:|Новости партнеров|Просмотров:|Темы:', re.I),
+    'rfBadStart': re.compile('Метки:|Рубрики:|Новости партнеров|Просмотров:|Темы:|Loading', re.I),
     'rfBadStartWithLink': re.compile('Читайте|Пишите|Смотрите|Подробнее читайте|Подписывайтесь|Читать дальше|Хотите поделиться|Подпишитесь', re.I),
     'rfBadSearch': re.compile('Ctrl\+Enter', re.I),
     'rfBadSearchWithLink': re.compile('Подписывайтесь на наш', re.I),

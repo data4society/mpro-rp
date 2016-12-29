@@ -102,6 +102,28 @@ class User(Base):
     super = Column(Boolean(), server_default="False")
 
 
+class Publisher(Base):
+    """publisher geo and other info"""
+    __tablename__ = 'publishers'
+
+    # id of publisher
+    pub_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
+    # publisher's name
+    name = Column(String(127))
+    # publisher's type
+    type = Column(String(40))
+    # publisher's region
+    region = Column(String(127))
+    # publisher's country
+    country = Column(String(127))
+    # publisher's site
+    site = Column(String(127))
+    # publisher's description
+    desc = Column(Text())
+    # additional information
+    meta = Column(JSONB())
+
+
 class Document(Base):
     """main document object"""
     __tablename__ = 'documents'
@@ -150,6 +172,9 @@ class Document(Base):
     theme = relationship(Theme)
     # id of application (without reference to somewhere)
     app_id = Column(String(255))
+    # id of publisher
+    publisher_id = Column(UUIDType(binary=False), ForeignKey('publishers.pub_id'))
+    publisher = relationship(Publisher)
 
     __table_args__ = (UniqueConstraint('app_id', 'url'), )
 
