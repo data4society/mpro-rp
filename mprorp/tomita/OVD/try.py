@@ -6,6 +6,7 @@ from mprorp.tomita.tomita_run import *
 from mprorp.ner.tomita_to_markup import *
 from mprorp.analyzer.db import *
 import re
+from mprorp.analyzer.f1_for_ovd import f1
 
 session = db_session()
 #object = session.query(Entity).filter(Entity.external_data['kladr'].astext == "77000000000062700").all()
@@ -26,7 +27,8 @@ def try_ovd(doc_id=None, source_id=None):
             print(out[i], ovd.name, ovd.external_data['kladr'])
 
 
-#try_ovd(source_id='0bb08b45-b50d-5c9e-5f6f-64dd9da208ec')
+try_ovd(source_id='b81f87d9-8962-a6ad-2c72-5a1840f3e366')
+#print(f1())
 #print(session.query(Entity).filter(Entity.external_data['kladr'].astext == '63000005000003400').first().entity_id)
 #print(session.query(Entity).filter(Entity.external_data['kladr'].astext == '61000001000031700').first().name)
 #a = get_ner_feature_dict('23d197c3-467e-49d8-8a07-5336ec2b18fe', 'fb8fc548-0464-40b7-a998-04a6e1b95eb6', 'Person')
@@ -35,8 +37,7 @@ def try_ovd(doc_id=None, source_id=None):
 #new_entity = Entity(name='KOAP', entity_class='norm_act', data={'Matvey_try':1})
 #session.add(new_entity)
 #session.commit()
-a = session.query(Entity).filter(Entity.entity_class == 'norm_act').all()
-print(len(a))
-for entity in a:
-    db.delete_entity(entity.entity_id)
-
+#a = session.query(Entity).filter(Entity.entity_class == 'norm_act').all()
+#print(len(a))
+#for entity in a:
+#    db.delete_entity(entity.entity_id)
