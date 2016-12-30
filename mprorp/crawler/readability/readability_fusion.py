@@ -566,7 +566,7 @@ class Document:
                     p.text = child.tail
                     child.tail = None
                     elem.insert(pos + 1, p)
-                    print("Inserted "+tounicode(p)+" to "+describe(elem)+"child: "+describe(child))
+                    #print("Inserted "+tounicode(p)+" to "+describe(elem)+"child: "+describe(child))
                 if child.tag == 'br':
                     #print 'Dropped <br> at '+describe(elem)
                     child.drop_tree()
