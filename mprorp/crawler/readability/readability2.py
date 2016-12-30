@@ -6,10 +6,11 @@ import urllib.request
 
 
 def find_full_text(html_source, title="", fusion_clearing = True):
+    html_source = html_source.replace(b' </a>', b'</a> ')
     doc = Doc(html_source)
     content, title, page_meta = doc.summary(title=title, fusion_clearing=fusion_clearing)
     confidence = doc.get_confidence()
-    print(title)
+    #print(title)
 
     stripped = strip_tags(content)
     stripped = to_plain_text(stripped)
