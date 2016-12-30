@@ -38,7 +38,7 @@ def find_full_text(doc, session):
     publisher_url = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_url)
     meta["publisher"]['url'] = publisher_url
     meta["page_meta"] = page_meta
-    publisher = session.query(Publisher).filter_by(name=doc.meta["publisher"].name).options(load_only("pub_id")).first()
+    publisher = session.query(Publisher).filter_by(name=doc.meta["publisher"]["name"]).options(load_only("pub_id")).first()
     if publisher:
         doc.publisher_id = str(publisher.pub_id)
 
