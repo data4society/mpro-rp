@@ -9,7 +9,7 @@ import numpy as np
 import tensorflow as tf
 import mprorp.ner.data_utils.utils as du
 import mprorp.ner.data_utils.ner as ner
-from mprorp.ner.utils import data_iterator
+from mprorp.ner.utils import data_iterator, data_iterator2
 from mprorp.ner.model import LanguageModel
 import mprorp.analyzer.db as db
 from mprorp.ner.config import features_size
@@ -26,8 +26,11 @@ sets = dict()
 # sets['name'] = {'train': '4fb42fd1-a0cf-4f39-9206-029255115d01', # Исходная выборка 274 + 77
 #                 'dev': 'f861ee9d-5973-460d-8f50-92fca9910345'}
 
-sets['name'] = {'train': 'cec10937-dbe8-4416-b22a-bb45e5061c1c', # Промежуточная выборка 5000 документов
-                'dev': '189a077f-3a80-4a48-84a9-1cc1aa10b69e'}
+sets['name'] = {'train': 'cec10937-dbe8-4416-b22a-bb45e5061c1c', # комбинированная выборка 4000 + 77
+                'dev': 'f861ee9d-5973-460d-8f50-92fca9910345'}
+
+# sets['name'] = {'train': 'cec10937-dbe8-4416-b22a-bb45e5061c1c', # Промежуточная выборка 5000 документов
+#                 'dev': '189a077f-3a80-4a48-84a9-1cc1aa10b69e'}
 
 # sets['name'] = {'train': '3a21671e-5ac0-478e-ba14-3bb0ac3059e3',
 #                 'dev': '375fa594-6c76-4f82-84f0-9123b89307c4'}
@@ -46,6 +49,8 @@ class Config(object):
     information parameters. Model objects are passed a Config() object at
     instantiation.
     """
+    windows_in_epoch = True
+    windows_in_epoch_dev = False
     classes = ['oc_class_person', 'name', 'oc_class_org', 'oc_class_loc']
     tag_types = [['B', 'I', 'S', 'E'], ['BS', 'IE'], ['BI', 'ES']]
     special_tag_types = {'oc_class_person':
@@ -263,16 +268,20 @@ class NERModel(LanguageModel):
         features_set = {}
         for feat in self.config.features:
             if verbose:
-                print('start reading training feature'. feat, time.clock())
+                print('start reading training feature', feat, time.clock())
             features_set[feat] = db.get_ner_feature_dict(set_id=training_set, feature=feat)
             if verbose:
-                print('reading training feature'. feat, '- ok', time.clock())
+                print('reading training feature', feat, '- ok', time.clock())
 
-        self.feat_train, self.X_train, self.y_train, _, _ = du.docs_to_windows2(train_set_words, word_to_num,
-                                                        tag_to_num, answers,
-                                                        self.config.features,
-                                                        features_set, features_size, self.config.features_length,
+        self.train_data = {'words': train_set_words, 'answers': answers, 'features': features_set}
+        self.word_to_num, self.tag_to_num = word_to_num, tag_to_num
+        if not self.config.windows_in_epoch:
+            self.feat_train, self.X_train, self.y_train, _, _ = du.docs_to_windows2(self.train_data, word_to_num,
+                                                        tag_to_num, self.config.features,
+                                                        features_size, self.config.features_length,
                                                         wsize=self.config.window_size)
+        else:
+            self.feat_train, self.X_train, self.y_train = [], [], []
 
         # dev_set
         answers = db.get_ner_feature_dict(set_id=dev_set, feature_type=self.config.feature_type,
@@ -280,11 +289,14 @@ class NERModel(LanguageModel):
         features_set = {}
         for feat in self.config.features:
             features_set[feat] = db.get_ner_feature_dict(set_id=dev_set, feature=feat)
-        self.feat_dev, self.X_dev, self.y_dev, self.w_dev, _ = du.docs_to_windows2(dev_set_words, word_to_num,
-                                                         tag_to_num, answers,
-                                                         self.config.features,
-                                                         features_set, features_size, self.config.features_length,
+        self.dev_data = {'words': dev_set_words, 'answers': answers, 'features': features_set}
+        if not self.config.windows_in_epoch_dev:
+            self.feat_dev, self.X_dev, self.y_dev, self.w_dev, _ = du.docs_to_windows2(self.dev_data, word_to_num,
+                                                         tag_to_num, self.config.features,
+                                                         features_size, self.config.features_length,
                                                          wsize=self.config.window_size)
+        else:
+            self.feat_dev, self.X_dev, self.y_dev, self.w_dev = [], [], [], []
 
         self.word_to_num = word_to_num
         self.tag_to_num = tag_to_num
@@ -345,10 +357,11 @@ class NERModel(LanguageModel):
         for feat in self.config.features:
             features_set[feat] = db.get_ner_feature_dict(doc_id=doc_id, feature=feat, session=session)
 
-        self.feat_test, self.X_test, self.y_test, _, self.indexes = du.docs_to_windows2(doc_set_words, self.word_to_num,
-                                                                             self.tag_to_num, {},
+        doc_data = {'words': doc_set_words, 'answers': {}, 'features': features_set}
+        self.feat_test, self.X_test, self.y_test, _, self.indexes = du.docs_to_windows2(doc_data, self.word_to_num,
+                                                                             self.tag_to_num,
                                                                              self.config.features,
-                                                                             features_set, features_size,
+                                                                             features_size,
                                                                              self.config.features_length,
                                                                              wsize=self.config.window_size)
 
@@ -610,7 +623,7 @@ class NERModel(LanguageModel):
         # self.load_data(debug=False)
         if self.config.new_model:
             self.load_data_db(debug=False, verbose=True)
-
+            # print('train_data words type after', type(self.train_data['words']))
         else:
             self.word_to_num = params['words']
             self.tag_to_num = params['tags']
@@ -628,6 +641,8 @@ class NERModel(LanguageModel):
             tf.argmax(self.labels_placeholder, 1), one_hot_prediction)
         self.correct_predictions = tf.reduce_sum(tf.cast(correct_prediction, 'int32'))
         self.train_op = self.add_training_op(self.loss)
+        # self.train_data = {'words': None, 'answers': None, 'features': None}
+        # self.dev_data   = {'words': None, 'answers': None, 'features': None}
 
     def run_epoch(self, session, input_data, input_labels, input_features, shuffle=True, verbose=True):
         orig_features, orig_X, orig_y = input_features, input_data, input_labels
@@ -638,21 +653,43 @@ class NERModel(LanguageModel):
         total_correct_examples = 0
         total_processed_examples = 0
         total_steps = len(orig_X) / self.config.batch_size
-        for step, (x, y, f) in enumerate(
-            data_iterator(orig_X, orig_y, orig_features, batch_size=self.config.batch_size,
-                       label_size=self.config.label_size, shuffle=shuffle)):
-            feed = self.create_feed_dict(input_batch=x, dropout1=dp1, dropout2=dp2, label_batch=y, feat_batch=f)
-            loss, total_correct, _ = session.run(
-                [self.loss, self.correct_predictions, self.train_op],
-                feed_dict=feed)
-            total_processed_examples += len(x)
-            total_correct_examples += total_correct
-            total_loss.append(loss)
-            ##
-            if verbose and step % verbose == 0:
-                sys.stdout.write('\r{} / {} : loss = {}'.format(
-                    step, total_steps, np.mean(total_loss)))
-                sys.stdout.flush()
+        if self.config.windows_in_epoch:
+            for step, (x, y, f) in enumerate(
+                data_iterator2(self.train_data, self.word_to_num, self.tag_to_num,
+                               self.config.features, features_size,  self.config.features_length,
+                               self.config.window_size,
+                               batch_size=self.config.batch_size,
+                           label_size=self.config.label_size, shuffle=shuffle)):
+                feed = self.create_feed_dict(input_batch=x, dropout1=dp1, dropout2=dp2, label_batch=y, feat_batch=f)
+                loss, total_correct, _ = session.run(
+                    [self.loss, self.correct_predictions, self.train_op],
+                    feed_dict=feed)
+                total_processed_examples += len(x)
+                total_correct_examples += total_correct
+                total_loss.append(loss)
+                ##
+                if verbose and step % verbose == 0:
+                    sys.stdout.write('\r{} / {} : loss = {}'.format(
+                        step, total_steps, np.mean(total_loss)))
+                    sys.stdout.flush()
+
+            print('123')
+        else:
+            for step, (x, y, f) in enumerate(
+                data_iterator(orig_X, orig_y, orig_features, batch_size=self.config.batch_size,
+                           label_size=self.config.label_size, shuffle=shuffle)):
+                feed = self.create_feed_dict(input_batch=x, dropout1=dp1, dropout2=dp2, label_batch=y, feat_batch=f)
+                loss, total_correct, _ = session.run(
+                    [self.loss, self.correct_predictions, self.train_op],
+                    feed_dict=feed)
+                total_processed_examples += len(x)
+                total_correct_examples += total_correct
+                total_loss.append(loss)
+                ##
+                if verbose and step % verbose == 0:
+                    sys.stdout.write('\r{} / {} : loss = {}'.format(
+                        step, total_steps, np.mean(total_loss)))
+                    sys.stdout.flush()
         if verbose:
             sys.stdout.write('\r')
             sys.stdout.flush()
