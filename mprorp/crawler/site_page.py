@@ -15,7 +15,7 @@ import logging
 logging.basicConfig(format = u'%(levelname)-8s [%(asctime)s] %(message)s', level = logging.DEBUG, filename = u'crawler_log.txt')
 
 
-def find_full_text(doc):
+def find_full_text(doc, session):
     """finds full text for doc object by readability algorithm"""
     url = doc.url
     meta = doc.meta
