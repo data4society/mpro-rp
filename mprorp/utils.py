@@ -4,6 +4,7 @@ import sys
 import os
 import pwd
 import math
+from Levenshtein import distance
 
 
 # check is it celery based running
@@ -52,3 +53,7 @@ def dict_multiply_to_scalar(dictionary,scalar):
 
 def relative_file_path(file, path):
     return os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(file))) + '/' + path
+
+
+def levenshtein_norm_distance(str1, str2):
+    return distance(str1, str2) * 2 / float(len(str1) + len(str2))
