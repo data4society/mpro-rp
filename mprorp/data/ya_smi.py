@@ -77,7 +77,7 @@ def ya_smi_import(file_in, file_out):
             elements = smi_div.xpath("//dd[@class='smi__chief-value']")
             if len(elements):
                 meta["chief"] = elements[0].text_content()
-                row.append(meta["address"])
+                row.append(meta["chief"])
             else:
                 row.append("")
             elements = smi_div.xpath("//dd[@class='smi__address-value']")
