@@ -81,7 +81,10 @@ def only_russia(doc, session):
         session = db_session()
     publ_id = doc.publisher_id
     publ = session.query(Publisher).filter(Publisher.pub_id == publ_id).first()
-    if publ.country == 'Россия':
-        return True
+    if publ is not None:
+        if publ.country == 'Россия':
+            return True
+        else:
+            return False
     else:
-        return False
+        return True
