@@ -38,6 +38,9 @@ def find_full_text(doc):
     publisher_url = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_url)
     meta["publisher"]['url'] = publisher_url
     meta["page_meta"] = page_meta
+    publisher = session.query(Publisher).filter_by(name=doc.meta["publisher"].name).options(load_only("pub_id")).first()
+    if publisher:
+        doc.publisher_id = str(publisher.pub_id)
 
     if stripped == '':
         raise ValueError('Empty text')
@@ -50,11 +53,24 @@ def find_full_text(doc):
 
 if __name__ == '__main__':
     session = db_session()
+    docs = session.query(Document).filter_by(app_id='ovd_ideal').all()
+    for doc in docs:
+        print(doc.meta["publisher"])
+        publisher = session.query(Publisher).filter_by(name=doc.meta["publisher"]["name"]).first()
+        if publisher:
+            print(publisher.name)
+            doc.publisher_id = str(publisher.pub_id)
+        else:
+            print("NONE")
+    session.commit()
+    session.remove()
+    exit()
+    session = db_session()
     doc_id = str(session.query(Record).filter_by(document_id='810fd23b-0449-fcb4-2ab4-a4d3e47e5c47').first().source)
+
     doc = session.query(Document).filter_by(doc_id=doc_id).first()
     find_full_text(doc)
     print(doc.stripped)
-
 
     exit()
     articles = select(Document.doc_id, Document.source_id == '71dc5343-c27d-44bf-aa76-f4d8085317fe').fetchall()
