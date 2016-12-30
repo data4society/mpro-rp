@@ -362,7 +362,7 @@ def regular_find_full_text(doc_id, new_status, **kwargs):
     """parsing HTML page to find full text"""
     session, doc = get_doc(doc_id)
     try:
-        find_full_text(doc)
+        find_full_text(doc, session)
         flag_modified(doc, "meta")
     except Exception as err:
         err_txt = repr(err)
