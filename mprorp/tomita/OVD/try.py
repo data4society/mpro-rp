@@ -12,6 +12,7 @@ session = db_session()
 #object = session.query(Entity).filter(Entity.external_data['kladr'].astext == "77000000000062700").all()
 #!!!!ЗАНЧЕНИЯ КЛЮЧА РАВНО ... a = session.query(Entity).filter(Entity.data["jurisdiction"].astext == mvd_root).all()
 #!!!!СТРОКА СОДЕРЖИТ СТРОКУ a = session.query(Document).filter(Document.stripped.contains('отдел полиции №3')).all()
+
 def try_ovd(doc_id=None, source_id=None):
     if source_id is not None:
         doc_id = session.query(Record).filter(Record.document_id == source_id).first().source
@@ -27,7 +28,7 @@ def try_ovd(doc_id=None, source_id=None):
             print(out[i], ovd.name, ovd.external_data['kladr'])
 
 
-#try_ovd(source_id='dd98ee12-4a57-7877-2feb-dc84b6741ff1')
+try_ovd(source_id='037a40d6-3d29-bdc7-a0c5-20e527aa3773')
 #print(f1())
 #print(session.query(Entity).filter(Entity.external_data['kladr'].astext == '63000005000003400').first().entity_id)
 #print(session.query(Entity).filter(Entity.external_data['kladr'].astext == '61000001000031700').first().name)
@@ -41,5 +42,5 @@ def try_ovd(doc_id=None, source_id=None):
 #print(len(a))
 #for entity in a:
 #    db.delete_entity(entity.entity_id)
-docs = session.query(Document).filter_by(app_id='ovd_test').options(load_only("doc_id")).all()
-print(len(docs))
+#docs = session.query(Document).filter_by(app_id='ovd_test').options(load_only("doc_id")).all()
+#print(len(docs))

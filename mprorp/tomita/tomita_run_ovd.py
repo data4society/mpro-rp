@@ -4,6 +4,7 @@ from mprorp.utils import home_dir
 import os.path as path
 import subprocess as sp
 from mprorp.tomita.tomita_run import create_file
+from mprorp.analyzer.db import *
 
 def create_file_ovd(doc):
     """function to create input file"""
@@ -74,3 +75,13 @@ def run_tomita_ovd(doc, n=1):
     results = step1(out_name, file_name, n)
     del_files_ovd(str(doc.doc_id))
     return results
+
+def only_russia(doc, session):
+    if session is None:
+        session = db_session()
+    publ_id = doc.publisher_id
+    publ = session.query(Publisher).filter(Publisher.pub_id == publ_id).first()
+    if publ.country == 'Россия':
+        return True
+    else:
+        return False
