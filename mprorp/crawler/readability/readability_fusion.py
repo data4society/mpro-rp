@@ -38,10 +38,10 @@ REGEXES = {
     'okMaybeItsACandidateRe': re.compile('and|article|body|column|main|shadow|js-pagination', re.I),
     'positiveRe': re.compile('article|body|content|entry|hentry|main|page|pagination|post|text|blog|story', re.I),
     'negativeRe': re.compile('combx|comment|com-|contact|foot|footer|footnote|masthead|media|meta|outbrain|promo|related|scroll|shoutbox|sidebar|sponsor|shopping|tags|tool|widget', re.I),
-    'divToPElementsRe': re.compile('<(a|blockquote|dl|div|img|ol|p|pre|table|ul)', re.I),
+    'divToPElementsRe': re.compile('<(blockquote|dl|div|img|ol|p|pre|table|ul)', re.I),  #re.compile('<(a|blockquote|dl|div|img|ol|p|pre|table|ul)', re.I),
     'rfBadContent': re.compile('footer|textarea|comment', re.I),
     'rfBadStart': re.compile('Метки:|Рубрики:|Новости партнеров|Просмотров:|Темы:|Loading', re.I),
-    'rfBadStartWithLink': re.compile('Читайте|Пишите|Смотрите|Подробнее читайте|Подписывайтесь|Читать дальше|Хотите поделиться|Подпишитесь', re.I),
+    'rfBadStartWithLink': re.compile('Читайте|Пишите|Смотрите|Подробнее читайте|Подписывайтесь|Читать дальше|Хотите поделиться|Подпишитесь|Следите за', re.I),
     'rfBadSearch': re.compile('Ctrl\+Enter', re.I),
     'rfBadSearchWithLink': re.compile('Подписывайтесь на наш', re.I),
 
@@ -183,23 +183,23 @@ class Document:
                 self._html(True)
                 #print(html.unescape(etree.tostring(self.html, pretty_print=True).decode("utf-8")))
                 #exit()
-                title_text = ''
+                self.title_text = ''
                 #if title == '':
                 #    h1 = self.html.find(".//h1")
                 #    if h1 != None:
-                #        title_text = h1.text_content()
+                #        self.title_text = h1.text_content()
                 #else:
-                #    title_text = title
-                title_text = self.short_title()  # self.html.find(".//title").text_content()  #self.title()
-                if title_text == '':
+                #    self.title_text = title
+                self.title_text = self.short_title()  # self.html.find(".//title").text_content()  #self.title()
+                if self.title_text == '':
                     h1 = self.html.find(".//h1")
                     if h1 != None:
-                        title_text = h1.text_content()
+                        self.title_text = h1.text_content()
                 if title != '':
-                    if levenshtein_norm_distance(title_text, title) > 0.5:
-                        title_text = title
-                title_text = to_plain_text(title_text)
-                self.title_lemmas = mystem.lemmatize(title_text)
+                    if levenshtein_norm_distance(self.title_text, title) > 0.5:
+                        self.title_text = title
+                self.title_text = to_plain_text(self.title_text)
+                self.title_lemmas = mystem.lemmatize(self.title_text)
                 #mystem.close()
                 self.title_lemmas = [word for word in self.title_lemmas if len(word.strip())>2]
                 meta = dict()
@@ -226,6 +226,8 @@ class Document:
                 if ruthless:
                     self.remove_unlikely_candidates()
                 self.transform_misused_divs_into_paragraphs()
+                #print(html.unescape(etree.tostring(self.html, pretty_print=True).decode("utf-8")))
+                #exit()
                 #candidates = self.score_paragraphs()
 
                 #best_candidate = self.select_best_candidate(candidates)
@@ -255,6 +257,8 @@ class Document:
                         article = self.html.find('body')
                         if article is None:
                             article = self.html
+                #print(html.unescape(etree.tostring(article, pretty_print=True).decode("utf-8")))
+                #exit()
                 cleaned_article = self.sanitize(article, candidates, fusion_clearing)
 
                 article_length = len(cleaned_article or '')
@@ -265,7 +269,7 @@ class Document:
                     # Loop through and try again.
                     continue
                 else:
-                    return cleaned_article, title_text, self.meta
+                    return cleaned_article, self.title_text, self.meta
         except Exception as e:
             log.exception('error getting summary: ')
             if sys.version_info[0] == 2:
@@ -548,7 +552,6 @@ class Document:
                 #log.debug("Altering %s to p" % (describe(elem)))
                 elem.tag = "p"
                 #print "Fixed element "+describe(elem)
-
         for elem in self.tags(self.html, 'div'):
             if elem.text and elem.text.strip():
                 p = fragment_fromstring('<p/>')
@@ -563,10 +566,12 @@ class Document:
                     p.text = child.tail
                     child.tail = None
                     elem.insert(pos + 1, p)
-                    #print "Inserted "+tounicode(p)+" to "+describe(elem)
+                    #print("Inserted "+tounicode(p)+" to "+describe(elem)+"child: "+describe(child))
                 if child.tag == 'br':
                     #print 'Dropped <br> at '+describe(elem)
                     child.drop_tree()
+        #print(html.unescape(etree.tostring(self.html, pretty_print=True).decode("utf-8")))
+        #exit()
 
     def tags(self, node, *tag_names):
         for tag_name in tag_names:
@@ -598,7 +603,7 @@ class Document:
         if fusion_clearing:
             #print("FUSION CLEANING")
             self.rf_sanitize(node)
-            #print(etree.tostring(node, pretty_print=True).decode("unicode-escape"))
+            #print(html.unescape(etree.tostring(node, pretty_print=True).decode("utf-8")))
             #exit()
 
         for elem in self.tags(node, "form", "textarea"):
@@ -747,30 +752,35 @@ class Document:
 
         has_children = False
         has_p_or_div = False
-        children = elem.xpath("child::node()")
-        if len(children):
-            was_children = True
-        else:
-            was_children = False
-        for child in children:
-            if isinstance(child, HtmlElement):
-                has_p_or_div0, was_dropped = self.rf_sanitize(child)
-                has_p_or_div = has_p_or_div or has_p_or_div0
-                if not was_dropped:
-                    has_children = True
-            #elif str(child).strip():
-            else:
-                has_children = True
         to_drop = False
-        if not has_children and was_children:
+        if to_plain_text(elem.text_content()) == self.title_text:
             to_drop = True
-        elif not has_p_or_div and p_or_div:
-            txt = elem.text_content().strip()
-            if (self.get_link_density(elem) > 0 and (
-                        re.match(REGEXES["rfBadStartWithLink"], txt) or re.search(REGEXES["rfBadSearchWithLink"], txt))) \
-                    or re.match(REGEXES["rfBadStart"], txt) or re.search(REGEXES["rfBadSearch"], txt):
-                print("fusion_clearing: ", txt)
+        else:
+            children = elem.xpath("child::node()")
+            if len(children):
+                was_children = True
+            else:
+                was_children = False
+            for child in children:
+                if isinstance(child, HtmlElement):
+                    has_p_or_div0, was_dropped = self.rf_sanitize(child)
+                    has_p_or_div = has_p_or_div or has_p_or_div0
+                    if not was_dropped:
+                        has_children = True
+                #elif str(child).strip():
+                else:
+                    has_children = True
+            if not has_children and was_children:
                 to_drop = True
+            elif not has_p_or_div and p_or_div:
+                txt = elem.text_content().strip()
+                #print(txt)
+                #print(re.match(REGEXES["rfBadStartWithLink"], txt))
+                if (self.get_link_density(elem) > 0 and (
+                            re.match(REGEXES["rfBadStartWithLink"], txt) or re.search(REGEXES["rfBadSearchWithLink"], txt))) \
+                        or re.match(REGEXES["rfBadStart"], txt) or re.search(REGEXES["rfBadSearch"], txt):
+                    print("fusion_clearing: ", txt)
+                    to_drop = True
         if to_drop:
             #print(describe(elem))
             elem.drop_tree()

@@ -23,7 +23,10 @@ def min_distance(line, arr):
             out = [i]
         elif d == min_d:
             out.append(i)
-    return list(set(out))
+    if min_d > (len(line) / 2):
+        return []
+    else:
+        return list(set(out))
 
 cities = ['Абаза',
 'Абакан',

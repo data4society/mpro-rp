@@ -231,6 +231,13 @@ if __name__ == '__main__':
     #    text, confidence = read2.find_full_text(html_source, 'Глава РАО Сергей Федотов останется в СИЗО как минимум до…')
     #    print(text)
     #exit()
+    url = 'http://daily.com.ua/http-daily-com-ua-newsfrompartners/1622192-boyepripasi-viyavili-v-avto-v-donetskiy-oblasti'
+    html_source = send_get_request(url, has_encoding=True,
+                                   gen_useragent=True)  # urllib.request.urlopen(url, timeout=10).read()
+    # print(html_source.decode("utf-8"))
+    text, confidence = read2.find_full_text(html_source)
+    print(text)
+    exit()
     """
     from readability.htmls import build_doc
     from lxml.html import HtmlElement
@@ -253,7 +260,7 @@ if __name__ == '__main__':
     exit()
     """
     """
-    #url = 'http://www.gazeta.kg/news/important/99343-sud-arestoval-rukovoditeley-lagerya-na-syamozere.html'
+    #url = 'http://36on.ru/news/criminal/65303-radi-zheny-voronezhets-na-chuzhom-dne-rozhdeniya-obchistil-seyf-s-zolotom-na-100-tysyach'
     #html_source = urllib.request.urlopen(url, timeout=10).read()
     #with open('corpus/docs/' + str(75) + '.html', 'rb') as f:
     #    html_source = f.read()

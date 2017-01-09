@@ -4,7 +4,7 @@ import os
 import mprorp.analyzer.db as db
 from mprorp.tomita.tomita_out import tomita_out, norm_out, find_act
 from mprorp.tomita.tomita_start import start_tomita, create_file
-from mprorp.tomita.tomita_run_ovd import run_tomita_ovd
+from mprorp.tomita.tomita_run_ovd import run_tomita_ovd, only_russia
 
 
 def del_files(doc_id):
@@ -31,7 +31,11 @@ def run_tomita(doc, grammar, session=None, commit_session=True):
         os.remove(file_name1, dir_fd=None)
         return out
     elif grammar == 'ovd.cxx':
-        out = run_tomita_ovd(doc, n=1)
+        if only_russia(doc, session):
+            out = run_tomita_ovd(doc, n=1)
+        else:
+            print('Not Russia')
+            out = {}
         db.put_tomita_result(str(doc.doc_id), grammar, out, session, commit_session)
         return out
     else:
