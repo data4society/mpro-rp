@@ -390,7 +390,8 @@ def get_doc_id(rec_id):
 
 def script_exec():
 
-    # create_sets_56(doc_number=5000)
+    # create_sets_56(doc_number=1250)
+    # exit()
     # bad_list = set_docs['name']['train']
     # print('start morpho train')
     # past_count = 0
