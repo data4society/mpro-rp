@@ -231,8 +231,8 @@ class NERModel(LanguageModel):
                 wv_array.append(np.random.uniform(-0.1, 0.1, Config.embed_size))
             count += 1
 
-        if verbose:
-            print(word_to_num)
+        # if verbose:
+            # print(word_to_num)
 
         self.wv = np.array(wv_array, dtype=np.float32)
         # model_w2v = None
