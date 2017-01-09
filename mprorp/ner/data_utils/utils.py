@@ -177,6 +177,8 @@ def docs_to_windows2(train_data, word_to_num, tag_to_num, feature_list,
             # print(word)
             if not (word[0] == sent_index):
                 if not (words_text is None):
+                    if word_index + 1 - initial_word_index >= len(words):
+                        print('err1', word_index, initial_word_index, len(words), start_with_zero, end_with_zero, words_text)
                     # print(start_with_zero, end_with_zero, initial_word_index, words_text, word[0])
                     appendXY(words, words_text, words_feature, pad, zero_feature, train_data['answers'].get(doc_id,{}),
                              word_index + 1 - initial_word_index, sent_index, tag_to_num, wsize * feature_length, X_feature, X, y, W,

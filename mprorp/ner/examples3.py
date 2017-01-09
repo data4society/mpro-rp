@@ -233,6 +233,7 @@ def create_big_set_name_answers():
     print('not found docs:', not_found_docs)
     print('docs with zero chains:', list(bad_list))
 
+
 def learning():
     # 4. Обучение и запись модели в файл
     if not os.path.exists(home_dir + "/weights"):
