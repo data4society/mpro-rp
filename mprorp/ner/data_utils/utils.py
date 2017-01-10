@@ -173,7 +173,6 @@ def docs_to_windows2(train_data, word_to_num, tag_to_num, feature_list,
         start_with_zero = docs[doc_id].get('start_with_zero', True)
         end_with_zero = docs[doc_id].get('end_with_zero', True)
         initial_word_index = 0
-        started_with_zero = False
         for word in train_data['words'][doc_id][ind_begin:ind_end]:  # word - (sentence_index, word_index, value)
             # print(word)
             if not (word[0] == sent_index):
@@ -182,7 +181,7 @@ def docs_to_windows2(train_data, word_to_num, tag_to_num, feature_list,
                     # if word_index + 4 - initial_word_index > len(words):
                     #     print('err1', doc_id, word_index, initial_word_index, len(words), start_with_zero, end_with_zero, words_text)
                     # print(start_with_zero, end_with_zero, initial_word_index, words_text, word[0])
-                    real_len_words = len(words) - pad if started_with_zero else len(words)
+                    real_len_words = len(words) - pad
                     appendXY(words, words_text, words_feature, pad, zero_feature, train_data['answers'].get(doc_id,{}),
                              real_len_words, sent_index, tag_to_num, wsize * feature_length, X_feature, X, y, W,
                              indexes)
@@ -190,14 +189,12 @@ def docs_to_windows2(train_data, word_to_num, tag_to_num, feature_list,
                     words = [0 for i in range(pad)]
                     words_text = ['' for i in range(pad)]
                     words_feature = [zero_feature for i in range(pad)]
-                    started_with_zero = True
                     initial_word_index = 0
                 else:
                     words = []
                     words_text = []
                     words_feature = []
                     start_with_zero = True
-                    started_with_zero = False
                     initial_word_index = word[1] + pad
 
             sent_index = word[0]
@@ -220,7 +217,7 @@ def docs_to_windows2(train_data, word_to_num, tag_to_num, feature_list,
                 feature_word.extend(new_feat)
             words_feature.append(feature_word)
         if not (words_text is None):
-            real_len_words = len(words) - pad if started_with_zero else len(words)
+            real_len_words = len(words) - pad
             appendXY(words, words_text, words_feature, pad, zero_feature, train_data['answers'].get(doc_id, {}),
                      real_len_words, sent_index, tag_to_num, wsize * feature_length, X_feature, X, y, W,
                      indexes, append_zero=end_with_zero)
