@@ -4,7 +4,7 @@ language: python
 python:
     - 3.4
 before_install:
-    - python3 entrypoints/times.py TRAVIS_COMMIT_RANGE
+    - python3 entrypoints/times.py
     - sh scripts/setup.sh;
     - sh scripts/tomita.sh ~;
 addons:
