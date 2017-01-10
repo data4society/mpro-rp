@@ -106,6 +106,9 @@ def create_sets_56(markup_type='56', doc_number=None):
     print(doc_number - train_num, set_dev_56)
 
 
+# def set_without_doc(set_id, doc_id):
+
+
 def morpho():
     # 2. morpho and other steps for docs from sets
     count = 0
