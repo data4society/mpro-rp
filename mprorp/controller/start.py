@@ -7,7 +7,7 @@ from mprorp.db.models import *
 
 import datetime
 
-from mprorp.controller.logic import regular_gn_start_parsing, regular_ga_start_parsing, regular_vk_start_parsing, regular_yn_start_parsing, regular_csv_start_parsing, regular_other_app_start_parsing
+from mprorp.controller.logic import regular_gn_start_parsing, regular_ga_start_parsing, regular_ya_rss_start_parsing, regular_vk_start_parsing, regular_yn_start_parsing, regular_csv_start_parsing, regular_other_app_start_parsing
 from sqlalchemy.orm import load_only
 
 
@@ -61,6 +61,8 @@ def check_sources():
                             regular_ga_start_parsing.delay(source_key, app_id=app_id)
                         elif source_type == "yandex_news":  # yandex news
                             regular_yn_start_parsing.delay(source_key, app_id=app_id)
+                        elif source_type == "yandex_rss":  # yandex rss
+                            regular_ya_rss_start_parsing.delay(source_key, app_id=app_id)
                         elif source_type == "csv_to_rubricator":  # csv
                             regular_csv_start_parsing.delay(source_key, app_id=app_id)
                         elif source_type == "other_app":  # clone from other app
