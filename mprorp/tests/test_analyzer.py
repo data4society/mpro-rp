@@ -40,7 +40,7 @@ class SimpleDBTest(unittest.TestCase):
         self.assertEqual(lemmas['склад'], 1)
 
     def test_training_set_idf(self):
-        set_id, rubric_id = fill_db()
+        set_id, rubric_id, _ = fill_db()
         rb.idf_object_features_set(set_id)
         # check we can overwrite idf:
         rb.idf_object_features_set(set_id)
@@ -48,22 +48,22 @@ class SimpleDBTest(unittest.TestCase):
         self.assertEqual(len(result), 10)
 
     def test_model(self):
-        set_id, rubric_id = fill_db()
+        set_id, rubric_id, _ = fill_db()
         rb.idf_object_features_set(set_id)
         rb.learning_rubric_model(set_id, rubric_id)
         model = db.get_model(rubric_id, set_id)
         self.assertEqual(model['features_num'], 11)
 
     def test_rubricator(self):
-        set_id, rubric_id = fill_db()
+        set_id, rubric_id, rubric_id_m = fill_db()
 
         rb.idf_object_features_set(set_id)
         rb.learning_rubric_model(set_id, rubric_id)
 
         for doc_id in db.get_set_docs(set_id):
-            rb.spot_doc_rubrics2(doc_id, {rubric_id: None})
+            rb.spot_doc_rubrics2(doc_id, [{'rubric_id': rubric_id, 'rubric_minus_id': rubric_id_m, 'set_name': 'Masha_set'}])
             # check we can overwrite rubrication results:
-            rb.spot_doc_rubrics2(doc_id, {rubric_id: None})
+            rb.spot_doc_rubrics2(doc_id, [{'rubric_id': rubric_id, 'rubric_minus_id': rubric_id_m, 'set_name': 'Masha_set'}])
 
         model_id = db.get_model(rubric_id, set_id)["model_id"]
 
@@ -91,13 +91,19 @@ def fill_db():
     answers = [1, 0, 1, 0, 0, 0, 1, 1, 0, 1]
 
     tr_set = []
-
+    set_plus = []
+    set_minus = []
+    count = 0
     for doc in docs:
         doc_db = Document(stripped=doc, type='article')
         insert(doc_db)
         tr_set.append(doc_db.doc_id)
+        if answers[count]:
+            set_plus.append(doc_db.doc_id)
+        else:
+            set_minus.append(doc_db.doc_id)
 
-    new_rubric = Rubric(name="Маша")
+    new_rubric = Rubric(name='Masha')
     insert(new_rubric)
     rubric_id = str(new_rubric.rubric_id)
 
@@ -105,13 +111,23 @@ def fill_db():
         if answers[i]:
             insert(DocumentRubric(doc_id=str(tr_set[i]), rubric_id=rubric_id))
 
+    new_rubric = Rubric(name='Masha_minus')
+    insert(new_rubric)
+    rubric_id_minus = str(new_rubric.rubric_id)
+
+    for i in range(10):
+        if answers[i] == 0:
+            insert(DocumentRubric(doc_id=str(tr_set[i]), rubric_id=rubric_id_minus))
+
     for doc_id in tr_set:
         rb.morpho_doc2(str(doc_id))
         rb.lemmas_freq_doc2(str(doc_id))
 
-    set_id = str(db.put_training_set(tr_set))
+    set_id = str(db.put_training_set(tr_set, name='Masha_set'))
+    db.put_training_set(set_plus, name='Masha_plus')
+    db.put_training_set(set_minus, name='Masha_minus')
 
-    return set_id, rubric_id
+    return set_id, rubric_id, rubric_id_minus
 
 mytext = '''Следственный судья Киевского райсуда Харькова Валентина Божко удовлетворила ходатайство прокуратуры об аресте бывшего народного депутата от Компартии Украины Аллы Александровской, подозреваемой в сепаратизме, посягательстве на территориальную целостность Украины и попытке подкупа депутатов.
 "По решению суда подозреваемой в посягательстве на территориальную целостность и неприкосновенность, а также даче неправомерной выгоды служебному лицу, избрана мера пресечения в виде содержания под стражей на 2 месяца без определения суммы залога", - сообщила пресс-служба прокуратуры Харьковской области.
