@@ -25,12 +25,12 @@ class SimpleVKTest(unittest.TestCase):
         session = db_session()
         app_id = "test"
         documents = vk_parse_list(s, app_id, session)
-        session.commit()
         doc_ids = []
         for doc in documents:
             doc.app_id = app_id
+        session.commit()
+        for doc in documents:
             doc_ids.append(doc.doc_id)
-        print(doc_ids)
         session.close()
         docs = select(Document.doc_id, Document.app_id == app_id).fetchall()
         self.assertEqual(len(docs), 2)
@@ -54,7 +54,7 @@ class SimpleVKTest(unittest.TestCase):
         session.remove()
 
         doc_source = select(Document.doc_source, Document.guid == app_id+'https://vk.com/wall-114326084_4472').fetchone()[0]
-        print("doc_source", doc_source)
+        #print("doc_source", doc_source)
         self.assertEqual(doc_source, 'тест fulltext 4472')
 
         stripped = select(Document.stripped, Document.guid == app_id+'https://vk.com/wall-114326084_4472').fetchone()[0]
