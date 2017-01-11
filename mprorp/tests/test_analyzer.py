@@ -40,6 +40,7 @@ class SimpleDBTest(unittest.TestCase):
         self.assertEqual(lemmas['склад'], 1)
 
     def test_training_set_idf(self):
+        dropall_and_create()
         set_id, rubric_id, _ = fill_db()
         rb.idf_object_features_set(set_id)
         # check we can overwrite idf:
@@ -48,6 +49,7 @@ class SimpleDBTest(unittest.TestCase):
         self.assertEqual(len(result), 10)
 
     def test_model(self):
+        dropall_and_create()
         set_id, rubric_id, _ = fill_db()
         rb.idf_object_features_set(set_id)
         rb.learning_rubric_model(set_id, rubric_id)
@@ -55,6 +57,7 @@ class SimpleDBTest(unittest.TestCase):
         self.assertEqual(model['features_num'], 11)
 
     def test_rubricator(self):
+        dropall_and_create()
         set_id, rubric_id, rubric_id_m = fill_db()
 
         rb.idf_object_features_set(set_id)
