@@ -15,6 +15,7 @@ from mprorp.tomita.tomita_run import run_tomita
 # from mprorp.db.dbDriver import DBSession
 
 from mprorp.crawler.google_news import gn_start_parsing
+from mprorp.crawler.yandex_rss import ya_rss_start_parsing
 from mprorp.crawler.yandex_news import yn_start_parsing
 from mprorp.crawler.google_alerts import ga_start_parsing
 from mprorp.crawler.vk import vk_start_parsing, vk_parse_item
@@ -39,6 +40,7 @@ GOOGLE_NEWS_INIT_STATUS = 30
 GOOGLE_ALERTS_INIT_STATUS = 20
 YANDEX_NEWS_INIT_STATUS = 40
 CSV_INIT_STATUS = 50
+YANDEX_RSS_INIT_STATUS = 60
 #GOOGLE_NEWS_COMPLETE_STATUS = 21
 SITE_PAGE_LOADING_FAILED = 91
 SITE_PAGE_COMPLETE_STATUS = 99
@@ -79,7 +81,7 @@ def router(doc_id, app_id, status):
     logging.info("route doc: " + str(doc_id) + " status: " + str(status) + " app_id: " + app_id)
     if status in [SITE_PAGE_LOADING_FAILED, EMPTY_TEXT]:
         return
-    if status in [GOOGLE_NEWS_INIT_STATUS, GOOGLE_ALERTS_INIT_STATUS, YANDEX_NEWS_INIT_STATUS, CSV_INIT_STATUS]:  # to find full text of HTML page
+    if status in [GOOGLE_NEWS_INIT_STATUS, GOOGLE_ALERTS_INIT_STATUS, YANDEX_NEWS_INIT_STATUS, YANDEX_RSS_INIT_STATUS, CSV_INIT_STATUS]:  # to find full text of HTML page
         regular_find_full_text.delay(doc_id, SITE_PAGE_COMPLETE_STATUS, app_id=app_id)
         return
     if status == VK_INIT_STATUS:  # to complete vk item parsing
@@ -263,6 +265,36 @@ def regular_yn_start_parsing(source_key, **kwargs):
     session.commit()
     session.remove()
     print("YN CRAWL COMPLETE: "+source_key)
+
+
+@app.task(ignore_result=True, time_limit=660, soft_time_limit=600)
+def regular_ya_rss_start_parsing(source_key, **kwargs):
+    """parsing yandex rss"""
+    print("YR CRAWL START: "+source_key)
+    session = db_session()
+    apps_config = variable_get("last_config",session)
+    app_id = kwargs["app_id"]
+    source = apps_config[app_id]["crawler"]["yandex_rss"][source_key]
+    blacklist = apps_config[app_id]["blacklist"] if "blacklist" in apps_config[app_id] else []
+    try:
+        docs = ya_rss_start_parsing(source_key, blacklist, app_id, session)
+        for doc in docs:
+            doc.status = YANDEX_RSS_INIT_STATUS
+            doc.source_with_type = "yandex_rss "+source_key
+            doc.app_id = app_id
+        session.commit()
+        for doc in docs:
+            router(doc.doc_id, app_id,  YANDEX_RSS_INIT_STATUS)
+    except Exception as err:
+        err_txt = repr(err)
+        logging.error("Неизвестная ошибка yandex_rss краулера, source: " + source_key)
+        print(err_txt)
+    source_status = session.query(SourceStatus).filter_by(app_id=app_id, type='yandex_rss', source_key=source_key).first()
+    source_status.ready = True
+    source_status.next_crawling_time = datetime.datetime.now().timestamp() + source["period"]
+    session.commit()
+    session.remove()
+    print("YR CRAWL COMPLETE: "+source_key)
 
 
 @app.task(ignore_result=True, time_limit=660, soft_time_limit=600)
