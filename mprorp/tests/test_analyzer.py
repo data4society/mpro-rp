@@ -55,7 +55,7 @@ class SimpleDBTest(unittest.TestCase):
         self.assertEqual(model['features_num'], 11)
 
     def test_rubricator(self):
-        set_id, rubric_id, rubric_id_m = fill_db()
+        set_id, rubric_id, rubric_id_m = fill_db('Masha_set')
 
         rb.idf_object_features_set(set_id)
         rb.learning_rubric_model(set_id, rubric_id)
@@ -76,7 +76,7 @@ class SimpleDBTest(unittest.TestCase):
         self.assertEqual(result['f1'], 1)
 
 
-def fill_db():
+def fill_db(set_name=''):
 
     docs = ["Письмо Маши Васе",
             "First документ Пети",  # check processing english word
@@ -123,9 +123,9 @@ def fill_db():
         rb.morpho_doc2(str(doc_id))
         rb.lemmas_freq_doc2(str(doc_id))
 
-    set_id = str(db.put_training_set(tr_set, name='Masha_set'))
-    db.put_training_set(set_plus, name='Masha_plus')
-    db.put_training_set(set_minus, name='Masha_minus')
+    set_id = str(db.put_training_set(tr_set, name=set_name))
+    db.put_training_set(set_plus, name=set_name + '_plus')
+    db.put_training_set(set_minus, name=set_name+'_minus')
 
     return set_id, rubric_id, rubric_id_minus
 
