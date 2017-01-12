@@ -84,7 +84,8 @@ def get_ref_from_morpho(reference, morpho, verbose=False):
     return span_chain, sent_index
 
 
-def create_answers_span_feature_for_doc(doc, spans, markup_type='56', bad_list=set(), session=None, commit_session=True, verbose=False):
+def create_answers_span_feature_for_doc(doc, spans, markup_type='56', bad_list=set(), ner_feature_name='name_answers',
+                                        session=None, commit_session=True, verbose=False):
     """Create answers from name/surname """
 #
 #     # let find markup for entity_class
@@ -132,7 +133,7 @@ def create_answers_span_feature_for_doc(doc, spans, markup_type='56', bad_list=s
                     min_index = i
                 if i > max_index:
                     max_index = i
-            minmax_index[ref_id] = {'min':min_index, 'max':max_index}
+            minmax_index[ref_id] = {'min': min_index, 'max': max_index}
         else:
             # print('zero chain. dic_id:', str(doc.doc_id), ref)
             bad_list.add(str(doc.doc_id))
@@ -140,8 +141,8 @@ def create_answers_span_feature_for_doc(doc, spans, markup_type='56', bad_list=s
         concat_chains_create_values(i, sentence_refs[i], minmax_index, refs, values, verbose=verbose)
 
     if len(values) > 0:
-        db.put_ner_feature_dict(doc.doc_id, values, feature.ner_feature_types['name_answers'],
-                                 None, session, commit_session)
+        db.put_ner_feature_dict(doc.doc_id, values, feature.ner_feature_types[ner_feature_name],
+                                None, session, commit_session)
 #
 
 

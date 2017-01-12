@@ -232,7 +232,9 @@ def create_big_set_name_answers():
                 not_found_docs.append(doc_id)
                 # print('doc not found')
                 continue
-            create_answers_span_feature_for_doc(doc, ['name', 'surname'], bad_list=bad_list)
+            # create_answers_span_feature_for_doc(doc, ['name', 'surname'], bad_list=bad_list)
+            create_answers_span_feature_for_doc(doc, ['loc_descr', 'loc_name'], bad_list=bad_list,
+                                                ner_feature_name='loc_answers')
     print('not found docs:', not_found_docs)
     print('docs with zero chains:', list(bad_list))
 
@@ -427,8 +429,8 @@ def script_exec():
     #     print('bad list:', bad_list)
     # print(set_type, 'features stopped. past_count = ', len(bad_list))
 
-    # create_big_set_name_answers()
-    # exit()
+    create_big_set_name_answers()
+    exit()
     NER.NER_learning_by_config({"class": 1, "tags": 2, "use_special_tags": 0})
     # exit()
     # create_answers('oc_class_loc')
