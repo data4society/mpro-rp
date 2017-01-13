@@ -139,7 +139,7 @@ def morpho_with_check(doc_list):
                 rb.morpho_doc(doc)
                 session.commit()
         except:
-            bad_list.add(doc_id)
+            bad_list.append(doc_id)
     return bad_list
 
 
@@ -403,7 +403,7 @@ def script_exec():
     set_list_len = len(set_list.sets1250)
     for count in range(set_list_len):
         print('count', count)
-        bad_list = set_list[count]
+        bad_list = db.get_set_docs(set_list.sets1250[count])
         past_count = 0
         while (len(bad_list) > 0) and (len(bad_list) != past_count):
             past_count = len(bad_list)
@@ -413,7 +413,7 @@ def script_exec():
     print('start features')
     for count in range(set_list_len):
         print('count', count)
-        bad_list = set_list[count]
+        bad_list = db.get_set_docs(set_list.sets1250[count])
         past_count = 0
         while (len(bad_list) > 0) and (len(bad_list) != past_count):
             past_count = len(bad_list)
