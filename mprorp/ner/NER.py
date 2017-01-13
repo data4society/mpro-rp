@@ -19,6 +19,7 @@ from mprorp.utils import home_dir
 from mprorp.ner.saver import saver
 from gensim.models import word2vec
 import mprorp.ner.feature as feature
+import mprorp.ner.set_list as set_list
 
 sets = dict()
 # sets['oc_class_person'] = {'train': '2e366853-4533-4bd5-a66e-92a834a1a2ca',
@@ -26,22 +27,9 @@ sets = dict()
 # sets['name'] = {'train': '4fb42fd1-a0cf-4f39-9206-029255115d01', # Исходная выборка 274 + 77
 #                 'dev': 'f861ee9d-5973-460d-8f50-92fca9910345'}
 
-# sets['name'] = {'train': '6fec3f2f-939f-4126-80a9-ffdb6f7f6854', # выборка 1000 + 250 / 09.01.2017
-#                 'dev': 'a8aa995f-2643-4615-b708-d5948d3f65a5'}
+sets['name'] = {'train': set_list.sets1250[0],
+                'dev': 'f861ee9d-5973-460d-8f50-92fca9910345'} # Исходная dev-выборка 77
 
-sets['name'] = {'train': '6fec3f2f-939f-4126-80a9-ffdb6f7f6854', # комбинированная выборка 1000 + 77 / 10.01.2017
-                'dev': 'f861ee9d-5973-460d-8f50-92fca9910345'}
-
-# sets['name'] = {'train': 'cec10937-dbe8-4416-b22a-bb45e5061c1c', # комбинированная выборка 4000 + 77
-#                 'dev': 'f861ee9d-5973-460d-8f50-92fca9910345'}
-
-# sets['name'] = {'train': 'cec10937-dbe8-4416-b22a-bb45e5061c1c', # Промежуточная выборка 5000 документов
-#                 'dev': '189a077f-3a80-4a48-84a9-1cc1aa10b69e'}
-
-# sets['name'] = {'train': '3a21671e-5ac0-478e-ba14-3bb0ac3059e3',
-#                 'dev': '375fa594-6c76-4f82-84f0-9123b89307c4'}
-# sets['name_bs'] = {'train': '6bdc99ea-0176-4892-954d-d89ae8d253d3', # 37 000 документов - повторная загрузка
-#                    'dev': 'a067d48c-4da4-4f7d-a116-0f11add07275'}
 # sets['oc_class_org'] = {'train': '78f8c9fb-e385-442e-93b4-aa1a18e952d0',
 #                         'dev': '299c8bd1-4e39-431d-afa9-398b2fb23f69'}
 # sets['oc_class_loc'] = {'train': '74210e3e-0127-4b21-b4b7-0b55855ca02e',

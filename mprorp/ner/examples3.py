@@ -16,6 +16,7 @@ from mprorp.utils import home_dir
 from mprorp.ner.tomita_to_markup import convert_tomita_result_to_markup
 import mprorp.ner.feature as feature
 import random
+import mprorp.ner.set_list as set_list
 
 session = Driver.db_session()
 # 1. Create sets: training and dev
@@ -94,16 +95,19 @@ def create_sets(cl, markup_type='51', doc_number=None):
     print(sets)
 
 
-def create_sets_56(markup_type='56', doc_number=None):
+def create_sets_56(markup_type='56', doc_number=1000):
     docs = db.get_docs_by_markup_type(markup_type=markup_type, session=session)
     random.shuffle(docs)
-    if doc_number is None:
-        doc_number = len(docs)
-    train_num = round(doc_number * 0.8)
-    set_train_56 = str(db.put_training_set(docs[:train_num]))
-    set_dev_56 = str(db.put_training_set(docs[train_num:doc_number]))
-    print(train_num, set_train_56)
-    print(doc_number - train_num, set_dev_56)
+    start_num = 0
+    print('sets size', doc_number)
+    while start_num + doc_number < len(docs):
+        set_train = str(db.put_training_set(docs[start_num:start_num + doc_number]))
+        start_num += doc_number
+        print(set_train)
+    set_train = str(db.put_training_set(docs[start_num:]))
+    print(set_train)
+    print('last set size', len(docs[start_num:]))
+
 
 
 # def set_without_doc(set_id, doc_id):
@@ -128,9 +132,7 @@ def morpho_with_check(doc_list):
     count = 0
     bad_list = []
     for doc_id in doc_list:
-        if count % 500 == 0:
-            print('count',count)
-        count += 1
+
         try:
             doc = session.query(Document).filter_by(doc_id=doc_id).first()
             if doc.morpho is None:
@@ -141,13 +143,11 @@ def morpho_with_check(doc_list):
     return bad_list
 
 
-def capital_embedding_morpho_feature(doc_list, start_doc = 0):
+def capital_embedding_morpho_feature(doc_list, start_doc=0):
     count = 0
     bad_list = []
     for doc_id in doc_list[start_doc:]:
-        if count % 200 == 0:
-            print('count',start_doc + count)
-        count += 1
+
         # try:
         doc = session.query(Document).filter_by(doc_id=doc_id).first()
         ner_feature.create_capital_feature(doc, session=session, commit_session=False)
@@ -399,35 +399,27 @@ def script_exec():
     # create_sets_56(doc_number=1250)
     # exit()
     # bad_list = set_docs['name']['train']
-    # print('start morpho train')
-    # past_count = 0
-    # while (len(bad_list) > 0) and (len(bad_list) != past_count):
-    #     past_count = len(bad_list)
-    #     bad_list = morpho_with_check(bad_list)
-    #     print('morpho tried for', past_count, 'rest', len(bad_list))
-    # print('train stopped. past_count = ', len(bad_list))
-    # bad_list = set_docs['name']['dev']
-    # print('start morpho dev')
-    # past_count = 0
-    # while (len(bad_list) > 0) and (len(bad_list) != past_count):
-    #     past_count = len(bad_list)
-    #     bad_list = morpho_with_check(bad_list)
-    #     print('morpho tried for', past_count, 'rest', len(bad_list))
-    # print('train stopped. past_count = ', len(bad_list))
+    print('start morpho')
+    for count in range(len(set_list)):
+        print('count', count)
+        bad_list = set_list[count]
+        past_count = 0
+        while (len(bad_list) > 0) and (len(bad_list) != past_count):
+            past_count = len(bad_list)
+            bad_list = morpho_with_check(bad_list)
+            print('morpho tried for', past_count, 'rest', len(bad_list))
 
-    # set_type = 'dev' # 'train'
-    # bad_list = set_docs['name'][set_type]
-    # print('start features', set_type)
-    # past_count = 0
-    # start_count = 0
-    # while (len(bad_list) > 0) and (len(bad_list) != past_count):
-    #     past_count = len(bad_list)
-    #     bad_list = capital_embedding_morpho_feature(bad_list, start_count)
-    #     start_count = 0
-    #     print('feature tried for', past_count, 'rest', len(bad_list))
-    # if len(bad_list) > 0:
-    #     print('bad list:', bad_list)
-    # print(set_type, 'features stopped. past_count = ', len(bad_list))
+    print('start features')
+    for count in range(len(set_list)):
+        print('count', count)
+        bad_list = set_list[count]
+        past_count = 0
+        while (len(bad_list) > 0) and (len(bad_list) != past_count):
+            past_count = len(bad_list)
+            bad_list = capital_embedding_morpho_feature(bad_list)
+            print('features tried for', past_count, 'rest', len(bad_list))
+
+    exit()
 
     create_big_set_name_answers()
     exit()
