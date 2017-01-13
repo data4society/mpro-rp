@@ -400,7 +400,8 @@ def script_exec():
     # exit()
     # bad_list = set_docs['name']['train']
     print('start morpho')
-    for count in range(len(set_list)):
+    set_list_len = len(set_list.sets1250)
+    for count in range(set_list_len):
         print('count', count)
         bad_list = set_list[count]
         past_count = 0
@@ -410,7 +411,7 @@ def script_exec():
             print('morpho tried for', past_count, 'rest', len(bad_list))
 
     print('start features')
-    for count in range(len(set_list)):
+    for count in range(set_list_len):
         print('count', count)
         bad_list = set_list[count]
         past_count = 0
