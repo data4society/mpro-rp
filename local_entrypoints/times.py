@@ -57,18 +57,18 @@ if __name__ == '__main__':
     req_result = send_get_request(url, gen_useragent=True)
     json_obj = json.loads(req_result)
     commits = json_obj["commits"]
-    commiter = commits[0]['author']['login']
-    print(commiter)
     #links = []
     comments = []
+    commiters = []
     for commit in commits:
         #links.append(commit['html_url'])
         comments.append(commit['commit']['message'])
+        commiters.append(commit['author']['login'])
 
     print(comments)
     record = {}
     record['time'] = str(datetime.datetime.now())[0:19]
-    record['commiter'] = commiter
+    record['commiters'] = '\n'.join(commiters)
     record['comments'] = '\n'.join(comments)
     #record['compare'] = 'https://api.github.com/repos/data4society/mpro-rp/git/refs/heads/dev'
     record['compare'] = 'https://github.com/data4society/mpro-rp/compare/'+commit_range
