@@ -233,7 +233,7 @@ def create_big_set_name_answers(doc_list):
             continue
         # create_answers_span_feature_for_doc(doc, ['name', 'surname'], bad_list=bad_list)
         create_answers_span_feature_for_doc(doc, ['loc_descr', 'loc_name'], bad_list=bad_list,
-                                            ner_feature_name='loc_answers')
+                                            ner_feature_name='loc_answers', verbose=True)
     print('not found docs:', not_found_docs)
     print('docs with zero chains:', list(bad_list))
 
@@ -398,7 +398,7 @@ def script_exec():
     # create_sets_56(doc_number=1250)
     # exit()
     # bad_list = set_docs['name']['train']
-    # set_list_len = len(set_list.sets1250)
+    set_list_len = len(set_list.sets1250)
     # print('start morpho')
     # for count in range(set_list_len):
     #     print('count', count)
@@ -420,14 +420,14 @@ def script_exec():
     #         bad_list = capital_embedding_morpho_feature(bad_list)
     #         print('features tried for', past_count, 'rest', len(bad_list))
     #
-    # print('start answers')
-    # for count in range(set_list_len):
-    #     print('count', count)
-    #     doc_list = db.get_set_docs(set_list.sets1250[count])
-    #     past_count = 0
-    #     create_big_set_name_answers(doc_list)
-    #
-    # exit()
+    print('start answers')
+    for count in range(set_list_len):
+        print('count', count)
+        doc_list = db.get_set_docs(set_list.sets1250[count])
+        past_count = 0
+        create_big_set_name_answers(doc_list)
+
+    exit()
     NER.NER_learning_by_config({"class": 4, "tags": 2, "use_special_tags": 0})
     exit()
     # exit()
