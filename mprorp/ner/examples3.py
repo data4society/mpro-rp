@@ -398,7 +398,7 @@ def script_exec():
     # create_sets_56(doc_number=1250)
     # exit()
     # bad_list = set_docs['name']['train']
-    set_list_len = len(set_list.sets1250)
+    # set_list_len = len(set_list.sets1250)
     # print('start morpho')
     # for count in range(set_list_len):
     #     print('count', count)
@@ -409,26 +409,27 @@ def script_exec():
     #         bad_list = morpho_with_check(bad_list)
     #         print('morpho tried for', past_count, 'rest', len(bad_list))
 
-    print('start features')
-    start_num = 22
-    for count in range(start_num, set_list_len):
-        print('count', count)
-        bad_list = db.get_set_docs(set_list.sets1250[count])
-        past_count = 0
-        while (len(bad_list) > 0) and (len(bad_list) != past_count):
-            past_count = len(bad_list)
-            bad_list = capital_embedding_morpho_feature(bad_list)
-            print('features tried for', past_count, 'rest', len(bad_list))
-
-    print('start answers')
-    for count in range(set_list_len):
-        print('count', count)
-        doc_list = db.get_set_docs(set_list.sets1250[count])
-        past_count = 0
-        create_big_set_name_answers(doc_list)
-
-    exit()
+    # print('start features')
+    # start_num = 22
+    # for count in range(start_num, set_list_len):
+    #     print('count', count)
+    #     bad_list = db.get_set_docs(set_list.sets1250[count])
+    #     past_count = 0
+    #     while (len(bad_list) > 0) and (len(bad_list) != past_count):
+    #         past_count = len(bad_list)
+    #         bad_list = capital_embedding_morpho_feature(bad_list)
+    #         print('features tried for', past_count, 'rest', len(bad_list))
+    #
+    # print('start answers')
+    # for count in range(set_list_len):
+    #     print('count', count)
+    #     doc_list = db.get_set_docs(set_list.sets1250[count])
+    #     past_count = 0
+    #     create_big_set_name_answers(doc_list)
+    #
+    # exit()
     NER.NER_learning_by_config({"class": 1, "tags": 2, "use_special_tags": 0})
+    exit()
     # exit()
     # create_answers('oc_class_loc')
     # prediction('name')
