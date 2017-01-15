@@ -1,6 +1,7 @@
 """celery config"""
 
 from datetime import timedelta
+import sys
 # these files contain celery tasks:
 CELERY_INCLUDE = ['mprorp.controller.start', 'mprorp.controller.logic']
 # we have one shedule-task:
@@ -19,3 +20,6 @@ CELERYD_CONCURRENCY = 4
 CELERYD_FORCE_EXECV = True
 CELERYD_TASK_TIME_LIMIT = 60
 CELERYD_TASK_SOFT_TIME_LIMIT = 55
+
+if sys.argv[0].split("/")[-1] == 'times.py':
+    CELERY_ALWAYS_EAGER = True

@@ -32,6 +32,7 @@ from mprorp.analyzer.rubrication_by_comparing import reg_rubrication_by_comparin
 
 import json
 import datetime
+import inspect
 
 # statuses
 VK_INIT_STATUS = 10
@@ -72,11 +73,17 @@ EMPTY_TEXT = 2000
 SHORT_LENGTH = 2002
 WITHOUT_RUBRICS = 2001
 
+mode_times = False
+cur_config = "last_config"
+logic_times = {}
+if sys.argv[0].split("/")[-1] == 'times.py':
+    mode_times = True
+    cur_config = "test_config"
 
 def router(doc_id, app_id, status):
     """route function, that adds new tasks by incoming result (document's status)"""
     doc_id = str(doc_id)
-    apps_config = variable_get("last_config")
+    apps_config = variable_get(cur_config)
     app_conf = apps_config[app_id]
     logging.info("route doc: " + str(doc_id) + " status: " + str(status) + " app_id: " + app_id)
     if status in [SITE_PAGE_LOADING_FAILED, EMPTY_TEXT]:
@@ -118,6 +125,7 @@ def router(doc_id, app_id, status):
         session.commit()
         session.remove()
     if "morpho" in app_conf and status < MORPHO_COMPLETE_STATUS :  # to morpho
+        print("MORPHO")
         regular_morpho.delay(doc_id, MORPHO_COMPLETE_STATUS, app_id=app_id)
         return
     if "lemmas" in app_conf and status < LEMMAS_COMPLETE_STATUS:  # to lemmas
@@ -182,7 +190,7 @@ def regular_gn_start_parsing(source_key, **kwargs):
     """parsing google news request"""
     print("GN CRAWL START: "+source_key)
     session = db_session()
-    apps_config = variable_get("last_config",session)
+    apps_config = variable_get(cur_config,session)
     app_id = kwargs["app_id"]
     source = apps_config[app_id]["crawler"]["google_news"][source_key]
     blacklist = apps_config[app_id]["blacklist"] if "blacklist" in apps_config[app_id] else []
@@ -212,7 +220,7 @@ def regular_ga_start_parsing(source_key, **kwargs):
     """parsing google alerts request"""
     print("GA CRAWL START: "+source_key)
     session = db_session()
-    apps_config = variable_get("last_config",session)
+    apps_config = variable_get(cur_config,session)
     app_id = kwargs["app_id"]
     source = apps_config[app_id]["crawler"]["google_alerts"][source_key]
     blacklist = apps_config[app_id]["blacklist"] if "blacklist" in apps_config[app_id] else []
@@ -242,7 +250,7 @@ def regular_yn_start_parsing(source_key, **kwargs):
     """parsing yandex news request"""
     print("YN CRAWL START: "+source_key)
     session = db_session()
-    apps_config = variable_get("last_config", session)
+    apps_config = variable_get(cur_config, session)
     app_id = kwargs["app_id"]
     source = apps_config[app_id]["crawler"]["yandex_news"][source_key]
     blacklist = apps_config[app_id]["blacklist"] if "blacklist" in apps_config[app_id] else []
@@ -272,7 +280,7 @@ def regular_ya_rss_start_parsing(source_key, **kwargs):
     """parsing yandex rss"""
     print("YR CRAWL START: "+source_key)
     session = db_session()
-    apps_config = variable_get("last_config",session)
+    apps_config = variable_get(cur_config,session)
     app_id = kwargs["app_id"]
     source = apps_config[app_id]["crawler"]["yandex_rss"][source_key]
     blacklist = apps_config[app_id]["blacklist"] if "blacklist" in apps_config[app_id] else []
@@ -302,7 +310,7 @@ def regular_csv_start_parsing(source_key, **kwargs):
     """parsing csv"""
     print("CSV CRAWL START: "+source_key)
     session = db_session()
-    apps_config = variable_get("last_config",session)
+    apps_config = variable_get(cur_config,session)
     app_id = kwargs["app_id"]
     source = apps_config[app_id]["crawler"]["csv_to_rubricator"][source_key]
     blacklist = apps_config[app_id]["blacklist"] if "blacklist" in apps_config[app_id] else []
@@ -328,7 +336,7 @@ def regular_other_app_start_parsing(source_key, **kwargs):
     """cloning docs from other app"""
     print("OA CRAWL START: "+source_key)
     session = db_session()
-    apps_config = variable_get("last_config", session)
+    apps_config = variable_get(cur_config, session)
     app_id = kwargs["app_id"]
     source = apps_config[app_id]["crawler"]["other_app"][source_key]
     blacklist = apps_config[app_id]["blacklist"] if "blacklist" in apps_config[app_id] else []
@@ -354,7 +362,7 @@ def regular_vk_start_parsing(source_key, **kwargs):
     """parsing vk request"""
     print("VK CRAWL START: "+source_key)
     session = db_session()
-    apps_config = variable_get("last_config",session)
+    apps_config = variable_get(cur_config,session)
     app_id = kwargs["app_id"]
     source = apps_config[app_id]["crawler"]["vk"][source_key]
     try:
@@ -417,6 +425,7 @@ def regular_find_full_text(doc_id, new_status, **kwargs):
 @app.task()
 def regular_morpho(doc_id, new_status, **kwargs):
     """morphologia"""
+    print("regular_morpho")
     session, doc = get_doc(doc_id)
     rb.morpho_doc(doc)
     return set_doc(doc, new_status, session)
@@ -549,6 +558,8 @@ def regular_rubrication_by_comparing(config, doc_id, new_status, **kwargs):
 
 def get_doc(doc_id):
     """reading doc from db"""
+    if mode_times:
+        logic_times[inspect.stack()[1][3]] = datetime.datetime.now()
     session = db_session()
     doc = session.query(Document).filter_by(doc_id=doc_id).first()
     return session, doc
@@ -560,6 +571,8 @@ def set_doc(doc, new_status, session):
     session.commit()
     doc_id = doc.doc_id
     session.remove()
+    if mode_times:
+        logic_times[inspect.stack()[1][3]] = (datetime.datetime.now() - logic_times[inspect.stack()[1][3]]).total_seconds()
     return router(doc_id, doc.app_id, new_status) or new_status
 
 

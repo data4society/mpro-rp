@@ -4,7 +4,6 @@ language: python
 python:
     - 3.4
 before_install:
-    - python3 entrypoints/times.py
     - sh scripts/setup.sh;
     - sh scripts/tomita.sh ~;
 addons:
@@ -13,6 +12,7 @@ before_script:
     - psql -c 'create database mprorp;' -U postgres
     - psql -c 'CREATE EXTENSION "uuid-ossp";' -U postgres -d mprorp
 script:
+    - python3 local_entrypoints/times.py
     - sudo nosetests3 mprorp/tests/*
 notifications:
     slack: ovdinfo:pC2a1JMfPsjs3hKPAzz7yPUB

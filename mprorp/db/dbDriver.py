@@ -116,12 +116,15 @@ def variable_get(name, value=0, session=None):
 def dropall_and_create():
     """drop all tables and create all them again"""
     # close sessions
+    if db_type == "server":
+        print("What's the fuck??? You are trying to drop working database!!!")
+        exit()
     DBSession = sessionmaker(bind=engine)
     DBSession.close_all()
     #drop all which exist
     for tbl in reversed(meta.sorted_tables):
         try:
-            tbl.drop(engine);
+            tbl.drop(engine)
         except Exception:
             pass;
     # load models
