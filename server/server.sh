@@ -57,9 +57,9 @@ su mprorp
 source ~/mprorpenv/bin/activate
 cd ~/mpro-rp-dev
 # install requirements and tensorflow
-pip3 install -r requirements.txt
 export TF_BINARY_URL=https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.9.0rc0-cp34-cp34m-linux_x86_64.whl
 pip3 install --upgrade $TF_BINARY_URL
+pip3 install -r requirements.txt
 pip3 install flower
 
 # for refresh nginx config and start our flower and celery daemons
