@@ -28,7 +28,8 @@ sets = dict()
 #                 'dev': 'f861ee9d-5973-460d-8f50-92fca9910345'}
 
 sets['name'] = {'train': set_list.sets1250[0],
-                'dev': 'f861ee9d-5973-460d-8f50-92fca9910345'} # Исходная dev-выборка 77
+                'dev': set_list.sets1250[29]}
+                #'dev': 'f861ee9d-5973-460d-8f50-92fca9910345'} # Исходная dev-выборка 77
 
 # sets['oc_class_org'] = {'train': '78f8c9fb-e385-442e-93b4-aa1a18e952d0',
 #                         'dev': '299c8bd1-4e39-431d-afa9-398b2fb23f69'}
@@ -45,13 +46,13 @@ class Config(object):
     """
     windows_in_epoch = True
     windows_in_epoch_dev = False
-    classes = ['oc_class_person', 'name', 'oc_class_org', 'oc_class_loc']
+    classes = ['oc_class_person', 'name', 'oc_class_org', 'oc_class_loc', 'loc']
     tag_types = [['B', 'I', 'S', 'E'], ['BS', 'IE'], ['BI', 'ES']]
     special_tag_types = {'oc_class_person':
                              [['oc_span_last_name', 'oc_span_first_name', 'oc_span_middle_name',
                                'oc_span_nickname', 'oc_span_foreign_name'],
                               ['oc_span_post', 'oc_span_role', 'oc_span_status']]}
-    learn_type = {'class': 1, 'tags': 1}
+    learn_type = {'class': 4, 'tags': 1}
 
     new_model = True
 
