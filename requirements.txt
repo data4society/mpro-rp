@@ -22,3 +22,4 @@ pymorphy2
 scipy
 gensim
 
+tensorflow
