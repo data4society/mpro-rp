@@ -5,11 +5,11 @@ import json
 import datetime
 import gspread
 import json
+sys.path.insert(0, '..')
 from mprorp.db.models import *
 from mprorp.crawler.utils import *
 from oauth2client.service_account import ServiceAccountCredentials
 from mprorp.controller.logic import *
-sys.path.insert(0, '..')
 from mprorp.utils import home_dir
 from mprorp.crawler.readability.readability2 import find_full_text
 from mprorp.celery_app import load_app_conf
