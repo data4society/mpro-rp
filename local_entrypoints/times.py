@@ -1,10 +1,10 @@
 """get procedures times and write them"""
 import sys
-sys.path.insert(0, '..')
 import os
 import datetime
 import gspread
 import json
+sys.path.insert(0, '..')
 from mprorp.db.models import *
 from mprorp.crawler.utils import *
 from oauth2client.service_account import ServiceAccountCredentials
