@@ -1,0 +1,39 @@
+[
+  {
+    "app_id": "test_time",
+    "app_name": "test app",
+    "app_desc": "test app",
+    "default": true,
+    "crawler": {
+      "yandex_news":{
+	    "pro.monitoring":{
+          "pass":"r54chmvkp8we4idjfqql7ega77p873mp",
+          "period":600,
+          "on":false
+		}
+      },
+      "yandex_news":{
+	    "oi.mpro":{
+          "pass":"mprolehfr",
+          "period":600,
+          "on":true
+		}
+      }
+    },
+    "morpho": true,
+    "lemmas": true,
+	"capital_feature":true,
+    "tomita": {
+      "grammars":{
+        "person.cxx": "Person",
+        "date.cxx": "Date",
+        "loc.cxx": "Loc",
+        "adr.cxx": "Adr",
+        "org.cxx": "Org",
+        "norm_act.cxx": "Norm",
+        "prof.cxx": "Prof"
+      },
+      "tomita_features": true
+    }
+  }
+]

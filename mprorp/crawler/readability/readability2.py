@@ -14,4 +14,4 @@ def find_full_text(html_source, title="", fusion_clearing = True):
 
     stripped = strip_tags(content)
     stripped = to_plain_text(stripped)
-    return stripped, confidence
+    return stripped, title, confidence

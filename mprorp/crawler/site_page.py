@@ -18,9 +18,14 @@ logging.basicConfig(format = u'%(levelname)-8s [%(asctime)s] %(message)s', level
 def find_full_text(doc, session):
     """finds full text for doc object by readability algorithm"""
     url = doc.url
-    meta = doc.meta
     print('start grabbing ' + url)
     html_source = send_get_request(url, has_encoding=True, gen_useragent=True)# urllib.request.urlopen(url, timeout=10).read()
+    readability_and_meta(doc, session, html_source, url)
+
+
+def readability_and_meta(doc, session, html_source):
+    url = doc.url
+    meta = doc.meta
     #print(html_source.decode("utf-8"))
     rf_doc = Doc(html_source)
     title = doc.title
@@ -48,7 +53,6 @@ def find_full_text(doc, session):
     doc.doc_source = content
     doc.stripped = stripped
     doc.meta = meta
-
 
 
 if __name__ == '__main__':
