@@ -428,7 +428,7 @@ def script_exec():
     #     create_big_set_name_answers(doc_list)
     #
     # exit()
-    NER.NER_learning_by_config({"class": 1, "tags": 2, "use_special_tags": 0})
+    NER.NER_learning_by_config({"class": 4, "tags": 2, "use_special_tags": 0})
     exit()
     # exit()
     # create_answers('oc_class_loc')
