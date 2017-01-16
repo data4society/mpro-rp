@@ -117,14 +117,14 @@ def create_answers_span_feature_for_doc(doc, spans, markup_type='56', bad_list=s
     minmax_index = {}
     sentence_refs = {}
 
-    printed = False
+    # printed = False
     for ref in references:
 
         ref_class = ref[2]
-        if verbose and not printed:
-            print(ref_class)
-            print(spans)
-            printed = True
+        # if verbose and not printed:
+        #     print(ref_class)
+        #     print(spans)
+        #     printed = True
         if ref_class not in spans:
                 continue
         ref_id = ref[3]
