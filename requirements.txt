@@ -1,6 +1,7 @@
 requests
 alembic
 psycopg2
+tensorflow
 sqlalchemy_utils
 sqlalchemy >= 1.0.0
 datetime
@@ -22,4 +23,3 @@ pymorphy2
 scipy
 gensim
 
-tensorflow
