@@ -233,7 +233,7 @@ def create_big_set_name_answers(doc_list, spans, cl='name'):
             continue
         # create_answers_span_feature_for_doc(doc, ['name', 'surname'], bad_list=bad_list)
         create_answers_span_feature_for_doc(doc, spans=spans, bad_list=bad_list,
-                                            ner_feature_name=cl+'_answers', verbose=True)
+                                            ner_feature_name=cl+'_answers', cl=cl, verbose=True)
     print('not found docs:', not_found_docs)
     print('docs with zero chains:', list(bad_list))
 

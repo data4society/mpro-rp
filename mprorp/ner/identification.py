@@ -85,7 +85,7 @@ def get_ref_from_morpho(reference, morpho, verbose=False):
 
 
 def create_answers_span_feature_for_doc(doc, spans, markup_type='56', bad_list=set(), ner_feature_name='name_answers',
-                                        session=None, commit_session=True, verbose=False):
+                                        cl='name', session=None, commit_session=True, verbose=False):
     """Create answers from name/surname """
 #
 #     # let find markup for entity_class
@@ -117,14 +117,14 @@ def create_answers_span_feature_for_doc(doc, spans, markup_type='56', bad_list=s
     minmax_index = {}
     sentence_refs = {}
 
-    # printed = False
+    printed = False
     for ref in references:
 
         ref_class = ref[2]
-        # if verbose and not printed:
-        #     print(ref_class)
-        #     print(spans)
-        #     printed = True
+        if verbose and not printed:
+            print(ref_class)
+            print(spans)
+            printed = True
         if ref_class not in spans:
                 continue
         ref_id = ref[3]
@@ -150,7 +150,7 @@ def create_answers_span_feature_for_doc(doc, spans, markup_type='56', bad_list=s
     # if verbose:
     #     print('sentence_refs', len(sentence_refs))
     for i in sentence_refs:
-        concat_chains_create_values(i, sentence_refs[i], minmax_index, refs, values, verbose=verbose)
+        concat_chains_create_values(i, sentence_refs[i], minmax_index, refs, values, cl)
 
     if len(values) > 0:
         if verbose:
@@ -160,8 +160,8 @@ def create_answers_span_feature_for_doc(doc, spans, markup_type='56', bad_list=s
 #
 
 
-def concat_chains_create_values(sent_index, list_refs, minmax_index, refs, values, verbose=False):
-    first_index = {minmax_index[ref]['min']:ref for ref in list_refs}
+def concat_chains_create_values(sent_index, list_refs, minmax_index, refs, values, cl='name', verbose=False):
+    first_index = {minmax_index[ref]['min']: ref for ref in list_refs}
     # print(first_index)
     sorted_indexes = list(first_index.keys())
     sorted_indexes.sort()
@@ -186,7 +186,7 @@ def concat_chains_create_values(sent_index, list_refs, minmax_index, refs, value
         last_class = new_class
         last_max = minmax_index[new_ref]['max']
     if len(chain) > 0:
-        create_values(chain, sent_index, 'name', values, verbose=verbose)
+        create_values(chain, sent_index, cl, values, verbose=verbose)
 
 
 def create_answers_feature_for_doc(doc, entity_class='oc_class_person', session=None, commit_session=True, verbose=False):
