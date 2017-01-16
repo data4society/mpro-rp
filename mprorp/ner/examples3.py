@@ -210,7 +210,7 @@ def create_answers(cla=None):
     session.commit()
 
 
-def create_big_set_name_answers(doc_list):
+def create_big_set_name_answers(doc_list, spans, cl='name'):
     count = 0
     bad_list = set()
     not_found_docs = []
@@ -232,8 +232,8 @@ def create_big_set_name_answers(doc_list):
             # print('doc not found')
             continue
         # create_answers_span_feature_for_doc(doc, ['name', 'surname'], bad_list=bad_list)
-        create_answers_span_feature_for_doc(doc, ['loc_descr', 'loc_name'], bad_list=bad_list,
-                                            ner_feature_name='loc_answers', verbose=True)
+        create_answers_span_feature_for_doc(doc, spans=spans, bad_list=bad_list,
+                                            ner_feature_name=cl+'_answers', verbose=True)
     print('not found docs:', not_found_docs)
     print('docs with zero chains:', list(bad_list))
 
@@ -395,7 +395,7 @@ def get_doc_id(rec_id):
 
 def script_exec():
 
-    # create_sets_56(doc_number=1250)
+    # create_sets_56(doc_number=100)
     # exit()
     # bad_list = set_docs['name']['train']
     set_list_len = len(set_list.sets1250)
@@ -424,8 +424,7 @@ def script_exec():
     for count in range(set_list_len):
         print('count', count)
         doc_list = db.get_set_docs(set_list.sets1250[count])
-        past_count = 0
-        create_big_set_name_answers(doc_list)
+        create_big_set_name_answers(doc_list, ['bs000_loc_descr, bs000_loc_name'], 'loc')
 
     exit()
     NER.NER_learning_by_config({"class": 4, "tags": 2, "use_special_tags": 0})

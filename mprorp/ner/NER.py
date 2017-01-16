@@ -17,7 +17,7 @@ from mprorp.ner.feature import ner_feature_types
 import pickle as pickle
 from mprorp.utils import home_dir
 from mprorp.ner.saver import saver
-from gensim.models import word2vec
+# from gensim.models import word2vec
 import mprorp.ner.feature as feature
 import mprorp.ner.set_list as set_list
 
@@ -30,6 +30,9 @@ sets = dict()
 sets['name'] = {'train': set_list.sets1250[0],
                 'dev': set_list.sets1250[29]}
                 #'dev': 'f861ee9d-5973-460d-8f50-92fca9910345'} # Исходная dev-выборка 77
+sets['loc'] = {'train': set_list.sets100[0],
+               'dev': set_list.sets100[1]}
+
 
 # sets['oc_class_org'] = {'train': '78f8c9fb-e385-442e-93b4-aa1a18e952d0',
 #                         'dev': '299c8bd1-4e39-431d-afa9-398b2fb23f69'}
@@ -178,12 +181,13 @@ class NERModel(LanguageModel):
                 if verbose:
                     print('reading training embeddings - ок', time.clock())
             else:
-                model_w2v = word2vec.Word2Vec.load_word2vec_format(self.config.pre_embedding_from_file, binary=True)
-                wv_dict = {}
-                for word in words_for_embedding:
-                    if word in model_w2v.vocab:
-                        wv_dict[word] = model_w2v[word]
-                model_w2v = None
+                # model_w2v = word2vec.Word2Vec.load_word2vec_format(self.config.pre_embedding_from_file, binary=True)
+                # wv_dict = {}
+                # for word in words_for_embedding:
+                #     if word in model_w2v.vocab:
+                #         wv_dict[word] = model_w2v[word]
+                # model_w2v = None
+                raise 'we do not use loading embedding from file'
         else:
             words_count = {}
             for doc_id in train_set_words:
@@ -322,14 +326,14 @@ class NERModel(LanguageModel):
             if self.config.pre_embedding_from_file == '':
                 wv_dict = db.get_multi_word_embedding(self.config.embedding, words_for_embedding.keys())
             else:
-                model_w2v = word2vec.Word2Vec.load_word2vec_format(self.config.pre_embedding_from_file, binary=True)
-                wv_dict = {}
-                for word in words_for_embedding:
-                    if word in model_w2v.vocab:
-                        wv_dict[word] = model_w2v[word]
-                print('found words', len(wv_dict), wv_dict.keys())
-                model_w2v = None
-
+                # model_w2v = word2vec.Word2Vec.load_word2vec_format(self.config.pre_embedding_from_file, binary=True)
+                # wv_dict = {}
+                # for word in words_for_embedding:
+                #     if word in model_w2v.vocab:
+                #         wv_dict[word] = model_w2v[word]
+                # print('found words', len(wv_dict), wv_dict.keys())
+                # model_w2v = None
+                raise 'we do not use loading embedding from file'
             if self.config.word_unkn in wv_dict:
                 wv_array = [wv_dict[self.config.word_unkn]]
             else:
