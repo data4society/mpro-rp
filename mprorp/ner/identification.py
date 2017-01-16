@@ -124,10 +124,13 @@ def create_answers_span_feature_for_doc(doc, spans, markup_type='56', bad_list=s
         if verbose and not printed:
             print(ref_class)
             print(spans)
+            printed = True
         if ref_class not in spans:
                 continue
         ref_id = ref[3]
         span_chain, sent_index_ref = get_ref_from_morpho(ref, morpho, verbose=verbose)
+        if verbose:
+            print('span_chain', span_chain)
         if len(span_chain) > 0:
             if sentence_refs.get(sent_index_ref, None) is None:
                 sentence_refs[sent_index_ref] = []
@@ -144,6 +147,8 @@ def create_answers_span_feature_for_doc(doc, spans, markup_type='56', bad_list=s
         else:
             # print('zero chain. dic_id:', str(doc.doc_id), ref)
             bad_list.add(str(doc.doc_id))
+    if verbose:
+        print('sentence_refs', len(sentence_refs))
     for i in sentence_refs:
         concat_chains_create_values(i, sentence_refs[i], minmax_index, refs, values, verbose=verbose)
 
