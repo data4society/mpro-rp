@@ -60,7 +60,7 @@ if __name__ == '__main__':
     for commit in commits:
         #links.append(commit['html_url'])
         comments.append(commit['commit']['message'])
-        commiters.append(commit['author']['login'])
+        commiters.append(commit['commit']['committer']['name'])
 
     print(comments)
     record = {}
