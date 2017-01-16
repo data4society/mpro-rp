@@ -424,7 +424,7 @@ def script_exec():
     for count in range(set_list_len):
         print('count', count)
         doc_list = db.get_set_docs(set_list.sets1250[count])
-        create_big_set_name_answers(doc_list, ['bs000_loc_descr, bs000_loc_name'], 'loc')
+        create_big_set_name_answers(doc_list, ['bs000_loc_descr', 'bs000_loc_name'], 'loc')
 
     exit()
     NER.NER_learning_by_config({"class": 4, "tags": 2, "use_special_tags": 0})
