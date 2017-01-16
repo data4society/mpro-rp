@@ -153,8 +153,8 @@ def create_answers_span_feature_for_doc(doc, spans, markup_type='56', bad_list=s
         concat_chains_create_values(i, sentence_refs[i], minmax_index, refs, values, cl)
 
     if len(values) > 0:
-        if verbose:
-            print(ner_feature_name, feature.ner_feature_types[ner_feature_name])
+        # if verbose:
+        #     print(ner_feature_name, feature.ner_feature_types[ner_feature_name])
         db.put_ner_feature_dict(doc.doc_id, values, feature.ner_feature_types[ner_feature_name],
                                 None, session, commit_session)
 #
