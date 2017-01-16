@@ -366,3 +366,4 @@ if __name__ == '__main__':
     #session = db_session()
     #ovds = session.query(Entity).filter(Entity.data.has_key("org_type")).count()
     #print(ovds)
+    #SELECT * from entities WHERE data->>'jurisdiction' = '["eaf0a69a-74d7-4e1a-9187-038a202c7698"]'
