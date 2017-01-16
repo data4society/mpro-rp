@@ -92,8 +92,8 @@ def create_answers_span_feature_for_doc(doc, spans, markup_type='56', bad_list=s
 
     markup_id = db.get_markup_by_doc_and_markup_type(doc_id=doc.doc_id, markup_type = markup_type, session=session)
 
-    if verbose:
-        print('markup_id: ', markup_id, ' doc_id: ', doc.doc_id)
+    # if verbose:
+    #     print('markup_id: ', markup_id, ' doc_id: ', doc.doc_id)
 
     references = db.get_references_for_doc(markup_id, session)
     morpho = doc.morpho
@@ -141,6 +141,8 @@ def create_answers_span_feature_for_doc(doc, spans, markup_type='56', bad_list=s
         concat_chains_create_values(i, sentence_refs[i], minmax_index, refs, values, verbose=verbose)
 
     if len(values) > 0:
+        if verbose:
+            print(ner_feature_name, feature.ner_feature_types[ner_feature_name])
         db.put_ner_feature_dict(doc.doc_id, values, feature.ner_feature_types[ner_feature_name],
                                 None, session, commit_session)
 #
