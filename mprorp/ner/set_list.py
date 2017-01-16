@@ -31,3 +31,7 @@ sets1250 = ['6a506e59-5942-49b7-bd1b-fe8bb060c78c',
             'ea771669-6254-4558-8d2c-d5bdf73ea4e7',
             '6e1ffac7-ca3d-4d09-83a0-ed8dd70fc9bf',
             '0d9c09de-e57c-43db-83dc-521763c6c94d']
+
+sets100 = ['064dd0d4-bb8a-4392-9c73-ada63bab3c27',
+           'cd467e40-17a3-434b-8a6f-a7ed46162165',
+           'b42ed5c7-3405-40b9-8f5f-a2e6b5b01633']
