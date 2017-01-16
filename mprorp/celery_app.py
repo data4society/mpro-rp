@@ -8,13 +8,6 @@ import json
 from mprorp.utils import relative_file_path
 
 
-app = Celery('mprorp',
-             broker='amqp://',
-             # backend='amqp://',
-             )
-app.config_from_object(celeryconfig)
-
-
 def load_app_conf(json_path, cur_config):
     with open(relative_file_path(__file__, json_path)) as app_config_file:
         config_list = json.load(app_config_file)
@@ -69,9 +62,19 @@ def load_app_conf(json_path, cur_config):
     session.commit()
     session.remove()
 
-# create Celery instance and load config
+
 print("STARTING CELERY APP")
+if sys.argv[0].split("/")[-1] != 'times.py':
+    load_app_conf('config/app.json', 'last_config')
+
+app = Celery('mprorp',
+                 broker='amqp://',
+                 # backend='amqp://',
+                 )
+app.config_from_object(celeryconfig)
+# create Celery instance and load config
+print("STARTING CELERY APP COMPLETE")
 
 if __name__ == '__main__':
-    load_app_conf('config/app.json', 'last_config')
-    app.start()
+    pass;
+    #app.start()

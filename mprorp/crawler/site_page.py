@@ -20,7 +20,7 @@ def find_full_text(doc, session):
     url = doc.url
     print('start grabbing ' + url)
     html_source = send_get_request(url, has_encoding=True, gen_useragent=True)# urllib.request.urlopen(url, timeout=10).read()
-    readability_and_meta(doc, session, html_source, url)
+    readability_and_meta(doc, session, html_source)
 
 
 def readability_and_meta(doc, session, html_source):
