@@ -96,6 +96,9 @@ def create_answers_span_feature_for_doc(doc, spans, markup_type='56', bad_list=s
     #     print('markup_id: ', markup_id, ' doc_id: ', doc.doc_id)
 
     references = db.get_references_for_doc(markup_id, session)
+    if verbose:
+        print('references', len(references))
+
     morpho = doc.morpho
 
     sent_dict = {}
@@ -114,9 +117,13 @@ def create_answers_span_feature_for_doc(doc, spans, markup_type='56', bad_list=s
     minmax_index = {}
     sentence_refs = {}
 
+    printed = False
     for ref in references:
 
         ref_class = ref[2]
+        if verbose and not printed:
+            print(ref_class)
+            print(spans)
         if ref_class not in spans:
                 continue
         ref_id = ref[3]
