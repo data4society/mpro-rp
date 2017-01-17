@@ -420,13 +420,13 @@ def script_exec():
     #         bad_list = capital_embedding_morpho_feature(bad_list)
     #         print('features tried for', past_count, 'rest', len(bad_list))
     #
-    print('start answers')
-    for count in range(set_list_len):
-        print('count', count)
-        doc_list = db.get_set_docs(set_list.sets1250[count])
-        create_big_set_name_answers(doc_list, ['bs000_loc_descr', 'bs000_loc_name'], 'loc')
-
-    exit()
+    # print('start answers')
+    # for count in range(set_list_len):
+    #     print('count', count)
+    #     doc_list = db.get_set_docs(set_list.sets1250[count])
+    #     create_big_set_name_answers(doc_list, ['bs000_loc_descr', 'bs000_loc_name'], 'loc')
+    #
+    # exit()
     NER.NER_learning_by_config({"class": 4, "tags": 2, "use_special_tags": 0})
     exit()
     # exit()
