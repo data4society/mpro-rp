@@ -62,11 +62,11 @@ if __name__ == '__main__':
         url = 'https://api.github.com/repos/data4society/mpro-rp/git/refs/heads/dev'
         req_result = send_get_request(url, gen_useragent=True)
         json_obj = json.loads(req_result)
-        last_commit = json_obj["object"]["sha"]
+        last_commit = json_obj["object"]["sha"][0:7]
         commit_range = variable_get('commit_range', last_commit+"..."+last_commit)
         commit_range_list = commit_range.split("...")
         if last_commit != commit_range[1]:
-            commit_range_list[0] = commit_range[1]
+            commit_range_list[0] = commit_range_list[1]
             commit_range_list[1] = last_commit
             commit_range = "...".join(commit_range_list)
             variable_set('commit_range', commit_range)
@@ -124,6 +124,7 @@ if __name__ == '__main__':
             app_record['readability'] = (datetime.datetime.now() - time).total_seconds()
             router(new_doc.doc_id, app_id, SITE_PAGE_COMPLETE_STATUS)
             app_record.update(logic_times)
+            app_record['config'] = str(app_conf)
             print("write_to_spreadsheet")
             delete_document(new_doc.doc_id)
             records[app_id] = app_record
