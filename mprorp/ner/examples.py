@@ -15,13 +15,14 @@ import mprorp.db.dbDriver as Driver
 from mprorp.db.models import *
 from mprorp.analyzer.db import put_training_set
 from gensim.models import word2vec
+from mprorp.utils import home_dir
 
 
 session = Driver.db_session()
 res = session.query(Markup.markup_id).filter((Markup.type == '56')).distinct().all()
 
-config = NER.Config()
-model_w2v = word2vec.Word2Vec.load_word2vec_format(config.pre_embedding_from_file, binary=True)
+pre_embedding_from_file = home_dir + '/embeddings/news_win20.model.bin'
+model_w2v = word2vec.Word2Vec.load_word2vec_format(pre_embedding_from_file, binary=True)
 count = 0
 print('Всего', len(model_w2v.vocab), 'слов')
 session.add(Embedding(emb_id = 'second_embedding_1000', name = 'Вторая модель, загруженная с http://ling.go.mail.ru/'))

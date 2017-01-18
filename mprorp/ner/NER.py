@@ -27,9 +27,9 @@ sets = dict()
 # sets['name'] = {'train': '4fb42fd1-a0cf-4f39-9206-029255115d01', # Исходная выборка 274 + 77
 #                 'dev': 'f861ee9d-5973-460d-8f50-92fca9910345'}
 
-sets['name'] = {'train': set_list.sets1250[0],
-                'dev': set_list.sets1250[29]}
-                #'dev': 'f861ee9d-5973-460d-8f50-92fca9910345'} # Исходная dev-выборка 77
+sets['name'] = {'train': set_list.sets1250[1],
+                # 'dev': set_list.sets1250[29]}
+                'dev': 'f861ee9d-5973-460d-8f50-92fca9910345'} # Исходная dev-выборка 77
 sets['loc'] = {'train': set_list.sets1250[0],
                 'dev': set_list.sets1250[29]}
 # {'train': set_list.sets100[0],
@@ -173,8 +173,8 @@ class NERModel(LanguageModel):
                         for word in element[2]:
                             words_for_embedding[word] = ''
             words_for_embedding[self.config.word_unkn] = ''
-            # if verbose:
-            #     print(words_for_embedding)
+            if verbose:
+                print(len(words_for_embedding))
 
             if self.config.pre_embedding_from_file == '':
                 if verbose:
@@ -182,6 +182,7 @@ class NERModel(LanguageModel):
                 wv_dict = db.get_multi_word_embedding(self.config.embedding, words_for_embedding.keys())
                 if verbose:
                     print('reading training embeddings - ок', time.clock())
+                    print('wv_dict_len', len(list(wv_dict.keys())))
             else:
                 # model_w2v = word2vec.Word2Vec.load_word2vec_format(self.config.pre_embedding_from_file, binary=True)
                 # wv_dict = {}
