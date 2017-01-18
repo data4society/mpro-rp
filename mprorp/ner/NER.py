@@ -28,8 +28,8 @@ sets = dict()
 #                 'dev': 'f861ee9d-5973-460d-8f50-92fca9910345'}
 
 sets['name'] = {'train': set_list.sets1250[1],
-                # 'dev': set_list.sets1250[29]}
-                'dev': 'f861ee9d-5973-460d-8f50-92fca9910345'} # Исходная dev-выборка 77
+                'dev': set_list.sets1250[29]}
+                # 'dev': 'f861ee9d-5973-460d-8f50-92fca9910345'} # Исходная dev-выборка 77
 sets['loc'] = {'train': set_list.sets1250[0],
                 'dev': set_list.sets1250[29]}
 # {'train': set_list.sets100[0],
