@@ -107,8 +107,8 @@ if __name__ == '__main__':
         text = f.read()
     apps_config = variable_get(cur_app_config)
     for app_id in apps_config:
+        app_conf = apps_config[app_id]
         if "time_test" in app_conf:
-            app_conf = apps_config[app_id]
             time = datetime.datetime.now()
             new_doc = Document(guid='time_test_guid', app_id=app_id, url='http://test.com/test', status=SITE_PAGE_COMPLETE_STATUS, type='article')
             session = db_session()
