@@ -14,6 +14,9 @@ cp /home/mprorp/app.json /home/mprorp/mpro-rp-dev/mprorp/config/app.json
 chown -R mprorp:mprorp /home/mprorp
 #C_FAKEFORK=1 sh -x /etc/init.d/celeryd start
 #C_FAKEFORK=1 sh -x /etc/init.d/celeryd restart
+su -c 'pm2 stop all' - mpro
+su -c 'cd ~/mpro-rp-dev/local_entrypoints; source ~/mprorpenv/bin/activate; python3 times.py' - mprorp
+su -c 'pm2 start all' - mpro
 /etc/init.d/celeryd start
 /etc/init.d/celeryd status
 echo "Renew code and restart system complete!"
