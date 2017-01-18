@@ -103,11 +103,16 @@ def step1(tomita_out_file, original_text, n):
     facts = get_all_codes(tomita_out_file, original_text)
     for fact in facts:
         fact['codes'] = codes_to_norm(fact)
+    facts = del_countries(facts)
     facts = combiner(facts, 'OVDFact')
     facts = combiner(facts, 'LocationFact')
     facts = variants(facts)
+    facts = skleyka(facts)
+    #print(facts)
     out = step2(facts)
+    #print(out)
     out = max_amount_of_codes(out, n)
+    #print(out)
     out = step3(out)
     out = step4(out)
     return out
@@ -195,3 +200,22 @@ def cut_kladr(code):
         else:
             return kladr
     return kladr
+
+def del_countries(facts):
+    out = []
+    countries = ['казахстан']
+    for fact in facts:
+        if fact['type'] == 'LocationFact':
+            loc = fact['norm'][[i for i in fact['norm']][0]][0][0]
+            if loc not in countries:
+                out.append(fact)
+        else:
+            out.append(fact)
+    return out
+
+def skleyka(facts):
+    out = []
+    for fact in facts:
+        if fact not in out:
+            out.append(fact)
+    return out

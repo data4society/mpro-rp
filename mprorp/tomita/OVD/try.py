@@ -28,8 +28,8 @@ def try_ovd(doc_id=None, source_id=None):
             print(out[i], ovd.name, ovd.external_data['kladr'])
 
 
-#try_ovd(source_id='037a40d6-3d29-bdc7-a0c5-20e527aa3773')
-print(f1())
+try_ovd(source_id='ea20b895-8ad2-aeae-8f9c-6fcfa9e306c6')
+#print(f1())
 #print(session.query(Entity).filter(Entity.external_data['kladr'].astext == '63000005000003400').first().entity_id)
 #print(session.query(Entity).filter(Entity.external_data['kladr'].astext == '61000001000031700').first().name)
 #a = get_ner_feature_dict('23d197c3-467e-49d8-8a07-5336ec2b18fe', 'fb8fc548-0464-40b7-a998-04a6e1b95eb6', 'Person')
@@ -42,5 +42,4 @@ print(f1())
 #print(len(a))
 #for entity in a:
 #    db.delete_entity(entity.entity_id)
-#docs = session.query(Document).filter_by(app_id='ovd_test').options(load_only("doc_id")).all()
-#print(len(docs))
+
