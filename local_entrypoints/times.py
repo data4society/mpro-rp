@@ -31,7 +31,7 @@ def write_to_spreadsheet(credentials_dict, spreadsheet_id, records):
         sheets_by_titles[sheet.title] = sheet
     for app_id in records:
         record = records[app_id]
-        if app_id in sheets:
+        if app_id in sheets_by_titles:
             sheet = sheets_by_titles[app_id]
             head_row = sheet.row_values(1)
         else:
