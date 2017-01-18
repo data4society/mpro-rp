@@ -27,7 +27,7 @@ def write_to_spreadsheet(credentials_dict, spreadsheet_id, records):
     print("spreadsheet open OK")
     for app_id in records:
         record = records[app_id]
-        sheet = spreadsheet.get_worksheet(app_id)
+        sheet = spreadsheet.worksheet(app_id)
         if not sheet:
             sheet = spreadsheet.add_worksheet(app_id, 1, 0)
         head_row = sheet.row_values(1)
