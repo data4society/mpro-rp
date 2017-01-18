@@ -13,6 +13,7 @@ import mprorp.controller.logic as logic
 from mprorp.celery_app import load_app_conf
 from mprorp.crawler.site_page import readability_and_meta
 from mprorp.config.settings import *
+from mprorp.utils import relative_file_path
 
 
 def write_to_spreadsheet(credentials_dict, spreadsheet_id, records):
