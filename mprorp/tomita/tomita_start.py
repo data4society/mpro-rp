@@ -34,13 +34,15 @@ fact = {'person.cxx': '{ Name = "PersonFact_TOMITA" }',
 
 def create_config(grammar_name, file_name):
     """function to create configuration file"""
-    path1 = relative_file_path('grammars/dic_')
+    #path1 = os.path.dirname(os.path.realpath(__file__))
+    #path2 = path1 + '/grammars/dic_'
+    path2 = relative_file_path(__file__, 'grammars/dic_')
     grammar = grammar_name + '.cxx'
     config_name = 'config_' + file_name[:-4] + '.proto'
     config_file = '''encoding "utf8";
 
 TTextMinerConfig {
-  Dictionary = "''' + path1 + grammar_name + '''.gzt"''' + ''';
+  Dictionary = "''' + path2 + grammar_name + '''.gzt"''' + ''';
   Input = {
     File = "''' + file_name + '''";
   }
