@@ -24,11 +24,11 @@ import mprorp.ner.set_list as set_list
 sets = dict()
 # sets['oc_class_person'] = {'train': '2e366853-4533-4bd5-a66e-92a834a1a2ca',
 #                            'dev': 'f861ee9d-5973-460d-8f50-92fca9910345'}
-sets['name'] = {'train': '4fb42fd1-a0cf-4f39-9206-029255115d01', # Исходная выборка 274 + 77
-                'dev': 'f861ee9d-5973-460d-8f50-92fca9910345'}
+# sets['name'] = {'train': '4fb42fd1-a0cf-4f39-9206-029255115d01', # Исходная выборка 274 + 77
+#                 'dev': 'f861ee9d-5973-460d-8f50-92fca9910345'}
 
-# sets['name'] = {'train': set_list.sets1250[1],
-#                 'dev': set_list.sets100[0]}
+sets['name'] = {'train': set_list.sets1250[29],
+                'dev': set_list.sets100[0]}
                 # 'dev': set_list.sets1250[29]}
                 # 'dev': 'f861ee9d-5973-460d-8f50-92fca9910345'} # Исходная dev-выборка 77
 sets['loc'] = {'train': set_list.sets1250[0],
