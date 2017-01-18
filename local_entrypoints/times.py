@@ -25,10 +25,14 @@ def write_to_spreadsheet(credentials_dict, spreadsheet_id, records):
     print("authorization OK")
     spreadsheet = gc.open_by_key(spreadsheet_id)
     print("spreadsheet open OK")
+    sheets = spreadsheet.worksheets()
+    print(sheets)
+    print(type(sheets[0]))
     for app_id in records:
         record = records[app_id]
-        sheet = spreadsheet.worksheet(app_id)
-        if not sheet:
+        if app_id in sheets:
+            sheet = spreadsheet.worksheet(app_id)
+        else:
             sheet = spreadsheet.add_worksheet(app_id, 1, 0)
         head_row = sheet.row_values(1)
         print(head_row)
