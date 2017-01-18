@@ -19,7 +19,6 @@ def try_ovd(doc_id=None, source_id=None):
     a = session.query(Document).filter(Document.doc_id == doc_id).all()
     print(a[0].doc_id)
     out = run_tomita(a[0], 'ovd.cxx')
-    print(out)
     if out == {}:
         print('No OVD')
     else:
@@ -28,7 +27,7 @@ def try_ovd(doc_id=None, source_id=None):
             print(out[i], ovd.name, ovd.external_data['kladr'])
 
 
-try_ovd(source_id='ea20b895-8ad2-aeae-8f9c-6fcfa9e306c6')
+try_ovd(source_id='24cf325c-a434-45f4-5db3-2758236c3863')
 #print(f1())
 #print(session.query(Entity).filter(Entity.external_data['kladr'].astext == '63000005000003400').first().entity_id)
 #print(session.query(Entity).filter(Entity.external_data['kladr'].astext == '61000001000031700').first().name)

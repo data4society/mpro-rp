@@ -91,6 +91,7 @@ def variants(facts):
                                          'fs' : ovd['fs'],
                                          'ls' : ovd['ls'],
                                          'loc_used' : loc['string'],
+                                         'loc_used_norm' : loc['norm'][[i for i in loc['norm']][0]][0][0],
                                          'codes' : [ovd_code]},
                                      1 / (max(loc['fs'], ovd['fs']) - min(loc['ls'], ovd['ls']))))
                         used.append(ovd)
@@ -100,6 +101,7 @@ def variants(facts):
 
 
 def step1(tomita_out_file, original_text, n):
+    session = db_session()
     facts = get_all_codes(tomita_out_file, original_text)
     for fact in facts:
         fact['codes'] = codes_to_norm(fact)
@@ -108,13 +110,15 @@ def step1(tomita_out_file, original_text, n):
     facts = combiner(facts, 'LocationFact')
     facts = variants(facts)
     facts = skleyka(facts)
-    #print(facts)
+    print(facts)
     out = step2(facts)
-    #print(out)
+    print(out)
+    out = loc_in_name(out, session)
+    print(out)
     out = max_amount_of_codes(out, n)
-    #print(out)
+    print(out)
     out = step3(out)
-    out = step4(out)
+    out = step4(out, session)
     return out
 
 def step2(facts):
@@ -154,8 +158,7 @@ def step3(arr):
                 out[idd] += fact[0]['codes']
     return out
 
-def step4(facts):
-    session = db_session()
+def step4(facts, session):
     out = {}
     for fact in facts:
         codes = facts[fact]
@@ -219,3 +222,14 @@ def skleyka(facts):
         if fact not in out:
             out.append(fact)
     return out
+
+def loc_in_name(out, session):
+    new_out = []
+    for el in out[0]:
+        ovd_name = session.query(Entity).filter(Entity.external_data['kladr'].astext == el[0]['codes'][0]).first().name
+        if el[0]['loc_used'][:-1] in ovd_name.lower() or el[0]['loc_used_norm'][:-1] in ovd_name.lower():
+            new_out.append(el)
+    if new_out == []:
+        return out
+    else:
+        return [new_out]
