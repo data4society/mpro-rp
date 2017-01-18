@@ -26,15 +26,18 @@ def write_to_spreadsheet(credentials_dict, spreadsheet_id, records):
     spreadsheet = gc.open_by_key(spreadsheet_id)
     print("spreadsheet open OK")
     sheets = spreadsheet.worksheets()
-    print(sheets)
-    print(type(sheets[0]))
+    sheets_by_titles = {}
+    for sheet in sheets:
+        sheets_by_titles[sheet.title] = sheet
     for app_id in records:
         record = records[app_id]
         if app_id in sheets:
-            sheet = spreadsheet.worksheet(app_id)
+            sheet = sheets_by_titles[app_id]
+            head_row = sheet.row_values(1)
         else:
-            sheet = spreadsheet.add_worksheet(app_id, 1, 0)
-        head_row = sheet.row_values(1)
+            sheet = spreadsheet.add_worksheet(app_id, 1, 1)
+            head_row = ['time']
+            sheet.update_cell(1, 1, 'time')
         print(head_row)
         for key in record:
             if key not in head_row:
