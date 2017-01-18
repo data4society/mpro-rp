@@ -9,10 +9,11 @@ from mprorp.db.models import *
 from mprorp.db.dbDriver import *
 from mprorp.crawler.utils import *
 from oauth2client.service_account import ServiceAccountCredentials
-from mprorp.controller.logic import *
+import mprorp.controller.logic as logic
 from mprorp.celery_app import load_app_conf
 from mprorp.crawler.site_page import readability_and_meta
 from mprorp.config.settings import *
+from mprorp.utils import relative_file_path
 
 
 def write_to_spreadsheet(credentials_dict, spreadsheet_id, records):
@@ -116,7 +117,7 @@ if __name__ == '__main__':
         app_conf = apps_config[app_id]
         if "time_test" in app_conf:
             time = datetime.datetime.now()
-            new_doc = Document(guid='time_test_guid', app_id=app_id, url='http://test.com/test', status=SITE_PAGE_COMPLETE_STATUS, type='article')
+            new_doc = Document(guid='time_test_guid', app_id=app_id, url='http://test.com/test', status=logic.SITE_PAGE_COMPLETE_STATUS, type='article')
             session = db_session()
             new_doc.published_date = datetime.datetime.now()
             meta = dict()
@@ -128,8 +129,11 @@ if __name__ == '__main__':
             session.commit()
             app_record = base_record.copy()
             app_record['readability'] = (datetime.datetime.now() - time).total_seconds()
-            router(new_doc.doc_id, app_id, SITE_PAGE_COMPLETE_STATUS)
-            app_record.update(logic_times)
+            logic.logic_times = {}
+            print(logic.logic_times)
+            logic.router(new_doc.doc_id, app_id, logic.SITE_PAGE_COMPLETE_STATUS)
+            print(logic.logic_times)
+            app_record.update(logic.logic_times)
             app_record['config'] = app_conf
             print("write_to_spreadsheet")
             delete_document(str(new_doc.doc_id))
