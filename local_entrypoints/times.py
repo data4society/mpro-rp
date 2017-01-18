@@ -126,7 +126,7 @@ if __name__ == '__main__':
             app_record.update(logic_times)
             app_record['config'] = str(app_conf)
             print("write_to_spreadsheet")
-            delete_document(new_doc.doc_id)
+            delete_document(str(new_doc.doc_id))
             records[app_id] = app_record
     write_to_spreadsheet(credentials_dict, google_spreadsheet_id, records)
 
