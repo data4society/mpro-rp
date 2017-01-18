@@ -130,7 +130,7 @@ if __name__ == '__main__':
             app_record['readability'] = (datetime.datetime.now() - time).total_seconds()
             router(new_doc.doc_id, app_id, SITE_PAGE_COMPLETE_STATUS)
             app_record.update(logic_times)
-            app_record['config'] = str(app_conf)
+            app_record['config'] = app_conf
             print("write_to_spreadsheet")
             delete_document(str(new_doc.doc_id))
             records[app_id] = app_record
