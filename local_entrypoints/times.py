@@ -78,7 +78,6 @@ if __name__ == '__main__':
             commit_range = "...".join(commit_range_list)
             variable_set('commit_range', commit_range)
         load_app_conf('config/app.json', cur_app_config)
-    print(commit_range)
     url = 'https://api.github.com/repos/data4society/mpro-rp/compare/'+commit_range
     req_result = send_get_request(url, gen_useragent=True)
     json_obj = json.loads(req_result)
@@ -135,6 +134,7 @@ if __name__ == '__main__':
             print("write_to_spreadsheet")
             delete_document(str(new_doc.doc_id))
             records[app_id] = app_record
+    print(records)
     write_to_spreadsheet(credentials_dict, google_spreadsheet_id, records)
 
     print("FINISH TIMING")
