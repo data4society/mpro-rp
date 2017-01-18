@@ -57,6 +57,7 @@ if __name__ == '__main__':
         google_client_email = os.environ['GOOGLE_CLIENT_EMAIL']
         google_client_id = os.environ['GOOGLE_CLIENT_ID']
         google_spreadsheet_id = os.environ['SPREADSHEET_ID']
+        load_app_conf('config/app.time.json', cur_app_config)
     else:
         url = 'https://api.github.com/repos/data4society/mpro-rp/git/refs/heads/dev'
         req_result = send_get_request(url, gen_useragent=True)
@@ -69,6 +70,8 @@ if __name__ == '__main__':
             commit_range_list[1] = last_commit
             commit_range = "...".join(commit_range_list)
             variable_set('commit_range', commit_range)
+        load_app_conf('config/app.json', cur_app_config)
+    print(commit_range)
     url = 'https://api.github.com/repos/data4society/mpro-rp/compare/'+commit_range
     req_result = send_get_request(url, gen_useragent=True)
     json_obj = json.loads(req_result)
@@ -100,32 +103,30 @@ if __name__ == '__main__':
     }
 
     #dropall_and_create()
-    print("load_app_conf")
-    load_app_conf('config/app.time.json', cur_app_config)
-    print("load_app_conf1")
     with open(relative_file_path(__file__, '../mprorp/tests/test_docs/time_test.html'), 'rb') as f:
         text = f.read()
     apps_config = variable_get(cur_app_config)
     for app_id in apps_config:
-        app_conf = apps_config[app_id]
-        time = datetime.datetime.now()
-        new_doc = Document(guid='time_test_guid', app_id=app_id, url='http://test.com/test', status=SITE_PAGE_COMPLETE_STATUS, type='article')
-        session = db_session()
-        new_doc.published_date = datetime.datetime.now()
-        meta = dict()
-        meta["publisher"] = {"name": 'test'}
-        #meta["abstract"] = desc
-        new_doc.meta = meta
-        readability_and_meta(new_doc, session, text)
-        session.add(new_doc)
-        session.commit()
-        app_record = base_record.copy()
-        app_record['readability'] = (datetime.datetime.now() - time).total_seconds()
-        router(new_doc.doc_id, app_id, SITE_PAGE_COMPLETE_STATUS)
-        app_record.update(logic_times)
-        print("write_to_spreadsheet")
-        delete_document(new_doc.doc_id)
-        records[app_id] = app_record
+        if "time_test" in app_conf:
+            app_conf = apps_config[app_id]
+            time = datetime.datetime.now()
+            new_doc = Document(guid='time_test_guid', app_id=app_id, url='http://test.com/test', status=SITE_PAGE_COMPLETE_STATUS, type='article')
+            session = db_session()
+            new_doc.published_date = datetime.datetime.now()
+            meta = dict()
+            meta["publisher"] = {"name": 'test'}
+            #meta["abstract"] = desc
+            new_doc.meta = meta
+            readability_and_meta(new_doc, session, text)
+            session.add(new_doc)
+            session.commit()
+            app_record = base_record.copy()
+            app_record['readability'] = (datetime.datetime.now() - time).total_seconds()
+            router(new_doc.doc_id, app_id, SITE_PAGE_COMPLETE_STATUS)
+            app_record.update(logic_times)
+            print("write_to_spreadsheet")
+            delete_document(new_doc.doc_id)
+            records[app_id] = app_record
     write_to_spreadsheet(credentials_dict, google_spreadsheet_id, records)
 
     print("FINISH TIMING")
