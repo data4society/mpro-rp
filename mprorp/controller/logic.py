@@ -469,9 +469,9 @@ def regular_capital_feature(doc_id, new_status, **kwargs):
 @app.task()
 def regular_tomita(grammar, doc_id, new_status, **kwargs):
     """tomita"""
-    session, doc = get_doc(doc_id)
+    session, doc = get_doc(doc_id, grammar=grammar)
     run_tomita(doc, grammar, session, False)
-    return set_doc(doc, new_status, session)
+    return set_doc(doc, new_status, session, grammar=grammar)
 
 
 #@app.task(ignore_result=True)
@@ -556,23 +556,29 @@ def regular_rubrication_by_comparing(config, doc_id, new_status, **kwargs):
     return set_doc(doc, new_status, session)
 
 
-def get_doc(doc_id):
+def get_doc(doc_id, **kwargs):
     """reading doc from db"""
     if mode_times:
-        logic_times[inspect.stack()[1][3]] = datetime.datetime.now()
+        caller_name = inspect.stack()[1][3]
+        if caller_name == 'regular_tomita':
+            caller_name = caller_name+"_"+kwargs["grammar"]
+        logic_times[caller_name] = datetime.datetime.now()
     session = db_session()
     doc = session.query(Document).filter_by(doc_id=doc_id).first()
     return session, doc
 
 
-def set_doc(doc, new_status, session):
+def set_doc(doc, new_status, session, **kwargs):
     """writing changes to db"""
     doc.status = new_status
     session.commit()
     doc_id = doc.doc_id
     session.remove()
     if mode_times:
-        logic_times[inspect.stack()[1][3]] = (datetime.datetime.now() - logic_times[inspect.stack()[1][3]]).total_seconds()
+        caller_name = inspect.stack()[1][3]
+        if caller_name == 'regular_tomita':
+            caller_name = caller_name+"_"+kwargs["grammar"]
+        logic_times[caller_name] = (datetime.datetime.now() - logic_times[caller_name]).total_seconds()
     return router(doc_id, doc.app_id, new_status) or new_status
 
 
