@@ -52,7 +52,8 @@ def dict_multiply_to_scalar(dictionary,scalar):
 
 
 def relative_file_path(file, path):
-    return os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(file))) + '/' + path
+    #return os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(file))) + '/' + path
+    return os.path.dirname(os.path.abspath(file)) + '/' + path
 
 
 def levenshtein_norm_distance(str1, str2):
