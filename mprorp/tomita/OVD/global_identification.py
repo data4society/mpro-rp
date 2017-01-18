@@ -110,13 +110,13 @@ def step1(tomita_out_file, original_text, n):
     facts = combiner(facts, 'LocationFact')
     facts = variants(facts)
     facts = skleyka(facts)
-    print(facts)
+    #print(facts)
     out = step2(facts)
-    print(out)
+    #print(out)
     out = loc_in_name(out, session)
-    print(out)
+    #print(out)
     out = max_amount_of_codes(out, n)
-    print(out)
+    #print(out)
     out = step3(out)
     out = step4(out, session)
     return out
@@ -209,9 +209,12 @@ def del_countries(facts):
     countries = ['казахстан']
     for fact in facts:
         if fact['type'] == 'LocationFact':
-            loc = fact['norm'][[i for i in fact['norm']][0]][0][0]
-            if loc not in countries:
-                out.append(fact)
+            try:
+                loc = fact['norm'][[i for i in fact['norm']][0]][0][0]
+                if loc not in countries:
+                    out.append(fact)
+            except:
+                continue
         else:
             out.append(fact)
     return out
@@ -227,8 +230,11 @@ def loc_in_name(out, session):
     new_out = []
     for el in out[0]:
         ovd_name = session.query(Entity).filter(Entity.external_data['kladr'].astext == el[0]['codes'][0]).first().name
-        if el[0]['loc_used'][:-1] in ovd_name.lower() or el[0]['loc_used_norm'][:-1] in ovd_name.lower():
-            new_out.append(el)
+        try:
+            if el[0]['loc_used'][:-1] in ovd_name.lower() or el[0]['loc_used_norm'][:-1] in ovd_name.lower():
+                new_out.append(el)
+        except:
+            continue
     if new_out == []:
         return out
     else:
