@@ -30,7 +30,7 @@ def new_cross(arr):
 def Location(loc, session, city, level):
     if len(loc[0]) != 1:
         for i in range(len(loc)):
-            loc[i] = loc[i].replace('-', ' ')
+            #loc[i] = loc[i].replace('-', ' ')
             loc[i] = loc[i].split(' ')
     out = []
     for name in loc:

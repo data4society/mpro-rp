@@ -85,8 +85,8 @@ def list_make(text, source_name, tomita_path):
     #print('Error count = ' + str(ERROR) + '\n')
     return out
 
-def find_act(file_name):
-    string = open(file_name, 'r', encoding='utf-8').read()
+def find_act(file_name, tomita_path):
+    string = open(tomita_path + '/' + file_name, 'r', encoding='utf-8').read()
     numb = '(\d+|[\d\.]+)'
 
     part = '((ч\.|част[а-я]*) ?' + numb + ')'
@@ -137,6 +137,6 @@ def norm_out(arr, source_name, tomita_path):
 
 def tomita_out(file_name, source_name, tomita_path):
     """function to run all together"""
-    out = list_make(text_make(file_name), source_name, tomita_path)
+    out = list_make(text_make(tomita_path + '/' + file_name), source_name, tomita_path)
     return out
 
