@@ -49,9 +49,9 @@ def facts(fact, sourse):
     return fact, first_symbol
 
 
-def list_make(text, source_name):
+def list_make(text, source_name, tomita_path):
     """function to create dictionary with coordinates"""
-    sourse = open(source_name, 'r', encoding='utf-8').read()
+    sourse = open(tomita_path + '/' + source_name, 'r', encoding='utf-8').read()
     #s = sourse
     sourse = re.sub('\n', ' ', sourse)
     out = {}
@@ -120,8 +120,8 @@ def find_act(file_name):
                 out.append(max(norm_act))
     return out
 
-def norm_out(arr, source_name):
-    source = open(source_name, 'r', encoding='utf-8').read()
+def norm_out(arr, source_name, tomita_path):
+    source = open(tomita_path + '/' + source_name, 'r', encoding='utf-8').read()
     s = source
     out = {}
     len_of_line = 0
@@ -135,8 +135,8 @@ def norm_out(arr, source_name):
         len_of_line += last_symbol
     return out
 
-def tomita_out(file_name, source_name):
+def tomita_out(file_name, source_name, tomita_path):
     """function to run all together"""
-    out = list_make(text_make(file_name), source_name)
+    out = list_make(text_make(file_name), source_name, tomita_path)
     return out
 

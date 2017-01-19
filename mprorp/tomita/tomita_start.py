@@ -65,8 +65,8 @@ TTextMinerConfig {
 
 def create_file(doc, tomita_path):
     """function to create input file"""
-    file_name = tomita_path + '/' + str(doc.doc_id) + '.txt'
-    file = open(file_name, 'w', encoding='utf-8')
+    file_name = str(doc.doc_id) + '.txt'
+    file = open(tomita_path + '/' + file_name, 'w', encoding='utf-8')
     text = doc.stripped
     file.write(text.replace('\n',''))
     file.close()
@@ -77,7 +77,7 @@ def start_tomita(grammar, doc):
     """function to run tomita"""
     tomita_path = home_dir + '/tomita/tomita-parser-master/build/bin'
     grammar_name = re.findall('(.*)\\.cxx', grammar)[0]
-    #chdir(tomita_path)
+    work_path = os.getcwd()
     # создаем файл с текстом
     file_name = create_file(doc, tomita_path)
     # создаем config.proto
@@ -85,6 +85,8 @@ def start_tomita(grammar, doc):
     # запускаем tomitaparser.exe
     config = path.join(tomita_path, 'config_' + file_name[:-4] + '.proto')
     tomita = path.join(tomita_path, 'tomita-parser')
+    chdir(tomita_path)
     sp.call([tomita, config])
+    chdir(work_path)
     output_name = 'facts_' + file_name[:-4] + '.txt'
     return output_name, tomita_path

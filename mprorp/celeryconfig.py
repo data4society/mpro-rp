@@ -23,3 +23,5 @@ CELERYD_TASK_SOFT_TIME_LIMIT = 55
 
 if sys.argv[0].split("/")[-1] == 'times.py':
     CELERY_ALWAYS_EAGER = True
+    CELERYD_TASK_TIME_LIMIT = 600
+    CELERYD_TASK_SOFT_TIME_LIMIT = 550
