@@ -110,14 +110,14 @@ def variants(facts):
     return out
 
 
-def step1(tomita_out_file, original_text, n):
+def step1(tomita_out_file, original_text, n, tomita_path):
     session = db_session()
-    facts = get_all_codes(tomita_out_file, original_text)
+    facts = get_all_codes(tomita_out_file, original_text, tomita_path)
     for fact in facts:
         fact['codes'] = codes_to_norm(fact)
     facts = del_countries(facts)
+    #facts = combiner(facts, 'OVDFact')
     #print(facts)
-    facts = combiner(facts, 'OVDFact')
     facts = combiner(facts, 'LocationFact')
     facts = variants(facts)
     facts = skleyka(facts)
@@ -190,7 +190,9 @@ def max_amount_of_codes(facts, n):
             except:
                 out.append([variant])
         out.append(loc_used)
+        out2.append(out)
     out2.append(out)
+    #print('out2 ' + str(out2))
     out = []
     for ovd in out2:
         for var in ovd:

@@ -32,7 +32,7 @@ fact = {'person.cxx': '{ Name = "PersonFact_TOMITA" }',
         'prof.cxx': '{Name = "ProfFact_TOMITA"}'}
 
 
-def create_config(grammar_name, file_name):
+def create_config(grammar_name, file_name, tomita_path):
     """function to create configuration file"""
     #path1 = os.path.dirname(os.path.realpath(__file__))
     #path2 = path1 + '/grammars/dic_'
@@ -58,15 +58,15 @@ TTextMinerConfig {
   }
 }'''
 
-    config = open(config_name, 'w', encoding='utf-8')
+    config = open(tomita_path + '/' + config_name, 'w', encoding='utf-8')
     config.write(config_file)
     config.close()
 
 
-def create_file(doc):
+def create_file(doc, tomita_path):
     """function to create input file"""
     file_name = str(doc.doc_id) + '.txt'
-    file = open(file_name, 'w', encoding='utf-8')
+    file = open(tomita_path + '/' + file_name, 'w', encoding='utf-8')
     text = doc.stripped
     file.write(text.replace('\n',''))
     file.close()
@@ -75,17 +75,18 @@ def create_file(doc):
 
 def start_tomita(grammar, doc):
     """function to run tomita"""
-    home_path = home_dir + '/tomita/tomita-parser-master/build'
-    tomita_path = path.join(home_path, grammars[grammar])
+    tomita_path = home_dir + '/tomita/tomita-parser-master/build/bin'
     grammar_name = re.findall('(.*)\\.cxx', grammar)[0]
-    chdir(tomita_path)
+    work_path = os.getcwd()
     # создаем файл с текстом
-    file_name = create_file(doc)
+    file_name = create_file(doc, tomita_path)
     # создаем config.proto
-    create_config(grammar_name, file_name)
+    create_config(grammar_name, file_name, tomita_path)
     # запускаем tomitaparser.exe
     config = path.join(tomita_path, 'config_' + file_name[:-4] + '.proto')
     tomita = path.join(tomita_path, 'tomita-parser')
+    chdir(tomita_path)
     sp.call([tomita, config])
+    chdir(work_path)
     output_name = 'facts_' + file_name[:-4] + '.txt'
-    return output_name
+    return output_name, tomita_path

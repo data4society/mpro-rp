@@ -24,3 +24,4 @@ message type_3: TAuxDicArticle {}
 message type_4: TAuxDicArticle {} 
 message type_2: TAuxDicArticle {} 
 message type_1_2: TAuxDicArticle {}
+message line: TAuxDicArticle {}
