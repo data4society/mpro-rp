@@ -13,24 +13,27 @@ session = db_session()
 #!!!!ЗАНЧЕНИЯ КЛЮЧА РАВНО ... a = session.query(Entity).filter(Entity.data["jurisdiction"].astext == mvd_root).all()
 #!!!!СТРОКА СОДЕРЖИТ СТРОКУ a = session.query(Document).filter(Document.stripped.contains('отдел полиции №3')).all()
 
-def try_ovd(doc_id=None, source_id=None):
-    if source_id is not None:
-        doc_id = session.query(Record).filter(Record.document_id == source_id).first().source
+def try_ovd(source_id=None):
+    doc = session.query(Record).filter(Record.document_id == source_id).first()
+    doc_id = doc.source
+    url = doc.url
+    ideal_id = re.findall('documentId=(.*?),app=ovd_ideal', url)[0]
     a = session.query(Document).filter(Document.doc_id == doc_id).all()
     print(a[0].doc_id)
     out = run_tomita(a[0], 'ovd.cxx')
-    print(out)
     if out == {}:
         print('No OVD')
     else:
         for i in out:
             ovd = session.query(Entity).filter(Entity.entity_id == out[i]).first()
             print(out[i], ovd.name, ovd.external_data['kladr'])
+    print('\noriginal')
+    print(session.query(Record).filter(Record.app_id == 'ovd_ideal', Record.document_id == ideal_id).first().entities)
 
 
-#try_ovd(source_id='037a40d6-3d29-bdc7-a0c5-20e527aa3773')
-print(f1())
-#print(session.query(Entity).filter(Entity.external_data['kladr'].astext == '63000005000003400').first().entity_id)
+try_ovd(source_id='50b19eec-f052-d742-57ba-0eac5477aa53')
+#print(f1())
+#print(session.query(Record).filter(Record.app_id == 'ovd_ideal', Record.document_id == '0c269563-5b0b-2695-a9f5-cdade7d2f3c8').all())
 #print(session.query(Entity).filter(Entity.external_data['kladr'].astext == '61000001000031700').first().name)
 #a = get_ner_feature_dict('23d197c3-467e-49d8-8a07-5336ec2b18fe', 'fb8fc548-0464-40b7-a998-04a6e1b95eb6', 'Person')
 #a = get_ner_feature_one_feature_dict('00000f42-e066-4062-b380-1a3361e66c64', 'Person', session)
@@ -42,5 +45,4 @@ print(f1())
 #print(len(a))
 #for entity in a:
 #    db.delete_entity(entity.entity_id)
-#docs = session.query(Document).filter_by(app_id='ovd_test').options(load_only("doc_id")).all()
-#print(len(docs))
+
