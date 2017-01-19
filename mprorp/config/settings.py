@@ -7,6 +7,9 @@ google_private_key = ''
 google_client_email = ''
 google_client_id = ''
 google_spreadsheet_id = ''
+
+tomita_log_path = ''
+
 try:
     # trying override base settings with custom
     from mprorp.config.local_settings import *

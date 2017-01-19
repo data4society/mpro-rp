@@ -9,7 +9,6 @@ def reg_rubrication_by_comparing(doc, config, session):
     origin_doc = session.query(Document).filter_by(doc_id=doc.meta["source_record_id"]).one()
     good = "good"
     for field in fields:
-        print(js_compare(getattr(origin_doc, field), getattr(doc, field)))
         if not js_compare(getattr(origin_doc, field), getattr(doc, field)):
             good = "bad"
             break
@@ -27,7 +26,7 @@ def ordered(obj):
    if isinstance(obj, list):
        return sorted(ordered(x) for x in obj)
    else:
-       print(repr(obj))
+       #print(repr(obj))
        return obj
 
 
@@ -49,7 +48,7 @@ if __name__ == '__main__':
     reg_rubrication_by_comparing(doc, obj, session)
     """
     session = db_session()
-    doc = session.query(Document).filter_by(doc_id='655d1de8-fe87-49db-9582-71833ce81d52').first()
+    doc = session.query(Document).filter_by(doc_id='17d3217d-e2a6-4fe7-a2cc-7a8abb959cee').first()
     #doc_id = str(session.query(Record).filter_by(document_id='f5cab453-dd0b-0f51-8320-68314b4aa773').first().source)
     #doc = session.query(Document).filter_by(doc_id=doc_id).first()
     #print(repr(doc.stripped))

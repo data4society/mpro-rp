@@ -86,7 +86,10 @@ def start_tomita(grammar, doc):
     config = path.join(tomita_path, 'config_' + file_name[:-4] + '.proto')
     tomita = path.join(tomita_path, 'tomita-parser')
     chdir(tomita_path)
-    sp.call([tomita, config])
+    tomita_script = [tomita, config]
+    if 'tomita_log_path' and tomita_log_path:
+        tomita_script.append('>& '+tomita_log_path)
+    sp.call(tomita_script)
     chdir(work_path)
     output_name = 'facts_' + file_name[:-4] + '.txt'
     return output_name, tomita_path
