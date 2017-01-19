@@ -78,7 +78,6 @@ def start_tomita(grammar, doc):
     tomita_path = home_dir + '/tomita/tomita-parser-master/build/bin'
     grammar_name = re.findall('(.*)\\.cxx', grammar)[0]
     work_path = os.getcwd()
-    chdir(tomita_path)
     # создаем файл с текстом
     file_name = create_file(doc, tomita_path)
     # создаем config.proto
@@ -86,7 +85,8 @@ def start_tomita(grammar, doc):
     # запускаем tomitaparser.exe
     config = path.join(tomita_path, 'config_' + file_name[:-4] + '.proto')
     tomita = path.join(tomita_path, 'tomita-parser')
+    chdir(tomita_path)
     sp.call([tomita, config])
-    output_name = 'facts_' + file_name[:-4] + '.txt'
     chdir(work_path)
+    output_name = 'facts_' + file_name[:-4] + '.txt'
     return output_name, tomita_path

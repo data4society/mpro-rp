@@ -58,7 +58,6 @@ def start_tomita_ovd(doc):
     """function to run tomita"""
     tomita_path = home_dir + '/tomita/tomita-parser-master/build/bin'
     work_path = os.getcwd()
-    os.chdir(tomita_path)
     # создаем файл с текстом
     file_name = create_file(doc, tomita_path)
     # создаем config.proto
@@ -66,9 +65,10 @@ def start_tomita_ovd(doc):
     # запускаем tomitaparser.exe
     config = path.join(tomita_path, 'config_' + file_name[:-4] + '.proto')
     tomita = path.join(tomita_path, 'tomita-parser')
+    os.chdir(tomita_path)
     sp.call([tomita, config])
-    output_name = 'facts_' + file_name[:-4] + '.xml'
     os.chdir(work_path)
+    output_name = 'facts_' + file_name[:-4] + '.xml'
     return output_name, file_name, tomita_path
 
 def run_tomita_ovd(doc, n=1):
