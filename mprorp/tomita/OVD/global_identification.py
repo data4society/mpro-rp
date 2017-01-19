@@ -106,56 +106,49 @@ def step1(tomita_out_file, original_text, n):
     for fact in facts:
         fact['codes'] = codes_to_norm(fact)
     facts = del_countries(facts)
+    print(facts)
     facts = combiner(facts, 'OVDFact')
     facts = combiner(facts, 'LocationFact')
     facts = variants(facts)
     facts = skleyka(facts)
-    #print(facts)
+    print(facts)
     out = step2(facts)
-    #print(out)
+    print(out)
     out = loc_in_name(out, session)
-    #print(out)
+    print(out)
     out = max_amount_of_codes(out, n)
-    #print(out)
+    print(out)
+    out = choose_nearest(out)
+    print(out)
     out = step3(out)
+    print(out)
     out = step4(out, session)
     return out
 
 def step2(facts):
-    out_all = []
     out = []
-    max_weight = 0
     fs1 = -1
+    new_ovd = []
     for fact in facts:
         fs = fact[0]['fs']
-        if fs == fs1:
-            if fact[1] > max_weight:
-                max_weight = fact[1]
-                out = [fact]
-            elif fact[1] == max_weight:
-                out.append(fact)
-        else:
-            if out != []:
-                out_all.append(out)
+        if fs != fs1:
             fs1 = fs
-            max_weight = 0
-            if fact[1] > max_weight:
-                max_weight = fact[1]
-                out = [fact]
-            elif fact[1] == max_weight:
-                out.append(fact)
-    out_all.append(out)
-    return out_all
+            if new_ovd != []:
+                out.append(new_ovd)
+            new_ovd = [fact]
+        else:
+            new_ovd.append(fact)
+    out.append(new_ovd)
+    return out
 
-def step3(arr):
+def step3(facts):
     out = {}
-    for facts in arr:
-        for fact in facts:
-            idd = str(fact[0]['fs']) + ':' + str(fact[0]['ls'])
-            if idd not in out:
-                out[idd] = fact[0]['codes']
-            else:
-                out[idd] += fact[0]['codes']
+    for fact in facts:
+        idd = str(fact[0]['fs']) + ':' + str(fact[0]['ls'])
+        if idd not in out:
+            out[idd] = fact[0]['codes']
+        else:
+            out[idd] += fact[0]['codes']
     return out
 
 def step4(facts, session):
@@ -172,15 +165,39 @@ def step4(facts, session):
     return out
 
 def max_amount_of_codes(facts, n):
+    out2 = []
+    for ovd in facts:
+        out = []
+        loc_used = []
+        loc = ''
+        for variant in ovd:
+            if variant[0]['loc_used'] != loc:
+                if loc_used != []:
+                    out.append(loc_used)
+                loc = variant[0]['loc_used']
+                loc_used = [variant]
+            else:
+                loc_used.append(variant)
+        out.append(loc_used)
+    out2.append(out)
     out = []
-    for fact in facts:
-        b = []
-        for i in fact:
-            if i not in b:
-                b.append(i)
-        if 0 < len(b) <= n:
-            out.append(b)
+    for ovd in out2:
+        for var in ovd:
+            if len(var) <= n:
+                out.append(var)
     return out
+
+def choose_nearest(facts):
+    out = []
+    for ovd in facts:
+        weight = -1
+        for loc in ovd:
+            if loc[1] > weight:
+                weight = loc[1]
+                best = loc
+        out.append(best)
+    return out
+
 
 def cut_kladr(code):
     if len(code) > 12:
@@ -227,15 +244,18 @@ def skleyka(facts):
     return out
 
 def loc_in_name(out, session):
-    new_out = []
-    for el in out[0]:
-        ovd_name = session.query(Entity).filter(Entity.external_data['kladr'].astext == el[0]['codes'][0]).first().name
-        try:
-            if el[0]['loc_used'][:-1] in ovd_name.lower() or el[0]['loc_used_norm'][:-1] in ovd_name.lower():
-                new_out.append(el)
-        except:
-            continue
-    if new_out == []:
-        return out
-    else:
-        return [new_out]
+    out2 = []
+    for ovd in out:
+        new_out = []
+        for el in ovd:
+            ovd_name = session.query(Entity).filter(Entity.external_data['kladr'].astext == el[0]['codes'][0]).first().name
+            try:
+                if el[0]['loc_used'][:-1] in ovd_name.lower() or el[0]['loc_used_norm'][:-1] in ovd_name.lower():
+                    new_out.append(el)
+            except:
+                continue
+        if new_out == []:
+            out2.append(ovd)
+        else:
+            out2.append(new_out)
+    return out2
