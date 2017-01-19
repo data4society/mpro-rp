@@ -69,7 +69,7 @@ def create_tomita_feature2(doc_id, feature_grammars):
     db.doc_apply(doc_id, create_tomita_feature, feature_grammars)
 
 
-def create_tomita_feature(doc, feature_grammars, session=None, commit_session=True):
+def create_tomita_feature(doc, feature_grammars, session=None, commit_session=True, verbose=False):
     """count tomita features - lemmas coordinate using symbol coordinates """
     doc_id = str(doc.doc_id)
     results = db.get_tomita_results(doc_id, feature_grammars, session)
@@ -97,31 +97,36 @@ def create_tomita_feature(doc, feature_grammars, session=None, commit_session=Tr
                             # print(element['text'])
                         else:
                             # error
-                            print('error: ' + doc_id + ' word: "' + element['text'] + '" morpho:', element['start_offset'], ':', element[
-                                'end_offset'], ' tomita: ', offsets)
+                            if verbose:
+                                print('error: ' + doc_id + ' word: "' + element['text'] + '" morpho:', element['start_offset'], ':', element[
+                                    'end_offset'], ' tomita: ', offsets)
                     elif element['start_offset'] > offsets[0]:
                         if element['end_offset'] == offsets[1]:
                             # end
                             value = [0, 0, 1, 0]
-                            print(element['text'])
+                            if verbose:
+                                print(element['text'])
                         elif element['end_offset'] < offsets[1]:
                             # inside
                             value = [0, 1, 0, 0]
-                            print(element['text'])
+                            if verbose:
+                                print(element['text'])
                         else:
                             # word past offsets
                             break
                     else:
                         if element['end_offset'] >= offsets[0]:
                             # error
-                            print('error: ' + doc_id + ' word: "' + element['text'] + '" morpho:', element['start_offset'], ':', element[
-                                'end_offset'], ' tomita: ', offsets)
+                            if verbose:
+                                print('error: ' + doc_id + ' word: "' + element['text'] + '" morpho:', element['start_offset'], ':', element[
+                                    'end_offset'], ' tomita: ', offsets)
                 if not (value is None):
                     values.append({'word_index': element['word_index'],
                                    'sentence_index': element['sentence_index'],
                                    'value': value, 'feature': result[i]})
                     # if (element['word_index'] == 23) and (element['sentence_index'] == 0):
-                    print(offsets, result[i], element['word_index'], element['sentence_index'])
+                    if verbose:
+                        print(offsets, result[i], element['word_index'], element['sentence_index'])
     if len(values) > 0:
         # print(values)
         db.put_ner_feature(doc_id, values, ner_feature_types['tomita'], session=session, commit_session=commit_session)
