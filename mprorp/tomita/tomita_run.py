@@ -13,9 +13,9 @@ def del_files(doc_id, tomita_path):
     file_name1 = doc_id + '.txt'
     file_name2 = 'config_' + doc_id + '.proto'
     file_name3 = 'facts_' + doc_id + '.txt'
-    os.remove(file_name1, dir_fd=None)
-    os.remove(file_name2, dir_fd=None)
-    os.remove(file_name3, dir_fd=None)
+    os.remove(tomita_path + '/' + file_name1, dir_fd=None)
+    os.remove(tomita_path + '/' + file_name2, dir_fd=None)
+    os.remove(tomita_path + '/' + file_name3, dir_fd=None)
 
 
 def run_tomita2(grammar, doc_id, status=0):
@@ -27,10 +27,10 @@ def run_tomita(doc, grammar, session=None, commit_session=True):
     if grammar == 'norm_act.cxx':
         tomita_path = home_dir + '/tomita/tomita-parser-master/build/bin'
         source_name = create_file(doc, tomita_path)
-        out = norm_out(find_act(source_name), source_name, tomita_path)
+        out = norm_out(find_act(source_name, tomita_path), source_name, tomita_path)
         db.put_tomita_result(str(doc.doc_id), grammar, out, session, commit_session)
         file_name1 = str(doc.doc_id) + '.txt'
-        os.remove(file_name1, dir_fd=None)
+        os.remove(tomita_path + '/' + file_name1, dir_fd=None)
         return out
     elif grammar == 'ovd.cxx':
         if only_russia(doc, session):
