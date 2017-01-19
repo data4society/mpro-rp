@@ -186,13 +186,11 @@ def morpho_feature():
     print('morpho feature - done')
 
 
-def tomita():
-    for cl in set_docs:
-        for set_type in set_docs[cl]:
-            for doc_id in set_docs[cl][set_type]:
-                for gram in grammar_config:
-                    run_tomita2(gram, str(doc_id))
-                ner_feature.create_tomita_feature2(str(doc_id), grammar_config.keys())
+def tomita(doc_list):
+    for doc_id in doc_list:
+        for gram in grammar_config:
+            run_tomita2(gram, str(doc_id))
+        ner_feature.create_tomita_feature2(str(doc_id), grammar_config.keys())
     print('tomita - done')
 
 
@@ -427,7 +425,13 @@ def script_exec():
     #     # create_big_set_name_answers(doc_list, ['bs000_loc_descr', 'bs000_loc_name'], 'loc')
     #     create_big_set_name_answers(doc_list, ['bs000_name', 'bs000_surname'], 'name')
     #
-    # exit()
+    print('start tomita')
+    for count in range(set_list_len):
+        print('count', count)
+        doc_list = db.get_set_docs(set_list.sets1250[count])
+        # create_big_set_name_answers(doc_list, ['bs000_loc_descr', 'bs000_loc_name'], 'loc')
+        tomita(doc_list)
+    exit()
     NER.NER_learning_by_config({"class": 1, "tags": 2, "use_special_tags": 0})
     exit()
     # exit()
