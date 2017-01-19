@@ -116,20 +116,20 @@ def step1(tomita_out_file, original_text, n):
     for fact in facts:
         fact['codes'] = codes_to_norm(fact)
     facts = del_countries(facts)
-    #print(facts)
+    print(facts)
     facts = combiner(facts, 'OVDFact')
     facts = combiner(facts, 'LocationFact')
     facts = variants(facts)
     facts = skleyka(facts)
-    #print(facts)
+    print(facts)
     out = step2(facts)
-    #print(out)
+    print(out)
     out = max_amount_of_codes(out, n)
-    #print(out)
+    print(out)
     out = choose_nearest(out)
-    #print(out)
+    print(out)
     out = step3(out)
-    #print(out)
+    print(out)
     out = step4(out, session)
     return out
 
@@ -162,7 +162,7 @@ def step3(facts):
 def step4(facts, session):
     out = {}
     for fact in facts:
-        codes = facts[fact]
+        codes = list(set(facts[fact]))
         if len(codes) == 1:
             out2 = []
             for code in codes:

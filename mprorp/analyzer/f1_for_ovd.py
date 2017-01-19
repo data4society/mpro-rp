@@ -49,5 +49,11 @@ def f1():
     precision = tp / (tp + fp)
     recall = tp / (tp + fn)
     f1 = 2 * precision * recall / (precision + recall)
-    return {'precision' : precision, 'recall' : recall, 'f1' : f1, 'documents_len' : len(tests), 'empty' : null, 'full' : full,
-            'bad empty' : null_F, 'bad full' : full_F}
+    print('precision ', precision)
+    print('recall ', recall)
+    print('f1 ', f1)
+    print('documents_len ', len(tests))
+    print('empty ', null)
+    print('full ', full)
+    print('bad empty ', null_F)
+    print('bad full ', full_F)
