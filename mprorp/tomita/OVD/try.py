@@ -31,7 +31,7 @@ def try_ovd(source_id=None):
     print(session.query(Record).filter(Record.app_id == 'ovd_ideal', Record.document_id == ideal_id).first().entities)
 
 
-try_ovd(source_id='11ce91bb-6ff0-6b2f-1af6-d3baa963b45e')
+try_ovd(source_id='08211338-0cd4-2cbb-d46f-432669fafd34')
 #print(f1())
 #print(session.query(Record).filter(Record.app_id == 'ovd_ideal', Record.document_id == '0c269563-5b0b-2695-a9f5-cdade7d2f3c8').all())
 #print(session.query(Entity).filter(Entity.external_data['kladr'].astext == '61000001000031700').first().name)

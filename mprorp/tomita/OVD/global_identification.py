@@ -86,15 +86,25 @@ def variants(facts):
             for ovd_code in ovd['codes']:
                 for loc_code in loc['codes']:
                     if loc_to_ovd(ovd_code, loc_code) is True:
-                        out.append(({'type' : 'OVDVariant',
-                                         'string' : ovd['string'],
-                                         'fs' : ovd['fs'],
-                                         'ls' : ovd['ls'],
-                                         'loc_used' : loc['string'],
-                                         'loc_used_norm' : loc['norm'][[i for i in loc['norm']][0]][0][0],
-                                         'codes' : [ovd_code]},
-                                     1 / (max(loc['fs'], ovd['fs']) - min(loc['ls'], ovd['ls']))))
-                        used.append(ovd)
+                        try:
+                            out.append(({'type' : 'OVDVariant',
+                                             'string' : ovd['string'],
+                                             'fs' : ovd['fs'],
+                                             'ls' : ovd['ls'],
+                                             'loc_used' : loc['string'],
+                                             'loc_used_norm' : loc['norm'][[i for i in loc['norm']][0]][0][0],
+                                             'codes' : [ovd_code]},
+                                         1 / (max(loc['fs'], ovd['fs']) - min(loc['ls'], ovd['ls']))))
+                            used.append(ovd)
+                        except:
+                            out.append(({'type': 'OVDVariant',
+                                         'string': ovd['string'],
+                                         'fs': ovd['fs'],
+                                         'ls': ovd['ls'],
+                                         'loc_used': loc['string'],
+                                         'codes': [ovd_code]},
+                                        1 / (max(loc['fs'], ovd['fs']) - min(loc['ls'], ovd['ls']))))
+                            used.append(ovd)
         if ovd not in used:
             out.append((ovd, 0))
     return out
@@ -106,22 +116,20 @@ def step1(tomita_out_file, original_text, n):
     for fact in facts:
         fact['codes'] = codes_to_norm(fact)
     facts = del_countries(facts)
-    #print(facts)
+    print(facts)
     facts = combiner(facts, 'OVDFact')
     facts = combiner(facts, 'LocationFact')
     facts = variants(facts)
     facts = skleyka(facts)
-    #print(facts)
+    print(facts)
     out = step2(facts)
-    #print(out)
-    out = loc_in_name(out, session)
-    #print(out)
+    print(out)
     out = max_amount_of_codes(out, n)
-    #print(out)
+    print(out)
     out = choose_nearest(out)
-    #print(out)
+    print(out)
     out = step3(out)
-    #print(out)
+    print(out)
     out = step4(out, session)
     return out
 
