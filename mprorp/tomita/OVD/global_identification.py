@@ -190,8 +190,9 @@ def max_amount_of_codes(facts, n):
             except:
                 out.append([variant])
         out.append(loc_used)
-    #out2.append(out)
-    print(out2)
+        out2.append(out)
+    out2.append(out)
+    #print('out2 ' + str(out2))
     out = []
     for ovd in out2:
         for var in ovd:
