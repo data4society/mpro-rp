@@ -31,10 +31,10 @@ def get_codes_for_fact(fact, session):
     return out
 
 
-def get_all_codes(tomita_out_file, original_text):
+def get_all_codes(tomita_out_file, original_text, tomita_path):
     out = []
     session = db_session()
-    all_facts = delete_loc(get_coordinates(tomita_out_file, original_text))
+    all_facts = delete_loc(get_coordinates(tomita_out_file, original_text, tomita_path))
     for fact in all_facts:
         if "'norm': {'Location': ['россия']}" not in str(fact):
             fact['codes'] = get_codes_for_fact(fact, session)[0]

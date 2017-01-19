@@ -110,9 +110,9 @@ def variants(facts):
     return out
 
 
-def step1(tomita_out_file, original_text, n):
+def step1(tomita_out_file, original_text, n, tomita_path):
     session = db_session()
-    facts = get_all_codes(tomita_out_file, original_text)
+    facts = get_all_codes(tomita_out_file, original_text, tomita_path)
     for fact in facts:
         fact['codes'] = codes_to_norm(fact)
     facts = del_countries(facts)

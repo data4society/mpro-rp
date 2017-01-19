@@ -39,9 +39,9 @@ def normalization(fact):
     fact['norm'] = norm
     return fact
 
-def get_coordinates(facts, sourse):
-    text = open(facts, 'r', encoding='utf-8').read()
-    sourse = open(sourse, 'r', encoding='utf-8').read()
+def get_coordinates(facts, sourse, tomita_path):
+    text = open(tomita_path + '/' + facts, 'r', encoding='utf-8').read()
+    sourse = open(tomita_path + '/' + sourse, 'r', encoding='utf-8').read()
     facts = re.findall('<.*?_TOMITA FactID="(\d+?)" .*?pos="(\d+?)" len="(\d+?)" sn="(\d+?)".*?>(.*?)</([A-z]*?)_TOMITA>', text)
     l = [{'id' : int(i[0]),
           'fs' : int(i[1]),
