@@ -106,7 +106,7 @@ def step1(tomita_out_file, original_text, n):
     for fact in facts:
         fact['codes'] = codes_to_norm(fact)
     facts = del_countries(facts)
-    print(facts)
+    #print(facts)
     facts = combiner(facts, 'OVDFact')
     facts = combiner(facts, 'LocationFact')
     facts = variants(facts)
@@ -171,13 +171,16 @@ def max_amount_of_codes(facts, n):
         loc_used = []
         loc = ''
         for variant in ovd:
-            if variant[0]['loc_used'] != loc:
-                if loc_used != []:
-                    out.append(loc_used)
-                loc = variant[0]['loc_used']
-                loc_used = [variant]
-            else:
-                loc_used.append(variant)
+            try:
+                if variant[0]['loc_used'] != loc:
+                    if loc_used != []:
+                        out.append(loc_used)
+                    loc = variant[0]['loc_used']
+                    loc_used = [variant]
+                else:
+                    loc_used.append(variant)
+            except:
+                out.append([variant])
         out.append(loc_used)
     out2.append(out)
     out = []
@@ -190,7 +193,7 @@ def max_amount_of_codes(facts, n):
 def choose_nearest(facts):
     out = []
     for ovd in facts:
-        weight = -1
+        weight = -10000
         for loc in ovd:
             if loc[1] > weight:
                 weight = loc[1]
