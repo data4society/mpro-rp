@@ -116,20 +116,20 @@ def step1(tomita_out_file, original_text, n, tomita_path):
     for fact in facts:
         fact['codes'] = codes_to_norm(fact)
     facts = del_countries(facts)
-    #facts = combiner(facts, 'OVDFact')
+    facts = combiner(facts, 'OVDFact')
     #print(facts)
     facts = combiner(facts, 'LocationFact')
     facts = variants(facts)
     facts = skleyka(facts)
     #print(facts)
     out = step2(facts)
-    #print(out)
+    print(out)
     out = max_amount_of_codes(out, n)
-    #print(out)
+    print(out)
     out = choose_nearest(out)
-    #print(out)
+    print(out)
     out = step3(out)
-    #print(out)
+    print(out)
     out = step4(out, session)
     return out
 
@@ -173,41 +173,36 @@ def step4(facts, session):
     return out
 
 def max_amount_of_codes(facts, n):
-    out2 = []
-    for ovd in facts:
-        out = []
-        loc_used = []
-        loc = ''
-        for variant in ovd:
-            try:
-                if variant[0]['loc_used'] != loc:
-                    if loc_used != []:
-                        out.append(loc_used)
-                    loc = variant[0]['loc_used']
-                    loc_used = [variant]
-                else:
-                    loc_used.append(variant)
-            except:
-                out.append([variant])
-        out.append(loc_used)
-        out2.append(out)
-    out2.append(out)
-    #print('out2 ' + str(out2))
     out = []
-    for ovd in out2:
-        for var in ovd:
-            if len(var) <= n:
-                out.append(var)
-    return out
+    for ovd in facts:
+        out2 = {}
+        if ovd != []:
+            for variant in ovd:
+                if len(variant[0]['codes']) <= n:
+                    if variant[0]['loc_used_norm'] not in out2:
+                        out2[variant[0]['loc_used_norm']] = [[variant],[variant[0]['codes'][0]]]
+                    else:
+                        out2[variant[0]['loc_used_norm']][0].append(variant)
+                        if variant[0]['codes'][0] not in out2[variant[0]['loc_used_norm']][1]:
+                            out2[variant[0]['loc_used_norm']][1].append(variant[0]['codes'][0])
+        out.append(out2)
+    out3 = []
+    for ovd in out:
+        out2 = []
+        for loc in ovd:
+            if len(ovd[loc][1]) == 1:
+                out2 += ovd[loc][0]
+        out3.append(out2)
+    return out3
 
 def choose_nearest(facts):
     out = []
     for ovd in facts:
         weight = -10000
-        for loc in ovd:
-            if loc[1] > weight:
-                weight = loc[1]
-                best = loc
+        for i in ovd:
+            if i[1] > weight:
+                weight = i[1]
+                best = i
         out.append(best)
     return out
 
