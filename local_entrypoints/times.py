@@ -48,7 +48,10 @@ def write_to_spreadsheet(credentials_dict, spreadsheet_id, records):
         new_row = []
         for key in head_row:
             if key in record:
-                new_row.append(record[key])
+                if type(record[key]) == 'datetime.datetime':
+                    new_row.append(-1)
+                else:
+                    new_row.append(record[key])
             else:
                 new_row.append('')
         sheet.append_row(new_row)
@@ -113,12 +116,16 @@ if __name__ == '__main__':
     with open(relative_file_path(__file__, '../mprorp/tests/test_docs/time_test.html'), 'rb') as f:
         text = f.read()
     apps_config = variable_get(cur_app_config)
+    test_guid = 'time_test_guid'
     for app_id in apps_config:
         app_conf = apps_config[app_id]
         if "time_test" in app_conf:
             time = datetime.datetime.now()
-            new_doc = Document(guid='time_test_guid', app_id=app_id, url='http://test.com/test', status=logic.SITE_PAGE_COMPLETE_STATUS, type='article')
             session = db_session()
+            old_doc = session.query(Document).filter_by(guid=test_guid).first()
+            if old_doc:
+                delete_document(str(old_doc.doc_id))
+            new_doc = Document(guid=test_guid, app_id=app_id, url='http://test.com/test', status=logic.SITE_PAGE_COMPLETE_STATUS, type='article')
             new_doc.published_date = datetime.datetime.now()
             meta = dict()
             meta["publisher"] = {"name": 'test'}
