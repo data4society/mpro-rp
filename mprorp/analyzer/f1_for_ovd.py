@@ -52,7 +52,6 @@ def f1():
     print('precision ', precision)
     print('recall ', recall)
     print('f1 ', f1)
-    print('documents_len ', len(tests))
     print('empty ', null)
     print('full ', full)
     print('bad empty ', null_F)

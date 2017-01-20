@@ -81,3 +81,8 @@ line "Линейный отдел"
 {
  key = "линейный"
 }
+
+TAuxDicArticle "FIO"
+{
+ key = {"alg:fio" type = CUSTOM}
+}
