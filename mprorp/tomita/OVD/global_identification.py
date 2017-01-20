@@ -123,13 +123,13 @@ def step1(tomita_out_file, original_text, n, tomita_path):
     facts = skleyka(facts)
     #print(facts)
     out = step2(facts)
-    print(out)
+    #print(out)
     out = max_amount_of_codes(out, n)
-    print(out)
+    #print(out)
     out = choose_nearest(out)
-    print(out)
+    #print(out)
     out = step3(out)
-    print(out)
+    #print(out)
     out = step4(out, session)
     return out
 
