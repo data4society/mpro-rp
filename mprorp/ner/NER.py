@@ -102,8 +102,8 @@ class Config(object):
     # features = ['Org']
     # features = ['Org', 'Person', 'Loc', 'Date', 'Prof', 'morpho', 'Capital']
 
-    # features = ['morpho', 'Capital', 'Prof', 'Loc']
-    features = ['morpho', 'Capital']
+    features = ['morpho', 'Capital', 'Prof', 'Loc']
+    # features = ['morpho', 'Capital']
     # features = ['morpho', 'Person']
     print(features)
     features_length = 0
