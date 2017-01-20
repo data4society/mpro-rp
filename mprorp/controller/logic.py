@@ -582,6 +582,7 @@ def set_doc(doc, new_status, session, **kwargs):
         caller_name = caller_name.replace('regular_', '')
         print("FIN: "+caller_name)
         logic_times[caller_name] = (datetime.datetime.now() - logic_times[caller_name]).total_seconds()
+        logic_times['total'] = logic_times['total'] + logic_times[caller_name]
     return router(doc_id, doc.app_id, new_status) or new_status
 
 

@@ -137,10 +137,11 @@ if __name__ == '__main__':
             session.commit()
             app_record = base_record.copy()
             app_record['readability'] = (datetime.datetime.now() - time).total_seconds()
-            logic.logic_times = {}
+            logic.logic_times = {'total': 0}
             logic.router(new_doc.doc_id, app_id, logic.SITE_PAGE_COMPLETE_STATUS)
             app_record.update(logic.logic_times)
             app_record['config'] = app_conf
+            app_record['total'] = app_record['total']+app_record['readability']
             delete_document(str(new_doc.doc_id))
             records[app_id] = app_record
     print(records)
