@@ -69,7 +69,7 @@ def start_tomita_ovd(doc):
     tomita = path.join(tomita_path, 'tomita-parser')
     os.chdir(tomita_path)
     if tomita_log_path:
-        log_file = open(tomita_log_path, 'w')
+        log_file = open(tomita_log_path, 'a')
         sp.call([tomita, config], stderr=sp.STDOUT, stdout=log_file)
         log_file.close()
     else:
