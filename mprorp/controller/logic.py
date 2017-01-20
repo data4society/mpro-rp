@@ -561,6 +561,7 @@ def get_doc(doc_id, **kwargs):
         caller_name = inspect.stack()[1][3]
         if caller_name == 'regular_tomita':
             caller_name = caller_name+"_"+kwargs["grammar"]
+        caller_name = caller_name.replace('regular_', '')
         print("START: "+caller_name)
         logic_times[caller_name] = datetime.datetime.now()
     session = db_session()
@@ -578,6 +579,7 @@ def set_doc(doc, new_status, session, **kwargs):
         caller_name = inspect.stack()[1][3]
         if caller_name == 'regular_tomita':
             caller_name = caller_name+"_"+kwargs["grammar"]
+        caller_name = caller_name.replace('regular_', '')
         print("FIN: "+caller_name)
         logic_times[caller_name] = (datetime.datetime.now() - logic_times[caller_name]).total_seconds()
     return router(doc_id, doc.app_id, new_status) or new_status
