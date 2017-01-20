@@ -5,6 +5,7 @@ import os.path as path
 import subprocess as sp
 import re
 import os
+from mprorp.config.settings import *
 
 # dictionary with directions to different tomita grammars
 grammars = {'person.cxx': 'bin',
@@ -86,10 +87,12 @@ def start_tomita(grammar, doc):
     config = path.join(tomita_path, 'config_' + file_name[:-4] + '.proto')
     tomita = path.join(tomita_path, 'tomita-parser')
     chdir(tomita_path)
-    tomita_script = [tomita, config]
-    if 'tomita_log_path' and tomita_log_path:
-        tomita_script.append('>& '+tomita_log_path)
-    sp.call(tomita_script)
+    if tomita_log_path:
+        log_file = open(tomita_log_path, 'w')
+        sp.call([tomita, config], stderr=sp.STDOUT, stdout=log_file)
+        log_file.close()
+    else:
+        sp.call([tomita, config])
     chdir(work_path)
     output_name = 'facts_' + file_name[:-4] + '.txt'
     return output_name, tomita_path

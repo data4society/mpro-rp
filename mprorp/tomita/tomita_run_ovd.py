@@ -1,10 +1,11 @@
 from mprorp.tomita.OVD.global_identification import step1
 import os
-from mprorp.utils import home_dir
+from mprorp.utils import home_dir, relative_file_path
 import os.path as path
 import subprocess as sp
 from mprorp.tomita.tomita_run import create_file
 from mprorp.analyzer.db import *
+from mprorp.config.settings import *
 
 def create_file_ovd(doc, tomita_path):
     """function to create input file"""
@@ -26,8 +27,9 @@ def del_files_ovd(doc_id, tomita_path):
 
 def create_config_ovd(file_name, tomita_path):
     """function to create configuration file"""
-    path1 = os.path.dirname(os.path.realpath(__file__))
-    dic =  path1 + '/OVD/dic_ovd.gzt"'
+    #path1 = os.path.dirname(os.path.realpath(__file__))
+    #dic =  path1 + '/OVD/dic_ovd.gzt"'
+    dic = relative_file_path(__file__, 'OVD/dic_ovd.gzt"')
     config_name = 'config_' + file_name[:-4] + '.proto'
     config_file = '''encoding "utf8";
 
@@ -66,10 +68,12 @@ def start_tomita_ovd(doc):
     config = path.join(tomita_path, 'config_' + file_name[:-4] + '.proto')
     tomita = path.join(tomita_path, 'tomita-parser')
     os.chdir(tomita_path)
-    tomita_script = [tomita, config]
-    if 'tomita_log_path' and tomita_log_path:
-        tomita_script.append('>& ' + tomita_log_path)
-    sp.call(tomita_script)
+    if tomita_log_path:
+        log_file = open(tomita_log_path, 'w')
+        sp.call([tomita, config], stderr=sp.STDOUT, stdout=log_file)
+        log_file.close()
+    else:
+        sp.call([tomita, config])
     os.chdir(work_path)
     output_name = 'facts_' + file_name[:-4] + '.xml'
     return output_name, file_name, tomita_path
