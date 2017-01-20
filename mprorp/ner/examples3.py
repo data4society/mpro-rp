@@ -435,7 +435,7 @@ def script_exec():
     #
     print('start tomita')
 
-    for count in range(set_list_len):
+    for count in range(2, set_list_len):
         print('count', count)
         doc_list = db.get_set_docs(set_list.sets1250[count])
         # create_big_set_name_answers(doc_list, ['bs000_loc_descr', 'bs000_loc_name'], 'loc')
