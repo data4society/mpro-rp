@@ -197,13 +197,15 @@ def max_amount_of_codes(facts, n):
 
 def choose_nearest(facts):
     out = []
+    best = 1
     for ovd in facts:
         weight = -10000
         for i in ovd:
             if i[1] > weight:
                 weight = i[1]
                 best = i
-        out.append(best)
+        if best != 1:
+            out.append(best)
     return out
 
 
