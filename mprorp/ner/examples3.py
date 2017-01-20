@@ -190,13 +190,14 @@ def tomita(doc_list, num_set=0, first_doc = 0):
     my_count = 0
     for doc_id in doc_list:
         if my_count < first_doc:
+            my_count += 1
             continue
         for gram in grammar_config:
             run_tomita2(gram, str(doc_id))
         print('tomita - ok')
         ner_feature.create_tomita_feature2(str(doc_id), grammar_config.keys())
         print('tomita feature - ok')
-        my_count +=1
+        my_count += 1
         print(num_set, my_count)
     print('tomita - done')
 
