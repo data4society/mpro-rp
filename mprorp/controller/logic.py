@@ -425,7 +425,6 @@ def regular_find_full_text(doc_id, new_status, **kwargs):
 @app.task()
 def regular_morpho(doc_id, new_status, **kwargs):
     """morphologia"""
-    print("regular_morpho")
     session, doc = get_doc(doc_id)
     rb.morpho_doc(doc)
     return set_doc(doc, new_status, session)
@@ -562,6 +561,7 @@ def get_doc(doc_id, **kwargs):
         caller_name = inspect.stack()[1][3]
         if caller_name == 'regular_tomita':
             caller_name = caller_name+"_"+kwargs["grammar"]
+        print("START: "+caller_name)
         logic_times[caller_name] = datetime.datetime.now()
     session = db_session()
     doc = session.query(Document).filter_by(doc_id=doc_id).first()
@@ -578,6 +578,7 @@ def set_doc(doc, new_status, session, **kwargs):
         caller_name = inspect.stack()[1][3]
         if caller_name == 'regular_tomita':
             caller_name = caller_name+"_"+kwargs["grammar"]
+        print("FIN: "+caller_name)
         logic_times[caller_name] = (datetime.datetime.now() - logic_times[caller_name]).total_seconds()
     return router(doc_id, doc.app_id, new_status) or new_status
 

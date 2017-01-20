@@ -96,7 +96,6 @@ if __name__ == '__main__':
         comments.append(commit['commit']['message'])
         commiters.append(commit['commit']['committer']['name'])
 
-    print(comments)
     records = {}
     base_record = {}
     base_record['time'] = str(datetime.datetime.now())[0:19]
@@ -104,6 +103,7 @@ if __name__ == '__main__':
     base_record['comments'] = '\n'.join(comments)
     #record['compare'] = 'https://api.github.com/repos/data4society/mpro-rp/git/refs/heads/dev'
     base_record['compare'] = 'https://github.com/data4society/mpro-rp/compare/'+commit_range
+    base_record['commit_range'] = commit_range
     credentials_dict = {
         "type": "service_account",
         "private_key_id": google_private_key_id,
@@ -120,6 +120,7 @@ if __name__ == '__main__':
     for app_id in apps_config:
         app_conf = apps_config[app_id]
         if "time_test" in app_conf:
+            print("APPID: "+app_id)
             time = datetime.datetime.now()
             session = db_session()
             old_doc = session.query(Document).filter_by(guid=test_guid).first()
@@ -137,12 +138,9 @@ if __name__ == '__main__':
             app_record = base_record.copy()
             app_record['readability'] = (datetime.datetime.now() - time).total_seconds()
             logic.logic_times = {}
-            print(logic.logic_times)
             logic.router(new_doc.doc_id, app_id, logic.SITE_PAGE_COMPLETE_STATUS)
-            print(logic.logic_times)
             app_record.update(logic.logic_times)
             app_record['config'] = app_conf
-            print("write_to_spreadsheet")
             delete_document(str(new_doc.doc_id))
             records[app_id] = app_record
     print(records)
