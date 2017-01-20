@@ -198,7 +198,7 @@ def tomita(doc_list, num_set=0, first_doc = 0):
         ner_feature.create_tomita_feature2(str(doc_id), grammar_config.keys())
         print('tomita feature - ok')
         my_count += 1
-        print(num_set, my_count)
+        print(num_set, my_count, doc_id)
     print('tomita - done')
 
 
