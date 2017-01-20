@@ -179,12 +179,19 @@ def max_amount_of_codes(facts, n):
         if ovd != []:
             for variant in ovd:
                 if len(variant[0]['codes']) <= n:
-                    if variant[0]['loc_used_norm'] not in out2:
-                        out2[variant[0]['loc_used_norm']] = [[variant],[variant[0]['codes'][0]]]
-                    else:
-                        out2[variant[0]['loc_used_norm']][0].append(variant)
-                        if variant[0]['codes'][0] not in out2[variant[0]['loc_used_norm']][1]:
-                            out2[variant[0]['loc_used_norm']][1].append(variant[0]['codes'][0])
+                    try:
+                        if variant[0]['loc_used_norm'] not in out2:
+                            out2[variant[0]['loc_used_norm']] = [[variant],[variant[0]['codes'][0]]]
+                        else:
+                            out2[variant[0]['loc_used_norm']][0].append(variant)
+                            if variant[0]['codes'][0] not in out2[variant[0]['loc_used_norm']][1]:
+                                out2[variant[0]['loc_used_norm']][1].append(variant[0]['codes'][0])
+                    except:
+                        if 'no_loc_used_norm' not in out2:
+                            out2['no_loc_used_norm'] = [[variant], [variant[0]['codes'][0]]]
+                        else:
+                            out2['no_loc_used_norm'][0].append(variant)
+                            out2['no_loc_used_norm'][0].append(variant[0]['codes'][0])
         out.append(out2)
     out3 = []
     for ovd in out:
