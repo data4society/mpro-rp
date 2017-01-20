@@ -401,6 +401,7 @@ def get_doc_id(rec_id):
 
 def script_exec():
 
+
     # create_sets_56(doc_number=100)
     # exit()
     # bad_list = set_docs['name']['train']
@@ -433,15 +434,15 @@ def script_exec():
     #     # create_big_set_name_answers(doc_list, ['bs000_loc_descr', 'bs000_loc_name'], 'loc')
     #     create_big_set_name_answers(doc_list, ['bs000_name', 'bs000_surname'], 'name')
     #
-    print('start tomita')
-
-    for count in range(3, set_list_len):
-        print('count', count)
-        doc_list = db.get_set_docs(set_list.sets1250[count])
-        # create_big_set_name_answers(doc_list, ['bs000_loc_descr', 'bs000_loc_name'], 'loc')
-        first = [487, 405, 1090]
-        tomita(doc_list, count, 0 if len(first) <= count else first[count])
-    exit()
+    # print('start tomita')
+    #
+    # for count in range(3, set_list_len):
+    #     print('count', count)
+    #     doc_list = db.get_set_docs(set_list.sets1250[count])
+    #     # create_big_set_name_answers(doc_list, ['bs000_loc_descr', 'bs000_loc_name'], 'loc')
+    #     first = [487, 405, 1090]
+    #     tomita(doc_list, count, 0 if len(first) <= count else first[count])
+    # exit()
     NER.NER_learning_by_config({"class": 1, "tags": 2, "use_special_tags": 0})
     exit()
     # exit()
