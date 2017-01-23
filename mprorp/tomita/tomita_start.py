@@ -69,6 +69,9 @@ def create_file(doc, tomita_path):
     file_name = str(doc.doc_id) + '.txt'
     file = open(tomita_path + '/' + file_name, 'w', encoding='utf-8')
     text = doc.stripped
+    text = text.replace('\u0434\u002E', '\u0434\u0463')
+    text = text.replace(u'\u0433\u043e\u0440\u002E', u'\u0433\u043e\u0440\u0463')
+    text = text.replace(u'\u043f\u043e\u0441\u002E', u'\u043f\u043e\u0441\u0463')
     file.write(text.replace('\n',''))
     file.close()
     return file_name

@@ -40,6 +40,7 @@ def strip_tags(html):
 def to_plain_text(txt):
     """trims and strips text from empty strings"""
     txt = txt.replace(u'\xa0', u' ')  # kill non-breaking space
+    txt = txt.replace('\u041E\u041F\u2116', '\u041E\u041F\u0020\u2116') # ОП№ -> ОП №
     lines = txt.split("\n")
     lines = [line.strip('\t\n\r').strip() for line in lines]
     lines = [line for line in lines if line]
