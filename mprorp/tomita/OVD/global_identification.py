@@ -115,6 +115,8 @@ def step1(tomita_out_file, original_text, n, tomita_path):
     facts = get_all_codes(tomita_out_file, original_text, tomita_path)
     for fact in facts:
         fact['codes'] = codes_to_norm(fact)
+        if "{'type_2': [['добрянский']]}" in str(fact):
+            fact['codes'] = ['590000060000']
     facts = del_countries(facts)
     facts = combiner(facts, 'OVDFact')
     #print(facts)
