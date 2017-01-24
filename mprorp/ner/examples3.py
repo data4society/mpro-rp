@@ -5,6 +5,7 @@ import mprorp.db.dbDriver as Driver
 from mprorp.db.models import Document
 import mprorp.analyzer.db as db
 import mprorp.analyzer.rubricator as rb
+from mprorp.ner.set_list import set_temp
 from mprorp.tomita.grammars.config import config as grammar_config
 from mprorp.tomita.tomita_run import run_tomita2
 import mprorp.ner.feature as ner_feature
@@ -401,6 +402,15 @@ def get_doc_id(rec_id):
 
 def script_exec():
 
+    # my_list = list(db.get_set_docs(set_list.set_temp['1700']))
+    # my_list.extend(list(db.get_set_docs(set_list.sets1250[4])))
+    # my_list.extend(list(db.get_set_docs(set_list.sets1250[5]))[0:450])
+    # print('3400', db.put_training_set(my_list))
+    # my_list = list(db.get_set_docs(set_list.set_temp['300']))
+    # my_list.extend(list(db.get_set_docs(set_list.sets1250[5]))[450:750])
+    # print('600',  db.put_training_set(my_list))
+    # exit()
+
 
     # create_sets_56(doc_number=100)
     # exit()
@@ -443,7 +453,7 @@ def script_exec():
     #     first = [487, 405, 1090]
     #     tomita(doc_list, count, 0 if len(first) <= count else first[count])
     # exit()
-    NER.NER_learning_by_config({"class": 1, "tags": 2, "use_special_tags": 0})
+    NER.NER_learning_by_config({"class": 1, "tags": 1, "use_special_tags": 0})
     exit()
     # exit()
     # create_answers('oc_class_loc')
