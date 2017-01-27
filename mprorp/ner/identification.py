@@ -475,7 +475,11 @@ def create_refs(doc, refs_settings, refs, session=None, commit_session=True, ver
             for_print[i] = doc_properties_info[i].get('list_lex', [])
         print('Подробно о словах документа:', doc_properties_info)
         print('Информация о словах документа:', for_print)
-
+    # Эта функция должна возвращать нам по каждому упоминанию набор токенов. Затем мы собрав их вместе выясним, как
+    # из них являются именами. А затем попытаемся в зависимости от их расположения в конкретных упоминаниях понять, чем
+    # являются остальные токены упоминаний.
+    # Нет. Собирать токены смысла нет. Т.к. не всегда это слово целиком. Лучше потом полученную метку разрезать по пробелам
+    # Но, что следует собрать - это информацию о том, является ли слово Фамилией, Отчеством или Именем по мнению mystem
     mentions, labels, labels_from_text = form_mentions_BS_IE(doc_properties, doc_properties_info, learn_class)
     if verbose:
         print('mentions: ', mentions)
@@ -486,12 +490,14 @@ def create_refs(doc, refs_settings, refs, session=None, commit_session=True, ver
     links = []
     names = []
     for i in range(len(mentions)):
-        links.append({'equal': [], 'subs': [], 'parent': [], 'name': labels_from_text[i]})
+        links.append({'equal': [], 'subs': [], 'parent': [], 'name': labels[i]})
     for i in range(len(mentions) - 1):
         for j in range(i + 1, len(mentions)):
-            compare_labels(i, j, labels_from_text, [labels[i], labels_from_text[i]], [labels[j], labels_from_text[j]],
+            compare_labels(i, j, [labels[i], labels_from_text[i]], [labels[j], labels_from_text[j]],
                            links[i], links[j], verbose)
 
+    if verbose:
+        print('links:', links)
     # В Links:
     # 'equal' - список упоминания, коорые совпали с данным упоминанием хоть по одной метке
     # 'subs' - список дочерних упоминаний
@@ -521,7 +527,8 @@ def create_refs(doc, refs_settings, refs, session=None, commit_session=True, ver
             labels_lists[i] = list(reduce(lambda a, x: a | x, [set([labels[j],
                                                                    labels_from_text[j]]) for j in local_entities[i]]))
             # Теперь поищем, что у нас есть по меткам из labels_set - только точное совпадение с одной из меток
-            print('get_entity_by_labels', )
+            if verbose:
+                print('get_entity_by_labels', )
             db_id = db.get_entity_by_labels(labels_lists[i], add_conditions=add_conditions, verbose=verbose)
             if (db_id is None) and create_wiki_entities:
                 best_label = None
@@ -581,7 +588,33 @@ def create_refs(doc, refs_settings, refs, session=None, commit_session=True, ver
         for i in range(len(main_class)):
             if main_class[i] and mentions_id[i] is None:
                 # data = {'labels': labels_lists[i]}
-                mentions_id[i] = db.put_entity(names[i], 'person', labels=labels_lists[i],
+                fio = names[i].split(' ')
+                isname = []
+                for count in len(fio):
+                    isname.append(db.is_name(fio[count]))
+                fio_name = ''
+                fio_fam = ''
+                if isname[0]:
+                    count = 0
+                    while (count < len(fio)) and isname[count]:
+                        fio_name += fio[count] + ' '
+                        count += 1
+                    while (count < len(fio)):
+                        fio_fam += fio[count] + ' '
+                        count += 1
+                else:
+                    while (count < len(fio)) and not isname[count]:
+                        fio_fam += fio[count] + ' '
+                        count += 1
+                    while (count < len(fio)):
+                        fio_name += fio[count] + ' '
+                        count += 1
+
+                if verbose:
+                    print('data', {'firstname': fio_name, 'lastname': fio_fam})
+
+                mentions_id[i] = db.put_entity(names[i], 'person', data={'firstname': fio_name, 'lastname': fio_fam},
+                                               labels=labels_lists[i],
                                                session=session, commit_session=commit_session)
 
     # Выберем те классы, которые являются подклассом ровно одного класса.
@@ -678,31 +711,32 @@ def add_equal(links, i, equal):
         add_equal(links, j, equal)
 
 
-def compare_labels(i, j, names, labels_i, labels_j,  links_i, links_j, verbose):
+def compare_labels(i, j, labels_i, labels_j,  links_i, links_j, verbose):
     if verbose:
         print('labels:', labels_i, labels_j)
-    for label_i in labels_i:
-        for label_j in labels_j:
-            if label_i == label_j:
+    for count_i in range(len(labels_i)):
+        for count_j in range(len(labels_j)):
+
+            if labels_i[count_i] == labels_j[count_j]:
                 links_i['equal'].append(j)
                 links_j['equal'].append(i)
-                if label_i in names:
-                    links_i['name'] = label_i
-                    links_j['name'] = label_i
+                if count_i != count_j:
+                    links_i['name'] = labels_i[count_i]
+                    links_j['name'] = labels_i[count_i]
                     if verbose:
-                        print('name: ', label_i)
+                        print('name: ', labels_i[count_i])
                 return
 
     for label_i in labels_i:
         for label_j in labels_j:
-            if label_i.find(label_j) > 0:
+            if label_i.find(label_j) > -1:
                 links_i['subs'].append(j)
                 links_j['parent'].append(i)
                 if verbose:
                     print("links_i['subs']:", links_i['subs'])
                 return
 
-            if label_j.find(label_i) > 0:
+            if label_j.find(label_i) > -1:
                 links_j['subs'].append(i)
                 links_i['parent'].append(j)
                 if verbose:
@@ -792,6 +826,8 @@ def form_mentions_BS_IE(doc_properties, doc_properties_info, learn_class):
     mentions = []
     labels = []
     texts = []
+    # tokens =[]
+    # token = []
     mention = []
     label = ''
     last_sent = -1
@@ -803,20 +839,26 @@ def form_mentions_BS_IE(doc_properties, doc_properties_info, learn_class):
         text_label = doc_properties_info[word]['text'] + (' ' if doc_properties_info[word]['next_one_is_space'] else '')
         if word[0] == last_sent and word[1] == last_word + 1 and word[2] == learn_class + '_IE':
             mention.append(word)
+            # token.append({'text': text_label, 'word': word_label})
             label = label + word_label
             text = text + text_label
         else:
             if len(mention) != 0:
                 mentions.append(mention)
+                # tokens.append(token)
                 labels.append(label.strip())
                 texts.append(text.strip())
             mention = [word]
+            # word_label.strip()
+            # text_label.strip()
+            # token = [{'text': text_label, 'word': word_label}]
             label = word_label
             text = text_label
         last_sent = word[0]
         last_word = word[1]
     if len(mention):
         mentions.append(mention)
+        # tokens.append(token)
         labels.append(label.strip())
         texts.append(text.strip())
     return mentions, labels, texts

@@ -5,6 +5,7 @@ import mprorp.db.dbDriver as Driver
 from mprorp.db.models import Document
 import mprorp.analyzer.db as db
 import mprorp.analyzer.rubricator as rb
+from mprorp.ner.set_list import set_temp
 from mprorp.tomita.grammars.config import config as grammar_config
 from mprorp.tomita.tomita_run import run_tomita2
 import mprorp.ner.feature as ner_feature
@@ -390,7 +391,7 @@ def identification_doc(doc_id):
     }
 
     doc = session.query(Document).filter_by(doc_id=doc_id).first()
-    # print(doc.stripped)
+    print(doc.stripped)
     create_markup_regular(doc, settings_list, verbose=True)
 
 
@@ -401,50 +402,56 @@ def get_doc_id(rec_id):
 
 def script_exec():
 
+    # my_list = list(db.get_set_docs(set_list.set_temp['1700']))
+    # my_list.extend(list(db.get_set_docs(set_list.sets1250[4])))
+    # my_list.extend(list(db.get_set_docs(set_list.sets1250[5]))[0:450])
+    # print('3400', db.put_training_set(my_list))
+    # my_list = list(db.get_set_docs(set_list.set_temp['300']))
+    # my_list.extend(list(db.get_set_docs(set_list.sets1250[5]))[450:750])
+    # print('600',  db.put_training_set(my_list))
+    # exit()
 
+    # create_sets_56(markup_type='57')
+    # create_sets_56(markup_type='58')
     # create_sets_56(doc_number=100)
     # exit()
     # bad_list = set_docs['name']['train']
     set_list_len = len(set_list.sets1250)
     # print('start morpho')
-    # for count in range(set_list_len):
-    #     print('count', count)
-    #     bad_list = db.get_set_docs(set_list.sets1250[count])
+    # for key in set_list.set_factRuEval:
+    #     bad_list = db.get_set_docs(set_list.set_factRuEval[key])
     #     past_count = 0
     #     while (len(bad_list) > 0) and (len(bad_list) != past_count):
     #         past_count = len(bad_list)
     #         bad_list = morpho_with_check(bad_list)
     #         print('morpho tried for', past_count, 'rest', len(bad_list))
 
-    # print('start features')
-    # start_num = 22
-    # for count in range(start_num, set_list_len):
-    #     print('count', count)
-    #     bad_list = db.get_set_docs(set_list.sets1250[count])
-    #     past_count = 0
-    #     while (len(bad_list) > 0) and (len(bad_list) != past_count):
-    #         past_count = len(bad_list)
-    #         bad_list = capital_embedding_morpho_feature(bad_list)
-    #         print('features tried for', past_count, 'rest', len(bad_list))
-    #
-    # print('start answers')
-    # for count in range(set_list_len):
-    #     print('count', count)
-    #     doc_list = db.get_set_docs(set_list.sets1250[count])
-    #     # create_big_set_name_answers(doc_list, ['bs000_loc_descr', 'bs000_loc_name'], 'loc')
-    #     create_big_set_name_answers(doc_list, ['bs000_name', 'bs000_surname'], 'name')
-    #
-    # print('start tomita')
-    #
-    # for count in range(3, set_list_len):
-    #     print('count', count)
-    #     doc_list = db.get_set_docs(set_list.sets1250[count])
-    #     # create_big_set_name_answers(doc_list, ['bs000_loc_descr', 'bs000_loc_name'], 'loc')
-    #     first = [487, 405, 1090]
-    #     tomita(doc_list, count, 0 if len(first) <= count else first[count])
-    # exit()
-    NER.NER_learning_by_config({"class": 1, "tags": 2, "use_special_tags": 0})
+    print('start features')
+    start_num = 22
+    for key in set_list.set_factRuEval:
+        bad_list = db.get_set_docs(set_list.set_factRuEval[key])
+        past_count = 0
+        while (len(bad_list) > 0) and (len(bad_list) != past_count):
+            past_count = len(bad_list)
+            bad_list = capital_embedding_morpho_feature(bad_list)
+            print('features tried for', past_count, 'rest', len(bad_list))
+
+    print('start answers')
+    for key in set_list.set_factRuEval:
+        doc_list = db.get_set_docs(set_list.set_factRuEval[key])
+    #  create_big_set_name_answers(doc_list, ['bs000_loc_descr', 'bs000_loc_name'], 'loc')
+        create_big_set_name_answers(doc_list, ['bs000_name', 'bs000_surname'], 'name')
+
+    print('start tomita')
+
+    for key in set_list.set_factRuEval:
+        doc_list = db.get_set_docs(set_list.set_factRuEval[key])
+        # create_big_set_name_answers(doc_list, ['bs000_loc_descr', 'bs000_loc_name'], 'loc')
+        # first = [487, 405, 1090]
+        tomita(doc_list)
     exit()
+
+    # NER.NER_learning_by_config({"class": 1, "tags": 1, "use_special_tags": 0})
     # exit()
     # create_answers('oc_class_loc')
     # prediction('name')
@@ -459,25 +466,25 @@ def script_exec():
                '31f8194a-b292-4d52-a6ca-27bb1cec5da2']
     # rec_set = db.get_set_docs(sets['name']['dev'])
     # doc_set = ['664db67f-cc86-4933-82c0-20a555a38281']
-    doc_set = []
-    for rec_id in rec_set:
-        doc_set.append(get_doc_id(rec_id))
+    # doc_set = []
+    # for rec_id in rec_set:
+    #     doc_set.append(get_doc_id(rec_id))
 
     # for doc_id in doc_set:
     #     doc = session.query(Document).filter_by(doc_id=doc_id).first()
     #     rb.morpho_doc(doc)
     # session.commit()
-    capital_embedding_morpho_feature(doc_set)
+    # capital_embedding_morpho_feature(doc_set)
 
-    for doc_id in doc_set:
-        doc = session.query(Document).filter_by(doc_id=doc_id).first()
-        if doc is None:
-            print('No document', doc_id)
-        print(doc.stripped)
-        print('Morpho', doc.morpho)
-        NER.NER_predict(doc, [{"class": 1, "tags": 1, "use_special_tags": 0}],
-                        session, commit_session=True, verbose=True)
-        identification_doc(doc_id)
+    # for doc_id in doc_set:
+    #     doc = session.query(Document).filter_by(doc_id=doc_id).first()
+    #     if doc is None:
+    #         print('No document', doc_id)
+    #     print(doc.stripped)
+    #     print('Morpho', doc.morpho)
+    #     NER.NER_predict(doc, [{"class": 1, "tags": 1, "use_special_tags": 0}],
+    #                     session, commit_session=True, verbose=True)
+    #     identification_doc(doc_id)
     # comparison()
     # 756c27e4-3036-aed7-6b3b-8813dc00352a
     # a43dc00b-f780-0937-76e1-d685fbd3c322
