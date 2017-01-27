@@ -87,7 +87,7 @@ def list_make(text, source_name, tomita_path):
 
 def find_act(file_name, tomita_path):
     string = open(tomita_path + '/' + file_name, 'r', encoding='utf-8').read()
-    numb = '(\d+|[\d\.]+)'
+    numb = '(\d[\d\.]*)'
 
     part = '((ч\.|част[а-я]*) ?' + numb + ')'
     parts = '(' + part + '.*?)'
@@ -120,6 +120,29 @@ def find_act(file_name, tomita_path):
                 out.append(max(norm_act))
     return out
 
+def clean_act(acts):
+    out = {}
+    numb = '(\d[\d\.]*)'
+    part = '((ч\.|част[а-я]*) ?' + numb + ')'
+    article = '((ст\.|стать[а-я]*) ?' + numb + ')'
+    paragraph = '((п\.|пункт[а-я]*) ?' + numb + ')'
+    for act in acts:
+        actn = re.sub(part, 'p_\\3_', act)
+        actn = re.sub(article, 'a_\\3_', actn)
+        actn = re.sub(paragraph, 'f_\\3_', actn)
+        actn = re.sub('(УК|УПК|[Уу]головного [Кк]одекса)', 'k_KK_', actn)
+        actn = re.sub('(КоАП|КОАП)', 'k_KOAP_', actn)
+        actn = re.sub('[ ,]', 's_s_', actn)
+        actn = re.findall('[a-z]_.*?_', actn)
+        line = ''
+        for i in actn:
+            line += i
+        line = re.sub('(s_s_(s_s_)+)', '_split_', line)
+        line = line.replace('s_s_', '')
+        line = line.replace('__', '_')
+        out[act] = line
+    return out
+
 def norm_out(arr, source_name, tomita_path):
     source = open(tomita_path + '/' + source_name, 'r', encoding='utf-8').read()
     s = source
@@ -129,7 +152,7 @@ def norm_out(arr, source_name, tomita_path):
         first_symbol = source.find(act)
         last_symbol = first_symbol + len(act)
         symbols = str(first_symbol + len_of_line) + ':' + str(last_symbol + len_of_line)
-        #print('string in original text: ' + s[first_symbol + len_of_line:last_symbol + len_of_line])
+        print('string in original text: ' + s[first_symbol + len_of_line:last_symbol + len_of_line])
         out[symbols] = 'Norm'
         source = source[last_symbol:]
         len_of_line += last_symbol

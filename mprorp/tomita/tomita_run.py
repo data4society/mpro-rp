@@ -2,7 +2,7 @@
 import os
 
 import mprorp.analyzer.db as db
-from mprorp.tomita.tomita_out import tomita_out, norm_out, find_act
+from mprorp.tomita.tomita_out import tomita_out, norm_out, find_act, clean_act
 from mprorp.tomita.tomita_start import start_tomita, create_file
 from mprorp.tomita.tomita_run_ovd import run_tomita_ovd, only_russia
 from mprorp.utils import home_dir
@@ -27,7 +27,7 @@ def run_tomita(doc, grammar, session=None, commit_session=True):
     if grammar == 'norm_act.cxx':
         tomita_path = home_dir + '/tomita/tomita-parser-master/build/bin'
         source_name = create_file(doc, tomita_path)
-        out = norm_out(find_act(source_name, tomita_path), source_name, tomita_path)
+        out = norm_out(clean_act(find_act(source_name, tomita_path)), source_name, tomita_path)
         db.put_tomita_result(str(doc.doc_id), grammar, out, session, commit_session)
         file_name1 = str(doc.doc_id) + '.txt'
         os.remove(tomita_path + '/' + file_name1, dir_fd=None)
