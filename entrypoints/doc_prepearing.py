@@ -1,4 +1,5 @@
 import sys
+sys.stdout.flush()
 sys.path.insert(0, '..')
 from mprorp.ner.examples3 import script_exec
 
