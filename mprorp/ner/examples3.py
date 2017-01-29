@@ -129,7 +129,7 @@ def morpho():
     print('morpho - done')
 
 
-def morpho_with_check(doc_list):
+def morpho_with_check(doc_list, commit=True):
     count = 0
     bad_list = []
     for doc_id in doc_list:
@@ -138,7 +138,8 @@ def morpho_with_check(doc_list):
             doc = session.query(Document).filter_by(doc_id=doc_id).first()
             if doc.morpho is None:
                 rb.morpho_doc(doc)
-                session.commit()
+                if commit:
+                    session.commit()
         except:
             bad_list.append(doc_id)
     return bad_list
@@ -187,7 +188,7 @@ def morpho_feature():
     print('morpho feature - done')
 
 
-def tomita(doc_list, num_set=0, first_doc = 0):
+def tomita(doc_list, num_set=0, first_doc = 0, commit_session=True):
     my_count = 0
     for doc_id in doc_list:
         if my_count < first_doc:
@@ -197,7 +198,11 @@ def tomita(doc_list, num_set=0, first_doc = 0):
         for gram in grammar_config:
             run_tomita2(gram, str(doc_id))
         print('tomita - ok')
-        ner_feature.create_tomita_feature2(str(doc_id), grammar_config.keys())
+        doc = session.query(Document).filter_by(doc_id=doc_id).first()
+        ner_feature.create_tomita_feature(doc, grammar_config.keys(),
+                                          session=session, commit_session=commit_session, verbose=True)
+        if commit_session:
+            session.commit()
         print('tomita feature - ok')
         my_count += 1
     print('tomita - done')
@@ -239,8 +244,10 @@ def create_big_set_name_answers(doc_list, spans, cl='name'):
             # print('doc not found')
             continue
         # create_answers_span_feature_for_doc(doc, ['name', 'surname'], bad_list=bad_list)
-        create_answers_span_feature_for_doc(doc, spans=spans, bad_list=bad_list,
+        create_answers_span_feature_for_doc(doc,  markup_type='57', spans=spans, bad_list=bad_list,
                                             ner_feature_name=cl+'_answers', cl=cl, verbose=True)
+        create_answers_span_feature_for_doc(doc, markup_type='58', spans=spans, bad_list=bad_list,
+                                            ner_feature_name=cl + '_answers', cl=cl, verbose=True)
     print('not found docs:', not_found_docs)
     print('docs with zero chains:', list(bad_list))
 
@@ -402,10 +409,16 @@ def get_doc_id(rec_id):
 
 def script_exec():
 
-    # my_list = list(db.get_set_docs(set_list.set_temp['1700']))
-    # my_list.extend(list(db.get_set_docs(set_list.sets1250[4])))
+    # my_list = list(db.get_set_docs(set_list.set_factRuEval['devset']))
+    # my_list.extend(list(db.get_set_docs(set_list.set_factRuEval['testset'])))
     # my_list.extend(list(db.get_set_docs(set_list.sets1250[5]))[0:450])
-    # print('3400', db.put_training_set(my_list))
+    # random.shuffle(my_list)
+    # print(len(my_list))
+    # print('50', db.put_training_set(my_list[0:50]))
+    # rest_id = db.put_training_set(my_list[50:])
+    # print(list(db.get_set_docs( rest_id )))
+    # print('rest', rest_id)
+    # exit()
     # my_list = list(db.get_set_docs(set_list.set_temp['300']))
     # my_list.extend(list(db.get_set_docs(set_list.sets1250[5]))[450:750])
     # print('600',  db.put_training_set(my_list))
@@ -420,39 +433,43 @@ def script_exec():
     # print('start morpho')
     # for key in set_list.set_factRuEval:
     #     bad_list = db.get_set_docs(set_list.set_factRuEval[key])
+    # for set_id in set_list.sets1250:
+    #     bad_list = db.get_set_docs(set_id)
     #     past_count = 0
     #     while (len(bad_list) > 0) and (len(bad_list) != past_count):
     #         past_count = len(bad_list)
-    #         bad_list = morpho_with_check(bad_list)
+    #         bad_list = morpho_with_check(bad_list, commit=False)
     #         print('morpho tried for', past_count, 'rest', len(bad_list))
-
-    print('start features')
-    start_num = 22
-    for key in set_list.set_factRuEval:
-        bad_list = db.get_set_docs(set_list.set_factRuEval[key])
-        past_count = 0
-        while (len(bad_list) > 0) and (len(bad_list) != past_count):
-            past_count = len(bad_list)
-            bad_list = capital_embedding_morpho_feature(bad_list)
-            print('features tried for', past_count, 'rest', len(bad_list))
-
-    print('start answers')
-    for key in set_list.set_factRuEval:
-        doc_list = db.get_set_docs(set_list.set_factRuEval[key])
-    #  create_big_set_name_answers(doc_list, ['bs000_loc_descr', 'bs000_loc_name'], 'loc')
-        create_big_set_name_answers(doc_list, ['bs000_name', 'bs000_surname'], 'name')
-
-    print('start tomita')
-
-    for key in set_list.set_factRuEval:
-        doc_list = db.get_set_docs(set_list.set_factRuEval[key])
-        # create_big_set_name_answers(doc_list, ['bs000_loc_descr', 'bs000_loc_name'], 'loc')
-        # first = [487, 405, 1090]
-        tomita(doc_list)
+    #
+    # print('start features')
+    # start_num = 22
+    # for key in set_list.set_factRuEval:
+    #     bad_list = db.get_set_docs(set_list.set_factRuEval[key])
+    #     past_count = 0
+    #     while (len(bad_list) > 0) and (len(bad_list) != past_count):
+    #         past_count = len(bad_list)
+    #         bad_list = capital_embedding_morpho_feature(bad_list)
+    #         print('features tried for', past_count, 'rest', len(bad_list))
+    #
+    # print('start answers')
+    # for key in ['50','204']:
+    #     doc_list = db.get_set_docs(set_list.set_factRuEval[key])
+    #     create_big_set_name_answers(doc_list, ['bs000_loc_descr', 'bs000_loc_name'], 'loc')
+        # create_big_set_name_answers(doc_list, ['bs000_name', 'bs000_surname'], 'name')
+    #
+    # print('start tomita')
+    #
+    # for key in set_list.set_factRuEval:
+    #     doc_list = db.get_set_docs(set_list.set_factRuEval[key])
+    for set_id in set_list.sets1250:
+        doc_list = db.get_set_docs(set_id)
+    #     create_big_set_name_answers(doc_list, ['bs000_loc_descr', 'bs000_loc_name'], 'loc')
+    #     # first = [487, 405, 1090]
+        tomita(doc_list, commit_session=False)
     exit()
 
-    # NER.NER_learning_by_config({"class": 1, "tags": 1, "use_special_tags": 0})
-    # exit()
+    NER.NER_learning_by_config({"class": 4, "tags": 1, "use_special_tags": 0})
+    exit()
     # create_answers('oc_class_loc')
     # prediction('name')
     rec_set = ['d1b44788-bfb6-36b2-d001-713af427127c',

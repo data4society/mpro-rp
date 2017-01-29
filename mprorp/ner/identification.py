@@ -116,7 +116,7 @@ def create_answers_span_feature_for_doc(doc, spans, markup_type='56', bad_list=s
     refs = {}
     minmax_index = {}
     sentence_refs = {}
-
+    descr_is_here = False
     # printed = False
     for ref in references:
 
@@ -127,6 +127,8 @@ def create_answers_span_feature_for_doc(doc, spans, markup_type='56', bad_list=s
         #     printed = True
         if ref_class not in spans:
                 continue
+        if ref_class == 'bs000_loc_descr':
+            descr_is_here = True
         ref_id = ref[3]
         span_chain, sent_index_ref = get_ref_from_morpho(ref, morpho, verbose=verbose)
         # if verbose:
@@ -147,8 +149,9 @@ def create_answers_span_feature_for_doc(doc, spans, markup_type='56', bad_list=s
         else:
             # print('zero chain. dic_id:', str(doc.doc_id), ref)
             bad_list.add(str(doc.doc_id))
-    # if verbose:
-    #     print('sentence_refs', len(sentence_refs))
+    if descr_is_here:
+        print(markup_id, 'sentence_refs', sentence_refs, doc.doc_id)
+
     for i in sentence_refs:
         concat_chains_create_values(i, sentence_refs[i], minmax_index, refs, values, cl)
 
@@ -176,10 +179,10 @@ def concat_chains_create_values(sent_index, list_refs, minmax_index, refs, value
         if len(chain) > 0:
             if (new_index == last_max + 1) and (last_class != new_class):
                 chain.append(new_index)
-                create_values(chain, sent_index, 'name', values, verbose=verbose)
+                create_values(chain, sent_index, cl, values, verbose=verbose)
                 chain = []
             else:
-                create_values(chain, sent_index, 'name', values, verbose=verbose)
+                create_values(chain, sent_index, cl, values, verbose=verbose)
                 chain = [new_index]
         else:
             chain = [new_index]

@@ -45,5 +45,7 @@ set_temp = {'850': 'bcf5e0bc-bc26-486d-a10b-30ea938d292c',
 
 set_factRuEval = {
     'devset': 'bb2f6bdb-646e-43f3-8187-764ea53cec08',
-    'tettset': '13397370-c96e-429d-b558-45796e9baf3c'
+    'testset': '13397370-c96e-429d-b558-45796e9baf3c',
+    '50': 'e83cd768-4c5f-4bb4-a796-fcf491c1ec80',
+    '204': '11982c03-4002-4fc7-b045-f56ef8d3207e'
 }
