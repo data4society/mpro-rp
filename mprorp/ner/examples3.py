@@ -150,15 +150,16 @@ def capital_embedding_morpho_feature(doc_list, start_doc=0):
     bad_list = []
     for doc_id in doc_list[start_doc:]:
 
-        # try:
-        doc = session.query(Document).filter_by(doc_id=doc_id).first()
-        ner_feature.create_capital_feature(doc, session=session, commit_session=False)
-        ner_feature.create_embedding_feature(doc, session=session, commit_session=False)
-        ner_feature.create_morpho_feature(doc,session=session, commit_session=False)
-        session.commit()
-        # except:
-        #     bad_list.append(doc_id)
-        #     print('except:', doc_id)
+        try:
+        # print(doc_id)
+            doc = session.query(Document).filter_by(doc_id=doc_id).first()
+            ner_feature.create_capital_feature(doc, session=session, commit_session=False)
+            ner_feature.create_embedding_feature(doc, session=session, commit_session=False)
+            ner_feature.create_morpho_feature(doc,session=session, commit_session=False)
+            session.commit()
+        except:
+            bad_list.append(doc_id)
+            print('except:', doc_id)
     return bad_list
 
 
