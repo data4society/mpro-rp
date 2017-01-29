@@ -433,23 +433,26 @@ def script_exec():
     # print('start morpho')
     # for key in set_list.set_factRuEval:
     #     bad_list = db.get_set_docs(set_list.set_factRuEval[key])
-    for set_id in set_list.sets1250:
-        bad_list = db.get_set_docs(set_id)
-        past_count = 0
-        while (len(bad_list) > 0) and (len(bad_list) != past_count):
-            past_count = len(bad_list)
-            bad_list = morpho_with_check(bad_list, commit=False)
-            print('morpho tried for', past_count, 'rest', len(bad_list))
+    # for set_id in set_list.sets1250:
+    #     bad_list = db.get_set_docs(set_id)
+    #     past_count = 0
+    #     while (len(bad_list) > 0) and (len(bad_list) != past_count):
+    #         past_count = len(bad_list)
+    #         bad_list = morpho_with_check(bad_list, commit=False)
+    #         print('morpho tried for', past_count, 'rest', len(bad_list))
     #
     # print('start features')
     # start_num = 22
     # for key in set_list.set_factRuEval:
+    for set_id in set_list.sets1250:
+        bad_list = db.get_set_docs(set_id)
     #     bad_list = db.get_set_docs(set_list.set_factRuEval[key])
-    #     past_count = 0
-    #     while (len(bad_list) > 0) and (len(bad_list) != past_count):
-    #         past_count = len(bad_list)
-    #         bad_list = capital_embedding_morpho_feature(bad_list)
-    #         print('features tried for', past_count, 'rest', len(bad_list))
+        past_count = 0
+        while (len(bad_list) > 0) and (len(bad_list) != past_count):
+            past_count = len(bad_list)
+            bad_list = capital_embedding_morpho_feature(bad_list)
+            print('features tried for', past_count, 'rest', len(bad_list))
+    exit()
     #
     # print('start answers')
     # for key in ['50','204']:
