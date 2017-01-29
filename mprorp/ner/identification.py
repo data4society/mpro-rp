@@ -177,7 +177,7 @@ def concat_chains_create_values(sent_index, list_refs, minmax_index, refs, value
         new_ref = first_index[new_index]
         new_class = refs[new_ref][2]
         if len(chain) > 0:
-            if (new_index == last_max + 1) and (last_class != new_class):
+            if ((new_index == last_max + 1) and (last_class != new_class)) or (new_index < last_max + 1):
                 chain.append(new_index)
                 create_values(chain, sent_index, cl, values, verbose=verbose)
                 chain = []

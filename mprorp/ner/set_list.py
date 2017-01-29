@@ -49,3 +49,6 @@ set_factRuEval = {
     '50': 'e83cd768-4c5f-4bb4-a796-fcf491c1ec80',
     '204': '11982c03-4002-4fc7-b045-f56ef8d3207e'
 }
+
+set_news = {'train': '4fb42fd1-a0cf-4f39-9206-029255115d01',
+            'dev': 'f861ee9d-5973-460d-8f50-92fca9910345'}
