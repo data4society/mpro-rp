@@ -104,9 +104,9 @@ def create_sets_56(markup_type='56', doc_number=1000):
     while start_num + doc_number < len(docs):
         set_train = str(db.put_training_set(docs[start_num:start_num + doc_number]))
         start_num += doc_number
-        print(set_train)
+        print("'",set_train,"',")
     set_train = str(db.put_training_set(docs[start_num:]))
-    print(set_train)
+    print("'", set_train, "',")
     print('last set size', len(docs[start_num:]))
 
 
@@ -427,7 +427,7 @@ def script_exec():
 
     # create_sets_56(markup_type='57')
     # create_sets_56(markup_type='58')
-    # create_sets_56(doc_number=100)
+    # create_sets_56(doc_number=1250)
     # exit()
     # bad_list = set_docs['name']['train']
     set_list_len = len(set_list.sets1250)
