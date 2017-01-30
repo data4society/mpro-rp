@@ -445,32 +445,35 @@ def script_exec():
     # print('start features')
     # start_num = 22
     # for key in set_list.set_factRuEval:
-    for set_id in set_list.sets1250:
-        bad_list = db.get_set_docs(set_id)
-    #     bad_list = db.get_set_docs(set_list.set_factRuEval[key])
-        past_count = 0
-        while (len(bad_list) > 0) and (len(bad_list) != past_count):
-            past_count = len(bad_list)
-            bad_list = capital_embedding_morpho_feature(bad_list)
-            print('features tried for', past_count, 'rest', len(bad_list))
-    exit()
+    # for set_id in set_list.sets1250:
+    #     bad_list = db.get_set_docs(set_id)
+    # #     bad_list = db.get_set_docs(set_list.set_factRuEval[key])
+    #     past_count = 0
+    #     while (len(bad_list) > 0) and (len(bad_list) != past_count):
+    #         past_count = len(bad_list)
+    #         bad_list = capital_embedding_morpho_feature(bad_list)
+    #         print('features tried for', past_count, 'rest', len(bad_list))
+    # exit()
     #
-    # print('start answers')
+    print('start answers')
     # for key in ['50','204']:
     #     doc_list = db.get_set_docs(set_list.set_factRuEval[key])
-    #     create_big_set_name_answers(doc_list, ['bs000_loc_descr', 'bs000_loc_name'], 'loc')
-        # create_big_set_name_answers(doc_list, ['bs000_name', 'bs000_surname'], 'name')
-    #
-    # print('start tomita')
-    #
+    for set_id in set_list.sets1250:
+        doc_list = db.get_set_docs(set_id)
+
+        create_big_set_name_answers(doc_list, ['bs000_loc_descr', 'bs000_loc_name'], 'loc')
+        create_big_set_name_answers(doc_list, ['bs000_name', 'bs000_surname'], 'name')
+
+    print('start tomita')
+
     # for key in set_list.set_factRuEval:
     #     doc_list = db.get_set_docs(set_list.set_factRuEval[key])
-    # for set_id in set_list.sets1250:
-    #     doc_list = db.get_set_docs(set_id)
-    #     create_big_set_name_answers(doc_list, ['bs000_loc_descr', 'bs000_loc_name'], 'loc')
-    #     # first = [487, 405, 1090]
-    #     tomita(doc_list, commit_session=False)
-    # exit()
+    for set_id in set_list.sets1250:
+        doc_list = db.get_set_docs(set_id)
+        # create_big_set_name_answers(doc_list, ['bs000_loc_descr', 'bs000_loc_name'], 'loc')
+        # first = [487, 405, 1090]
+        tomita(doc_list, commit_session=False)
+    exit()
 
     NER.NER_learning_by_config({"class": 4, "tags": 1, "use_special_tags": 0})
     exit()
