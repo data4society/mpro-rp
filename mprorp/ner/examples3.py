@@ -472,7 +472,7 @@ def script_exec():
         doc_list = db.get_set_docs(set_list.sets1250[count])
         # create_big_set_name_answers(doc_list, ['bs000_loc_descr', 'bs000_loc_name'], 'loc')
         first = [418]
-        tomita(doc_list, commit_session=False)
+        tomita(doc_list, num_set=count, commit_session=False)
     exit()
 
     NER.NER_learning_by_config({"class": 4, "tags": 1, "use_special_tags": 0})
