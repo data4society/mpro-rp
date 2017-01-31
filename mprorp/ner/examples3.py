@@ -468,10 +468,10 @@ def script_exec():
 
     # for key in set_list.set_factRuEval:
     #     doc_list = db.get_set_docs(set_list.set_factRuEval[key])
-    for set_id in set_list.sets1250:
-        doc_list = db.get_set_docs(set_id)
+    for count in range(1, set_list_len):
+        doc_list = db.get_set_docs(set_list.sets1250(count))
         # create_big_set_name_answers(doc_list, ['bs000_loc_descr', 'bs000_loc_name'], 'loc')
-        # first = [487, 405, 1090]
+        first = [418]
         tomita(doc_list, commit_session=False)
     exit()
 
