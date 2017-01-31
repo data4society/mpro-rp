@@ -48,15 +48,15 @@ def try_ovd(source_id=None):
 #for entity in a:
 #    db.delete_entity(entity.entity_id)
 
-acts = ['ч. 2 ст. 14.7. (Умышленное убийство) КоАП',
-        'ч. 5 ст. 19.30. КоАП',
-        'ч. 2 ст. 23.24.1 и ч. 2.7 ст. 19.5 КОАП']
-a = clean_act(acts)
-print(a)
-b = act_identification(a)
-print(b)
-for i in b:
-    print(i)
-    for i in b[i]:
-        print(i.data['art'], i.data['part'])
-    print('---------')
+#acts = ['ч. 2 ст. 14.7. (Умышленное убийство) КоАП',
+#        'ч. 5 ст. 19.30. КоАП',
+#        'ч. 2 ст. 23.24.1 и ч. 2.7 ст. 19.5 КОАП']
+#a = clean_act(acts)
+#print(a)
+#b = act_identification(a)
+#print(b)
+#for i in b:
+#    print(i)
+#    for i in b[i]:
+#        print(i.data['art'], i.data['part'])
+#    print('---------')
