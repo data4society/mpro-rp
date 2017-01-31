@@ -455,14 +455,14 @@ def script_exec():
     #         print('features tried for', past_count, 'rest', len(bad_list))
     # exit()
     #
-    print('start answers')
-    # for key in ['50','204']:
-    #     doc_list = db.get_set_docs(set_list.set_factRuEval[key])
-    for set_id in set_list.sets1250:
-        doc_list = db.get_set_docs(set_id)
-
-        create_big_set_name_answers(doc_list, ['bs000_loc_descr', 'bs000_loc_name'], 'loc')
-        create_big_set_name_answers(doc_list, ['bs000_name', 'bs000_surname'], 'name')
+    # print('start answers')
+    # # for key in ['50','204']:
+    # #     doc_list = db.get_set_docs(set_list.set_factRuEval[key])
+    # for set_id in set_list.sets1250:
+    #     doc_list = db.get_set_docs(set_id)
+    #
+    #     create_big_set_name_answers(doc_list, ['bs000_loc_descr', 'bs000_loc_name'], 'loc')
+    #     create_big_set_name_answers(doc_list, ['bs000_name', 'bs000_surname'], 'name')
 
     print('start tomita')
 
