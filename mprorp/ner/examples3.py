@@ -244,10 +244,10 @@ def create_big_set_name_answers(doc_list, spans, cl='name'):
             # print('doc not found')
             continue
         # create_answers_span_feature_for_doc(doc, ['name', 'surname'], bad_list=bad_list)
-        create_answers_span_feature_for_doc(doc,  markup_type='57', spans=spans, bad_list=bad_list,
+        create_answers_span_feature_for_doc(doc,  markup_type='56', spans=spans, bad_list=bad_list,
                                             ner_feature_name=cl+'_answers', cl=cl, verbose=True)
-        create_answers_span_feature_for_doc(doc, markup_type='58', spans=spans, bad_list=bad_list,
-                                            ner_feature_name=cl + '_answers', cl=cl, verbose=True)
+        # create_answers_span_feature_for_doc(doc, markup_type='58', spans=spans, bad_list=bad_list,
+        #                                     ner_feature_name=cl + '_answers', cl=cl, verbose=True)
     print('not found docs:', not_found_docs)
     print('docs with zero chains:', list(bad_list))
 
@@ -457,11 +457,11 @@ def script_exec():
     # print('start answers')
     # # for key in ['50','204']:
     # #     doc_list = db.get_set_docs(set_list.set_factRuEval[key])
-    # for set_id in set_list.sets1250:
-    #     doc_list = db.get_set_docs(set_id)
-    #
-    #     create_big_set_name_answers(doc_list, ['bs000_loc_descr', 'bs000_loc_name'], 'loc')
-    #     create_big_set_name_answers(doc_list, ['bs000_name', 'bs000_surname'], 'name')
+    for set_id in set_list.sets1250:
+        doc_list = db.get_set_docs(set_id)
+
+        create_big_set_name_answers(doc_list, ['bs000_loc_descr', 'bs000_loc_name'], 'loc')
+        create_big_set_name_answers(doc_list, ['bs000_name', 'bs000_surname'], 'name')
 
     # print('start tomita')
     #
