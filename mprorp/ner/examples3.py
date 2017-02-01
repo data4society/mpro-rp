@@ -246,7 +246,7 @@ def create_big_set_name_answers(doc_list, spans, cl='name', markup_types=['56'])
         # create_answers_span_feature_for_doc(doc, ['name', 'surname'], bad_list=bad_list)
         for m_t in markup_types:
             create_answers_span_feature_for_doc(doc,  markup_type=m_t, spans=spans, bad_list=bad_list,
-                                                ner_feature_name=cl+'_answers', cl=cl, verbose=True)
+                                                ner_feature_name=cl+'_answers', cl=cl, verbose=False)
         # create_answers_span_feature_for_doc(doc, markup_type='58', spans=spans, bad_list=bad_list,
         #                                     ner_feature_name=cl + '_answers', cl=cl, verbose=True)
     print('not found docs:', not_found_docs)
