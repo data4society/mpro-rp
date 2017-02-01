@@ -459,11 +459,11 @@ def script_exec():
     # # for key in ['50','204']:
     # #     doc_list = db.get_set_docs(set_list.set_factRuEval[key])
     # for set_id in set_list.sets1250:
-    doc_list = db.get_set_docs(set_list.set_2['all_8323'])
-
-    create_big_set_name_answers(doc_list, ['bs000_loc_descr', 'bs000_loc_name'], 'loc', markup_types=['56'])
-    create_big_set_name_answers(doc_list, ['bs000_name', 'bs000_surname'], 'name', markup_types=['56'])
-    exit()
+    # doc_list = db.get_set_docs(set_list.set_2['all_8323'])
+    #
+    # create_big_set_name_answers(doc_list, ['bs000_loc_descr', 'bs000_loc_name'], 'loc', markup_types=['56'])
+    # create_big_set_name_answers(doc_list, ['bs000_name', 'bs000_surname'], 'name', markup_types=['56'])
+    # exit()
     # print('start tomita')
     #
     # # for key in set_list.set_factRuEval:
