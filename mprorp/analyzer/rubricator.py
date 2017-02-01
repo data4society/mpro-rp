@@ -10,6 +10,7 @@ from mprorp.db.models import *
 from mprorp.analyzer.save_info import save_info
 import pickle as pickle
 from mprorp.utils import home_dir
+from sqlalchemy.orm.attributes import flag_modified
 
 # initialization mystem
 mystem_analyzer = Mystem(disambiguation=False)
@@ -773,6 +774,7 @@ def spot_doc_rubrics(doc, rubrics, session=None, commit_session=True, verbose=Fa
     models = {}
     negative_rubrics = {}
     train_set = {}
+    probabilities = {}
     # fill set_id in rubrics and data in models
     for rubric_dict in rubrics:
         rubric_id = rubric_dict['rubric_id']
@@ -820,6 +822,7 @@ def spot_doc_rubrics(doc, rubrics, session=None, commit_session=True, verbose=Fa
         mif.resize(mif_number + 1)
         mif[mif_number] = 1
         probability = sigmoid(np.dot(mif, models[rubric_id]['model']))
+        probabilities[rubric_id] = probability
         if verbose:
             print('Вероятность: ', probability)
         if probability > 0.5:
@@ -838,6 +841,10 @@ def spot_doc_rubrics(doc, rubrics, session=None, commit_session=True, verbose=Fa
     if verbose:
         print(answers)
     doc.rubric_ids = answers
+    if doc.meta is None:
+        doc.meta = dict()
+    doc.meta['rubric_probabilities'] = probabilities
+    flag_modified(doc, "meta")
 
 
 # take 1 rubric and all doc from test_set
