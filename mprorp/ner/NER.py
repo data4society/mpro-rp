@@ -32,8 +32,8 @@ sets['name'] = {'train': set_list.set_news['train'], #'4fb42fd1-a0cf-4f39-9206-0
 #                 'dev': set_list.set_temp['150']}
                 # 'dev': set_list.sets1250[29]}
                 # 'dev': 'f861ee9d-5973-460d-8f50-92fca9910345'} # Исходная dev-выборка 77
-sets['loc'] = {'train': set_list.set_factRuEval['204'],
-               'dev': set_list.set_factRuEval['50']}
+sets['loc'] = {'train': set_list.set_2['train_640'],
+               'dev': set_list.set_2['dev_160']}
 # {'train': set_list.sets100[0],
 #                'dev': set_list.sets100[1]}
 

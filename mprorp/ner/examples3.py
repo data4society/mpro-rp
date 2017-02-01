@@ -5,7 +5,6 @@ import mprorp.db.dbDriver as Driver
 from mprorp.db.models import Document
 import mprorp.analyzer.db as db
 import mprorp.analyzer.rubricator as rb
-from mprorp.ner.set_list import set_temp
 from mprorp.tomita.grammars.config import config as grammar_config
 from mprorp.tomita.tomita_run import run_tomita2
 import mprorp.ner.feature as ner_feature
@@ -464,16 +463,26 @@ def script_exec():
     #     create_big_set_name_answers(doc_list, ['bs000_loc_descr', 'bs000_loc_name'], 'loc')
     #     create_big_set_name_answers(doc_list, ['bs000_name', 'bs000_surname'], 'name')
 
-    print('start tomita')
-
-    # for key in set_list.set_factRuEval:
-    #     doc_list = db.get_set_docs(set_list.set_factRuEval[key])
-    for count in range(9, set_list_len):
-        doc_list = db.get_set_docs(set_list.sets1250[count])
-        # create_big_set_name_answers(doc_list, ['bs000_loc_descr', 'bs000_loc_name'], 'loc')
-        first = [418, 1250, 609, 337, 197, 163, 1250, 1250, 614]
-        tomita(doc_list, num_set=count, commit_session=False)
-    exit()
+    # print('start tomita')
+    #
+    # # for key in set_list.set_factRuEval:
+    # #     doc_list = db.get_set_docs(set_list.set_factRuEval[key])
+    # for count in range(9, set_list_len):
+    #     doc_list = db.get_set_docs(set_list.sets1250[count])
+    #     # create_big_set_name_answers(doc_list, ['bs000_loc_descr', 'bs000_loc_name'], 'loc')
+    #     first = [418, 1250, 609, 337, 197, 163, 1250, 1250, 614, 1250, 985]
+    #     tomita(doc_list, num_set=count, commit_session=False)
+    # exit()
+    # bid_list = []
+    # first = [418, 1250, 609, 337, 197, 163, 1250, 1250, 614, 1250, 985]
+    # for count in range(11):
+    #     bid_list.extend(db.get_set_docs(set_list.sets1250[count])[:first[count]])
+    # for i in [160, 320, 640, 1280]:
+    #     print('dev', i, str(db.put_training_set(bid_list[:i])))
+    # for i in [640, 1280, 2560, 5120]:
+    #     print('train', i, str(db.put_training_set(bid_list[1280:1280+i])))
+    # print('tomita-ok', len(bid_list),  str(db.put_training_set(bid_list)))
+    # exit()
 
     NER.NER_learning_by_config({"class": 4, "tags": 1, "use_special_tags": 0})
     exit()
