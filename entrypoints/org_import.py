@@ -17,7 +17,7 @@ def create_lemmas(filename):
         lemms = re.findall('{(.*?)}', comp)
         for lemm in lemms:
             comp = comp.replace('{' + lemm + '}', '')
-            lemmas.append(lemm.replace('??', '').replace('PLUSSS', '+'))
+            lemmas += lemm.replace('?', '').replace('PLUSSS', '+').split('|')
         out[comp.replace('PLUSSS', '+')] = lemmas
     return out
 
@@ -29,8 +29,8 @@ def import_org(org_dic):
         session.add(new_entity)
         session.commit()
 
-#print('IMPORT ENG')
-#import_org(create_lemmas(path1))
-#print('IMPORT RUS')
-#import_org(create_lemmas(path2))
-import_org(create_lemmas(path3))
+print('IMPORT ENG')
+import_org(create_lemmas(path1))
+print('IMPORT RUS')
+import_org(create_lemmas(path2))
+print('DONE')
