@@ -79,7 +79,7 @@ class Config(object):
     # pre_embedding = False
     # train_embedding = True
 
-    batch_size = 128 # 128
+    batch_size = 64 # 128
     label_size = 5
     max_epochs = 24
     early_stopping = 6
