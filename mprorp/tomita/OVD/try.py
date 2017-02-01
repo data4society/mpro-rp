@@ -32,6 +32,19 @@ def try_ovd(source_id=None):
     print('\noriginal')
     print(session.query(Record).filter(Record.app_id == 'ovd_ideal', Record.document_id == ideal_id).first().entities)
 
+def try_norm_act():
+    acts = ['ч. 2 ст. 14.7. (Умышленное убийство) КоАП',
+            'ч. 5 ст. 19.30. КоАП',
+            'ч. 2 ст. 23.24.1 и ч. 2.7 ст. 19.5 КОАП']
+    a = clean_act(acts)
+    print(a)
+    b = act_identification(a)
+    print(b)
+    for i in b:
+        print(i)
+        for i in b[i]:
+            print(i.data['art'], i.data['part'])
+        print('---------')
 
 #try_ovd(source_id='31ec2df6-df5c-ebfd-aebd-0b662cd02562')
 #f1()
@@ -48,15 +61,3 @@ def try_ovd(source_id=None):
 #for entity in a:
 #    db.delete_entity(entity.entity_id)
 
-#acts = ['ч. 2 ст. 14.7. (Умышленное убийство) КоАП',
-#        'ч. 5 ст. 19.30. КоАП',
-#        'ч. 2 ст. 23.24.1 и ч. 2.7 ст. 19.5 КОАП']
-#a = clean_act(acts)
-#print(a)
-#b = act_identification(a)
-#print(b)
-#for i in b:
-#    print(i)
-#    for i in b[i]:
-#        print(i.data['art'], i.data['part'])
-#    print('---------')

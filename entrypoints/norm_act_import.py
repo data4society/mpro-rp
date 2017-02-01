@@ -49,7 +49,6 @@ def put_norm_act_new(path):
             puncts = line[4].replace('#', '; ').replace('__', ')').replace(';;', ';')
             data = {'art': line[0],
                     'art_name': line[1],
-                    'art_text': line[5],
                     'part': line[2],
                     'part_text': line[3],
                     'puncts': puncts}
