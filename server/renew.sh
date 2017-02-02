@@ -3,8 +3,8 @@
 # code renewing from dev branch!
 cd /home/mprorp
 #C_FAKEFORK=1 sh -x /etc/init.d/celeryd stop
+/etc/init.d/celerybeat stop
 /etc/init.d/celeryd stop
-/etc/init.d/celeryd status
 rm -r mpro-rp-dev
 rm dev.zip
 wget https://github.com/data4society/mpro-rp/archive/dev.zip
@@ -20,5 +20,5 @@ if [ "$1" != "skip_time_test" ]; then
     su -c 'pm2 start all' - mpro
 fi
 /etc/init.d/celeryd start
-/etc/init.d/celeryd status
+/etc/init.d/celerybeat start
 echo "Renew code and restart system complete!"
