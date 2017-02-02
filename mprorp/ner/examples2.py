@@ -18,15 +18,15 @@ from mprorp.ner.tomita_to_markup import convert_tomita_result_to_markup
 # train_num = round(len(docs) * 0.8)
 # print(db.put_training_set(docs[:train_num]))
 # print(db.put_training_set(docs[train_num:len(docs)]))
-training_set = u'4fb42fd1-a0cf-4f39-9206-029255115d01'
-dev_set = u'f861ee9d-5973-460d-8f50-92fca9910345'
-
-print(len(db.get_set_docs(training_set)))
-print(len(db.get_set_docs(dev_set)))
+# training_set = u'4fb42fd1-a0cf-4f39-9206-029255115d01'
+# dev_set = u'f861ee9d-5973-460d-8f50-92fca9910345'
+#
+# print(len(db.get_set_docs(training_set)))
+# print(len(db.get_set_docs(dev_set)))
 #exit()
 # 2. morpho and other steps for docs from sets
-session = Driver.db_session()
-stop_lemmas = rb.get_stop_lemmas(training_set)
+# session = Driver.db_session()
+# stop_lemmas = rb.get_stop_lemmas(training_set)
 # n = 0
 # for set_doc in [training_set, dev_set]:
 #     for doc_id in db.get_set_docs(set_doc):
@@ -56,7 +56,7 @@ stop_lemmas = rb.get_stop_lemmas(training_set)
 #
 # 4. NER Learning
 #
-NER.NER_person_learning()
+# NER.NER_person_learning()
 
 # 5. NER + identification
 doc_id = u'414dc5e3-9508-4890-acf4-85277928097a'
@@ -65,9 +65,12 @@ doc_id = u'5fd76b1f-77d4-4451-9640-fd0981575960'
 # doc_id = u'679fe9e0-1581-453e-87cc-a124980c60c5'
 doc_id = u'38a20507-dd29-4c96-a419-aeae892c5d74'
 doc_id = u'888d310d-5e30-4d93-a987-16488010fb55'
+
+doc_id = 'f87ffa2b-17c2-4e19-8946-224bcdbef500'
 session = Driver.db_session()
 doc = session.query(Document).filter_by(doc_id=doc_id).first()
-# rb.morpho_doc(doc)
+rb.morpho_doc(doc)
+exit()
 # session.commit()
 #
 settings = [[home_dir + '/weights/ner_oc1.params', home_dir + '/weights/ner_oc1.weights'],

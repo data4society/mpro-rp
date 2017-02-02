@@ -40,16 +40,3 @@ def get_all_codes(tomita_out_file, original_text, tomita_path):
             fact['codes'] = get_codes_for_fact(fact, session)[0]
             out.append(fact)
     return out
-
-def pprint():
-    a = get_all_codes('facts.xml', 'text_no_n.txt')
-    for i in a:
-        print(i)
-        print(i['string'], len(i['codes'][0]))
-        if type(i['codes'][0][0]) == Entity:
-            for el in i['codes'][0]:
-                print("'" + str(el.external_data['kladr']) + "',")
-        else:
-            for el in i['codes'][0]:
-                print("'" + str(el.kladr_id) + "'")
-    print('========')

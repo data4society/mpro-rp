@@ -9,5 +9,7 @@ doc = session.query(Document).filter_by(doc_id='c8236b7e-b0a3-43c1-8601-cb57a055
 print(repr(doc.stripped))
 
 for gram in grammar_config:
+    print(gram)
     run_tomita2(gram, 'c8236b7e-b0a3-43c1-8601-cb57a055189d')
+    print('done ' + str(gram))
 
