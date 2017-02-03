@@ -61,6 +61,9 @@ class Config(object):
                               ['oc_span_post', 'oc_span_role', 'oc_span_status']]}
     learn_type = {'class': 4, 'tags': 1}
 
+    print_list = ['hidden_size', 'l2_embed', 'l2_2lay', 'window_size', 'batch_size', 'label_size',
+                  'max_epochs', 'early_stopping', 'dropout1', 'dropout2', 'lr', 'l2_feat']
+
     new_model = True
 
     embed_size = 1000
@@ -758,7 +761,9 @@ def NER_learning(filename_params, filename_tf, config=None):
     """
     if config is None:
         config = Config()
-    print(config)
+
+    for attr in config.print_list:
+        print(attr, getattr(config, attr))
     if not config.train_embedding:
         if not config.pre_embedding:
             raise Exception('Not train embedding allowed for pre-embedding only')
