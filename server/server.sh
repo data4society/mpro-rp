@@ -37,16 +37,21 @@ ln -s /etc/nginx/sites-available/flower /etc/nginx/sites-enabled/flower
 rm /etc/nginx/sites-enabled/default
 #service nginx reload
 # creating flower and celery daemons
-cp /home/mprorp/mpro-rp-dev/server/flowerd_init /etc/init.d/flowerd
 cp /home/mprorp/mpro-rp-dev/server/celeryd_init /etc/init.d/celeryd
-chmod 755 /etc/init.d/flowerd
+cp /home/mprorp/mpro-rp-dev/server/celerybeat_init /etc/init.d/celerybeat
+cp /home/mprorp/mpro-rp-dev/server/flowerd_init /etc/init.d/flowerd
 chmod 755 /etc/init.d/celeryd
-cp /home/mprorp/mpro-rp-dev/server/flowerd_default /etc/default/flowerd
+chmod 755 /etc/init.d/celerybeat
+chmod 755 /etc/init.d/flowerd
 cp /home/mprorp/mpro-rp-dev/server/celeryd_default /etc/default/celeryd
-chmod 644 /etc/default/flowerd
+cp /home/mprorp/mpro-rp-dev/server/celerybeat_default /etc/default/celerybeat
+cp /home/mprorp/mpro-rp-dev/server/flowerd_default /etc/default/flowerd
 chmod 644 /etc/default/celeryd
+chmod 644 /etc/default/celerybeat
+chmod 644 /etc/default/flowerd
 update-rc.d celeryd defaults 90
-update-rc.d flowerd defaults 91
+update-rc.d celerybeat defaults 91
+update-rc.d flowerd defaults 92
 # copy renew script to not renewing directory
 cp /home/mprorp/mpro-rp-dev/server/renew.sh /home/mprorp
 # run renew script:

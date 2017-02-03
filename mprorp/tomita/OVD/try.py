@@ -46,6 +46,12 @@ def try_norm_act():
             print(i.data['art'], i.data['part'])
         print('---------')
 
+def delition(entity_class):
+    a = session.query(Entity).filter(Entity.entity_class == entity_class).all()
+    print(len(a))
+    for entity in a:
+        db.delete_entity(entity.entity_id)
+
 #try_ovd(source_id='31ec2df6-df5c-ebfd-aebd-0b662cd02562')
 #f1()
 #print(session.query(Record).filter(Record.app_id == 'ovd_ideal', Record.document_id == '0c269563-5b0b-2695-a9f5-cdade7d2f3c8').all())
@@ -56,8 +62,5 @@ def try_norm_act():
 #new_entity = Entity(name='KOAP', entity_class='norm_act', data={'Matvey_try':1})
 #session.add(new_entity)
 #session.commit()
-#a = session.query(Entity).filter(Entity.entity_class == 'norm_act').all()
-#print(len(a))
-#for entity in a:
-#    db.delete_entity(entity.entity_id)
+delition('organization')
 
