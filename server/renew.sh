@@ -3,6 +3,9 @@
 # code renewing from dev branch!
 cd /home/mprorp
 stop celeryd
+sleep 3
+status celerybeat
+status flower
 rm -r mpro-rp-dev
 rm dev.zip
 wget https://github.com/data4society/mpro-rp/archive/dev.zip
@@ -16,5 +19,7 @@ if [ "$1" != "skip_time_test" ]; then
     su -c 'pm2 start all' - mpro
 fi
 start celeryd
+sleep 3
+status celerybeat
 status flower
 echo "Renew code and restart system complete!"
