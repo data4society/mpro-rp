@@ -53,9 +53,9 @@ def put_norm_act_new(path):
                     'part_text': line[3],
                     'puncts': puncts}
         if 'table2' not in path:
-            new_entity = Entity(name='KOAP', entity_class='norm_act', data=data)
+            new_entity = Entity(name='KOAP ' + line[0][:-1] + ' ' + line[2][:-1], entity_class='norm_act', data=data)
         else:
-            new_entity = Entity(name='UC', entity_class='norm_act', data=data)
+            new_entity = Entity(name='UC ' + line[0][:-1] + ' ' + line[2][:-1], entity_class='norm_act', data=data)
         session.add(new_entity)
         session.commit()
     print('Import DONE')
