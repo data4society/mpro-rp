@@ -1,6 +1,6 @@
 """start script for celery based running"""
 from celery import Celery
-import mprorp.celeryconfig as celeryconfig
+import mprorp.config.celeryconfig as celeryconfig
 
 from mprorp.db.dbDriver import *
 from mprorp.db.models import *
