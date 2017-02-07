@@ -51,6 +51,7 @@ def readability_and_meta(doc, session, html_source, countries):
     else:
         publisher = add_new_source(publisher_name)
         if publisher:
+            doc.publisher = publisher
             session.add(publisher)
     if countries and publisher and publisher.country not in countries:
         raise ValueError('Bad country')
