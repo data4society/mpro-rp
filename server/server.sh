@@ -46,7 +46,7 @@ chmod 644 /etc/init/flower.conf
 # update init configs
 # copy renew script to not renewing directory
 cp /home/mprorp/mpro-rp-dev/server/renew.sh /home/mprorp
-alias renew='sh /home/mprorp/renew.sh'
+echo "alias renew='bash /home/mprorp/renew.sh'" >> ~/.bashrc
 # run renew script:
 # renew or renew skip_time_test
 
