@@ -73,6 +73,7 @@ EMPTY_TEXT = 2000
 SHORT_LENGTH = 2002
 WITHOUT_RUBRICS = 2001
 BAD_COUNTRY = 2003
+SITE_PAGE_PARSE_FAILED = 2004
 
 mode_times = False
 cur_config = "last_config"
@@ -413,7 +414,7 @@ def regular_find_full_text(doc_id, new_status, **kwargs):
         if err_txt == 'Empty text':
             logging.error("Пустой текст doc_id: " + doc_id)
             new_status = EMPTY_TEXT
-        elif err_txt == 'Empty text':
+        elif err_txt == 'Bad country':
             logging.error("Плохая страна doc_id: " + doc_id)
             new_status = BAD_COUNTRY
         elif type(err) == HTTPError:
@@ -422,8 +423,8 @@ def regular_find_full_text(doc_id, new_status, **kwargs):
             logging.error("Ошибка загрузки код: " + str(err.code) + " doc_id: " + doc_id) # + " url: " + url)
         else:
             # print(url, type(err))
-            new_status = SITE_PAGE_LOADING_FAILED
-            logging.error("Неизвестная ошибка загрузки doc_id: " + doc_id + "url:" + doc.url)
+            new_status = SITE_PAGE_PARSE_FAILED
+            logging.error("Неизвестная ошибка парсинга doc_id: " + doc_id + "url:" + doc.url)
         print(err_txt)
     return set_doc(doc, new_status, session)
 

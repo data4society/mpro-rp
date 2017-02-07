@@ -132,7 +132,7 @@ if __name__ == '__main__':
             meta["publisher"] = {"name": 'test'}
             #meta["abstract"] = desc
             new_doc.meta = meta
-            readability_and_meta(new_doc, session, text)
+            readability_and_meta(new_doc, session, text, None)
             session.add(new_doc)
             session.commit()
             app_record = base_record.copy()
