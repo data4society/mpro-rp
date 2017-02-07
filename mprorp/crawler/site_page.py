@@ -9,21 +9,22 @@ import urllib.request
 import urllib.parse as urlparse
 
 from mprorp.crawler.utils import send_get_request
+from mprorp.data.ya_smi import add_new_source
 
 
 import logging
 logging.basicConfig(format = u'%(levelname)-8s [%(asctime)s] %(message)s', level = logging.DEBUG, filename = u'crawler_log.txt')
 
 
-def find_full_text(doc, session):
+def find_full_text(doc, session, countries):
     """finds full text for doc object by readability algorithm"""
     url = doc.url
     print('start grabbing ' + url)
     html_source = send_get_request(url, has_encoding=True, gen_useragent=True)# urllib.request.urlopen(url, timeout=10).read()
-    readability_and_meta(doc, session, html_source)
+    readability_and_meta(doc, session, html_source, countries)
 
 
-def readability_and_meta(doc, session, html_source):
+def readability_and_meta(doc, session, html_source, countries):
     url = doc.url
     meta = doc.meta
     #print(html_source.decode("utf-8"))
@@ -43,9 +44,16 @@ def readability_and_meta(doc, session, html_source):
     publisher_url = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_url)
     meta["publisher"]['url'] = publisher_url
     meta["page_meta"] = page_meta
-    publisher = session.query(Publisher).filter_by(name=doc.meta["publisher"]["name"]).options(load_only("pub_id")).first()
+    publisher_name = doc.meta["publisher"]["name"]
+    publisher = session.query(Publisher).filter_by(name=publisher_name).first()
     if publisher:
         doc.publisher_id = str(publisher.pub_id)
+    else:
+        publisher = add_new_source(publisher_name)
+        if publisher:
+            session.add(publisher)
+    if countries and publisher and publisher.country not in countries:
+        raise ValueError('Bad country')
 
     if stripped == '':
         raise ValueError('Empty text')

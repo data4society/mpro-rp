@@ -72,6 +72,7 @@ FOR_RUBRICS_TRAINING = 1200  # Normal documents from crawler that marked in reda
 EMPTY_TEXT = 2000
 SHORT_LENGTH = 2002
 WITHOUT_RUBRICS = 2001
+BAD_COUNTRY = 2003
 
 mode_times = False
 cur_config = "last_config"
@@ -86,7 +87,7 @@ def router(doc_id, app_id, status):
     apps_config = variable_get(cur_config)
     app_conf = apps_config[app_id]
     logging.info("route doc: " + str(doc_id) + " status: " + str(status) + " app_id: " + app_id)
-    if status in [SITE_PAGE_LOADING_FAILED, EMPTY_TEXT]:
+    if status in [SITE_PAGE_LOADING_FAILED, EMPTY_TEXT, BAD_COUNTRY]:
         return
     if status in [GOOGLE_NEWS_INIT_STATUS, GOOGLE_ALERTS_INIT_STATUS, YANDEX_NEWS_INIT_STATUS, YANDEX_RSS_INIT_STATUS, CSV_INIT_STATUS]:  # to find full text of HTML page
         regular_find_full_text.delay(doc_id, SITE_PAGE_COMPLETE_STATUS, app_id=app_id)
@@ -402,13 +403,19 @@ def regular_find_full_text(doc_id, new_status, **kwargs):
     """parsing HTML page to find full text"""
     session, doc = get_doc(doc_id)
     try:
-        find_full_text(doc, session)
+        apps_config = variable_get(cur_config,session)
+        app_id = kwargs["app_id"]
+        countries = apps_config[app_id]["countries"] if "countries" in apps_config[app_id] else None
+        find_full_text(doc, session, countries)
         flag_modified(doc, "meta")
     except Exception as err:
         err_txt = repr(err)
         if err_txt == 'Empty text':
             logging.error("Пустой текст doc_id: " + doc_id)
             new_status = EMPTY_TEXT
+        elif err_txt == 'Empty text':
+            logging.error("Плохая страна doc_id: " + doc_id)
+            new_status = BAD_COUNTRY
         elif type(err) == HTTPError:
             # print(url, err.code)
             new_status = SITE_PAGE_LOADING_FAILED

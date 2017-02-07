@@ -7,6 +7,8 @@ from mprorp.crawler.utils import send_get_request
 from lxml.html import document_fromstring
 import csv
 
+from mprorp.crawler.readability.readability_fusion import Document as Doc
+
 
 def ya_smi_import(file_in, file_out):
     with open(file_in, 'r') as f:
@@ -117,3 +119,76 @@ def ya_smi_import(file_in, file_out):
         session.commit()
         print(i)
         session.remove()
+
+
+def add_new_source(name):
+    url = 'https://news.yandex.ru/smi'
+    html_source = send_get_request(url, has_encoding=True, gen_useragent=True)
+    rf_doc = Doc(html_source)
+    print(rf_doc._html().xpath("//form[contains(@class, 'filters_at_smi')]"))
+    json_source = rf_doc._html().xpath("//form[contains(@class, 'filters_at_smi')]")[0].get('data-bem')
+    json_obj = json.loads(json_source)
+    filters = json_obj["filters"]
+    regions = filters["region"]["items"]
+    countryIds = filters["region"]["countryIds"]
+    countries = filters["region"]["countries"]
+    rubrics = filters["rubric"]["items"]
+    types = filters["type"]["items"]
+    smis = filters["agencies"]
+    i = 0
+    for smi_key in smis:
+        smi = smis[smi_key]
+        if smi["n"] == name:
+            pub = Publisher()
+            # print(smi)
+            meta = dict()
+            pub.name = smi["n"]
+            meta["ya_alias"] = smi["i"]
+            if smi["rg"] != "0":
+                pub.region = regions[smi["rg"]]
+                pub.country = countries[countryIds[smi["rg"]]]
+            if smi["rb"] in rubrics:
+                meta["rubric"] = rubrics[smi["rb"]]
+            if smi["t"] != "0":
+                meta["ya_type"] = types[smi["t"]]
+
+            url = "https://news.yandex.ru/smi/" + smi["i"]
+            html_source = send_get_request(url, has_encoding=True, gen_useragent=True)
+            doc = document_fromstring(html_source)
+            smi_div = doc.xpath("//dl[@class='smi__info']")[0]
+            elements = smi_div.xpath("//img[@class='image']")
+            if len(elements):
+                meta["logo"] = "https:" + elements[0].get("src")
+            elements = smi_div.xpath("//div[@class='smi__name']")
+            if len(elements):
+                meta["last"] = elements[0].text_content()
+            elements = smi_div.xpath("//dd[@class='smi__description']")
+            if len(elements):
+                pub.desc = elements[0].text_content()
+            elements = smi_div.xpath("//dd[@class='smi__chief-value']")
+            if len(elements):
+                meta["chief"] = elements[0].text_content()
+            elements = smi_div.xpath("//dd[@class='smi__address-value']")
+            if len(elements):
+                meta["address"] = elements[0].text_content()
+            elements = smi_div.xpath("//dd[@class='smi__phone-value']")
+            if len(elements):
+                meta["phone"] = elements[0].text_content()
+            elements = smi_div.xpath("//dd[@class='smi__website-value']")
+            if len(elements):
+                pub.site = elements[0].find("a").get("href")
+            elements = smi_div.xpath("//a[@itemprop='email']")
+            if len(elements):
+                meta["mail"] = elements[0].get("href").split(":")[1]
+            pub.meta = meta
+            pub.type = "ya_news"
+            print("ADD NEW SOURCE: "+name)
+            return pub
+    return False
+
+
+if __name__ == '__main__':
+    session = db_session()
+    pub = add_new_source("Ovdinfo.org")
+    print(pub)
+    session.add(pub)
