@@ -9,6 +9,7 @@ from mprorp.analyzer.db import *
 import re
 from mprorp.analyzer.f1_for_ovd import f1
 from mprorp.tomita.norm_act.global_identification import act_identification
+import os
 
 session = db_session()
 #object = session.query(Entity).filter(Entity.external_data['kladr'].astext == "77000000000062700").all()
@@ -46,7 +47,7 @@ def try_norm_act():
             print(i.data['art'], i.data['part'])
         print('---------')
 
-def delition(entity_class):
+def entity_delition(entity_class):
     a = session.query(Entity).filter(Entity.entity_class == entity_class).all()
     print(len(a))
     for entity in a:
@@ -54,6 +55,7 @@ def delition(entity_class):
 
 #try_ovd(source_id='31ec2df6-df5c-ebfd-aebd-0b662cd02562')
 #f1()
+#try_norm_act()
 #print(session.query(Record).filter(Record.app_id == 'ovd_ideal', Record.document_id == '0c269563-5b0b-2695-a9f5-cdade7d2f3c8').all())
 #print(session.query(Entity).filter(Entity.external_data['kladr'].astext == '61000001000031700').first().name)
 #a = get_ner_feature_dict('23d197c3-467e-49d8-8a07-5336ec2b18fe', 'fb8fc548-0464-40b7-a998-04a6e1b95eb6', 'Person')
@@ -62,5 +64,14 @@ def delition(entity_class):
 #new_entity = Entity(name='KOAP', entity_class='norm_act', data={'Matvey_try':1})
 #session.add(new_entity)
 #session.commit()
-delition('organization')
-
+#entity_delition('organization')
+#start_tomita('date.cxx', '000e82b8-6ea7-41f4-adc6-bc688fbbeeb6')
+#print(run_tomita2('date.cxx', 'c8236b7e-b0a3-43c1-8601-cb57a055189d', status=0))
+#print(run_tomita2('person.cxx', 'c8236b7e-b0a3-43c1-8601-cb57a055189d', status=0))
+#print(run_tomita2('loc.cxx', 'c8236b7e-b0a3-43c1-8601-cb57a055189d', status=0))
+#print(run_tomita2('ovd.cxx', 'c8236b7e-b0a3-43c1-8601-cb57a055189d', status=0))
+print(run_tomita2('norm_act.cxx', 'c8236b7e-b0a3-43c1-8601-cb57a055189d', status=0))
+#n = session.query(Entity).filter(Entity.entity_class == 'norm_act').all()
+#for a in n:
+#    a.name = a.name + ' ' + a.data['art'][:-1] + ' ' + a.data['part'][:-1]
+#session.commit()
