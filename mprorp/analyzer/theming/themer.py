@@ -396,18 +396,27 @@ def print_by_themes():
 
 def regular_themization(doc, session):
     # mystem.start()
-    app_id = doc.app_id
-    if THEMING_GEOMETRIA == "shar":
-        func = reg_theming_shar
-    if THEMING_SOURCE == "title":
-        func_source = main_words_by_title
-    if THEMING_SOURCE == "morpho":
-        func_source = main_words_by_morpho
-    if THEMING_SOURCE == "lemmas":
-        func_source = main_words_by_lemmas
-    if THEMING_SOURCE == "title_morpho":
-        func_source = main_words_by_title_and_morpho
-    func(doc, func_source, session)
+    meta = doc.meta
+    if "ya_theme" in meta:
+        same_theme_doc = session.query(Document).filter(Document.meta["ya_theme"].astext == meta["ya_theme"],Document.theme_id.isnot(None)).options(load_only("publisher_id")).first()
+        if same_theme_doc:
+            theme_id = str(same_theme_doc.same_theme_doc)
+            theme = session.query(Theme).filter_by(theme_id=theme_id).first()
+        theme.title = doc.title
+        theme.last_renew_time = doc.created
+        doc.theme = theme
+    else:
+        if THEMING_GEOMETRIA == "shar":
+            func = reg_theming_shar
+        if THEMING_SOURCE == "title":
+            func_source = main_words_by_title
+        if THEMING_SOURCE == "morpho":
+            func_source = main_words_by_morpho
+        if THEMING_SOURCE == "lemmas":
+            func_source = main_words_by_lemmas
+        if THEMING_SOURCE == "title_morpho":
+            func_source = main_words_by_title_and_morpho
+        func(doc, func_source, session)
 
 
 def mass_themization():
@@ -711,6 +720,11 @@ def idfs_clearing():
 
 
 if __name__ == "__main__":
+    session = db_session()
+    print(session.query(Document).filter(Document.meta["publisher"].astext == 'Ovdinfo.org').first().meta)
+    print(session.query(Document).filter(Document.meta["publisher"].astext == 'Ovdinfo.orgff').first())
+    print(str(session.query(Document).filter(Document.theme_id.isnot(None)).options(load_only("theme_id")).first().theme_id))
+    exit()
     #compute_idfs()
     #check_middle()
     #words_renew()

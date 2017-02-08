@@ -6,6 +6,7 @@ from mprorp.crawler.utils import send_get_request, check_url_with_blacklist
 import datetime
 import lxml.html
 import re
+import urllib.parse as urlparse
 
 
 def yn_start_parsing(source_user, blacklist, source_pass, app_id, session):
@@ -60,6 +61,12 @@ def parse_yn_item(item, blacklist, app_id, session, docs, guids):
     date = datetime.datetime.strptime(date, "%d.%m.%Y - %H:%M")
     desc = item.find("p").text_content()
     desc = re.sub(r'(\r\n|\n|\r)+', ' ', desc)
+
+    small = item.find("small")
+    small_a = small.find("a")
+    data_v_dir_href = small_a.get("data-vdir-href")
+    ya_theme = urlparse.parse_qs(urlparse.urlparse(data_v_dir_href).query)['h'][0]
+
     #print(url)
     #print(publisher)
     #print(date)
@@ -75,6 +82,7 @@ def parse_yn_item(item, blacklist, app_id, session, docs, guids):
         meta = dict()
         meta["publisher"] = {"name": publisher}
         meta["abstract"] = desc
+        meta["ya_theme"] = ya_theme
         new_doc.meta = meta
 
         session.add(new_doc)
