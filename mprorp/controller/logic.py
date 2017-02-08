@@ -88,7 +88,7 @@ def router(doc_id, app_id, status):
     apps_config = variable_get(cur_config)
     app_conf = apps_config[app_id]
     logging.info("route doc: " + str(doc_id) + " status: " + str(status) + " app_id: " + app_id)
-    if status in [SITE_PAGE_LOADING_FAILED, EMPTY_TEXT, BAD_COUNTRY]:
+    if status in [SITE_PAGE_LOADING_FAILED, EMPTY_TEXT, BAD_COUNTRY, SITE_PAGE_PARSE_FAILED]:
         return
     if status in [GOOGLE_NEWS_INIT_STATUS, GOOGLE_ALERTS_INIT_STATUS, YANDEX_NEWS_INIT_STATUS, YANDEX_RSS_INIT_STATUS, CSV_INIT_STATUS]:  # to find full text of HTML page
         regular_find_full_text.delay(doc_id, SITE_PAGE_COMPLETE_STATUS, app_id=app_id)
@@ -410,18 +410,24 @@ def regular_find_full_text(doc_id, new_status, **kwargs):
         find_full_text(doc, session, countries)
         flag_modified(doc, "meta")
     except Exception as err:
-        err_txt = repr(err)
-        if err_txt == 'Empty text':
-            logging.error("Пустой текст doc_id: " + doc_id)
-            new_status = EMPTY_TEXT
-        elif err_txt == 'Bad country':
-            logging.error("Плохая страна doc_id: " + doc_id)
-            new_status = BAD_COUNTRY
-        elif type(err) == HTTPError:
+        err_txt = str(err)
+        err_type = type(err)
+        error_found = False
+        if err_type == ValueError:
+            if err_txt == 'Empty text':
+                logging.error("Пустой текст doc_id: " + doc_id)
+                new_status = EMPTY_TEXT
+                error_found = True
+            elif err_txt == 'Bad country':
+                logging.error("Плохая страна doc_id: " + doc_id)
+                new_status = BAD_COUNTRY
+                error_found = True
+        elif err_type == HTTPError:
             # print(url, err.code)
             new_status = SITE_PAGE_LOADING_FAILED
-            logging.error("Ошибка загрузки код: " + str(err.code) + " doc_id: " + doc_id) # + " url: " + url)
-        else:
+            logging.error("Ошибка загрузки код: " + str(err.code) + " doc_id: " + doc_id)  # + " url: " + url)
+            error_found = True
+        if not error_found:
             # print(url, type(err))
             new_status = SITE_PAGE_PARSE_FAILED
             logging.error("Неизвестная ошибка парсинга doc_id: " + doc_id + "url:" + doc.url)
