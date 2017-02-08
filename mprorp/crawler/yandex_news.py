@@ -62,12 +62,6 @@ def parse_yn_item(item, blacklist, app_id, session, docs, guids):
     desc = item.find("p").text_content()
     desc = re.sub(r'(\r\n|\n|\r)+', ' ', desc)
 
-    small = item.find("small")
-    small_a = small.find("a")
-    #data_v_dir_href = small_a.get("data-vdir-href")
-    #ya_theme = urlparse.parse_qs(urlparse.urlparse(data_v_dir_href).query)['h'][0]
-    small_href = small_a.get("href")
-    ya_theme = small_href[:small_href.find('&')]
 
     #print(url)
     #print(publisher)
@@ -84,7 +78,16 @@ def parse_yn_item(item, blacklist, app_id, session, docs, guids):
         meta = dict()
         meta["publisher"] = {"name": publisher}
         meta["abstract"] = desc
-        meta["ya_theme"] = ya_theme
+
+        small = item.find("small")
+        if small:
+            small_a = small.find("a")
+            #data_v_dir_href = small_a.get("data-vdir-href")
+            #ya_theme = urlparse.parse_qs(urlparse.urlparse(data_v_dir_href).query)['h'][0]
+            small_href = small_a.get("href")
+            ya_theme = small_href[:small_href.find('&')]
+            meta["ya_theme"] = ya_theme
+
         new_doc.meta = meta
 
         session.add(new_doc)
