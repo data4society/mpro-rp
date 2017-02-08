@@ -542,7 +542,7 @@ def regular_theming(doc_id, new_status, **kwargs):
 
 
 #@app.task(ignore_result=True)
-@app.task()
+@app.task(time_limit=190, soft_time_limit=180)
 def tomita_entities(grammars_of_tomita_classes, doc_id, new_status, **kwargs):
     """
     grammars_of_tomita_classes = ['loc.cxx', 'org.cxx', 'norm_act.cxx']
