@@ -64,8 +64,10 @@ def parse_yn_item(item, blacklist, app_id, session, docs, guids):
 
     small = item.find("small")
     small_a = small.find("a")
-    data_v_dir_href = small_a.get("data-vdir-href")
-    ya_theme = urlparse.parse_qs(urlparse.urlparse(data_v_dir_href).query)['h'][0]
+    #data_v_dir_href = small_a.get("data-vdir-href")
+    #ya_theme = urlparse.parse_qs(urlparse.urlparse(data_v_dir_href).query)['h'][0]
+    small_href = small_a.get("href")
+    ya_theme = small_href[:small_href.find('&')]
 
     #print(url)
     #print(publisher)
