@@ -176,8 +176,6 @@ def norm_out(arr, source_name, tomita_path):
         #print('string in original text: ' + s[first_symbol + len_of_line:last_symbol + len_of_line])
         if arr[act] != []:
             out[symbols] = str(arr[act][0].entity_id).replace("UUID('", '').replace("')", '')
-        else:
-            out[symbols] = ''
         source = source[last_symbol:]
         len_of_line += last_symbol
     return out

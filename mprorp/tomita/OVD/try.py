@@ -16,13 +16,8 @@ session = db_session()
 #!!!!ЗАНЧЕНИЯ КЛЮЧА РАВНО ... a = session.query(Entity).filter(Entity.data["jurisdiction"].astext == mvd_root).all()
 #!!!!СТРОКА СОДЕРЖИТ СТРОКУ a = session.query(Document).filter(Document.stripped.contains('отдел полиции №3')).all()
 
-def try_ovd(source_id=None):
-    doc = session.query(Record).filter(Record.document_id == source_id).first()
-    doc_id = doc.source
-    url = doc.url
-    ideal_id = re.findall('documentId=(.*?),app=ovd_ideal', url)[0]
+def try_ovd(doc_id):
     a = session.query(Document).filter(Document.doc_id == doc_id).all()
-    print(a[0].doc_id)
     out = run_tomita(a[0], 'ovd.cxx')
     print(out)
     if out == {}:
@@ -31,8 +26,6 @@ def try_ovd(source_id=None):
         for i in out:
             ovd = session.query(Entity).filter(Entity.entity_id == out[i]).first()
             print(out[i], ovd.name, ovd.external_data['kladr'])
-    print('\noriginal')
-    print(session.query(Record).filter(Record.app_id == 'ovd_ideal', Record.document_id == ideal_id).first().entities)
 
 def try_norm_act(source_id):
     doc = session.query(Record).filter(Record.document_id == source_id).first()
@@ -57,9 +50,9 @@ def add_norm_act(norm_act):
     session.add(norm_act)
     session.commit()
 
-#try_ovd(source_id='31ec2df6-df5c-ebfd-aebd-0b662cd02562')
+#try_ovd('7a711bb1-08ab-473d-b37d-d126dc887c9a')
 #f1()
-try_norm_act('8b1b8e4a-a9c7-e9ca-b10a-865e909103b1')
+try_norm_act('57387a59-3c34-e32c-1bbf-6ed31f0bcb28  ')
 #doc = session.query(Document).filter(Document.doc_id == '6e5dad1a-ff04-4ba4-9b17-2d3bd5e75d14').first()
 #print(session.query(Record).filter(Record.app_id == 'ovd_ideal', Record.document_id == '0c269563-5b0b-2695-a9f5-cdade7d2f3c8').all())
 #print(session.query(Entity).filter(Entity.external_data['kladr'].astext == '61000001000031700').first().name)
