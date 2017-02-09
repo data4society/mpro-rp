@@ -24,6 +24,7 @@ def try_ovd(source_id=None):
     a = session.query(Document).filter(Document.doc_id == doc_id).all()
     print(a[0].doc_id)
     out = run_tomita(a[0], 'ovd.cxx')
+    print(out)
     if out == {}:
         print('No OVD')
     else:
