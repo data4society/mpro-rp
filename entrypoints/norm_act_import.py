@@ -7,6 +7,8 @@ koap_file_path = home_dir + '/norm_act/table.csv'
 uc_file_path = home_dir + '/norm_act/table2.csv'
 koap_file_path_new = home_dir + '/norm_act/table_new.csv'
 uc_file_path_new = home_dir + '/norm_act/table2_new.csv'
+koap_file_path_only_arts = home_dir + '/norm_act/table_only_arts.csv'
+uc_file_path_only_arts = home_dir + '/norm_act/table2_only_arts.csv'
 
 
 def put_norm_act(path):
@@ -53,12 +55,32 @@ def put_norm_act_new(path):
                     'part_text': line[3],
                     'puncts': puncts}
         if 'table2' not in path:
-            new_entity = Entity(name='KOAP ' + line[0][:-1] + ' ' + line[2][:-1], entity_class='norm_act', data=data)
+            new_entity = Entity(name='KOAP ' + line[0] + ' ' + line[2], entity_class='norm_act', data=data)
         else:
-            new_entity = Entity(name='UC ' + line[0][:-1] + ' ' + line[2][:-1], entity_class='norm_act', data=data)
+            new_entity = Entity(name='UC ' + line[0] + ' ' + line[2], entity_class='norm_act', data=data)
+        session.add(new_entity)
+        session.commit()
+    print('Import DONE')
+
+def put_norm_act_only_art(path):
+    session = db_session()
+    f = open(path, 'r', encoding='utf-8')
+    print('Import START')
+    for line in f:
+        line = line.strip()
+        line = line.split('@@')
+        data = {'art': line[0],
+                'art_name': line[1],
+                'art_text': line[2]}
+        if 'table2' not in path:
+            new_entity = Entity(name='KOAP ' + line[0], entity_class='norm_act', data=data)
+        else:
+            new_entity = Entity(name='UC ' + line[0], entity_class='norm_act', data=data)
         session.add(new_entity)
         session.commit()
     print('Import DONE')
 
 put_norm_act_new(koap_file_path_new)
 put_norm_act_new(uc_file_path_new)
+put_norm_act_only_art(uc_file_path_only_arts)
+put_norm_act_only_art(koap_file_path_only_arts)

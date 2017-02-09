@@ -6,6 +6,7 @@ from mprorp.tomita.tomita_out import tomita_out, norm_out, find_act, clean_act
 from mprorp.tomita.tomita_start import start_tomita, create_file
 from mprorp.tomita.tomita_run_ovd import run_tomita_ovd, only_russia
 from mprorp.utils import home_dir
+from mprorp.tomita.norm_act.global_identification import act_identification
 
 
 def del_files(doc_id, tomita_path):
@@ -28,7 +29,10 @@ def run_tomita(doc, grammar, session=None, commit_session=True):
         tomita_path = home_dir + '/tomita/tomita-parser-master/build/bin'
         source_name = create_file(doc, tomita_path)
         out = find_act(source_name, tomita_path)
+        print(out)
         out = clean_act(out)
+        print(out)
+        out = act_identification(out)
         out = norm_out(out, source_name, tomita_path)
         db.put_tomita_result(str(doc.doc_id), grammar, out, session, commit_session)
         file_name1 = str(doc.doc_id) + '.txt'
