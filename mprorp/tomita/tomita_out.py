@@ -117,13 +117,13 @@ def find_act(file_name, tomita_path):
     numb = '(\d[\d\.]*)'
 
     part = '((ч\.|част[а-я]*) ?' + numb + ')'
-    parts = '(' + part + '.*?)'
+    parts = '(' + part + '.{0,30}?)'
 
     article = '((ст\.|стать[а-я]*) ?' + numb + ')'
-    articles = '(' + article + '.*?)'
+    articles = '(' + article + '.{0,30}?)'
 
     paragraph = '((п\.|пункт[а-я]*) ?' + numb + ')'
-    paragraphs = '(' + paragraph + '.*?)'
+    paragraphs = '(' + paragraph + '.{0,30}?)'
 
     KK = '( УК[ \.,]|КоАП|УПК|КОАП|[Уу]головн.*? [Кк]одекс.?|[Кк]одекс.*? об административных правонарушениях)'
     string = re.sub(KK, '\\1@#@', string)
@@ -170,10 +170,11 @@ def norm_out(arr, source_name, tomita_path):
     out = {}
     len_of_line = 0
     for act in arr:
+        print(act)
         first_symbol = source.find(act)
         last_symbol = first_symbol + len(act)
         symbols = str(first_symbol + len_of_line) + ':' + str(last_symbol + len_of_line)
-        #print('string in original text: ' + s[first_symbol + len_of_line:last_symbol + len_of_line])
+        print('string in original text: ' + s[first_symbol + len_of_line:last_symbol + len_of_line])
         if arr[act] != []:
             out[symbols] = str(arr[act][0].entity_id).replace("UUID('", '').replace("')", '')
         source = source[last_symbol:]
