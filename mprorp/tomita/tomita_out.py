@@ -125,14 +125,13 @@ def find_act(file_name, tomita_path):
     paragraph = '((п\.|пункт[а-я]*) ?' + numb + ')'
     paragraphs = '(' + paragraph + '.*?)'
 
-    KK = '( УК[ \.,]|КоАП|УПК|КОАП|[Уу]головн.*? [Кк]одекс.?)'
+    KK = '( УК[ \.,]|КоАП|УПК|КОАП|[Уу]головн.*? [Кк]одекс.?|[Кк]одекс.*? об административных правонарушениях)'
     string = re.sub(KK, '\\1@#@', string)
     strings = string.split('@#@')
 
     pap = '(' + parts + '|' + articles + '|' + paragraphs + ')'
 
     norm_act_all = '(' + pap + '*' + KK + ')'
-    print(norm_act_all)
     out = []
     for line in strings:
         norm_act = re.findall(norm_act_all, line)
@@ -174,8 +173,11 @@ def norm_out(arr, source_name, tomita_path):
         first_symbol = source.find(act)
         last_symbol = first_symbol + len(act)
         symbols = str(first_symbol + len_of_line) + ':' + str(last_symbol + len_of_line)
-        print('string in original text: ' + s[first_symbol + len_of_line:last_symbol + len_of_line])
-        out[symbols] = 'Norm'
+        #print('string in original text: ' + s[first_symbol + len_of_line:last_symbol + len_of_line])
+        if arr[act] != []:
+            out[symbols] = str(arr[act][0].entity_id).replace("UUID('", '').replace("')", '')
+        else:
+            out[symbols] = ''
         source = source[last_symbol:]
         len_of_line += last_symbol
     return out

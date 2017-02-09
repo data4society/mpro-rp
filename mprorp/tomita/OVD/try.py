@@ -33,18 +33,17 @@ def try_ovd(source_id=None):
     print('\noriginal')
     print(session.query(Record).filter(Record.app_id == 'ovd_ideal', Record.document_id == ideal_id).first().entities)
 
-def try_norm_act():
-    acts = ['ч. 2 ст. 14.7. (Умышленное убийство) КоАП',
-            'ч. 5 ст. 19.30. КоАП',
-            'ч. 2 ст. 23.24.1 и ч. 2.7 ст. 19.5 КОАП']
-    a = clean_act(acts)
-    print(a)
-    b = act_identification(a)
+def try_norm_act(source_id):
+    doc = session.query(Record).filter(Record.document_id == source_id).first()
+    doc_id = doc.source
+    a = session.query(Document).filter(Document.doc_id == doc_id).first()
+    print(a.doc_id)
+    b = run_tomita(a, 'norm_act.cxx')
     print(b)
+    print('---------')
     for i in b:
-        print(i)
-        for i in b[i]:
-            print(i.data['art'], i.data['part'])
+        act = session.query(Entity).filter(Entity.entity_id == b[i]).first()
+        print(act.name)
         print('---------')
 
 def entity_delition(entity_class):
@@ -53,9 +52,14 @@ def entity_delition(entity_class):
     for entity in a:
         db.delete_entity(entity.entity_id)
 
+def add_norm_act(norm_act):
+    session.add(norm_act)
+    session.commit()
+
 #try_ovd(source_id='31ec2df6-df5c-ebfd-aebd-0b662cd02562')
 #f1()
-#try_norm_act()
+try_norm_act('8b1b8e4a-a9c7-e9ca-b10a-865e909103b1')
+#doc = session.query(Document).filter(Document.doc_id == '6e5dad1a-ff04-4ba4-9b17-2d3bd5e75d14').first()
 #print(session.query(Record).filter(Record.app_id == 'ovd_ideal', Record.document_id == '0c269563-5b0b-2695-a9f5-cdade7d2f3c8').all())
 #print(session.query(Entity).filter(Entity.external_data['kladr'].astext == '61000001000031700').first().name)
 #a = get_ner_feature_dict('23d197c3-467e-49d8-8a07-5336ec2b18fe', 'fb8fc548-0464-40b7-a998-04a6e1b95eb6', 'Person')
@@ -64,13 +68,13 @@ def entity_delition(entity_class):
 #new_entity = Entity(name='KOAP', entity_class='norm_act', data={'Matvey_try':1})
 #session.add(new_entity)
 #session.commit()
-#entity_delition('organization')
+#entity_delition('norm_act')
 #start_tomita('date.cxx', '000e82b8-6ea7-41f4-adc6-bc688fbbeeb6')
 #print(run_tomita2('date.cxx', 'c8236b7e-b0a3-43c1-8601-cb57a055189d', status=0))
 #print(run_tomita2('person.cxx', 'c8236b7e-b0a3-43c1-8601-cb57a055189d', status=0))
 #print(run_tomita2('loc.cxx', 'c8236b7e-b0a3-43c1-8601-cb57a055189d', status=0))
 #print(run_tomita2('ovd.cxx', 'c8236b7e-b0a3-43c1-8601-cb57a055189d', status=0))
-print(run_tomita2('norm_act.cxx', 'c8236b7e-b0a3-43c1-8601-cb57a055189d', status=0))
+#print(run_tomita2('norm_act.cxx', 'c8236b7e-b0a3-43c1-8601-cb57a055189d', status=0))
 #n = session.query(Entity).filter(Entity.entity_class == 'norm_act').all()
 #for a in n:
 #    a.name = a.name + ' ' + a.data['art'][:-1] + ' ' + a.data['part'][:-1]
