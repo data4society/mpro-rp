@@ -44,6 +44,9 @@ def find_human(label, language = 'ru'):
     return humans
 
 
+def find_loc(label, language = 'ru'):
+    return []
+
 def is_given_name(label,  language = 'ru'):
     query = '''PREFIX wikibase: <http://wikiba.se/ontology#>
         PREFIX wd: <http://www.wikidata.org/entity/>
