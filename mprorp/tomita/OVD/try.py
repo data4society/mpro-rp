@@ -52,7 +52,7 @@ def add_norm_act(norm_act):
 
 #try_ovd('7a711bb1-08ab-473d-b37d-d126dc887c9a')
 #f1()
-try_norm_act('566dd823-8964-b692-21fd-836a03258186')
+try_norm_act('293573c5-7d82-fbdb-c88d-7dfa4ecd25f7')
 #doc = session.query(Document).filter(Document.doc_id == '6e5dad1a-ff04-4ba4-9b17-2d3bd5e75d14').first()
 #print(session.query(Record).filter(Record.app_id == 'ovd_ideal', Record.document_id == '0c269563-5b0b-2695-a9f5-cdade7d2f3c8').all())
 #print(session.query(Entity).filter(Entity.external_data['kladr'].astext == '61000001000031700').first().name)
