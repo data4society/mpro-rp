@@ -403,7 +403,7 @@ def get_ner_feature_for_features(doc_id, feature_type, features, session=None):
 
     result = []
     for rec in query_result:
-        result.append((rec.sentence_index, rec.word_index, rec.feature))
+        result.append((rec.sentence_index, rec.word_index, rec.feature, rec.value))
 
     return result
 
