@@ -400,9 +400,9 @@ def regular_themization(doc, session):
     if "ya_theme" in meta:
         theme = None
         if meta["ya_theme"]:
-            same_theme_doc = session.query(Document).filter(Document.meta["ya_theme"].astext == meta["ya_theme"],Document.theme_id.isnot(None)).options(load_only("publisher_id")).first()
+            same_theme_doc = session.query(Document).filter(Document.meta["ya_theme"].astext == meta["ya_theme"],Document.theme_id.isnot(None)).options(load_only("theme_id")).first()
             if same_theme_doc:
-                theme_id = str(same_theme_doc.same_theme_doc)
+                theme_id = str(same_theme_doc.theme_id)
                 theme = session.query(Theme).filter_by(theme_id=theme_id).first()
         if theme is None:
             theme = Theme()
