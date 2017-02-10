@@ -39,6 +39,7 @@ def try_norm_act(source_id):
         act = session.query(Entity).filter(Entity.entity_id == b[i]).first()
         print(act.name)
         print('---------')
+    print(doc.entities)
 
 def entity_delition(entity_class):
     a = session.query(Entity).filter(Entity.entity_class == entity_class).all()

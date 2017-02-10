@@ -125,7 +125,7 @@ def find_act(file_name, tomita_path):
     paragraph = '((п\.|пункт[а-яё]*) ?' + numb + ')'
     paragraphs = '(' + paragraph + '.{0,100}?)'
 
-    KK = '( УК[ \.,]|КоАП|УПК|КОАП|[Уу]головн.*? [Кк]одекс.?|[Кк]одекс.*? об административных правонарушениях)'
+    KK = '( УК[ \.,]|КоАП|УПК|КОАП|[Уу]головн[а-я]*? [Кк]одекс.?|[Кк]одекс[а-я]*? об административных правонарушениях)'
     string = re.sub(KK, '\\1@#@', string)
     strings = string.split('@#@')
 
@@ -152,7 +152,7 @@ def clean_act(acts):
         actn = re.sub(article, 'a_\\3_', actn)
         actn = re.sub(paragraph, 'f_\\3_', actn)
         actn = re.sub('(УК|УПК|[Уу]головного [Кк]одекса)', 'k_KK_', actn)
-        actn = re.sub('(КоАП|КОАП)', 'k_KOAP_', actn)
+        actn = re.sub('(КоАП|КОАП|[Кк]одекс[а-я]*? об административных правонарушениях)', 'k_KOAP_', actn)
         actn = re.sub('[ ,]', 's_s_', actn)
         actn = re.findall('[a-z]_.*?_', actn)
         line = ''
@@ -174,7 +174,7 @@ def norm_out(arr, source_name, tomita_path, order):
         first_symbol = source.find(act)
         last_symbol = first_symbol + len(act)
         symbols = str(first_symbol + len_of_line) + ':' + str(last_symbol + len_of_line)
-        print('string in original text: ' + s[first_symbol + len_of_line:last_symbol + len_of_line])
+        #print('string in original text: ' + s[first_symbol + len_of_line:last_symbol + len_of_line])
         if arr[act] != []:
             out[symbols] = str(arr[act][0].entity_id).replace("UUID('", '').replace("')", '')
         source = source[last_symbol:]
