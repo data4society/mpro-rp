@@ -402,6 +402,9 @@ def regular_themization(doc, session):
         if same_theme_doc:
             theme_id = str(same_theme_doc.same_theme_doc)
             theme = session.query(Theme).filter_by(theme_id=theme_id).first()
+        else:
+            theme = Theme()
+            session.add(theme)
         theme.title = doc.title
         theme.last_renew_time = doc.created
         doc.theme = theme
