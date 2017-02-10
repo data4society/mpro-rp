@@ -87,6 +87,8 @@ def parse_yn_item(item, blacklist, app_id, session, docs, guids):
             small_href = small_a.get("href")
             ya_theme = small_href[:small_href.find('&')]
             meta["ya_theme"] = ya_theme
+        else :
+            meta["ya_theme"] = ''
 
         new_doc.meta = meta
 

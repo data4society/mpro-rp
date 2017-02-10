@@ -398,11 +398,13 @@ def regular_themization(doc, session):
     # mystem.start()
     meta = doc.meta
     if "ya_theme" in meta:
-        same_theme_doc = session.query(Document).filter(Document.meta["ya_theme"].astext == meta["ya_theme"],Document.theme_id.isnot(None)).options(load_only("publisher_id")).first()
-        if same_theme_doc:
-            theme_id = str(same_theme_doc.same_theme_doc)
-            theme = session.query(Theme).filter_by(theme_id=theme_id).first()
-        else:
+        theme = None
+        if meta["ya_theme"]:
+            same_theme_doc = session.query(Document).filter(Document.meta["ya_theme"].astext == meta["ya_theme"],Document.theme_id.isnot(None)).options(load_only("publisher_id")).first()
+            if same_theme_doc:
+                theme_id = str(same_theme_doc.same_theme_doc)
+                theme = session.query(Theme).filter_by(theme_id=theme_id).first()
+        if theme is None:
             theme = Theme()
             session.add(theme)
         theme.title = doc.title
