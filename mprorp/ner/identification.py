@@ -387,7 +387,7 @@ def create_markup_regular(doc, markup_settings, session=None, commit_session=Tru
     refs = []
     classes = set()
     for ref_settings in settings_list:
-        if ref_settings['identification_type'] == 1:
+        if ref_settings['identification_type'] == 1 or ref_settings['identification_type'] == 2:
             create_refs(doc, ref_settings, refs, session, commit_session, verbose)
             classes.add(ref_settings['learn_class'])
 
@@ -457,13 +457,20 @@ def create_refs(doc, refs_settings, refs, session=None, commit_session=True, ver
 
     tag_type = refs_settings['tag_type']
     learn_class = refs_settings['learn_class']
-    feature_type = feature.ner_feature_types[learn_class + '_predictions']
+    identification_type = refs_settings['identification_type']
+    if identification_type == 2:
+        feature_type = feature.ner_feature_types['tomita']
+    else:
+        feature_type = feature.ner_feature_types[learn_class + '_predictions']
     create_new_entities = refs_settings.get('create_new_entities', False)
     create_wiki_entities = refs_settings.get('create_wiki_entities', True)
     # дополнительные условия, которые налагаются при поиске в нашей базе
     add_conditions = refs_settings.get('add_conditions', None)
 
-    features = [learn_class + '_' + i for i in tag_type]
+    if identification_type == 2:
+        features = tag_type
+    else:
+        features = [learn_class + '_' + i for i in tag_type]
 
     # Получим свойства слов документа из БД
     doc_properties = db.get_ner_feature_for_features(doc.doc_id, feature_type, features, session)
@@ -483,7 +490,10 @@ def create_refs(doc, refs_settings, refs, session=None, commit_session=True, ver
     # являются остальные токены упоминаний.
     # Нет. Собирать токены смысла нет. Т.к. не всегда это слово целиком. Лучше потом полученную метку разрезать по пробелам
     # Но, что следует собрать - это информацию о том, является ли слово Фамилией, Отчеством или Именем по мнению mystem
-    mentions, labels, labels_from_text = form_mentions_BS_IE(doc_properties, doc_properties_info, learn_class)
+    if identification_type == 2:
+        mentions, labels, labels_from_text = form_mentions_tomita(doc_properties, doc_properties_info, learn_class)
+    else:
+        mentions, labels, labels_from_text = form_mentions_BS_IE(doc_properties, doc_properties_info, learn_class)
     if verbose:
         print('mentions: ', mentions)
         print('Labels: ', labels)
@@ -542,11 +552,15 @@ def create_refs(doc, refs_settings, refs, session=None, commit_session=True, ver
                         # Это инициал, который ни с чем не "склеился"
                         continue
                     # if wiki_search.is_given_name(l):
-                    if db.is_name(l):
-                        # Это просто имя - такое как
-                        # Алексей, Татьяна
-                        continue
-                    wiki_ids_l = wiki_search.find_human(l)
+                    if learn_class == 'name':
+                        if db.is_name(l):
+                            # Это просто имя - такое как
+                            # Алексей, Татьяна
+                            continue
+                        wiki_ids_l = wiki_search.find_human(l)
+                    else:
+                        wiki_ids_l = wiki_search.find_loc(l)
+
                     for elem in wiki_ids_l:
                         found_items[elem['id']] = elem
                         best_label = l
@@ -590,33 +604,41 @@ def create_refs(doc, refs_settings, refs, session=None, commit_session=True, ver
         # Создадим сущности для всего, что попалось под руку
         for i in range(len(main_class)):
             if main_class[i] and mentions_id[i] is None:
-                # data = {'labels': labels_lists[i]}
-                fio = names[i].split(' ')
-                isname = []
-                for count in len(fio):
-                    isname.append(db.is_name(fio[count]))
-                fio_name = ''
-                fio_fam = ''
-                if isname[0]:
-                    count = 0
-                    while (count < len(fio)) and isname[count]:
-                        fio_name += fio[count] + ' '
-                        count += 1
-                    while (count < len(fio)):
-                        fio_fam += fio[count] + ' '
-                        count += 1
-                else:
-                    while (count < len(fio)) and not isname[count]:
-                        fio_fam += fio[count] + ' '
-                        count += 1
-                    while (count < len(fio)):
-                        fio_name += fio[count] + ' '
-                        count += 1
-
+                if learn_class == 'name':
+                    # data = {'labels': labels_lists[i]}
+                    fio = names[i].split(' ')
+                    isname = []
+                    for count in len(fio):
+                        isname.append(db.is_name(fio[count]))
+                    fio_name = ''
+                    fio_fam = ''
+                    if isname[0]:
+                        count = 0
+                        while (count < len(fio)) and isname[count]:
+                            fio_name += fio[count] + ' '
+                            count += 1
+                        while (count < len(fio)):
+                            fio_fam += fio[count] + ' '
+                            count += 1
+                    else:
+                        while (count < len(fio)) and not isname[count]:
+                            fio_fam += fio[count] + ' '
+                            count += 1
+                        while (count < len(fio)):
+                            fio_name += fio[count] + ' '
+                            count += 1
+                    data = {'firstname': fio_name, 'lastname': fio_fam}
+                    entity_class = 'person'
+                elif learn_class == 'loc':
+                    entity_class = 'location'
+                    data = {}
+                elif learn_class == 'org':
+                    entity_class = 'organisation'
+                    data = {}
                 if verbose:
-                    print('data', {'firstname': fio_name, 'lastname': fio_fam})
+                    print('data', data)
 
-                mentions_id[i] = db.put_entity(names[i], 'person', data={'firstname': fio_name, 'lastname': fio_fam},
+                mentions_id[i] = db.put_entity(names[i], entity_class, data=data,
                                                labels=labels_lists[i],
                                                session=session, commit_session=commit_session)
 
@@ -841,6 +863,48 @@ def form_mentions_BS_IE(doc_properties, doc_properties_info, learn_class):
         word_label = get_label_from_prop_info(doc_properties_info[word])
         text_label = doc_properties_info[word]['text'] + (' ' if doc_properties_info[word]['next_one_is_space'] else '')
         if word[0] == last_sent and word[1] == last_word + 1 and word[2] == learn_class + '_IE':
+            mention.append(word)
+            # token.append({'text': text_label, 'word': word_label})
+            label = label + word_label
+            text = text + text_label
+        else:
+            if len(mention) != 0:
+                mentions.append(mention)
+                # tokens.append(token)
+                labels.append(label.strip())
+                texts.append(text.strip())
+            mention = [word]
+            # word_label.strip()
+            # text_label.strip()
+            # token = [{'text': text_label, 'word': word_label}]
+            label = word_label
+            text = text_label
+        last_sent = word[0]
+        last_word = word[1]
+    if len(mention):
+        mentions.append(mention)
+        # tokens.append(token)
+        labels.append(label.strip())
+        texts.append(text.strip())
+    return mentions, labels, texts
+
+
+def form_mentions_tomita(doc_properties, doc_properties_info, learn_class):
+    mentions = []
+    labels = []
+    texts = []
+    # tokens =[]
+    # token = []
+    mention = []
+    label = ''
+    last_sent = -1
+    last_word = -1
+    text = ''
+
+    for word in doc_properties:
+        word_label = get_label_from_prop_info(doc_properties_info[word])
+        text_label = doc_properties_info[word]['text'] + (' ' if doc_properties_info[word]['next_one_is_space'] else '')
+        if word[0] == last_sent and word[1] == last_word + 1 and word[3][1] == 1 or word[3][2] == 1:
             mention.append(word)
             # token.append({'text': text_label, 'word': word_label})
             label = label + word_label

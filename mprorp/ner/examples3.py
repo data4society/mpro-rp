@@ -393,7 +393,8 @@ def identification_doc(doc_id):
     #     'markup_type': '20'
     # }
     settings_list = {
-        'identification_settings': [{"identification_type": 1, "tag_type": ["BS", "IE"], "learn_class": "name"}],
+        'identification_settings': [{"identification_type": 1, "tag_type": ["BS", "IE"], "learn_class": "name"},
+                                    {"identification_type": 2, "tag_type": ["Loc"], "learn_class": "loc"}],
         'name': 'from NER',
         'markup_type': '20'
     }
@@ -485,8 +486,8 @@ def script_exec():
     # print('tomita-ok', len(bid_list),  str(db.put_training_set(bid_list)))
     # exit()
 
-    NER.NER_learning_by_config({"class": 4, "tags": 1, "use_special_tags": 0})
-    exit()
+    # NER.NER_learning_by_config({"class": 4, "tags": 1, "use_special_tags": 0})
+    # exit()
     # create_answers('oc_class_loc')
     # prediction('name')
     rec_set = ['d1b44788-bfb6-36b2-d001-713af427127c',
@@ -510,15 +511,15 @@ def script_exec():
     # session.commit()
     # capital_embedding_morpho_feature(doc_set)
 
-    # for doc_id in doc_set:
-    #     doc = session.query(Document).filter_by(doc_id=doc_id).first()
-    #     if doc is None:
-    #         print('No document', doc_id)
-    #     print(doc.stripped)
+    for doc_id in doc_set:
+        doc = session.query(Document).filter_by(doc_id=doc_id).first()
+        if doc is None:
+            print('No document', doc_id)
+        print(doc.stripped)
     #     print('Morpho', doc.morpho)
-    #     NER.NER_predict(doc, [{"class": 1, "tags": 1, "use_special_tags": 0}],
-    #                     session, commit_session=True, verbose=True)
-    #     identification_doc(doc_id)
+        NER.NER_predict(doc, [{"class": 1, "tags": 1, "use_special_tags": 0}],
+                        session, commit_session=True, verbose=True)
+        identification_doc(doc_id)
     # comparison()
     # 756c27e4-3036-aed7-6b3b-8813dc00352a
     # a43dc00b-f780-0937-76e1-d685fbd3c322

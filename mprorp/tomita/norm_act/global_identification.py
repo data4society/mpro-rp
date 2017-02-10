@@ -37,7 +37,8 @@ def get_codes(norm_db, type, acts):
                                 out.append(norm)
                 else:
                     if type == '_k_KK_':
-                        art = art[:-1]
+                        if '.' not in art[:-1]:
+                            art = art[:-1]
                     for norm in norm_db:
                         if norm.data['art'] == art and 'part' not in norm.data:
                             out.append(norm)
