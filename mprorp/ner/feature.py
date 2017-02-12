@@ -84,6 +84,8 @@ def create_tomita_feature(doc, feature_grammars, session=None, commit_session=Tr
             # find word with offsets
             # [begin, inside, end, single]
             for element in morpho:
+                # if verbose:
+                #     print('morpho', element['start_offset'], element['end_offset'])
                 value = None
                 if 'start_offset' in element.keys():
                     if element['start_offset'] == offsets[0]:

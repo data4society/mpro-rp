@@ -405,12 +405,12 @@ def create_markup(doc, session=None, commit_session=True, verbose=False):
                 'oc_span_foreign_name', 'oc_span_post', 'oc_span_role', 'oc_span_status']
 
     # Получим свойства слов документа из БД
-    doc_properties = db.get_ner_feature_for_features(doc.doc_id, feature_type, features, session)
+    doc_properties, _ = db.get_ner_feature_for_features(doc.doc_id, feature_type, features, session)
     if verbose:
         print('Свойства слов документа:', doc_properties)
 
     # Сформируем информацию о словах документа (падеж, число, нормальная форма)
-    doc_properties_info = form_doc_properties_info(doc, doc_properties, session)
+    doc_properties_info = form_doc_properties_info(doc, doc_properties)
     if verbose:
         for_print = {}
         for i in doc_properties_info:
@@ -473,12 +473,13 @@ def create_refs(doc, refs_settings, refs, session=None, commit_session=True, ver
         features = [learn_class + '_' + i for i in tag_type]
 
     # Получим свойства слов документа из БД
-    doc_properties = db.get_ner_feature_for_features(doc.doc_id, feature_type, features, session)
+    doc_properties, values = db.get_ner_feature_for_features(doc.doc_id, feature_type, features,
+                                                             return_value=(identification_type == 2), session=session)
     if verbose:
         print('Свойства слов документа:', doc_properties)
 
     # Сформируем информацию о словах документа (падеж, число, нормальная форма)
-    doc_properties_info = form_doc_properties_info(doc, doc_properties, session)
+    doc_properties_info = form_doc_properties_info(doc, doc_properties)
     if verbose:
         for_print = {}
         for i in doc_properties_info:
@@ -491,7 +492,7 @@ def create_refs(doc, refs_settings, refs, session=None, commit_session=True, ver
     # Нет. Собирать токены смысла нет. Т.к. не всегда это слово целиком. Лучше потом полученную метку разрезать по пробелам
     # Но, что следует собрать - это информацию о том, является ли слово Фамилией, Отчеством или Именем по мнению mystem
     if identification_type == 2:
-        mentions, labels, labels_from_text = form_mentions_tomita(doc_properties, doc_properties_info, learn_class)
+        mentions, labels, labels_from_text = form_mentions_tomita(doc_properties, values, doc_properties_info, learn_class)
     else:
         mentions, labels, labels_from_text = form_mentions_BS_IE(doc_properties, doc_properties_info, learn_class)
     if verbose:
@@ -633,7 +634,7 @@ def create_refs(doc, refs_settings, refs, session=None, commit_session=True, ver
                     entity_class = 'location'
                     data = {}
                 elif learn_class == 'org':
-                    entity_class = 'organisation'
+                    entity_class = 'org'
                     data = {}
                 if verbose:
                     print('data', data)
@@ -773,7 +774,7 @@ def create_markup_2(doc_id):
     db.doc_apply(doc_id, create_markup)
 
 
-def form_doc_properties_info(doc, doc_properties, session):
+def form_doc_properties_info(doc, doc_properties):
     # Формирует информацию о словах документа
 
     doc_morpho = doc.morpho
@@ -836,13 +837,17 @@ def form_doc_properties_info(doc, doc_properties, session):
 
                     text = element_doc_morpho.get('text', ' ')
 
-                    doc_properties_info[doc_property] = {'list_lex': list_lex, 'best_lex': best_lex,
-                                                         'case': array_case, 'numeric': array_numeric,
-                                                         'first_supper': text[0].isupper(),
-                                                         'all_supper': text.isupper(),
-                                                         'start_offset': element_doc_morpho['start_offset'],
-                                                         'end_offset': element_doc_morpho['end_offset'],
-                                                         'text': text}
+                    print(doc_property)
+                    doc_properties_info[doc_property] = {'list_lex': list_lex}
+                    doc_properties_info[doc_property]['best_lex'] = best_lex
+                    doc_properties_info[doc_property]['case'] = array_case
+                    doc_properties_info[doc_property]['numeric'] = array_numeric
+
+                    doc_properties_info[doc_property]['first_supper'] = text[0].isupper()
+                    doc_properties_info[doc_property]['all_supper'] = text.isupper()
+                    doc_properties_info[doc_property]['start_offset'] = element_doc_morpho['start_offset']
+                    doc_properties_info[doc_property]['end_offset'] = element_doc_morpho['end_offset']
+                    doc_properties_info[doc_property]['text'] = text
 
     return doc_properties_info
 
@@ -889,7 +894,7 @@ def form_mentions_BS_IE(doc_properties, doc_properties_info, learn_class):
     return mentions, labels, texts
 
 
-def form_mentions_tomita(doc_properties, doc_properties_info, learn_class):
+def form_mentions_tomita(doc_properties, values, doc_properties_info, learn_class):
     mentions = []
     labels = []
     texts = []
@@ -902,9 +907,10 @@ def form_mentions_tomita(doc_properties, doc_properties_info, learn_class):
     text = ''
 
     for word in doc_properties:
+        value = values[word]
         word_label = get_label_from_prop_info(doc_properties_info[word])
         text_label = doc_properties_info[word]['text'] + (' ' if doc_properties_info[word]['next_one_is_space'] else '')
-        if word[0] == last_sent and word[1] == last_word + 1 and word[3][1] == 1 or word[3][2] == 1:
+        if word[0] == last_sent and word[1] == last_word + 1 and value[1] == 1 or value[2] == 1:
             mention.append(word)
             # token.append({'text': text_label, 'word': word_label})
             label = label + word_label

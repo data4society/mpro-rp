@@ -53,7 +53,7 @@ class Config(object):
     """
     windows_in_epoch = True
     windows_in_epoch_dev = False
-    classes = ['oc_class_person', 'name', 'oc_class_org', 'oc_class_loc', 'loc']
+    classes = ['oc_class_person', 'name', 'oc_class_org', 'oc_class_loc', 'loc', 'org']
     tag_types = [['B', 'I', 'S', 'E'], ['BS', 'IE'], ['BI', 'ES']]
     special_tag_types = {'oc_class_person':
                              [['oc_span_last_name', 'oc_span_first_name', 'oc_span_middle_name',

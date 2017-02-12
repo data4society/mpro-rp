@@ -391,7 +391,7 @@ def get_ner_feature_one_feature(doc_id, feature, return_dict=False, session=None
     return result
 
 
-def get_ner_feature_for_features(doc_id, feature_type, features, session=None):
+def get_ner_feature_for_features(doc_id, feature_type, features, return_value=False, session=None):
 
     if session is None:
         session = Driver.db_session()
@@ -402,10 +402,15 @@ def get_ner_feature_for_features(doc_id, feature_type, features, session=None):
         NERFeature.sentence_index, NERFeature.word_index).all()
 
     result = []
+    values = None
+    if return_value:
+        values = {}
     for rec in query_result:
-        result.append((rec.sentence_index, rec.word_index, rec.feature, rec.value))
+        result.append((rec.sentence_index, rec.word_index, rec.feature))
+        if return_value:
+            values[(rec.sentence_index, rec.word_index, rec.feature)] = rec.value
 
-    return result
+    return result, values
 
 
 def get_ner_feature_dict(set_id=None, doc_id=None, feature_type=None, feature=None, feature_list=None, session=None):

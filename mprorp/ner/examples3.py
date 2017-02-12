@@ -394,7 +394,8 @@ def identification_doc(doc_id):
     # }
     settings_list = {
         'identification_settings': [{"identification_type": 1, "tag_type": ["BS", "IE"], "learn_class": "name"},
-                                    {"identification_type": 2, "tag_type": ["Loc"], "learn_class": "loc"}],
+                                    {"identification_type": 2, "tag_type": ["Loc"], "learn_class": "loc"},
+                                    {"identification_type": 2, "tag_type": ["Org"], "learn_class": "org"}],
         'name': 'from NER',
         'markup_type': '20'
     }
@@ -473,7 +474,7 @@ def script_exec():
     #     doc_list = db.get_set_docs(set_list.sets1250[count])
     #     # create_big_set_name_answers(doc_list, ['bs000_loc_descr', 'bs000_loc_name'], 'loc')
     #     first = [418, 1250, 609, 337, 197, 163, 1250, 1250, 614, 1250, 985]
-    #     tomita(doc_list, num_set=count, commit_session=False)
+    #    tomita(doc_list, num_set=count, commit_session=False)
     # exit()
     # bid_list = []
     # first = [418, 1250, 609, 337, 197, 163, 1250, 1250, 614, 1250, 985]
@@ -495,21 +496,24 @@ def script_exec():
                'a43dc00b-f780-0937-76e1-d685fbd3c322',
                '1f3f9f95-d24b-b63a-ff34-9b7eb6f75656']
     rec_set = ['5063bc12-df66-98b9-0342-84b3e41691a8']
-    doc_set = ['7232cfa3-a820-4c2f-b186-c57e58db2bb7',
-               '177097e8-0e9e-4392-a586-7bb0c4dfe2c9',
-               '68870091-58cb-4719-9089-5da62398ce65',
-               '31f8194a-b292-4d52-a6ca-27bb1cec5da2']
+    doc_set = [#'7232cfa3-a820-4c2f-b186-c57e58db2bb7',
+               #'177097e8-0e9e-4392-a586-7bb0c4dfe2c9',
+               #'68870091-58cb-4719-9089-5da62398ce65',
+               '31f8194a-b292-4d52-a6ca-27bb1cec5da2'
+    ]
     # rec_set = db.get_set_docs(sets['name']['dev'])
     # doc_set = ['664db67f-cc86-4933-82c0-20a555a38281']
     # doc_set = []
     # for rec_id in rec_set:
     #     doc_set.append(get_doc_id(rec_id))
 
-    # for doc_id in doc_set:
-    #     doc = session.query(Document).filter_by(doc_id=doc_id).first()
-    #     rb.morpho_doc(doc)
-    # session.commit()
-    # capital_embedding_morpho_feature(doc_set)
+    for doc_id in doc_set:
+        doc = session.query(Document).filter_by(doc_id=doc_id).first()
+        rb.morpho_doc(doc)
+    session.commit()
+    capital_embedding_morpho_feature(doc_set)
+
+    tomita(doc_set)
 
     for doc_id in doc_set:
         doc = session.query(Document).filter_by(doc_id=doc_id).first()

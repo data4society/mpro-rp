@@ -1,70 +1,114 @@
+from mprorp.db.models import *
 import mprorp.analyzer.db as db
+import mprorp.db.dbDriver as Driver
+import numpy as np
 import mprorp.analyzer.rubricator as rb
 import mprorp.ner.feature as feature
 import mprorp.ner.identification as id
 
-# rubric_id = u'd2cf7a5f-f2a7-4e2b-9d3f-fc20ea6504da' # Свобода собраний
-# rubric_id = u'76819d19-d3f7-43f1-bc7f-b10ec5a2e2cc' # ОВД-Инфо
-# rubric_id = u'6b11126a-5025-454a-bc27-f87f41cb1f09' # Политпрессинг
 
-# set_id = u'f23449f6-08cd-463b-8c90-95480735c4f7' # Свобода слова 10
-# test_set_id = u'f23449f6-08cd-463b-8c90-95480735c4f7' # Свобода слова 10
-# set_id = u'eb082527-ac1a-4757-a6ea-087d3b277fbc'    # Свобода слова 100#
-# set_id = u'0c2bfd6b-2e02-4ca2-9e57-f7506c025dbc' # Все новости
-# set_id = u'404f1c89-53bd-4313-842d-d4a417c88d67'   # ОИ 1000 (500:500)
-# test_set_id = u'a18bc334-0332-4897-a00e-0bd916290f95'  # ОИ 8000 (4000:4000)
+session = Driver.db_session()
+rubricator = [
+      {
+        "rubric":"интернет",
+        "rubric_minus":"интернет (-)",
+        "set_name":"internet_tr_id_pnc_0"
+      },
+      {
+        "rubric":"ЛГБТ",
+        "rubric_minus":"ЛГБТ (-)",
+        "set_name":"lgbt_tr_id_pnc_0"
+      },
+      {
+        "rubric":"искусство",
+        "rubric_minus":"искусство (-)",
+        "set_name":"iskustvo_tr_id_pnc"
+      },
+      {
+        "rubric":"насилие",
+        "rubric_minus":"насилие (-)",
+        "set_name":"nasilie_tr_id_pnc"
+      },
+      {
+        "rubric":"угрозы",
+        "rubric_minus":"угрозы (-)",
+        "set_name":"ugrozy_tr_id_pnc"
+      },
+      {
+        "rubric":"отчисление и увольнение",
+        "rubric_minus":"отчисление и увольнение (-)",
+        "set_name":"uvolnenie_tr_id_pnc"
+      }
+    ]
 
+rubrics = session.query(Rubric).all()
+rubric_ids_by_names = {}
+for rubric in rubrics:
+    rubric_ids_by_names[rubric.name] = str(rubric.rubric_id)
 
-# counter = 0
-# for doc_id in db.get_set_docs(set_id):
-#     print(counter, doc_id)
-#     counter += 1
-#     rb.morpho_doc2(doc_id)
-#     rb.lemmas_freq_doc2(doc_id)
-# # #
-# for doc_id in db.get_set_docs(test_set_id):
-#     print(counter, doc_id)
-#     counter += 1
-#     rb.morpho_doc2(doc_id)
-#     rb.lemmas_freq_doc2(doc_id)
-#
-#
-# rb.idf_object_features_set(set_id)
-# print('start learning')
-# rb.learning_rubric_model(set_id, rubric_id)
-#
-# print('start spot...')
-# # for doc_id in db.get_set_docs(set_id):
-# #     rb.spot_doc_rubrics2(doc_id, {rubric_id: None})
-#
-#
-# rb.spot_test_set_rubric(test_set_id, rubric_id)
-# #
-# model_id = db.get_model(rubric_id, set_id)["model_id"]
-# result = rb.f1_score(model_id, test_set_id, rubric_id)
-# print(result)
-
-# print(rb.probabilities_score(model_id, test_set_id, rubric_id))
-
-# doc_id = u'000e82b8-6ea7-41f4-adc6-bc688fbbeeb6' # 9556b091-b550-4489-9768-1690485fa664
-# doc_id = u'add1dd0c-3004-49db-adeb-d841c5d8a9f7'
-
-# rb.spot_doc_rubrics2(doc_id, rb.rubrics_for_regular)
-# rb.lemmas_freq_doc2(doc_id)
-
-# doc_id = 'eadd9485-7d29-69fd-cb0d-b96cf2153ab2'
-doc_id = '45807db3-27ad-47aa-0ae9-2c177ceabd2b'
-# doc_id = 'd49ad82c-4a0a-eadb-d27d-2af079e5451c'
-# doc_id = 'c05d60f4-1985-2402-487b-709c4d9c6dd7'
-# doc_id = 'b6020e2f-bad3-ceb2-449e-f28f0ddaa724'
-# doc_id = '192f9948-3ce5-fc7e-b485-b5fbfa8465db'
-# doc_id = '0d9b0aab-45ca-3974-5f4e-34afabd8183c'
-# rb.morpho_doc2(doc_id)
-doc_id = '1252213c-e609-4e7d-b55d-85f3b2a2421e'
+for rubr_obj in rubricator:
+    rubr_obj["rubric_id"] = rubric_ids_by_names[rubr_obj["rubric"]]
+    rubr_obj["rubric_minus_id"] = rubric_ids_by_names[rubr_obj["rubric_minus"]]
 
 
-doc_stripped = db.get_doc(doc_id)
-print(doc_stripped)
+def print_lemmas_from_ribric_models(rubrics):
+    models = {}
+    train_set = {}
+    print(rubrics)
+    rubrics_names = {}
+    for rubric_dict in rubrics:
+        rubric_id = rubric_dict['rubric_id']
+        rubrics_names[rubric_id] = rubric_dict['rubric']
+        train_set_id = db.get_set_id_by_name(rubric_dict['set_name'])
+        if train_set_id is None or train_set_id == '':
+            continue
+        train_set[rubric_id] = train_set_id
+        # correct_answers[rubric_id] = db.get_rubric_answer_doc(doc_id, rubric_id)
+        models[rubric_id] = db.get_model(rubric_id, train_set_id, session)
+    sets = db.get_idf_lemma_index_by_set_id(train_set.values(), session)
+    for rubric_id in train_set:
+        set_id = train_set[rubric_id]
+        mif_number = models[rubric_id]['features_num']
+        lemma_index = sets[set_id]['lemma_index']
+        model = models[rubric_id]['model']
+        # print(lemma_index)
+        # print(mif_number)
+        # print(sets[set_id]['idf'])
+        # print(models[rubric_id]['features'])
+        # print(model)
+        # print(len(models[rubric_id]['features']))
+        main_words = []
+        coef_p = np.zeros(len(lemma_index))
+        coef_m = np.zeros(len(lemma_index))
+        i=0
+        for lemma in lemma_index:
+            if lemma_index[lemma] in models[rubric_id]['features']:
+                main_words.append(lemma)
+                coef = model[models[rubric_id]['features'].index(lemma_index[lemma])]
+                if coef > 0:
+                    coef_p[i] = coef
+                else:
+                    coef_m[i] = coef
+                i+=1
 
-# id.create_answers_feature_for_doc_2(doc_id)
-id.create_markup_2(doc_id)
+        good_numbers_p = np.argsort(coef_p)
+        good_numbers_m = np.argsort(coef_m)
+        print(rubrics_names[rubric_id])
+        wp = []
+        wm = []
+        for i in range(len(lemma_index)):
+            if coef_p[good_numbers_p[len(lemma_index) - i - 1]] > 0:
+                wp.append(main_words[good_numbers_p[len(lemma_index) - i - 1]])
+            if coef_m[good_numbers_m[i]] < 0:
+                wm.append(main_words[good_numbers_m[i]])
+
+
+
+
+        print('positive')
+        print(wp)
+        print('negative')
+        print(wm)
+
+
+print_lemmas_from_ribric_models(rubricator)

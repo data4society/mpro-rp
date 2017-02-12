@@ -174,6 +174,25 @@ def morpho_doc(doc, verbose=False):
 
                     space_len += 1
 
+                elif symbol == "\n":
+
+                    if word_start > -1:  # добавим слово
+
+
+                        cur_word = line[word_start:(word_start + word_len)]
+
+                        new_element = {'text': cur_word}
+
+                        if 'analysis' in element: new_element['analysis'] = element['analysis']
+
+                        morpho_list.append(new_element)
+
+                        word_start = -1
+
+                        word_len = 0
+
+                    new_element = {'text': '\n'}
+                    morpho_list.append(new_element)
                 elif symbol == "-":
                     if verbose:
                         print(line)
@@ -467,14 +486,14 @@ def mutual_information(feature, answers, num_lemma):
 
 
 # print lemmas with index in numbers, its index and idf
-# def print_lemmas(set_id, numbers, lemmas=None, idf=None):
-#     if idf is None:
-#         idf = {}
-#     if lemmas is None:
-#         lemmas = db.get_lemma_index(set_id)
-#     my_lemmas = [k for k in lemmas if lemmas[k] in numbers]
+def print_lemmas(set_id, numbers, lemmas=None, idf=None):
+    if idf is None:
+        idf = {}
+    if lemmas is None:
+        lemmas = db.get_lemma_index(set_id)
+    my_lemmas = [k for k in lemmas if lemmas[k] in numbers]
     # print(numbers)
-    # print(my_lemmas)
+    print(my_lemmas)
     # print([idf.get(k, '') for k in my_lemmas])
     # for i in numbers:
     #     m
