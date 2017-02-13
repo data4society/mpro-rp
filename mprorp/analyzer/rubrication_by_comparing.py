@@ -9,7 +9,7 @@ def reg_rubrication_by_comparing(doc, config, session):
     origin_doc = session.query(Document).filter_by(doc_id=doc.meta["source_record_id"]).one()
     good = "good"
     for field in fields:
-        if not js_compare(getattr(origin_doc, field), getattr(doc, field)):
+        if not js_compare(uu_to_str(getattr(origin_doc, field)), uu_to_str(getattr(doc, field))):
             good = "bad"
             break
     if doc.rubric_ids:
@@ -19,6 +19,8 @@ def reg_rubrication_by_comparing(doc, config, session):
     rubric_ids.append(rubrics[good])
     doc.rubric_ids = rubric_ids
 
+def uu_to_str(arr):
+    return [str(i) for i in arr]
 
 def ordered(obj):
    if isinstance(obj, dict):

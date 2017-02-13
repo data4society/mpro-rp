@@ -29,8 +29,23 @@ def import_org(org_dic):
         session.add(new_entity)
         session.commit()
 
+def create_lables(session):
+    orgs = session.query(Entity).filter(Entity.entity_class == 'organization').all()
+    #orgs = session.query(Entity).filter(Entity.name == 'Газпром').all()
+    for org in orgs:
+        label = [org.name]
+        lemms = ''
+        for lemm in org.data['lemmas']:
+            lemms += lemm + ' '
+        if label[0].lower() not in lemms.lower() and lemms != ' ' and lemms != '':
+            label.append(lemms[:-1])
+            print(label)
+        org.labels = label
+        session.commit()
+
 print('IMPORT ENG')
 import_org(create_lemmas(path1))
 print('IMPORT RUS')
 import_org(create_lemmas(path2))
 print('DONE')
+create_lables(session=db_session())

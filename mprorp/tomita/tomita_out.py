@@ -116,16 +116,16 @@ def find_act(file_name, tomita_path):
 #12. Иностранным гражданам, лицам без гражданства и иностранным юридическим лицам земельные участки для строительства могут предоставляться в порядке, установленном настоящей статьей, в соответствии с пунктом 2 статьи 5, пунктом 3 статьи 15, пунктом 1 статьи 22 и пунктами 4 и 5 статьи 28 настоящего Кодекса.'''
     numb = '(\d[\d\.]*)'
 
-    part = '((ч\.|част[а-я]*) ?' + numb + ')'
-    parts = '(' + part + '.{0,30}?)'
+    part = '((ч\.|част[а-яё]*) ?' + numb + ')'
+    parts = '(' + part + '.{0,100}?)'
 
-    article = '((ст\.|стать[а-я]*) ?' + numb + ')'
-    articles = '(' + article + '.{0,30}?)'
+    article = '((ст\.|стать[а-яё]*) ?' + numb + ')'
+    articles = '(' + article + '.{0,100}?)'
 
-    paragraph = '((п\.|пункт[а-я]*) ?' + numb + ')'
-    paragraphs = '(' + paragraph + '.{0,30}?)'
+    paragraph = '((п\.|пункт[а-яё]*) ?' + numb + ')'
+    paragraphs = '(' + paragraph + '.{0,100}?)'
 
-    KK = '( УК[ \.,]|КоАП|УПК|КОАП|[Уу]головн.*? [Кк]одекс.?|[Кк]одекс.*? об административных правонарушениях)'
+    KK = '( УК[ \.,]|КоАП|УПК|КОАП|[Уу]головн[а-я]*? [Кк]одекс.?|[Кк]одекс[а-я]*? об административных правонарушениях)'
     string = re.sub(KK, '\\1@#@', string)
     strings = string.split('@#@')
 
@@ -144,15 +144,15 @@ def find_act(file_name, tomita_path):
 def clean_act(acts):
     out = {}
     numb = '(\d[\d\.]*)'
-    part = '((ч\.|част[а-я]*) ?' + numb + ')'
-    article = '((ст\.|стать[а-я]*) ?' + numb + ')'
-    paragraph = '((п\.|пункт[а-я]*) ?' + numb + ')'
+    part = '((ч\.|част[а-яё]*) ?' + numb + ')'
+    article = '((ст\.|стать[а-яё]*) ?' + numb + ')'
+    paragraph = '((п\.|пункт[а-яё]*) ?' + numb + ')'
     for act in acts:
         actn = re.sub(part, 'p_\\3_', act)
         actn = re.sub(article, 'a_\\3_', actn)
         actn = re.sub(paragraph, 'f_\\3_', actn)
         actn = re.sub('(УК|УПК|[Уу]головного [Кк]одекса)', 'k_KK_', actn)
-        actn = re.sub('(КоАП|КОАП)', 'k_KOAP_', actn)
+        actn = re.sub('(КоАП|КОАП|[Кк]одекс[а-я]*? об административных правонарушениях)', 'k_KOAP_', actn)
         actn = re.sub('[ ,]', 's_s_', actn)
         actn = re.findall('[a-z]_.*?_', actn)
         line = ''
@@ -164,17 +164,17 @@ def clean_act(acts):
         out[act] = line
     return out
 
-def norm_out(arr, source_name, tomita_path):
+def norm_out(arr, source_name, tomita_path, order):
     source = open(tomita_path + '/' + source_name, 'r', encoding='utf-8').read()
     s = source
     out = {}
     len_of_line = 0
-    for act in arr:
+    for act in order:
         print(act)
         first_symbol = source.find(act)
         last_symbol = first_symbol + len(act)
         symbols = str(first_symbol + len_of_line) + ':' + str(last_symbol + len_of_line)
-        print('string in original text: ' + s[first_symbol + len_of_line:last_symbol + len_of_line])
+        #print('string in original text: ' + s[first_symbol + len_of_line:last_symbol + len_of_line])
         if arr[act] != []:
             out[symbols] = str(arr[act][0].entity_id).replace("UUID('", '').replace("')", '')
         source = source[last_symbol:]

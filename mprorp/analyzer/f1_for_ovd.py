@@ -18,7 +18,11 @@ def prf(tomita_result, original):
             fn += 1
     return tp, fp, fn
 
-def f1():
+def f1(type):
+    print('----------')
+    print('TYPE: ' + type.upper())
+    test_type = type + '_test'
+    ideal_type = type + '_ideal'
     tp = 0
     fp = 0
     fn = 0
@@ -27,11 +31,11 @@ def f1():
     full = 0
     full_F = 0
     session = db_session()
-    tests = session.query(Record).filter(Record.app_id == 'ovd_test').all()
+    tests = session.query(Record).filter(Record.app_id == test_type).all()
     print('documents: ' + str(len(tests)))
-    ideals = session.query(Record).filter(Record.app_id == 'ovd_ideal').all()
+    ideals = session.query(Record).filter(Record.app_id == ideal_type).all()
     for test in tests:
-        ideal_id = re.findall('documentId=(.*?),app=ovd_ideal', test.url)[0]
+        ideal_id = re.findall('documentId=(.*?),app=' + ideal_type, test.url)[0]
         for ideal in ideals:
             if str(ideal.document_id) == ideal_id:
                 a, b, c = prf(test.entities, ideal.entities)

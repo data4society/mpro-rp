@@ -1,3 +1,6 @@
+import sys
+sys.path.insert(0, '..')
+
 from mprorp.tomita.grammars.config import config as grammar_config
 from mprorp.tomita.tomita_run import run_tomita2
 
