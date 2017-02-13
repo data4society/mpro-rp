@@ -127,5 +127,14 @@ def all_names_rus():
     return names
 
 
-
-
+def search_by_classes(classes, lang):
+    out = {}
+    query1 = 'Select ?id ?label where {?id wdt:P31 wd:'
+    query2 = '. ?id ?rdfs_label ?label filter (lang(?label) = "' + lang + '")}'
+    url = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql'
+    for class_type in classes:
+        query = query1 + class_type + query2
+        print('query: ' + query)
+        data = requests.get(url, params={'query': query, 'format': 'json'}).json()
+        out[class_type] = data['results']['bindings']
+    return out
