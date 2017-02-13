@@ -509,7 +509,7 @@ def script_exec():
 
     for doc_id in doc_set:
         doc = session.query(Document).filter_by(doc_id=doc_id).first()
-        rb.morpho_doc(doc)
+        rb.morpho_doc(doc, verbose=True)
     session.commit()
     capital_embedding_morpho_feature(doc_set)
 

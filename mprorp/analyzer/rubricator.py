@@ -210,7 +210,18 @@ def morpho_doc(doc, verbose=False):
                             if verbose:
                                 print('    ', cur_word)
                             new_element = {'text': cur_word}
-                            if 'analysis' in element: new_element['analysis'] = element['analysis']
+                            if 'analysis' in element:
+                                new_element['analysis'] = []
+                                for num in range(len(element['analysis'])):
+                                    new_element['analysis'].append(element['analysis'][num].copy())
+                                    lex = element['analysis'][num]['lex']
+                                    symb_num = lex.find('-')
+                                    if symb_num > -1:
+                                        new_element['analysis'][num]['lex'] = lex[:symb_num]
+
+                                        element['analysis'][num]['lex'] = lex[symb_num + 1:] if len(lex) > symb_num + 1 else ''
+                                        if verbose:
+                                            print(lex, new_element['analysis'][num]['lex'], element['analysis'][num]['lex'], cur_word)
                             morpho_list.append(new_element)
 
                             word_start = -1
@@ -218,7 +229,10 @@ def morpho_doc(doc, verbose=False):
 
                         # добавим дефис
                         new_element = {'text': symbol}
-                        if 'analysis' in element: new_element['analysis'] = element['analysis']
+                        if 'analysis' in element:
+                            # new_element['analysis'] = element['analysis']
+                            if verbose:
+                                print('analysis: ', element['analysis'])
                         morpho_list.append(new_element)
                     else:
                         word_len += 1
