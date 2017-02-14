@@ -116,20 +116,23 @@ def find_act(file_name, tomita_path):
 #12. Иностранным гражданам, лицам без гражданства и иностранным юридическим лицам земельные участки для строительства могут предоставляться в порядке, установленном настоящей статьей, в соответствии с пунктом 2 статьи 5, пунктом 3 статьи 15, пунктом 1 статьи 22 и пунктами 4 и 5 статьи 28 настоящего Кодекса.'''
     numb = '(\d[\d\.]*)'
 
-    part = '((ч\.|част[а-яё]*) ?' + numb + ')'
+    part = '((ч\.?|част[а-яё]*) ?' + numb + ')'
     parts = '(' + part + '.{0,100}?)'
 
-    article = '((ст\.|стать[а-яё]*) ?' + numb + ')'
+    article = '((ст\.?|стать[а-яё]*) ?' + numb + ')'
     articles = '(' + article + '.{0,100}?)'
 
-    paragraph = '((п\.|пункт[а-яё]*) ?' + numb + ')'
+    paragraph = '((п\.?|пункт[а-яё]*) ?' + numb + ')'
     paragraphs = '(' + paragraph + '.{0,100}?)'
+
+    note = '((п\.|прим\.|примечани[а-яё]*) ?' + numb + ')'
+    notes = '(' + note + '.{0,100}?)'
 
     KK = '( УК[ \.,]|КоАП|УПК|КОАП|[Уу]головн[а-я]*? [Кк]одекс.?|[Кк]одекс[а-я]*? об административных правонарушениях)'
     string = re.sub(KK, '\\1@#@', string)
     strings = string.split('@#@')
 
-    pap = '(' + parts + '|' + articles + '|' + paragraphs + ')'
+    pap = '(' + parts + '|' + articles + '|' + paragraphs + '|' + notes + ')'
 
     norm_act_all = '(' + pap + '*' + KK + ')'
     out = []
@@ -144,11 +147,13 @@ def find_act(file_name, tomita_path):
 def clean_act(acts):
     out = {}
     numb = '(\d[\d\.]*)'
-    part = '((ч\.|част[а-яё]*) ?' + numb + ')'
-    article = '((ст\.|стать[а-яё]*) ?' + numb + ')'
-    paragraph = '((п\.|пункт[а-яё]*) ?' + numb + ')'
+    part = '((ч\.?|част[а-яё]*) ?' + numb + ')'
+    article = '((ст\.?|стать[а-яё]*) ?' + numb + ')'
+    paragraph = '((п\.?|пункт[а-яё]*) ?' + numb + ')'
+    note = '( ?(п\.|прим\.|примечани[а-яё]*) ?' + numb + ')'
     for act in acts:
-        actn = re.sub(part, 'p_\\3_', act)
+        actn = re.sub(note, '', act)
+        actn = re.sub(part, 'p_\\3_', actn)
         actn = re.sub(article, 'a_\\3_', actn)
         actn = re.sub(paragraph, 'f_\\3_', actn)
         actn = re.sub('(УК|УПК|[Уу]головного [Кк]одекса)', 'k_KK_', actn)
