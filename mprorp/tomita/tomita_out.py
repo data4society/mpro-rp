@@ -119,7 +119,7 @@ def find_act(file_name, tomita_path):
     part = '((ч\.?|част[а-яё]*) ?' + numb + ')'
     parts = '(' + part + '.{0,100}?)'
 
-    article = '((ст\.?|стать[а-яё]*) ?' + numb + ')'
+    article = '((ст\.?|с\.|стать[а-яё]*) ?' + numb + ')'
     articles = '(' + article + '.{0,100}?)'
 
     paragraph = '((п\.?|пункт[а-яё]*) ?' + numb + ')'
@@ -140,7 +140,7 @@ def find_act(file_name, tomita_path):
         norm_act = re.findall(norm_act_all, line)
         if norm_act != []:
             norm_act = norm_act[0]
-            if norm_act != '':
+            if norm_act[0] != '' and 'елорусского' not in norm_act[0]:
                 out.append(norm_act[0])
     return out
 
@@ -148,7 +148,7 @@ def clean_act(acts):
     out = {}
     numb = '(\d[\d\.]*)'
     part = '((ч\.?|част[а-яё]*) ?' + numb + ')'
-    article = '((ст\.?|стать[а-яё]*) ?' + numb + ')'
+    article = '((ст\.?|с\.|стать[а-яё]*) ?' + numb + ')'
     paragraph = '((п\.?|пункт[а-яё]*) ?' + numb + ')'
     note = '( ?(п\.|прим\.|примечани[а-яё]*) ?' + numb + ')'
     for act in acts:
