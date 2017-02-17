@@ -48,7 +48,8 @@ def load_app_conf(json_path, cur_config):
             for rubr_obj in rubricator:
                 new_rubr_obj = {}
                 new_rubr_obj["rubric_id"] = rubric_ids_by_names[rubr_obj["rubric"]]
-                new_rubr_obj["rubric_minus_id"] = rubric_ids_by_names[rubr_obj["rubric_minus"]]
+                if "rubric_minus" in rubr_obj:
+                    new_rubr_obj["rubric_minus_id"] = rubric_ids_by_names[rubr_obj["rubric_minus"]]
                 new_rubr_obj["set_name"] = rubr_obj["set_name"]
                 new_rubricator.append(new_rubr_obj)
             app["rubrication"] = new_rubricator
