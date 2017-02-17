@@ -811,7 +811,7 @@ def spot_doc_rubrics(doc, rubrics, session=None, commit_session=True, verbose=Fa
     # fill set_id in rubrics and data in models
     for rubric_dict in rubrics:
         rubric_id = rubric_dict['rubric_id']
-        negative_rubrics[rubric_id] = rubric_dict['rubric_minus_id']
+        negative_rubrics[rubric_id] = rubric_dict.get('rubric_minus_id', None)
         train_set_id = db.get_set_id_by_name(rubric_dict['set_name'])
         if train_set_id is None or train_set_id == '':
             continue
@@ -860,15 +860,16 @@ def spot_doc_rubrics(doc, rubrics, session=None, commit_session=True, verbose=Fa
             print('Вероятность: ', probability)
         if probability > 0.5:
             answers.append(rubric_id)
-        else:
+        elif negative_rubrics[rubric_id] is not None:
             answers.append(negative_rubrics[rubric_id])
         result.append(
                 {'rubric_id': rubric_id, 'result': round(probability), 'model_id': models[rubric_id]['model_id'],
                  'doc_id': doc.doc_id, 'probability': probability})
-        result.append(
-                {'rubric_id': negative_rubrics[rubric_id], 'result': 1 - round(probability),
-                 'model_id': models[rubric_id]['model_id'],
-                 'doc_id': doc.doc_id, 'probability': probability})
+        if negative_rubrics[rubric_id] is not None:
+            result.append(
+                    {'rubric_id': negative_rubrics[rubric_id], 'result': 1 - round(probability),
+                     'model_id': models[rubric_id]['model_id'],
+                     'doc_id': doc.doc_id, 'probability': probability})
 
     db.put_rubrics(result, session, commit_session)
     if verbose:
