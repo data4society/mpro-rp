@@ -457,6 +457,8 @@ def create_refs(doc, refs_settings, refs, session=None, commit_session=True, ver
 
     tag_type = refs_settings['tag_type']
     learn_class = refs_settings['learn_class']
+    entity_classes = {'name': 'person', 'loc': 'location', 'org': 'org'}
+    entity_class = entity_classes[learn_class]
     identification_type = refs_settings['identification_type']
     if identification_type == 2:
         feature_type = feature.ner_feature_types['tomita']
@@ -629,12 +631,7 @@ def create_refs(doc, refs_settings, refs, session=None, commit_session=True, ver
                             fio_name += fio[count] + ' '
                             count += 1
                     data = {'firstname': fio_name, 'lastname': fio_fam}
-                    entity_class = 'person'
-                elif learn_class == 'loc':
-                    entity_class = 'location'
-                    data = {}
-                elif learn_class == 'org':
-                    entity_class = 'org'
+                else:
                     data = {}
                 if verbose:
                     print('data', data)
@@ -670,7 +667,7 @@ def create_refs(doc, refs_settings, refs, session=None, commit_session=True, ver
             end_offset = doc_properties_info[mentions[i][len(mentions[i]) - 1]]['end_offset']
             refs.append({'start_offset': start_offset, 'end_offset': end_offset + 1,
                          'len_offset': end_offset - start_offset + 1,
-                         'entity': str(mentions_id[i]), 'entity_class': 'person'})
+                         'entity': str(mentions_id[i]), 'entity_class': entity_class})
 
 
 def normalize_links(links):
