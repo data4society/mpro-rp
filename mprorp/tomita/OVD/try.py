@@ -52,9 +52,9 @@ def add_norm_act(norm_act):
     session.commit()
 
 #try_ovd('7a711bb1-08ab-473d-b37d-d126dc887c9a')
-#f1('ovd')
+f1('ovd')
 #f1('normacts')
-try_norm_act('82621050-a8ba-43df-ed9a-b10926cd1421')
+#try_norm_act('f37e7619-7565-7af8-3236-64ad5532b008')
 #doc = session.query(Document).filter(Document.doc_id == '6e5dad1a-ff04-4ba4-9b17-2d3bd5e75d14').first()
 #print(session.query(Record).filter(Record.app_id == 'ovd_ideal', Record.document_id == '0c269563-5b0b-2695-a9f5-cdade7d2f3c8').all())
 #print(session.query(Entity).filter(Entity.entity_id == '594f2d02-175b-41af-b0e0-68bcfb8b3cce').first().name)

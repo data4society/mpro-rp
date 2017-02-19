@@ -79,6 +79,7 @@ def start_tomita_ovd(doc):
     return output_name, file_name, tomita_path
 
 def run_tomita_ovd(doc, n=1):
+    print(doc.doc_id)
     out_name, file_name, tomita_path = start_tomita_ovd(doc)
     results = step1(out_name, file_name, n, tomita_path)
     del_files_ovd(str(doc.doc_id), tomita_path)
