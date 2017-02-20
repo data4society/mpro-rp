@@ -632,7 +632,7 @@ def create_refs(doc, refs_settings, refs, session=None, commit_session=True, ver
                             count += 1
                     data = {'firstname': fio_name, 'lastname': fio_fam}
                 else:
-                    data = {}
+                    data = {'name': names[i]}
                 if verbose:
                     print('data', data)
 
