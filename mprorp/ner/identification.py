@@ -611,7 +611,7 @@ def create_refs(doc, refs_settings, refs, session=None, commit_session=True, ver
                     # data = {'labels': labels_lists[i]}
                     fio = names[i].split(' ')
                     isname = []
-                    for count in len(fio):
+                    for count in range(len(fio)):
                         isname.append(db.is_name(fio[count]))
                     fio_name = ''
                     fio_fam = ''
