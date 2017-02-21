@@ -60,6 +60,7 @@ MARKUP_COMPLETE_STATUS = 400
 THEMING_COMPLETE_STATUS = 500
 NER_ENTITIES_COMPLETE_STATUS = 850
 RUBRICATION_BY_COMPARING_COMPLETE_STATUS = 950
+CLEANING_COMPLETE_STATUS = 995
 REGULAR_PROCESSES_FINISH_STATUS = 1000
 
 VALIDATION_AND_CONVERTING_COMPLETE = 1001  # mpro redactor sets this and next status
@@ -136,6 +137,17 @@ def router(doc_id, app_id, status):
     if "rubrication" in app_conf and status < RUBRICATION_COMPLETE_STATUS:  # to rubrication
         regular_rubrication.delay(app_conf["rubrication"], doc_id, RUBRICATION_COMPLETE_STATUS, WITHOUT_RUBRICS, app_id=app_id)
         return
+    if "mode" in app_conf and app_conf["mode"] == "live" and status == RUBRICATION_COMPLETE_STATUS:
+        session = db_session()
+        doc = session.query(Document).filter_by(doc_id=doc_id).first()
+        to_delete = False
+        if not doc.rubric_ids:
+            to_delete = True
+            delete_document(doc_id, session)
+        session.commit()
+        session.remove()
+        if to_delete:
+            return
     if "capital_feature" in app_conf and status < CAPITAL_FEATURE_COMPLETE_STATUS:  # to create capital feature
         regular_capital_feature.delay(doc_id, CAPITAL_FEATURE_COMPLETE_STATUS, app_id=app_id)
         return
@@ -171,7 +183,9 @@ def router(doc_id, app_id, status):
     if "rubrication_by_comparing" in app_conf and status < RUBRICATION_BY_COMPARING_COMPLETE_STATUS:  # to set theme
         regular_rubrication_by_comparing.delay(app_conf["rubrication_by_comparing"], doc_id, RUBRICATION_BY_COMPARING_COMPLETE_STATUS, app_id=app_id)
         return
-
+    if "mode" in app_conf and app_conf["mode"] == "live" and status < CLEANING_COMPLETE_STATUS:
+        regular_cleaning(doc_id, CLEANING_COMPLETE_STATUS)
+        return
     # finish regular procedures:
     session = db_session()
     doc = session.query(Document).filter_by(doc_id=doc_id).first()
@@ -566,6 +580,14 @@ def regular_rubrication_by_comparing(config, doc_id, new_status, **kwargs):
     """rubrication by comparing with clone source"""
     session, doc = get_doc(doc_id)
     reg_rubrication_by_comparing(doc, config, session)
+    return set_doc(doc, new_status, session)
+
+
+@app.task()
+def regular_cleaning(doc_id, new_status, **kwargs):
+    """regular theming"""
+    session, doc = get_doc(doc_id)
+    cleaning_document(doc, session)
     return set_doc(doc, new_status, session)
 
 
