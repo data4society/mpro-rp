@@ -140,14 +140,13 @@ def router(doc_id, app_id, status):
     if "mode" in app_conf and app_conf["mode"] == "live" and status == RUBRICATION_COMPLETE_STATUS:
         session = db_session()
         doc = session.query(Document).filter_by(doc_id=doc_id).first()
-        to_delete = False
-        if not doc.rubric_ids:
-            to_delete = True
+        if len(doc.rubric_ids) == 0:
+            logging.info("delete doc: " + str(doc_id) + " title: " + str(doc.title) + " url: " + str(doc.url))
             delete_document(doc_id, session)
-        session.commit()
-        session.remove()
-        if to_delete:
+            session.commit()
+            session.remove()
             return
+        session.remove()
     if "capital_feature" in app_conf and status < CAPITAL_FEATURE_COMPLETE_STATUS:  # to create capital feature
         regular_capital_feature.delay(doc_id, CAPITAL_FEATURE_COMPLETE_STATUS, app_id=app_id)
         return
@@ -184,7 +183,7 @@ def router(doc_id, app_id, status):
         regular_rubrication_by_comparing.delay(app_conf["rubrication_by_comparing"], doc_id, RUBRICATION_BY_COMPARING_COMPLETE_STATUS, app_id=app_id)
         return
     if "mode" in app_conf and app_conf["mode"] == "live" and status < CLEANING_COMPLETE_STATUS:
-        regular_cleaning(doc_id, CLEANING_COMPLETE_STATUS)
+        regular_cleaning.delay(doc_id, CLEANING_COMPLETE_STATUS)
         return
     # finish regular procedures:
     session = db_session()

@@ -160,7 +160,7 @@ def delete_document(doc_id, session=None, force_commit=False):
 
 
 def cleaning_document(doc, session=None, force_commit=False):
-    doc_id = doc.doc_id
+    doc_id = str(doc.doc_id)
     has_session = True
     if not session:
         has_session = False
