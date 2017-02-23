@@ -159,6 +159,30 @@ def delete_document(doc_id, session=None, force_commit=False):
     print(doc_id, "complete deletion")
 
 
+def cleaning_document(doc, session=None, force_commit=False):
+    doc_id = str(doc.doc_id)
+    has_session = True
+    if not session:
+        has_session = False
+        session = db_session()
+    session.execute("DELETE FROM mentions USING markups m WHERE m.markup_id = markup AND m.document = '" + doc_id + "'")
+    session.execute(
+        "DELETE FROM public.\"references\" USING markups m WHERE m.markup_id = markup AND m.document = '" + doc_id + "'")
+    session.execute("DELETE FROM markups m WHERE m.document = '" + doc_id + "'")
+    session.execute("DELETE FROM rubricationresults r WHERE r.doc_id = '" + doc_id + "'")
+    session.execute("DELETE FROM documentrubrics d WHERE d.doc_id = '" + doc_id + "'")
+    session.execute("DELETE FROM tomita_results d WHERE d.doc_id = '" + doc_id + "'")
+    session.execute("DELETE FROM objectfeatures o WHERE o.doc_id = '" + doc_id + "'")
+    session.execute("DELETE FROM ner_features n WHERE n.doc_id = '" + doc_id + "'")
+    #session.execute("UPDATE documents SET morpho=DEFAULT WHERE doc_id = '" + doc_id + "'")
+    doc.morpho = None
+    if not has_session:
+        session.commit()
+        session.remove()
+    elif force_commit:
+        session.commit()
+
+
 def delete_app_documents(app_id, status=-1):
     from mprorp.db.models import Document
     session = db_session()

@@ -117,16 +117,16 @@ def find_act(file_name, tomita_path):
     numb = '(\d[\d\.]*)'
 
     part = '((ч\.?|част[а-яё]*) ?' + numb + ')'
-    parts = '(' + part + '.{0,100}?)'
+    parts = '(' + part + '.{0,110}?)'
 
     article = '((ст\.?|с\.|стать[а-яё]*) ?' + numb + ')'
-    articles = '(' + article + '.{0,100}?)'
+    articles = '(' + article + '.{0,110}?)'
 
     paragraph = '((п\.?|пункт[а-яё]*) ?' + numb + ')'
-    paragraphs = '(' + paragraph + '.{0,100}?)'
+    paragraphs = '(' + paragraph + '.{0,110}?)'
 
     note = '((п\.|прим\.|примечани[а-яё]*) ?' + numb + ')'
-    notes = '(' + note + '.{0,100}?)'
+    notes = '(' + note + '.{0,110}?)'
 
     KK = '( УК[ \.,]|КоАП|УПК|КОАП|[Уу]головн[а-я]*? [Кк]одекс.?|[Кк]одекс[а-я]*? об административных правонарушениях)'
     string = re.sub(KK, '\\1@#@', string)
