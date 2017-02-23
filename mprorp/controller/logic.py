@@ -75,6 +75,7 @@ SHORT_LENGTH = 2002
 WITHOUT_RUBRICS = 2001
 BAD_COUNTRY = 2003
 SITE_PAGE_PARSE_FAILED = 2004
+WITHOUT_ENTITIES = 2005
 
 mode_times = False
 cur_config = "last_config"
@@ -83,13 +84,20 @@ if sys.argv[0].split("/")[-1] == 'times.py':
     mode_times = True
     cur_config = "test_config"
 
+
 def router(doc_id, app_id, status):
     """route function, that adds new tasks by incoming result (document's status)"""
     doc_id = str(doc_id)
     apps_config = variable_get(cur_config)
     app_conf = apps_config[app_id]
     logging.info("route doc: " + str(doc_id) + " status: " + str(status) + " app_id: " + app_id)
-    if status in [SITE_PAGE_LOADING_FAILED, EMPTY_TEXT, BAD_COUNTRY, SITE_PAGE_PARSE_FAILED]:
+    if status in [SITE_PAGE_LOADING_FAILED, EMPTY_TEXT, BAD_COUNTRY, SITE_PAGE_PARSE_FAILED, WITHOUT_RUBRICS, WITHOUT_ENTITIES]:
+        if "mode" in app_conf and app_conf["mode"] == "live":
+            logging.info("delete doc: " + str(doc_id) + " status: " + status)
+            session = db_session()
+            delete_document(doc_id, session)
+            session.commit()
+            session.remove()
         return
     if status in [GOOGLE_NEWS_INIT_STATUS, GOOGLE_ALERTS_INIT_STATUS, YANDEX_NEWS_INIT_STATUS, YANDEX_RSS_INIT_STATUS, CSV_INIT_STATUS]:  # to find full text of HTML page
         regular_find_full_text.delay(doc_id, SITE_PAGE_COMPLETE_STATUS, app_id=app_id)
@@ -137,16 +145,6 @@ def router(doc_id, app_id, status):
     if "rubrication" in app_conf and status < RUBRICATION_COMPLETE_STATUS:  # to rubrication
         regular_rubrication.delay(app_conf["rubrication"], doc_id, RUBRICATION_COMPLETE_STATUS, WITHOUT_RUBRICS, app_id=app_id)
         return
-    if "mode" in app_conf and app_conf["mode"] == "live" and status == RUBRICATION_COMPLETE_STATUS:
-        session = db_session()
-        doc = session.query(Document).filter_by(doc_id=doc_id).first()
-        if len(doc.rubric_ids) == 0:
-            logging.info("delete doc: " + str(doc_id) + " title: " + str(doc.title) + " url: " + str(doc.url))
-            delete_document(doc_id, session)
-            session.commit()
-            session.remove()
-            return
-        session.remove()
     if "capital_feature" in app_conf and status < CAPITAL_FEATURE_COMPLETE_STATUS:  # to create capital feature
         regular_capital_feature.delay(doc_id, CAPITAL_FEATURE_COMPLETE_STATUS, app_id=app_id)
         return
@@ -183,7 +181,7 @@ def router(doc_id, app_id, status):
         regular_rubrication_by_comparing.delay(app_conf["rubrication_by_comparing"], doc_id, RUBRICATION_BY_COMPARING_COMPLETE_STATUS, app_id=app_id)
         return
     if "mode" in app_conf and app_conf["mode"] == "live" and status < CLEANING_COMPLETE_STATUS:
-        regular_cleaning.delay(doc_id, CLEANING_COMPLETE_STATUS)
+        regular_cleaning.delay(doc_id, CLEANING_COMPLETE_STATUS, app_id=app_id)
         return
     # finish regular procedures:
     session = db_session()
@@ -584,9 +582,14 @@ def regular_rubrication_by_comparing(config, doc_id, new_status, **kwargs):
 
 @app.task()
 def regular_cleaning(doc_id, new_status, **kwargs):
-    """regular theming"""
+    """regular cleaning"""
     session, doc = get_doc(doc_id)
-    cleaning_document(doc, session)
+    apps_config = variable_get(cur_config, session)
+    app_id = kwargs["app_id"]
+    if "entities_required" in apps_config[app_id] and (not doc.entity_ids or len(doc.entity_ids) == 0):
+        new_status = WITHOUT_ENTITIES
+    else:
+        cleaning_document(doc, session)
     return set_doc(doc, new_status, session)
 
 
