@@ -393,9 +393,9 @@ def identification_doc(doc_id):
     #     'markup_type': '20'
     # }
     settings_list = {
-        'identification_settings': [{"identification_type": 1, "tag_type": ["BS", "IE"], "learn_class": "name"},
-                                    {"identification_type": 2, "tag_type": ["Loc"], "learn_class": "loc"},
-                                    {"identification_type": 2, "tag_type": ["Org"], "learn_class": "org"}],
+        'identification_settings': [{"identification_type": 1, "tag_type": ["BS", "IE"], "learn_class": "name", 'create_new_entities': True},
+                                    {"identification_type": 2, "tag_type": ["Loc"], "learn_class": "loc", 'create_new_entities': True},
+                                    {"identification_type": 2, "tag_type": ["Org"], "learn_class": "org", 'create_new_entities': True}],
         'name': 'from NER',
         'markup_type': '20'
     }
@@ -499,7 +499,8 @@ def script_exec():
     doc_set = [#'7232cfa3-a820-4c2f-b186-c57e58db2bb7',
                #'177097e8-0e9e-4392-a586-7bb0c4dfe2c9',
                #'68870091-58cb-4719-9089-5da62398ce65',
-               '31f8194a-b292-4d52-a6ca-27bb1cec5da2'
+               # '31f8194a-b292-4d52-a6ca-27bb1cec5da2'
+                'dc158740-9ffd-40d6-a50b-6e1f5f66db53'
     ]
     # rec_set = db.get_set_docs(sets['name']['dev'])
     # doc_set = ['664db67f-cc86-4933-82c0-20a555a38281']
@@ -507,13 +508,13 @@ def script_exec():
     # for rec_id in rec_set:
     #     doc_set.append(get_doc_id(rec_id))
 
-    for doc_id in doc_set:
-        doc = session.query(Document).filter_by(doc_id=doc_id).first()
-        rb.morpho_doc(doc, verbose=True)
-    session.commit()
-    capital_embedding_morpho_feature(doc_set)
-
-    tomita(doc_set)
+    # for doc_id in doc_set:
+    #     doc = session.query(Document).filter_by(doc_id=doc_id).first()
+    #     rb.morpho_doc(doc, verbose=True)
+    # session.commit()
+    # capital_embedding_morpho_feature(doc_set)
+    #
+    # tomita(doc_set)
 
     for doc_id in doc_set:
         doc = session.query(Document).filter_by(doc_id=doc_id).first()
@@ -521,8 +522,8 @@ def script_exec():
             print('No document', doc_id)
         print(doc.stripped)
     #     print('Morpho', doc.morpho)
-        NER.NER_predict(doc, [{"class": 1, "tags": 1, "use_special_tags": 0}],
-                        session, commit_session=True, verbose=True)
+    #     NER.NER_predict(doc, [{"class": 1, "tags": 1, "use_special_tags": 0}],
+    #                     session, commit_session=True, verbose=True)
         identification_doc(doc_id)
     # comparison()
     # 756c27e4-3036-aed7-6b3b-8813dc00352a

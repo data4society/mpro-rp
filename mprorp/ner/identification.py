@@ -663,11 +663,12 @@ def create_refs(doc, refs_settings, refs, session=None, commit_session=True, ver
     # для этого по каждому упоминанию сформируем символьные координаты
     for i in range(len(mentions_id)):
         if mentions_id[i] is not None:
-            start_offset = doc_properties_info[mentions[i][0]]['start_offset']
-            end_offset = doc_properties_info[mentions[i][len(mentions[i]) - 1]]['end_offset']
-            refs.append({'start_offset': start_offset, 'end_offset': end_offset + 1,
-                         'len_offset': end_offset - start_offset + 1,
-                         'entity': str(mentions_id[i]), 'entity_class': entity_class})
+            for j in local_entities[i]:
+                start_offset = doc_properties_info[mentions[j][0]]['start_offset']
+                end_offset = doc_properties_info[mentions[j][len(mentions[j]) - 1]]['end_offset']
+                refs.append({'start_offset': start_offset, 'end_offset': end_offset + 1,
+                             'len_offset': end_offset - start_offset + 1,
+                             'entity': str(mentions_id[i]), 'entity_class': entity_class})
 
 
 def normalize_links(links):
