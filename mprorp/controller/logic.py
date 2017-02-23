@@ -93,7 +93,7 @@ def router(doc_id, app_id, status):
     logging.info("route doc: " + str(doc_id) + " status: " + str(status) + " app_id: " + app_id)
     if status in [SITE_PAGE_LOADING_FAILED, EMPTY_TEXT, BAD_COUNTRY, SITE_PAGE_PARSE_FAILED, WITHOUT_RUBRICS, WITHOUT_ENTITIES]:
         if "mode" in app_conf and app_conf["mode"] == "live":
-            logging.info("delete doc: " + str(doc_id) + " status: " + status)
+            logging.info("delete doc: " + str(doc_id) + " status: " + str(status) + " app_id: " + app_id)
             session = db_session()
             delete_document(doc_id, session)
             session.commit()
