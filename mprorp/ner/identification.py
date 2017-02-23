@@ -796,6 +796,7 @@ def form_doc_properties_info(doc, doc_properties):
             elif doc_property[0] == sentence_index and doc_property[1] == word_index:
                 doc_property_is_found = True
                 analysis = element_doc_morpho.get('analysis')
+                text = element_doc_morpho.get('text', ' ')
                 if analysis is None:
                     best_lex = element_doc_morpho.get('text', '')
                     doc_properties_info[doc_property] = {'list_lex': [best_lex], 'best_lex': best_lex, 'text': best_lex}
@@ -832,19 +833,17 @@ def form_doc_properties_info(doc, doc_properties):
                     array_case /= len_vectors
                     array_numeric /= len_vectors
 
-                    text = element_doc_morpho.get('text', ' ')
-
                     print(doc_property)
                     doc_properties_info[doc_property] = {'list_lex': list_lex}
                     doc_properties_info[doc_property]['best_lex'] = best_lex
                     doc_properties_info[doc_property]['case'] = array_case
                     doc_properties_info[doc_property]['numeric'] = array_numeric
 
-                    doc_properties_info[doc_property]['first_supper'] = text[0].isupper()
-                    doc_properties_info[doc_property]['all_supper'] = text.isupper()
-                    doc_properties_info[doc_property]['start_offset'] = element_doc_morpho['start_offset']
-                    doc_properties_info[doc_property]['end_offset'] = element_doc_morpho['end_offset']
-                    doc_properties_info[doc_property]['text'] = text
+                doc_properties_info[doc_property]['first_supper'] = text[0].isupper()
+                doc_properties_info[doc_property]['all_supper'] = text.isupper()
+                doc_properties_info[doc_property]['start_offset'] = element_doc_morpho['start_offset']
+                doc_properties_info[doc_property]['end_offset'] = element_doc_morpho['end_offset']
+                doc_properties_info[doc_property]['text'] = text
 
     return doc_properties_info
 
