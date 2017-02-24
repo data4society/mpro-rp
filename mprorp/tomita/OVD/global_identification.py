@@ -210,9 +210,12 @@ def choose_nearest(facts):
     for ovd in facts:
         weight = -10000
         for i in ovd:
-            if i[1] > weight:
-                weight = i[1]
-                best = i
+            try:
+                if i[1] > weight:
+                    weight = i[1]
+                    best = i
+            except:
+                continue
         if best != 1:
             out.append(best)
     return out

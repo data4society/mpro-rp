@@ -27,6 +27,17 @@ def try_ovd(doc_id):
             ovd = session.query(Entity).filter(Entity.entity_id == out[i]).first()
             print(out[i], ovd.name, ovd.external_data['kladr'])
 
+def try_all_ovd():
+    bad_docs = []
+    a = session.query(Document).filter(Document.app_id == 'ovd_test').all()
+    print(len(a))
+    for doc in a:
+        try:
+            out = run_tomita(doc, 'ovd.cxx')
+        except:
+            bad_docs.append(str(doc.doc_id))
+    print('BAD DOCS: ' + str(bad_docs))
+
 def try_norm_act(source_id):
     doc = session.query(Record).filter(Record.document_id == source_id).first()
     doc_id = doc.source
@@ -51,9 +62,9 @@ def add_norm_act(norm_act):
     session.add(norm_act)
     session.commit()
 
-#try_ovd('6e8313b5-bcea-4a4a-8513-4c7428fb0a45')
-#try_ovd('b98861ff-2ce4-4d7f-9e48-d4a944516331')
+#try_all_ovd()
 #f1('ovd')
+#try_ovd('33456708-ef5c-4fc7-aa5e-733a21df530c')
 #f1('normacts')
 #try_norm_act('f37e7619-7565-7af8-3236-64ad5532b008')
 #doc = session.query(Document).filter(Document.doc_id == '6e5dad1a-ff04-4ba4-9b17-2d3bd5e75d14').first()
