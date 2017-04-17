@@ -544,6 +544,22 @@ def script_exec():
     # db.delete_entity('b7f4eedd-ba7f-422b-9299-e43c414ceb1e') #'347f1317-eb2a-4a4b-af76-f9c2f2bd1fa9')
     # print(db.get_entity_by_labels(['Алексей'], verbose=True))
 
-script_exec()
+
+def script_exec2():
+    docs = db.get_docs_by_markup_type(markup_type='56', session=session)
+    doc_yes = 0
+    doc_no = 0
+    for doc_id in docs:
+        try:
+            doc = session.query(Document).filter_by(doc_id=doc_id).first()
+            if doc.morpho is None:
+                doc_no += 1
+            else:
+                doc_yes += 1
+        except:
+            doc_no += 1
+    print('Yes: ', doc_yes, ' No: ', doc_no )
+
+script_exec2()
 
 

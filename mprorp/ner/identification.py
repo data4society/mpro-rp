@@ -669,6 +669,8 @@ def create_refs(doc, refs_settings, refs, session=None, commit_session=True, ver
                 refs.append({'start_offset': start_offset, 'end_offset': end_offset + 1,
                              'len_offset': end_offset - start_offset + 1,
                              'entity': str(mentions_id[i]), 'entity_class': entity_class})
+    if verbose:
+        print(refs)
 
 
 def normalize_links(links):
