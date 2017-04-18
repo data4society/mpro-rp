@@ -238,11 +238,11 @@ class Record(Base):
     # whatever this document training set
     training = Column(Boolean())
     # document rubrics
-    rubrics = Column(ARRAY(UUIDType(binary=False), ForeignKey('rubrics.rubric_id')))
+    rubrics = Column(ARRAY(String(40), ForeignKey('rubrics.rubric_id')))
     # document entities
-    entities = Column(ARRAY(UUIDType(binary=False), ForeignKey('entities.entity_id')))
+    entities = Column(ARRAY(String(40), ForeignKey('entities.entity_id')))
     # document collections
-    collections = Column(ARRAY(UUIDType(binary=False), ForeignKey('collections.collection_id')))
+    collections = Column(ARRAY(String(40), ForeignKey('collections.collection_id')))
     # reference to source document table record
     source = Column(UUIDType(binary=False), ForeignKey('documents.doc_id'))
     # substce document
