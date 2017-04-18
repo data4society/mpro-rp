@@ -1,0 +1,3 @@
+import "base.proto";     
+import "articles_base.proto";
+message City: TAuxDicArticle {}
