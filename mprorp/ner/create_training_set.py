@@ -204,8 +204,8 @@ def teach_rubricator(set_id, rubric_id, session=None, verbose=False):
 def test_model(set_id, rubric_id, tr_set=None, name=''):
     model_id = rb.spot_test_set_rubric(set_id, rubric_id, training_set_id=tr_set)
     print('При тестировании для рубрики ', rubric_id, ' использована модель ', model_id)
-    # for doc_id in db.get_set_docs(set_id):
-    #     rb.spot_doc_rubrics2(doc_id, {rubric_id: None}, verbose=True)
+    for doc_id in db.get_set_docs(set_id):
+        rb.spot_doc_rubrics2(doc_id, {rubric_id: None}, verbose=True)
     model_id = db.get_model(rubric_id)["model_id"]
     # if protocol != '':
     #     file_name = protocol + '_' + name + '.txt'

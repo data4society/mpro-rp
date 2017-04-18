@@ -20,6 +20,7 @@ optimal_features_number = 50
 tf_steps = 40000
 lr=10
 l2 = 0.005
+probab_limit = 0.5
 # words to exclude from model
 
 # one document morphological analysis regular
@@ -858,7 +859,7 @@ def spot_doc_rubrics(doc, rubrics, session=None, commit_session=True, verbose=Fa
         probabilities[rubric_id] = probability
         if verbose:
             print('Вероятность: ', probability)
-        if probability > 0.5:
+        if probability > probab_limit:
             answers.append(rubric_id)
         elif negative_rubrics[rubric_id] is not None:
             answers.append(negative_rubrics[rubric_id])
