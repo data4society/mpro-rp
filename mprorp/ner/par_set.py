@@ -30,9 +30,9 @@ embedding_size = 128 #128  # Dimension of the embedding vector.
 # embed_par_size = 400
 skip_window = 1  # How many words to consider left and right (if not consistent_words)
 num_skips = 2  # Size of the window with consistent or random order words
-l1_size = 128 #256
+l1_size = 512 #256
 
-reg_l1 = 0.0025
+reg_l1 = 0.0001
 reg_emded = 0.00005
 dropout = 0.7
 # reg_softmax = 0.00005
