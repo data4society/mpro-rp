@@ -62,7 +62,7 @@ def delete_loc(fact_arr):
     ovd_coord = []
     loc = []
     for fact in fact_arr:
-        if fact['type'][:3] == 'OVD':
+        if fact['type'][:3] == 'ovd':
             all_facts.append(fact)
             for f in fact['facts']:
                 ovd_coord.append([fact['facts'][f][0] + fact['fs'], fact['facts'][f][1] + fact['fs']])

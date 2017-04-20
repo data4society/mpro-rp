@@ -1,6 +1,6 @@
-from mprorp.tomita.OVD.tomita_out_ovd import *
+from mprorp.tomita.ovd.tomita_out_ovd import *
 from mprorp.db.dbDriver import *
-from mprorp.tomita.OVD.additional import *
+from mprorp.tomita.ovd.additional import *
 
 
 def get_level_of_fact(el):
@@ -11,7 +11,7 @@ def get_level_of_fact(el):
 def get_codes_for_fact(fact, session):
     out = []
     norms = fact['norm']
-    if 'OVD' not in norms:
+    if 'ovd' not in norms:
         for fact_type in norms:
             if fact_type == 'Location':
                 codes = Location(norms[fact_type], session, city=False, level=0)

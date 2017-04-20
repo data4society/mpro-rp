@@ -1,5 +1,5 @@
 from mprorp.db.models import *
-from mprorp.tomita.OVD.city_levenshtein import min_distance, cities
+from mprorp.tomita.ovd.city_levenshtein import min_distance, cities
 
 
 mvd_root = 'eaf0a69a-74d7-4e1a-9187-038a202c7698'

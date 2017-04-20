@@ -7,7 +7,7 @@ import "facttypes.proto";
 
 TAuxDicArticle "Локация"
 {
-    key = { "tomita:loc.cxx" type=CUSTOM }
+    key = { "tomita:loc_c.cxx" type=CUSTOM }
 }
 
 City "Город"

@@ -7,6 +7,7 @@ from mprorp.tomita.tomita_start import start_tomita, create_file
 from mprorp.tomita.tomita_run_ovd import run_tomita_ovd, only_russia, create_file_ovd
 from mprorp.utils import home_dir
 from mprorp.tomita.norm_act.global_identification import act_identification
+from mprorp.tomita.tomita_run_loc_c import run_tomita_loc_c, coordinates
 
 
 def del_files(doc_id, tomita_path):
@@ -30,9 +31,7 @@ def run_tomita(doc, grammar, session=None, commit_session=True):
         source_name = create_file_ovd(doc, tomita_path)
         out = find_act(source_name, tomita_path)
         order = [i for i in out]
-        print(out)
         out = clean_act(out)
-        print(out)
         out = act_identification(out)
         out = norm_out(out, source_name, tomita_path, order)
         db.put_tomita_result(str(doc.doc_id), grammar, out, session, commit_session)
@@ -46,6 +45,9 @@ def run_tomita(doc, grammar, session=None, commit_session=True):
             print('Not Russia')
             out = {}
         db.put_tomita_result(str(doc.doc_id), grammar, out, session, commit_session)
+        return out
+    elif grammar == 'locality.cxx':
+        out = coordinates(run_tomita_loc_c(doc)['tomita'])
         return out
     else:
         output, tomita_path = start_tomita(grammar, doc)

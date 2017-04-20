@@ -1,7 +1,7 @@
-from mprorp.tomita.OVD.tomita_out_ovd import sen_division
+from mprorp.tomita.ovd.tomita_out_ovd import sen_division
 from mprorp.analyzer.db import *
-from mprorp.tomita.OVD.additional import cross, new_cross
-from mprorp.tomita.OVD.code_from_db import get_all_codes
+from mprorp.tomita.ovd.additional import cross, new_cross
+from mprorp.tomita.ovd.code_from_db import get_all_codes
 import re
 
 def codes_to_norm(fact):

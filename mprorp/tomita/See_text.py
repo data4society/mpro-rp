@@ -2,7 +2,7 @@ from mprorp.utils import home_dir
 import os
 from mprorp.db.dbDriver import *
 from mprorp.db.models import *
-from mprorp.tomita.OVD.code_from_db import *
+from mprorp.tomita.ovd.code_from_db import *
 
 #text = get_doc('f844e3f0-4b02-4643-9ee3-2bdcd7c422be')
 #print(text)
@@ -15,8 +15,8 @@ from mprorp.tomita.OVD.code_from_db import *
 session = db_session()
 fact = {'sn': 17, 'facts': {'Location': [0, 4]}, 'type': 'LocationFact', 'string': 'крыму', 'id': 22, 'fs': 2597,
         'norm': {'City': ['спасск-дальний'],  'Location': ['крым', 'ростов'], 'type_1': ['москва']}}
-fact2 = {'string': 'овд «южное медведково', 'sn': 0, 'facts': {'Name': [5, 20], 'OVD': [0, 2]}, 'fs': 129, 'id': 1,
-         'norm': {'Name': ['южное медведково'], 'OVD': ['овд']}, 'type': 'OVDFact'}
+fact2 = {'string': 'овд «южное медведково', 'sn': 0, 'facts': {'Name': [5, 20], 'ovd': [0, 2]}, 'fs': 129, 'id': 1,
+         'norm': {'Name': ['южное медведково'], 'ovd': ['овд']}, 'type': 'OVDFact'}
 for i in get_codes_for_fact(fact2, session):
     print(i)
     for ii in i:
