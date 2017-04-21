@@ -204,9 +204,9 @@ def teach_rubricator(set_id, rubric_id, session=None, verbose=False):
 def test_model(set_id, rubric_id, tr_set=None, name=''):
     model_id = rb.spot_test_set_rubric(set_id, rubric_id, training_set_id=tr_set)
     print('При тестировании для рубрики ', rubric_id, ' использована модель ', model_id)
-    for doc_id in db.get_set_docs(set_id):
-        rb.spot_doc_rubrics2(doc_id, {rubric_id: None}, verbose=True)
-    model_id = db.get_model(rubric_id)["model_id"]
+    # for doc_id in db.get_set_docs(set_id):
+    #     rb.spot_doc_rubrics2(doc_id, {rubric_id: None}, verbose=True)
+    # model_id = db.get_model(rubric_id)["model_id"]
     # if protocol != '':
     #     file_name = protocol + '_' + name + '.txt'
     result = rb.f1_score(model_id, set_id, rubric_id)
@@ -342,7 +342,7 @@ test_com = '5544e81e-6dda-458f-9f79-e40d990e6e94'
 # doc_id = 'f98e75ea-feee-480d-80cc-fe5b4a21e727'
 # rb.spot_doc_rubrics2(doc_id, conf, verbose=True)
 
-rubric_num = '6'
+rubric_num = '4'
 version = '0'
 set_num = version + rubric_num
 
@@ -385,10 +385,10 @@ tr_neg = sets[set_num]['tr_neg']
 # add_rubric_to_docs(rubrics[rubric_num]['pos'], db.get_set_docs(test_positive))
 # add_rubric_to_docs(rubrics[rubric_num]['pos'], db.get_set_docs(tr_pos))
 
-training_set = tr_id_pc
-prepare_docs(tr_pos)
-prepare_docs(tr_neg)
-teach_rubricator(training_set, rubrics[rubric_num]['pos'])
+training_set = tr_id_pnc
+# prepare_docs(tr_pos)
+# prepare_docs(tr_neg)
+# teach_rubricator(training_set, rubrics[rubric_num]['pos'])
 # print('Обучение рубрикатора завершено')
 
 print('Результаты рубрикатора на учебной выборке pn')

@@ -279,9 +279,9 @@ with tf.Session(graph=graph) as session:
         print('IS')
         for k in range(top_k):
             if nearest[k] < vocabulary_size:
-                print(reverse_dictionary[nearest[k]])
+                print(sim_p[i,nearest[k]], reverse_dictionary[nearest[k]])
             else:
-                print([reverse_dictionary[data[j + (nearest[k] - vocabulary_size) * par_size]] for j in range(par_size)])
+                print(sim_p[i,nearest[k]], [reverse_dictionary[data[j + (nearest[k] - vocabulary_size) * par_size]] for j in range(par_size)])
 
     for par in interesting_pars:
         print(par)

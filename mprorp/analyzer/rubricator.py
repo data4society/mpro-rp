@@ -926,7 +926,11 @@ def spot_test_set_rubric(test_set_id, rubric_id, training_set_id=None):
             # print(mif)
             probability = sigmoid(np.dot(mif, model['model']))
             # print(probability)
-            answers.append({'result': round(probability), 'model_id': model['model_id'],
+            if probability > probab_limit:
+                result = 1
+            else:
+                result = 0
+            answers.append({'result': result, 'model_id': model['model_id'],
                             'rubric_id': rubric_id, 'doc_id': doc_id, 'probability': probability})
         else:
             answers.append({'result': 0, 'model_id': model['model_id'],
