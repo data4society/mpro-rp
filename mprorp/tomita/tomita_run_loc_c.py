@@ -72,10 +72,7 @@ def run_tomita_loc_c(doc):
     out_name, file_name, tomita_path = start_tomita_loc_c(doc)
     meta = get_meta(doc)
     results = get_coordinates(out_name, file_name, tomita_path)
-    for result in results:
-        print(result)
-        print(get_codes_from_kladr(result))
+    #for result in results:
+    #    print(result)
+    #    print(get_codes_from_kladr(result))
     return {'tomita' : results, 'meta' : meta}, tomita_path
-
-def coordinates(results):
-    return {str(result['fs']) + ':' + str(result['ls']) : 'Locality' for result in results}
