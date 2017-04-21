@@ -17,7 +17,7 @@ from six.moves.urllib.request import urlretrieve
 
 url = 'http://mattmahoney.net/dc/'
 consistent_words = True
-use_par_embed = False
+use_par_embed = True
 use_NN = True
 learning_rate = 0.3
 
@@ -29,7 +29,7 @@ batch_size = 100
 embedding_size = 128 #128  # Dimension of the embedding vector.
 # embed_par_size = 400
 skip_window = 1  # How many words to consider left and right (if not consistent_words)
-num_skips = 2  # Size of the window with consistent or random order words
+num_skips = 3  # Size of the window with consistent or random order words
 l1_size = 512 #256
 
 reg_l1 = 0.0001
@@ -43,6 +43,7 @@ dropout = 0.7
 valid_size = 25  # Random set of words to evaluate similarity on.
 valid_window = 300  # Only pick dev samples in the head of the distribution.
 valid_examples = np.array(random.sample(range(valid_window), valid_size))
+valid_examples_p = [0,1,2,3,4]
 num_sampled = 64  # Number of negative examples to sample.
 
 def maybe_download(filename, expected_bytes):
@@ -166,6 +167,7 @@ with graph.as_default(), tf.device('/cpu:0'):
     train_dataset = tf.placeholder(tf.int32, shape=[batch_size, features_number])
     train_labels = tf.placeholder(tf.int32, shape=[batch_size, 1])
     valid_dataset = tf.constant(valid_examples, dtype=tf.int32)
+    valid_dataset_p = tf.constant(valid_examples_p, dtype=tf.int32)
 
 
     # Variables.
@@ -230,9 +232,12 @@ with graph.as_default(), tf.device('/cpu:0'):
     valid_embeddings = tf.nn.embedding_lookup(
         normalized_embeddings, valid_dataset)
     similarity = tf.matmul(valid_embeddings, tf.transpose(normalized_embeddings))
+    valid_embeddings_p = tf.nn.embedding_lookup(
+        normalized_embeddings, valid_dataset_p)
+    similarity_p = tf.matmul(valid_embeddings_p, tf.transpose(normalized_embeddings))
     init = tf.initialize_all_variables()
 
-num_steps = 200001
+num_steps = 400001
 
 with tf.Session(graph=graph) as session:
     # tf.global_variables_initializer().run()
@@ -253,6 +258,7 @@ with tf.Session(graph=graph) as session:
             average_loss = 0
         # note that this is expensive (~20% slowdown if computed every 500 steps)
         if step % 10000 == 0:
+            interesting_pars = {}
             sim = similarity.eval()
             for i in range(valid_size):
                 valid_word = reverse_dictionary[valid_examples[i]]
@@ -262,5 +268,25 @@ with tf.Session(graph=graph) as session:
                 for k in range(top_k):
                     close_word = reverse_dictionary[nearest[k]] if nearest[k] < vocabulary_size else nearest[k] - vocabulary_size
                     log = '%s %s,' % (log, close_word)
+                    if nearest[k] >= vocabulary_size:
+                        interesting_pars[nearest[k] - vocabulary_size] = ''
                 print(log)
+    sim_p = similarity_p.eval()
+    for i in range(len(valid_examples_p)):
+        nearest = (-sim_p[i, :]).argsort()[1:top_k + 1]
+        print('Nearest to ')
+        print([reverse_dictionary[data[j + i * par_size]] for j in range(par_size)])
+        print('IS')
+        for k in range(top_k):
+            if nearest[k] < vocabulary_size:
+                print(reverse_dictionary[nearest[k]])
+            else:
+                print([reverse_dictionary[data[j + (nearest[k] - vocabulary_size) * par_size]] for j in range(par_size)])
+
+    for par in interesting_pars:
+        print(par)
+        print([reverse_dictionary[data[i + par * par_size]] for i in range(par_size)])
+
     final_embeddings = normalized_embeddings.eval()
+
+
