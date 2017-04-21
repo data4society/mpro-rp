@@ -267,7 +267,7 @@ with tf.Session(graph=graph) as session:
                 log = 'Nearest to %s:' % valid_word
                 for k in range(top_k):
                     close_word = reverse_dictionary[nearest[k]] if nearest[k] < vocabulary_size else nearest[k] - vocabulary_size
-                    log = '%s %s,' % (log, close_word)
+                    log = '%s %s (%s),' % (log, close_word, sim[i, nearest[k]])
                     if nearest[k] >= vocabulary_size:
                         interesting_pars[nearest[k] - vocabulary_size] = ''
                 print(log)
