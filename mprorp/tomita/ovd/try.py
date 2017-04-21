@@ -10,6 +10,8 @@ import re
 from mprorp.analyzer.f1_for_ovd import f1
 from mprorp.tomita.norm_act.global_identification import act_identification
 import os
+from mprorp.tomita.tomita_run_loc_c import run_tomita_loc_c
+from mprorp.tomita.location.meta_loc import get_meta
 
 session = db_session()
 #object = session.query(Entity).filter(Entity.external_data['kladr'].astext == "77000000000062700").all()
@@ -21,7 +23,7 @@ def try_ovd(doc_id):
     out = run_tomita(a[0], 'ovd.cxx')
     print(out)
     if out == {}:
-        print('No OVD')
+        print('No ovd')
     else:
         for i in out:
             ovd = session.query(Entity).filter(Entity.entity_id == out[i]).first()
@@ -68,12 +70,15 @@ def add_norm_act(norm_act):
 #f1('normacts')
 #try_norm_act('f37e7619-7565-7af8-3236-64ad5532b008')
 #doc = session.query(Document).filter(Document.doc_id == '6e5dad1a-ff04-4ba4-9b17-2d3bd5e75d14').first()
-#print(session.query(Record).filter(Record.app_id == 'ovd_ideal', Record.document_id == '0c269563-5b0b-2695-a9f5-cdade7d2f3c8').all())
+#for i in list(set(session.query(KLADR).filter(KLADR.type == 'Город').all())):
+#    print(i.name)
 #print(session.query(Entity).filter(Entity.entity_id == '594f2d02-175b-41af-b0e0-68bcfb8b3cce').first().name)
 #a = get_ner_feature_dict('23d197c3-467e-49d8-8a07-5336ec2b18fe', 'fb8fc548-0464-40b7-a998-04a6e1b95eb6', 'Person')
 #a = get_ner_feature_one_feature_dict('00000f42-e066-4062-b380-1a3361e66c64', 'Person', session)
 #print(a)
-#new_entity = Entity(name='KOAP', entity_class='norm_act', data={'Matvey_try':1})
+#new_entity = session.query(Entity).filter(Entity.entity_id == '00095571-1ade-47c1-81ab-2b74dcf6b035').first()
+#new_entity.data = {'try' : 'Matvey'}
+#print(new_entity)
 #session.add(new_entity)
 #session.commit()
 #entity_delition('norm_act')
@@ -87,3 +92,7 @@ def add_norm_act(norm_act):
 #for a in n:
 #    a.name = a.name + ' ' + a.data['art'][:-1] + ' ' + a.data['part'][:-1]
 #session.commit()
+doc = session.query(Document).filter(Document.doc_id == '000166cf-826a-478b-b01a-229eb755d1cf').first()
+#print(run_tomita_loc_c(doc))
+print(run_tomita(doc, 'locality.cxx'))
+#print(get_meta(doc))

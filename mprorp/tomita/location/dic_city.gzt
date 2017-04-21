@@ -1,0 +1,21 @@
+encoding "utf8";
+import "base.proto";     
+import "articles_base.proto";
+import "keywords.proto";
+import "facttypes.proto";
+
+
+TAuxDicArticle "Локация"
+{
+    key = { "tomita:loc_c.cxx" type=CUSTOM }
+}
+
+City "Город"
+{
+ key = { "City.txt" type=FILE }
+}
+
+TAuxDicArticle "FIO"
+{
+ key = {"alg:fio" type = CUSTOM}
+}

@@ -1,0 +1,20 @@
+encoding "utf8";
+
+TTextMinerConfig {
+  Dictionary = "dic_city.gzt";       
+  PrettyOutput = "debug.html";  
+  Input = {
+    File = "try.txt";
+ }
+  Articles = [
+	{Name = "Локация"}
+  ]
+  Facts = [
+    { Name = "LocationFact_TOMITA" }
+  ]
+  Output = {
+    File = "facts.xml";
+    Format = xml;   
+	Encoding = "utf-8";
+ }
+}
