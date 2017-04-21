@@ -4,8 +4,9 @@ import os.path as path
 import subprocess as sp
 from mprorp.tomita.tomita_run import create_file
 from mprorp.config.settings import *
-from mprorp.tomita.location.tomita_out_loc import get_coordinates
-from mprorp.tomita.location.meta_loc import get_meta
+from mprorp.tomita.locality.tomita_out_loc import get_coordinates
+from mprorp.tomita.locality.meta_loc import get_meta
+from mprorp.tomita.locality.global_idetification import get_codes_from_kladr
 
 def create_file_loc_c(doc, tomita_path):
     """function to create input file"""
@@ -20,7 +21,7 @@ def create_config_loc(file_name, tomita_path):
     """function to create configuration file"""
     #path1 = os.path.dirname(os.path.realpath(__file__))
     #dic =  path1 + '/ovd/dic_ovd.gzt"'
-    dic = relative_file_path(__file__, 'location/dic_city.gzt')
+    dic = relative_file_path(__file__, 'locality/dic_city.gzt')
     config_name = 'config_' + file_name[:-4] + '.proto'
     config_file = '''encoding "utf8";
 
@@ -71,7 +72,10 @@ def run_tomita_loc_c(doc):
     out_name, file_name, tomita_path = start_tomita_loc_c(doc)
     meta = get_meta(doc)
     results = get_coordinates(out_name, file_name, tomita_path)
-    return {'tomita' : results, 'meta' : meta}
+    for result in results:
+        print(result)
+        print(get_codes_from_kladr(result))
+    return {'tomita' : results, 'meta' : meta}, tomita_path
 
 def coordinates(results):
     return {str(result['fs']) + ':' + str(result['ls']) : 'Locality' for result in results}
