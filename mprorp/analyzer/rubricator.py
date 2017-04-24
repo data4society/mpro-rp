@@ -809,10 +809,12 @@ def spot_doc_rubrics(doc, rubrics, session=None, commit_session=True, verbose=Fa
     negative_rubrics = {}
     train_set = {}
     probabilities = {}
+    probability_limits = {}
     # fill set_id in rubrics and data in models
     for rubric_dict in rubrics:
         rubric_id = rubric_dict['rubric_id']
         negative_rubrics[rubric_id] = rubric_dict.get('rubric_minus_id', None)
+        probability_limits[rubric_id] = rubric_dict.get('limit', probab_limit)
         train_set_id = db.get_set_id_by_name(rubric_dict['set_name'])
         if train_set_id is None or train_set_id == '':
             continue
@@ -859,7 +861,7 @@ def spot_doc_rubrics(doc, rubrics, session=None, commit_session=True, verbose=Fa
         probabilities[rubric_id] = probability
         if verbose:
             print('Вероятность: ', probability)
-        if probability > probab_limit:
+        if probability > probability_limits[rubric_id]:
             answers.append(rubric_id)
         elif negative_rubrics[rubric_id] is not None:
             answers.append(negative_rubrics[rubric_id])
