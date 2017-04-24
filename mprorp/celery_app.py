@@ -51,6 +51,8 @@ def load_app_conf(json_path, cur_config):
                 if "rubric_minus" in rubr_obj:
                     new_rubr_obj["rubric_minus_id"] = rubric_ids_by_names[rubr_obj["rubric_minus"]]
                 new_rubr_obj["set_name"] = rubr_obj["set_name"]
+                if "limit" in rubr_obj:
+                    new_rubr_obj["limit"] = rubr_obj["limit"]
                 new_rubricator.append(new_rubr_obj)
             app["rubrication"] = new_rubricator
 
