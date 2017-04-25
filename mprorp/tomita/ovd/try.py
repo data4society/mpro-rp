@@ -11,7 +11,7 @@ from mprorp.analyzer.f1_for_ovd import f1
 from mprorp.tomita.norm_act.global_identification import act_identification
 import os
 from mprorp.tomita.tomita_run_loc_c import run_tomita_loc_c
-from mprorp.tomita.location.meta_loc import get_meta
+from mprorp.tomita.locality.meta_loc import get_meta
 
 session = db_session()
 #object = session.query(Entity).filter(Entity.external_data['kladr'].astext == "77000000000062700").all()
@@ -79,7 +79,7 @@ def add_norm_act(norm_act):
 #new_entity = session.query(Entity).filter(Entity.entity_id == '00095571-1ade-47c1-81ab-2b74dcf6b035').first()
 #new_entity.data = {'try' : 'Matvey'}
 #print(new_entity)
-#session.add(new_entity)
+##session.add(new_entity)
 #session.commit()
 #entity_delition('norm_act')
 #start_tomita('date.cxx', '000e82b8-6ea7-41f4-adc6-bc688fbbeeb6')
@@ -93,6 +93,5 @@ def add_norm_act(norm_act):
 #    a.name = a.name + ' ' + a.data['art'][:-1] + ' ' + a.data['part'][:-1]
 #session.commit()
 doc = session.query(Document).filter(Document.doc_id == '000166cf-826a-478b-b01a-229eb755d1cf').first()
-#print(run_tomita_loc_c(doc))
 print(run_tomita(doc, 'locality.cxx'))
 #print(get_meta(doc))

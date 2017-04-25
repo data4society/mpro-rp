@@ -4,10 +4,10 @@ import os
 import mprorp.analyzer.db as db
 from mprorp.tomita.tomita_out import tomita_out, norm_out, find_act, clean_act
 from mprorp.tomita.tomita_start import start_tomita, create_file
-from mprorp.tomita.tomita_run_ovd import run_tomita_ovd, only_russia, create_file_ovd
+from mprorp.tomita.tomita_run_ovd import run_tomita_ovd, only_russia, create_file_ovd, del_files_ovd
 from mprorp.utils import home_dir
 from mprorp.tomita.norm_act.global_identification import act_identification
-from mprorp.tomita.tomita_run_loc_c import run_tomita_loc_c, coordinates
+from mprorp.tomita.tomita_run_loc_c import run_tomita_loc_c
 
 
 def del_files(doc_id, tomita_path):
@@ -47,7 +47,10 @@ def run_tomita(doc, grammar, session=None, commit_session=True):
         db.put_tomita_result(str(doc.doc_id), grammar, out, session, commit_session)
         return out
     elif grammar == 'locality.cxx':
-        out = coordinates(run_tomita_loc_c(doc)['tomita'])
+        out, tomita_path = run_tomita_loc_c(doc)
+        out = {str(result['fs']) + ':' + str(result['ls']) : 'Locality' for result in out['tomita']}
+        del_files_ovd(str(doc.doc_id), tomita_path)
+        db.put_tomita_result(str(doc.doc_id), grammar, out, session, commit_session)
         return out
     else:
         output, tomita_path = start_tomita(grammar, doc)
