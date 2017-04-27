@@ -33,6 +33,8 @@ import mprorp.ner.set_list as set_list
 
 embedding_for_word_count = 5
 
+verbose = False
+
 consistent_words = True
 use_par_embed = False
 use_NN = False
@@ -48,6 +50,25 @@ l1_size = 512  # 256
 reg_l1 = 0.0001
 reg_emded = 0.00005
 dropout = 0.7
+
+print('embedding_for_word_count',embedding_for_word_count)
+
+print('consistent_words', consistent_words)
+print('use_par_embed', use_par_embed)
+print('use_NN', use_NN)
+print('learning_rate', learning_rate)
+
+print('batch_size',batch_size)
+print('embedding_size', embedding_size)
+# embed_par_size = 400
+print('skip_window', skip_window)
+print('num_skips', num_skips)
+print('l1_size', l1_size)
+
+print('reg_l1', reg_l1)
+print('reg_emded', reg_emded)
+print('dropout', dropout)
+
 # reg_softmax = 0.00005
 
 # We pick a random validation set to sample nearest neighbors. here we limit the
@@ -132,15 +153,22 @@ def start():
 
     global  num_skips
 
-    # training_set = set_list.sets1250[0]
-    training_set = set_list.set34751
+    training_set = set_list.sets1250[0]
+    # training_set = set_list.set34751
+    # training_set = set_list.set2['train_5120']
+    # training_set = set_list.set2['all_8323']
     train_set_words = db.get_ner_feature(set_id=training_set, feature='embedding')
 
+    if verbose:
+        print('reading compleet')
     words_count = {}
     set_docs = []
     printed = False
     print(len(train_set_words))
     for doc_id in train_set_words:
+        if verbose and len(set_docs) % 1000 == 0:
+            print('set_docs: ', len(set_docs))
+
         doc_words = train_set_words[doc_id]
         doc = []
         for element in doc_words:
@@ -156,20 +184,23 @@ def start():
             else:
                 words_count[main_word] = 1
         set_docs.append(doc)
-        if not printed:
+        if verbose and not printed:
             print(doc_words)
             print(doc)
             printed = True
-
+    if verbose:
+        print('set_docs - ok')
     words_order = sorted(words_count.items(), key=lambda x: -x[1])
-    print('Most common words (+UNK)', words_order[:5])
+    if verbose:
+        print('Most common words (+UNK)', words_order[:5])
 
     dictionary = []
     for word in words_order:
         if words_count[word[0]] > embedding_for_word_count:
             dictionary.append(word[0])
 
-    print(dictionary[:5])
+    if verbose:
+        print(dictionary[:5])
 
     reverse_dictionary = {dictionary[i]: i for i in range(len(dictionary))}
     unk_word = len(dictionary)
@@ -188,17 +219,19 @@ def start():
 
     vocabulary_size = len(reverse_dictionary) + 2
     paragraph_amount = len(paragraphs)
-    print('vocabulary_size:', vocabulary_size)
+    if verbose:
+        print('vocabulary_size:', vocabulary_size)
 
-    print('paragraphs:', [dictionary[di] for di in paragraphs[100][:20]])
+    if verbose:
+        print('paragraphs:', [dictionary[di] for di in paragraphs[100][:20]])
 
-    for num_skips, skip_window in [(2, 1), (4, 2)]:
-        data_index = 0
-        batch, labels = generate_batch(batch_size=8, num_skips=num_skips, skip_window=skip_window,
-                                       voc_size=vocabulary_size, paragraphs=paragraphs)
-        print('\nwith num_skips = %d and skip_window = %d:' % (num_skips, skip_window))
-        print('    batch:', [dictionary[bii] if bii < vocabulary_size else bii for bi in batch for bii in bi])
-        print('    labels:', [dictionary[li] for li in labels.reshape(8)])
+        for num_skips, skip_window in [(2, 1), (4, 2)]:
+            data_index = 0
+            batch, labels = generate_batch(batch_size=8, num_skips=num_skips, skip_window=skip_window,
+                                           voc_size=vocabulary_size, paragraphs=paragraphs)
+            print('\nwith num_skips = %d and skip_window = %d:' % (num_skips, skip_window))
+            print('    batch:', [dictionary[bii] if bii < vocabulary_size else bii for bi in batch for bii in bi])
+            print('    labels:', [dictionary[li] for li in labels.reshape(8)])
 
     graph = tf.Graph()
 
@@ -276,7 +309,7 @@ def start():
         similarity_p = tf.matmul(valid_embeddings_p, tf.transpose(normalized_embeddings))
         init = tf.initialize_all_variables()
 
-    num_steps = 400001
+    num_steps = 4001
 
     with tf.Session(graph=graph) as session:
         # tf.global_variables_initializer().run()
@@ -296,20 +329,31 @@ def start():
                 print('Average loss at step %d: %f' % (step, average_loss))
                 average_loss = 0
             # note that this is expensive (~20% slowdown if computed every 500 steps)
-            if step % 10000 == 0:
-                interesting_pars = {}
-                sim = similarity.eval()
-                for i in range(valid_size):
-                    valid_word = dictionary[valid_examples[i]]
-                    top_k = 8 # number of nearest neighbors
-                    nearest = (-sim[i, :]).argsort()[1:top_k+1]
-                    log = 'Nearest to %s:' % valid_word
-                    for k in range(top_k):
-                        close_word = dictionary[nearest[k]] if nearest[k] < vocabulary_size else nearest[k] - vocabulary_size
-                        log = '%s %s (%s),' % (log, close_word, sim[i, nearest[k]])
-                        if nearest[k] >= vocabulary_size:
-                            interesting_pars[nearest[k] - vocabulary_size] = ''
-                    print(log)
+            if verbose:
+                if step % 10000 == 0:
+                    sim = similarity.eval()
+                    for i in range(valid_size):
+                        valid_word = dictionary[valid_examples[i]]
+                        top_k = 8 # number of nearest neighbors
+                        nearest = (-sim[i, :]).argsort()[1:top_k+1]
+                        log = 'Nearest to %s:' % valid_word
+                        for k in range(top_k):
+                            close_word = dictionary[nearest[k]] if nearest[k] < vocabulary_size else nearest[k] - vocabulary_size
+                            log = '%s %s (%s),' % (log, close_word, sim[i, nearest[k]])
+                        print(log)
+        interesting_pars = {}
+        sim = similarity.eval()
+        for i in range(valid_size):
+            valid_word = dictionary[valid_examples[i]]
+            top_k = 8  # number of nearest neighbors
+            nearest = (-sim[i, :]).argsort()[1:top_k + 1]
+            log = 'Nearest to %s:' % valid_word
+            for k in range(top_k):
+                close_word = dictionary[nearest[k]] if nearest[k] < vocabulary_size else nearest[k] - vocabulary_size
+                log = '%s %s (%s),' % (log, close_word, sim[i, nearest[k]])
+                if nearest[k] >= vocabulary_size:
+                    interesting_pars[nearest[k] - vocabulary_size] = ''
+            print(log)
         sim_p = similarity_p.eval()
         for i in range(len(valid_examples_p)):
             nearest = (-sim_p[i, :]).argsort()[1:top_k + 1]
@@ -322,9 +366,10 @@ def start():
                 else:
                     print(sim_p[i,nearest[k]], [dictionary[paragraphs[i][j]] for j in range(len(paragraphs[i]))])
 
-        for par in interesting_pars:
-            print(par)
-            print([dictionary[paragraphs[i][j]] for j in range(len(paragraphs[i]))])
+        if verbose:
+            for par in interesting_pars:
+                print(par)
+                print([dictionary[paragraphs[i][j]] for j in range(len(paragraphs[i]))])
 
         final_embeddings = normalized_embeddings.eval()
 
