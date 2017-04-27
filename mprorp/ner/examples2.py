@@ -12,6 +12,7 @@ from mprorp.db.models import *
 from mprorp.ner.identification import create_markup
 from mprorp.utils import home_dir
 from mprorp.ner.tomita_to_markup import convert_tomita_result_to_markup
+import mprorp.ner.set_list as set_list
 
 # 1. Create sets: training and dev
 # docs = db.get_docs_with_markup('40')
@@ -68,8 +69,18 @@ doc_id = u'888d310d-5e30-4d93-a987-16488010fb55'
 
 doc_id = 'f87ffa2b-17c2-4e19-8946-224bcdbef500'
 session = Driver.db_session()
-doc = session.query(Document).filter_by(doc_id=doc_id).first()
-rb.morpho_doc(doc)
+
+# set = db.get_set_docs(set_list)
+my_list = []
+for set_id in set_list.sets1250:
+    my_list.extend(db.get_set_docs(set_id))
+print(len(my_list))
+set_train = str(db.put_training_set(my_list))
+print(set_train)
+
+
+# doc = session.query(Document).filter_by(doc_id=doc_id).first()
+# rb.morpho_doc(doc)
 exit()
 # session.commit()
 #

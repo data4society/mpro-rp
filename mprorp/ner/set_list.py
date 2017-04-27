@@ -52,3 +52,5 @@ set_factRuEval = {
 
 set_news = {'train': '4fb42fd1-a0cf-4f39-9206-029255115d01',
             'dev': 'f861ee9d-5973-460d-8f50-92fca9910345'}
+
+set34751 = 'bbdec1ac-4589-46b9-b33e-e40ef527dbc9'
