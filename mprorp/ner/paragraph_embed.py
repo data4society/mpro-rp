@@ -107,8 +107,8 @@ def generate_batch(batch_size, num_skips, skip_window, voc_size, paragraphs):
     global par_index
     global use_par_embed
 
-    assert batch_size % num_skips == 0
-    assert num_skips <= 2 * skip_window
+    # assert batch_size % num_skips == 0
+    # assert num_skips <= 2 * skip_window
 
     batch = np.ndarray(shape=(batch_size, num_skips + use_par_embed), dtype=np.int32)
     labels = np.ndarray(shape=(batch_size, 1), dtype=np.int32)
@@ -151,7 +151,8 @@ def generate_batch(batch_size, num_skips, skip_window, voc_size, paragraphs):
 
 def start():
 
-    global  num_skips
+    global num_skips
+    global skip_window
 
     training_set = set_list.sets1250[0]
     # training_set = set_list.set34751
