@@ -132,8 +132,8 @@ def start():
 
     global  num_skips
 
-    training_set = set_list.sets1250[0]
-    # training_set = set_list.set34751
+    # training_set = set_list.sets1250[0]
+    training_set = set_list.set34751
     train_set_words = db.get_ner_feature(set_id=training_set, feature='embedding')
 
     words_count = {}
