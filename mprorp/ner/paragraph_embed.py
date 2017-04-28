@@ -24,6 +24,10 @@ import mprorp.ner.feature as feature
 import mprorp.ner.set_list as set_list
 
 
+import mprorp.db.dbDriver as Driver
+from mprorp.db.models import *
+
+
 # set_docs = {}
 # for cl in sets:
 #     set_docs[cl] = {}
@@ -379,4 +383,12 @@ def start():
 
         final_embeddings = normalized_embeddings.eval()
 
-start()
+#start()
+training_set = '1b8f7501-c7a8-41dc-8b06-fda7d04461a2'
+tr_set = db.get_set_docs(training_set)
+print(len(tr_set))
+session = Driver.db_session()
+all_words = session.query(NERFeature).filter(
+    NERFeature.doc_id.in_(tr_set) & (NERFeature.feature == 'embedding')).order_by(
+    NERFeature.sentence_index, NERFeature.word_index).all()
+print('aii_words', len(all_words))
