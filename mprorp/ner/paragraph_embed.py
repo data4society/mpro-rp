@@ -153,7 +153,7 @@ def generate_batch(batch_size, num_skips, skip_window, voc_size, paragraphs):
     return batch, labels
 
 
-def start():
+def start2():
 
     global num_skips
     global skip_window
@@ -383,12 +383,16 @@ def start():
 
         final_embeddings = normalized_embeddings.eval()
 
-#start()
-training_set = '1b8f7501-c7a8-41dc-8b06-fda7d04461a2'
-tr_set = db.get_set_docs(training_set)
-print(len(tr_set))
-session = Driver.db_session()
-all_words = session.query(NERFeature).filter(
-    NERFeature.doc_id.in_(tr_set) & (NERFeature.feature == 'embedding')).order_by(
-    NERFeature.sentence_index, NERFeature.word_index).all()
-print('aii_words', len(all_words))
+def start():
+    training_set = '1b8f7501-c7a8-41dc-8b06-fda7d04461a2'
+    tr_set = db.get_set_docs(training_set)
+    print(len(tr_set))
+    session = Driver.db_session()
+    all_words = session.query(NERFeature).filter(
+        NERFeature.doc_id.in_(tr_set) & (NERFeature.feature == 'embedding')).order_by(
+        NERFeature.sentence_index, NERFeature.word_index).all()
+    print('aii_words', len(all_words))
+
+start()
+
+
