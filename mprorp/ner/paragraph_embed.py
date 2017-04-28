@@ -159,7 +159,11 @@ def start():
     # training_set = set_list.set34751
     # training_set = set_list.set_2['train_5120']
     # training_set = set_list.set_2['all_8323']
+    training_set = '1b8f7501-c7a8-41dc-8b06-fda7d04461a2'
+    tr_set = db.get_set_docs(training_set)
+    print(len(tr_set))
     train_set_words = db.get_ner_feature(set_id=training_set, feature='embedding')
+    print(len(train_set_words))
 
     if verbose:
         print('reading complete')
