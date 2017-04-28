@@ -64,6 +64,35 @@ def add_norm_act(norm_act):
     session.add(norm_act)
     session.commit()
 
+
+def spot_urls(text):
+    return re.findall('(http.*?)"', text)
+
+
+def collect_urls():
+    line = ''
+    docs = session.query(Document).filter(Document.status == 76).all()
+    for doc in docs:
+        rubrics = session.query(DocumentRubric).filter(DocumentRubric.doc_id == doc.doc_id).all()
+        if len(rubrics) == 0:
+            rub_line = '0   0'
+        else:
+            rubrics = [i.rubric_id for i in rubrics]
+            if '14e511c0-2ce9-49b2-9d0c-f16c383765d1' in str(rubrics):
+                rub_line = '1   '
+            else:
+                rub_line = '0   '
+            if 'db9baa28-e201-47a6-aada-14f44f42e98f' in str(rubrics):
+                rub_line += '1'
+            else:
+                rub_line += '0'
+        urls = spot_urls(doc.doc_source)
+        for url in urls:
+            line += url + ' ' + rub_line + '\n'
+    return line
+
+
+#print(collect_urls())
 #try_all_ovd()
 #f1('ovd')
 #try_ovd('33456708-ef5c-4fc7-aa5e-733a21df530c')
@@ -92,6 +121,6 @@ def add_norm_act(norm_act):
 #for a in n:
 #    a.name = a.name + ' ' + a.data['art'][:-1] + ' ' + a.data['part'][:-1]
 #session.commit()
-doc = session.query(Document).filter(Document.doc_id == '000166cf-826a-478b-b01a-229eb755d1cf').first()
-print(run_tomita(doc, 'locality.cxx'))
+#doc = session.query(Document).filter(Document.doc_id == '000166cf-826a-478b-b01a-229eb755d1cf').first()
+#print(run_tomita(doc, 'locality.cxx'))
 #print(get_meta(doc))

@@ -80,7 +80,52 @@ def put_norm_act_only_art(path):
         session.commit()
     print('Import DONE')
 
+
+def upd_norm_acts(idd=None):
+    session = db_session()
+    if idd is None:
+        norm_acts = session.query(Entity).filter(Entity.entity_class == 'norm_act').all()
+    else:
+        norm_acts = session.query(Entity).filter(Entity.entity_id == idd).all()
+    print(len(norm_acts))
+    norm_acts = [i for i in norm_acts if 'article' not in i.data]
+    print(len(norm_acts))
+    for act in norm_acts:
+        try:
+            new_data = {}
+            new_data["art"] = act.data["art"]
+            if "art_text" in act.data:
+                new_data["art_text"] = act.data["art_text"]
+            new_data["art_name"] = act.data["art_name"]
+            if 'KOAP' in act.name:
+                new_data['code'] = 'КоАП'
+                new_data['parent'] = str(session.query(Entity).filter(Entity.name == 'KOAP ' +
+                                                                      new_data['art']).first().entity_id).replace('UUID(', '').replace(')', '')
+            else:
+                new_data['code'] = 'УК'
+                try:
+                    new_data['parent'] = str(session.query(Entity).filter(Entity.name == 'UC ' +
+                                                                      new_data['art'][:-1]).first().entity_id).replace('UUID(', '').replace(')', '')
+                except:
+                    new_data['parent'] = str(session.query(Entity).filter(Entity.name == 'UC ' +
+                                                                          new_data['art']).first().entity_id).replace('UUID(', '').replace(')', '')
+            if 'part_text' in act.data:
+                new_data["puncts"] = act.data["puncts"]
+                new_data["part"] = act.data["part"]
+                new_data["part_text"] = act.data["part_text"]
+                new_data['content'] = new_data['part_text']
+                new_data['article'] = new_data['art_name']
+            else:
+                new_data['content'] = new_data['art_text']
+                new_data['article'] = new_data['art_name']
+            act.data = new_data
+            session.commit()
+        except:
+            print(act.entity_id)
+    print('UPD Done')
+
 put_norm_act_new(koap_file_path_new)
 put_norm_act_new(uc_file_path_new)
 put_norm_act_only_art(uc_file_path_only_arts)
 put_norm_act_only_art(koap_file_path_only_arts)
+upd_norm_acts()
