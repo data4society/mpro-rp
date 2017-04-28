@@ -37,7 +37,7 @@ from mprorp.db.models import *
 
 embedding_for_word_count = 5
 
-verbose = True
+verbose = False
 
 consistent_words = True
 use_par_embed = False
