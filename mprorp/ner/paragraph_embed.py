@@ -33,7 +33,7 @@ import mprorp.ner.set_list as set_list
 
 embedding_for_word_count = 5
 
-verbose = False
+verbose = True
 
 consistent_words = True
 use_par_embed = False
@@ -155,13 +155,14 @@ def start():
     global skip_window
 
     training_set = set_list.sets1250[0]
+    # training_set = set_list.set_2['dev_160']
     # training_set = set_list.set34751
-    # training_set = set_list.set2['train_5120']
-    # training_set = set_list.set2['all_8323']
+    # training_set = set_list.set_2['train_5120']
+    # training_set = set_list.set_2['all_8323']
     train_set_words = db.get_ner_feature(set_id=training_set, feature='embedding')
 
     if verbose:
-        print('reading compleet')
+        print('reading complete')
     words_count = {}
     set_docs = []
     printed = False
