@@ -88,6 +88,7 @@ valid_examples_p = [0, 1, 2, 3, 4]
 data_index = 0
 par_index = 0
 
+
 def new_buffer(span, paragraphs):
     global data_index
     global par_index
@@ -153,16 +154,16 @@ def generate_batch(batch_size, num_skips, skip_window, voc_size, paragraphs):
     return batch, labels
 
 
-def start2():
+def start():
 
     global num_skips
     global skip_window
 
-    training_set = set_list.sets1250[0]
+    # training_set = set_list.sets1250[0]
     # training_set = set_list.set_2['dev_160']
     # training_set = set_list.set34751
     # training_set = set_list.set_2['train_5120']
-    # training_set = set_list.set_2['all_8323']
+    training_set = set_list.set_2['all_8323']
     training_set = '1b8f7501-c7a8-41dc-8b06-fda7d04461a2'
     tr_set = db.get_set_docs(training_set)
     print(len(tr_set))
@@ -383,16 +384,18 @@ def start2():
 
         final_embeddings = normalized_embeddings.eval()
 
-def start():
+
+def start2():
     training_set = '1b8f7501-c7a8-41dc-8b06-fda7d04461a2'
     tr_set = db.get_set_docs(training_set)
     print(len(tr_set))
+    print(tr_set)
     session = Driver.db_session()
     all_words = session.query(NERFeature).filter(
         NERFeature.doc_id.in_(tr_set) & (NERFeature.feature == 'embedding')).order_by(
         NERFeature.sentence_index, NERFeature.word_index).all()
     print('aii_words', len(all_words))
 
-start()
+# start()
 
 
