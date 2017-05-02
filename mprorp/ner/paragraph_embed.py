@@ -37,7 +37,7 @@ from mprorp.db.models import *
 
 embedding_for_word_count = 5
 
-verbose = False
+verbose = True
 
 consistent_words = True
 use_par_embed = False
@@ -159,48 +159,47 @@ def start():
     global num_skips
     global skip_window
 
-    # training_set = set_list.sets1250[0]
-    # training_set = set_list.set_2['dev_160']
-    # training_set = set_list.set34751
-    # training_set = set_list.set_2['train_5120']
-    training_set = set_list.set_2['all_8323']
+    # training_set = [set_list.sets1250[0]]
+    # training_set = [set_list.set_2['dev_160']]
+    # training_set = [set_list.set34751]
+    # training_set = [set_list.set_2['train_5120']]
+    # training_set = [set_list.set_2['all_8323']]
     # training_set = '1b8f7501-c7a8-41dc-8b06-fda7d04461a2'
-    tr_set = db.get_set_docs(training_set)
-    print(len(tr_set))
-    train_set_words = db.get_ner_feature(set_id=training_set, feature='embedding')
-    print(len(train_set_words))
-
-    if verbose:
-        print('reading complete')
+    # training_set = [set_list.set_2['dev_160'], set_list.set_2['dev_320']]
+    training_set = set_list.sets1250[:5]
+    # training_set = set_list.sets1250
     words_count = {}
     set_docs = []
     printed = False
-    print(len(train_set_words))
-    for doc_id in train_set_words:
-        if verbose and len(set_docs) % 1000 == 0:
-            print('set_docs: ', len(set_docs))
-
-        doc_words = train_set_words[doc_id]
-        doc = []
-        for element in doc_words:
-            main_word = ''
-            rate = 0
-            for word in element[2]:
-                if rate < element[2][word]:
-                    rate = element[2][word]
-                    main_word = word
-            doc.append(main_word)
-            if main_word in words_count:
-                words_count[main_word] += 1
-            else:
-                words_count[main_word] = 1
-        set_docs.append(doc)
-        if verbose and not printed:
-            print(doc_words)
-            print(doc)
-            printed = True
+    for tr_set_id in training_set:
+        train_set_words = db.get_ner_feature(set_id=tr_set_id, feature='embedding')
+        if verbose:
+            print(len(train_set_words))
+        for doc_id in train_set_words:
+            if verbose and len(set_docs) % 1000 == 0:
+                print('set_docs: ', len(set_docs))
+            doc_words = train_set_words[doc_id]
+            doc = []
+            for element in doc_words:
+                main_word = ''
+                rate = 0
+                for word in element[2]:
+                    if rate < element[2][word]:
+                        rate = element[2][word]
+                        main_word = word
+                doc.append(main_word)
+                if main_word in words_count:
+                    words_count[main_word] += 1
+                else:
+                    words_count[main_word] = 1
+            set_docs.append(doc)
+            if verbose and not printed:
+                print(doc_words)
+                print(doc)
+                printed = True
     if verbose:
         print('set_docs - ok')
+    train_set_words = None
     words_order = sorted(words_count.items(), key=lambda x: -x[1])
     if verbose:
         print('Most common words (+UNK)', words_order[:5])
@@ -396,6 +395,6 @@ def start2():
         NERFeature.sentence_index, NERFeature.word_index).all()
     print('aii_words', len(all_words))
 
-# start()
+start()
 
 

@@ -425,7 +425,7 @@ def get_ner_feature(set_id=None, doc_id=None, feature_type=None, feature=None, f
         session = Driver.db_session()
     if not (set_id is None):
         training_set = session.query(TrainingSet).filter(TrainingSet.set_id == set_id).one()
-        print(len(training_set.doc_ids))
+        # print(len(training_set.doc_ids))
     if feature_type is None:
         if set_id is None:
             if feature is None:
@@ -445,7 +445,7 @@ def get_ner_feature(set_id=None, doc_id=None, feature_type=None, feature=None, f
                 all_words = session.query(NERFeature).filter(
                     NERFeature.doc_id.in_(training_set.doc_ids) & (NERFeature.feature == feature)).order_by(
                     NERFeature.sentence_index, NERFeature.word_index).all()
-                print('aii_words', len(all_words))
+                # print('all_words', len(all_words))
     else:
         if set_id is None:
             if feature is None:
