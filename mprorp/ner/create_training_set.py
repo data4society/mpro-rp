@@ -329,6 +329,40 @@ def give_name_to_sets(rub_num, version=''):
     session.commit()
 
 
+def create_sets_polit_press(rubric_id, rubric_name, session=None):
+    if session is None:
+        session = Driver.db_session()
+    negative_docs = session.query(Document.doc_id, Document.rubric_ids).filter_by(status=71).all()
+    print('neg', len(negative_docs))
+    new_set = []
+    for doc in negative_docs:
+        new_set.append(str(doc.doc_id))
+    positive_docs = session.query(DocumentRubric.doc_id).filter_by(rubric_id=rubric_id).all()
+    print('pos', len(positive_docs))
+    for doc in positive_docs:
+        new_set.append(str(doc.doc_id))
+    print('total', len(new_set))
+    new_tr_set = TrainingSet(doc_ids=new_set, doc_num=len(new_set), name=rubric_name + '_1')
+    session.add(new_tr_set)
+    session.commit()
+
+
+# rubric_pp = '14e511c0-2ce9-49b2-9d0c-f16c383765d1'
+# rubric_ss = 'db9baa28-e201-47a6-aada-14f44f42e98f'
+# create_sets_polit_press(rubric_pp,'politpressing')
+# create_sets_polit_press(rubric_ss,'svoboda sobrani')
+# set_id_pp = '9f3490b9-ea0c-462b-bf55-2e68f1e34161'
+# set_id_ss = '3b130596-e4a0-401c-ba6b-b09ec5385ba0'
+
+set_id = db.get_set_id_by_name('politpressing_1')
+print(set_id)
+# prepare_docs(set_id)
+set_id = db.get_set_id_by_name('svoboda sobrani_1')
+print(set_id)
+prepare_docs(set_id)
+
+exit()
+
 # common
 tr_com = '265fac6f-4b3e-466d-b7fe-fcdc90978a4e'
 tr_com100 = 'c0b20817-e5f2-4fcb-bd39-ef1f53b403a3'

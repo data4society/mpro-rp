@@ -165,11 +165,13 @@ def start():
     # training_set = [set_list.set_2['train_5120']]
     # training_set = [set_list.set_2['all_8323']]
     # training_set = '1b8f7501-c7a8-41dc-8b06-fda7d04461a2'
-    # training_set = [set_list.set_2['dev_160'], set_list.set_2['dev_320']]
-    training_set = set_list.sets1250[:5]
+    training_set = [set_list.set_2['dev_160'], set_list.set_2['dev_320']]
+    # training_set = set_list.sets1250[:5]
     # training_set = set_list.sets1250
     words_count = {}
     set_docs = []
+    doc_ids = []
+    doc_txt = {}
     printed = False
     for tr_set_id in training_set:
         train_set_words = db.get_ner_feature(set_id=tr_set_id, feature='embedding')
@@ -193,6 +195,7 @@ def start():
                 else:
                     words_count[main_word] = 1
             set_docs.append(doc)
+            doc_ids.append(doc_id)
             if verbose and not printed:
                 print(doc_words)
                 print(doc)
@@ -368,18 +371,26 @@ def start():
         for i in range(len(valid_examples_p)):
             nearest = (-sim_p[i, :]).argsort()[1:top_k + 1]
             print('Nearest to ')
-            print([dictionary[paragraphs[i][j]] for j in range(len(paragraphs[i]))])
+            if doc_txt.get(doc_ids[i], None) is None:
+                doc_txt[doc_ids[i]] = db.get_doc_text(doc_ids[i])
+            print(doc_txt[doc_ids[i]])
+            # print([dictionary[paragraphs[i][j]] for j in range(len(paragraphs[i]))])
             print('IS')
             for k in range(top_k):
                 if nearest[k] < vocabulary_size:
                     print(sim_p[i,nearest[k]], dictionary[nearest[k]])
                 else:
-                    print(sim_p[i,nearest[k]], [dictionary[paragraphs[i][j]] for j in range(len(paragraphs[i]))])
-
+                    if doc_txt.get(doc_ids[nearest[k]], None) is None:
+                        doc_txt[doc_ids[nearest[k]]] = db.get_doc_text(doc_ids[nearest[k]])
+                    print(doc_txt[doc_ids[nearest[k]]])
+                    # print(sim_p[i,nearest[k]], [dictionary[paragraphs[i][j]] for j in range(len(paragraphs[i]))])
         if verbose:
             for par in interesting_pars:
                 print(par)
-                print([dictionary[paragraphs[i][j]] for j in range(len(paragraphs[i]))])
+                if doc_txt.get(doc_ids[par], None) is None:
+                    doc_txt[doc_ids[par]] = db.get_doc_text(doc_ids[par])
+                print(doc_txt[doc_ids[par]])
+                # print([dictionary[paragraphs[i][j]] for j in range(len(paragraphs[i]))])
 
         final_embeddings = normalized_embeddings.eval()
 
