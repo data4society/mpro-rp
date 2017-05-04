@@ -334,32 +334,73 @@ def create_sets_polit_press(rubric_id, rubric_name, session=None):
         session = Driver.db_session()
     negative_docs = session.query(Document.doc_id, Document.rubric_ids).filter_by(status=71).all()
     print('neg', len(negative_docs))
-    new_set = []
+    temp_list = []
     for doc in negative_docs:
-        new_set.append(str(doc.doc_id))
+        temp_list.append(str(doc.doc_id))
+    train_len = round(len(temp_list) * .8)
+    new_set_train = []
+    new_set_test = []
+    for i in temp_list[:train_len]:
+        new_set_train.append(i)
+    for i in temp_list[train_len:]:
+        new_set_test.append(i)
+
     positive_docs = session.query(DocumentRubric.doc_id).filter_by(rubric_id=rubric_id).all()
     print('pos', len(positive_docs))
+
+    temp_list = []
     for doc in positive_docs:
-        new_set.append(str(doc.doc_id))
-    print('total', len(new_set))
-    new_tr_set = TrainingSet(doc_ids=new_set, doc_num=len(new_set), name=rubric_name + '_1')
-    session.add(new_tr_set)
+        temp_list.append(str(doc.doc_id))
+    train_len = round(len(temp_list) * .8)
+    for i in temp_list[:train_len]:
+        new_set_train.append(i)
+    for i in temp_list[train_len:]:
+        new_set_test.append(i)
+
+    train_set = TrainingSet(doc_ids=new_set_train, doc_num=len(new_set_train), name=rubric_name + '_train')
+    test_set = TrainingSet(doc_ids=new_set_test, doc_num=len(new_set_test), name=rubric_name + '_test')
+    session.add(train_set)
+    session.add(test_set)
     session.commit()
+    return train_set.set_id, test_set.set_id
 
 
-# rubric_pp = '14e511c0-2ce9-49b2-9d0c-f16c383765d1'
-# rubric_ss = 'db9baa28-e201-47a6-aada-14f44f42e98f'
-# create_sets_polit_press(rubric_pp,'politpressing')
-# create_sets_polit_press(rubric_ss,'svoboda sobrani')
+rubric_pp = '14e511c0-2ce9-49b2-9d0c-f16c383765d1'
+rubric_ss = 'db9baa28-e201-47a6-aada-14f44f42e98f'
+
+pp_train_set = '0364c8e3-ebcd-4fa2-b14a-3f10c498bcd3'
+pp_test_set = 'dca01625-d655-4900-9b32-6a548c7dc0dd'
+
+ss_train_set = '69565f15-73ea-4d06-84aa-d3e5cea57ee7'
+ss_test_set = '498aac37-efd8-4b9c-932a-17d6291a2ab6'
+
+# training_set, test_set = create_sets_polit_press(rubric_pp,'politpressing')
+# print('Пллитпрессинг')
+# print(training_set, test_set)
+# training_set, test_set = create_sets_polit_press(rubric_ss,'svoboda sobrani')
+# print('Свобода собраний')
+# print(training_set, test_set)
+
 # set_id_pp = '9f3490b9-ea0c-462b-bf55-2e68f1e34161'
 # set_id_ss = '3b130596-e4a0-401c-ba6b-b09ec5385ba0'
 
-set_id = db.get_set_id_by_name('politpressing_1')
-print(set_id)
+
+# set_id = db.get_set_id_by_name('politpressing_1')
+# print(set_id)
 # prepare_docs(set_id)
-set_id = db.get_set_id_by_name('svoboda sobrani_1')
-print(set_id)
-prepare_docs(set_id)
+# set_id = db.get_set_id_by_name('svoboda sobrani_1')
+# print(set_id)
+# prepare_docs(set_id)
+
+teach_rubricator(pp_train_set, rubric_pp)
+
+print('Обучение рубрикатора завершено')
+
+print('Результаты рубрикатора на учебной выборке pn')
+print(test_model(pp_train_set, rubric_pp, tr_set=pp_train_set, name='tr'))
+print('Результаты рубрикатора на тестовой выборке')
+print(test_model(pp_test_set, rubric_pp, tr_set=pp_train_set, name='test'))
+
 
 exit()
 
@@ -398,7 +439,6 @@ set_num = version + rubric_num
 # print('set_c100', set_c100)
 
 
-
 tr_id_pn = sets[set_num]['tr_id_pn']  # pos + neg
 tr_id_pnc = sets[set_num]['tr_id_pnc'] # pos + neg + com
 tr_id_pc = sets[set_num]['tr_id_pc']
@@ -433,6 +473,4 @@ print('Результаты рубрикатора на тестовой общ�
 print(test_model(test_com, rubrics[rubric_num]['pos'], tr_set=training_set, name='tr'))
 print('Результаты рубрикатора на тестовой выборке')
 print(test_model(test_pn, rubrics[rubric_num]['pos'], tr_set=training_set, name='test'))
-
-
 
