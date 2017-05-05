@@ -396,7 +396,7 @@ teach_rubricator(pp_train_set, rubric_pp)
 
 print('Обучение рубрикатора завершено')
 
-print('Результаты рубрикатора на учебной выборке pn')
+print('Результаты рубрикатора на учебной выборке')
 print(test_model(pp_train_set, rubric_pp, tr_set=pp_train_set, name='tr'))
 print('Результаты рубрикатора на тестовой выборке')
 print(test_model(pp_test_set, rubric_pp, tr_set=pp_train_set, name='test'))

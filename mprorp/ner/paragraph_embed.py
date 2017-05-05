@@ -380,9 +380,10 @@ def start():
                 if nearest[k] < vocabulary_size:
                     print(sim_p[i,nearest[k]], dictionary[nearest[k]])
                 else:
-                    if doc_txt.get(doc_ids[nearest[k]], None) is None:
-                        doc_txt[doc_ids[nearest[k]]] = db.get_doc_text(doc_ids[nearest[k]])
-                    print(doc_txt[doc_ids[nearest[k]]])
+                    doc_id = doc_ids[nearest[k] - vocabulary_size]
+                    if doc_txt.get(doc_id, None) is None:
+                        doc_txt[doc_id] = db.get_doc_text(doc_id)
+                    print(doc_txt[doc_id])
                     # print(sim_p[i,nearest[k]], [dictionary[paragraphs[i][j]] for j in range(len(paragraphs[i]))])
         if verbose:
             for par in interesting_pars:
