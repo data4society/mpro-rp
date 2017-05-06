@@ -117,6 +117,46 @@ sets['06'] = {
     'tr_neg': 'f35f33ca-c363-4f6f-a0fa-cad89345107c',
     'test_pn': '9f380071-151e-41ed-bcdb-5c8d69002970'
 }
+sets['11'] = {'new': 'ac9ea1cb-7b43-43ea-9a53-1ef968744299',
+              'positive': 'b90e65c3-f862-4fb6-80b1-e6b8b3f126eb',
+              'tr_pos_set': '9fa77db8-ef1e-43c0-9c00-a5379e0b05af',
+              'test_pos_set': '4df1a71e-1e96-4031-a168-51df23979f15',
+              'tr_set': '99b17109-40a9-4240-abdf-108a7df2605c',
+              'test_set': '69086ef1-79b7-475f-b9c7-8e034bde04e5'}
+sets['12'] = {'new': '10e44b91-9a3d-4f23-ad28-820a239a7a9e',
+              'positive': 'edd6958b-6ec5-4fd3-b481-02a48679d00e',
+              'tr_pos_set':   '6aed5a36-36c5-4da3-b7f0-0f38a9019861',
+              'test_pos_set': '1155916c-b2c8-4c1d-a1d2-1f46ba1bb535',
+              'tr_set':       'b8e4d2dd-3270-47c7-bae6-288aefc16564',
+              'test_set':     '2719c865-db49-49d2-8c1b-54730bccb7c5' }
+sets['13'] = {'new': 'b3cd2c8e-24b5-4559-b64a-e1eb6cad7cad',
+              'positive': 'bf1a3429-96a1-4209-bb0d-05d132e68351',
+              'tr_pos_set': 'cd409090-16ca-49ac-a4a9-1a9f6f537f38',
+              'test_pos_set': 'd78e518c-f5f1-4ef3-b3ca-f721eb3592e5',
+              'tr_set': '66ee0f08-f3f6-42d6-a478-5224185feaa7',
+              'test_set': '474eb9c0-1f0d-4a80-b610-bdf2f1a9623c'}
+sets['14'] = {'new': 'dd262fc2-7d65-4c2f-b101-19216aae7ae9',
+              'positive': '72c7a020-0874-4cb3-a223-ebc7ec20584b',
+              'tr_pos_set': '2382885c-c3d2-46b8-9985-af8e51617365',
+              'test_pos_set': '335706be-37f3-446c-8f11-442895dcb39a',
+              'tr_set': 'becd972f-e26b-4361-a049-58a54b8d67cc',
+              'test_set': '34eb33b3-c593-4096-a965-42de8c60532f'}
+sets['15'] = {'new': 'a3073be1-5470-4720-a379-8e20bf6fe505',
+              'positive': '9fc9dcfd-cd8c-4e9f-8054-f038f536e64a',
+              'tr_pos_set': '72ce51fb-41bd-40c8-9701-a3fcce0d711b',
+              'test_pos_set': '5755fda2-4bee-4b6e-bdb3-5cd912eadc91',
+              'tr_set': '7f0c0a6d-ddf0-48b4-88bf-06846ff87f2d',
+              'test_set': '5d2abf1c-b9f4-4362-a8a6-60fd0ec5c82f'}
+sets['16'] = {'new':          '8e90e65a-25e4-493b-beda-3bb920c230d1',
+              'positive':     '6a1ea451-6bf9-4529-a816-75fae78569c2',
+              'tr_pos_set':   'ff27a310-226b-41d3-acfc-d9b7e9069148',
+              'test_pos_set': '9f6d0dbc-804f-46f5-87a3-dcefb167af80',
+              'tr_set':       '70e6ec17-2a60-41b0-adcd-e8360cdc0792',
+              'test_set':     '8ae5bd11-77ce-4718-9045-8e0967460260'}
+sets['negative'] = {'all':   '779bd1d0-887c-4c81-bfc5-8b4632f9b81e',
+                    'train': '2009195a-2c4a-4120-88ac-147464a9ccb5',
+                    'test':  '2b4be3c1-b217-4e3e-a4a7-8ab3fc767d7d'}
+
 
 
 def create_training_set(rubric_id, session=None):
@@ -365,49 +405,156 @@ def create_sets_polit_press(rubric_id, rubric_name, session=None):
     return train_set.set_id, test_set.set_id
 
 
-rubric_pp = '14e511c0-2ce9-49b2-9d0c-f16c383765d1'
-rubric_ss = 'db9baa28-e201-47a6-aada-14f44f42e98f'
+def teach_and_test(rubric_id, tr_id, test_set, teach=False):
+    if teach:
+       teach_rubricator(tr_id, rubric_id)
+       print('Обучение рубрикатора завершено')
 
-pp_train_set = '0364c8e3-ebcd-4fa2-b14a-3f10c498bcd3'
-pp_test_set = 'dca01625-d655-4900-9b32-6a548c7dc0dd'
-
-ss_train_set = '69565f15-73ea-4d06-84aa-d3e5cea57ee7'
-ss_test_set = '498aac37-efd8-4b9c-932a-17d6291a2ab6'
-
-# training_set, test_set = create_sets_polit_press(rubric_pp,'politpressing')
-# print('Пллитпрессинг')
-# print(training_set, test_set)
-# training_set, test_set = create_sets_polit_press(rubric_ss,'svoboda sobrani')
-# print('Свобода собраний')
-# print(training_set, test_set)
-
-# set_id_pp = '9f3490b9-ea0c-462b-bf55-2e68f1e34161'
-# set_id_ss = '3b130596-e4a0-401c-ba6b-b09ec5385ba0'
+    print('Результаты рубрикатора на учебной выборке')
+    print(test_model(tr_id, rubric_id, tr_set=tr_id, name='tr'))
+    print('Результаты рубрикатора на тестовой выборке')
+    print(test_model(test_set, rubric_id, tr_set=tr_id, name='test'))
 
 
-# set_id = db.get_set_id_by_name('politpressing_1')
-# print(set_id)
-# prepare_docs(set_id)
-# set_id = db.get_set_id_by_name('svoboda sobrani_1')
-# print(set_id)
-# prepare_docs(set_id)
+def polit_pressing():
 
-teach_rubricator(pp_train_set, rubric_pp)
+    rubric_pp = '14e511c0-2ce9-49b2-9d0c-f16c383765d1'
+    rubric_ss = 'db9baa28-e201-47a6-aada-14f44f42e98f'
 
-print('Обучение рубрикатора завершено')
+    pp_train_set = '0364c8e3-ebcd-4fa2-b14a-3f10c498bcd3'
+    pp_test_set = 'dca01625-d655-4900-9b32-6a548c7dc0dd'
 
-print('Результаты рубрикатора на учебной выборке')
-print(test_model(pp_train_set, rubric_pp, tr_set=pp_train_set, name='tr'))
-print('Результаты рубрикатора на тестовой выборке')
-print(test_model(pp_test_set, rubric_pp, tr_set=pp_train_set, name='test'))
+    ss_train_set = '69565f15-73ea-4d06-84aa-d3e5cea57ee7'
+    ss_test_set = '498aac37-efd8-4b9c-932a-17d6291a2ab6'
+
+    # training_set, test_set = create_sets_polit_press(rubric_pp,'politpressing')
+    # print('Пллитпрессинг')
+    # print(training_set, test_set)
+    # training_set, test_set = create_sets_polit_press(rubric_ss,'svoboda sobrani')
+    # print('Свобода собраний')
+    # print(training_set, test_set)
+
+    # set_id_pp = '9f3490b9-ea0c-462b-bf55-2e68f1e34161'
+    # set_id_ss = '3b130596-e4a0-401c-ba6b-b09ec5385ba0'
 
 
-exit()
+    # set_id = db.get_set_id_by_name('politpressing_1')
+    # print(set_id)
+    # prepare_docs(set_id)
+    # set_id = db.get_set_id_by_name('svoboda sobrani_1')
+    # print(set_id)
+    # prepare_docs(set_id)
+
+    teach_and_test(rubric_pp, pp_train_set, ss_test_set, True)
+
+def create_accepted_sets(session=None):
+    if session is None:
+        session = Driver.db_session()
+    new_docs = session.query(Document.doc_id, Document.rubric_ids).filter_by(status=72).all()
+    print(len(new_docs))
+    docs = dict()
+    docs['neg'] = []
+    neg_count = 0
+    ans_count = 0
+    for doc in new_docs:
+        if len(doc.rubric_ids) == 0:
+            docs['neg'].append(str(doc.doc_id))
+            neg_count += 1
+        for rubric_id in doc.rubric_ids:
+            ans_count += 1
+            new_ans = DocumentRubric(doc_id=str(doc.doc_id), rubric_id=str(rubric_id))
+            # session.add(new_ans)
+            if docs.get(str(rubric_id), None) is None:
+                docs[str(rubric_id)] = []
+            docs[str(rubric_id)].append(str(doc.doc_id))
+    print('answers:', ans_count)
+    print('Negative:', neg_count)
+    set_ids = dict()
+    print(docs.keys())
+    for rubric_id in docs:
+        print(len(docs[rubric_id]))
+        rubric_key = ''
+        for key in rubrics:
+            if rubric_id in rubrics[key].values():
+                rubric_key = key
+                print(key, rubric_names[key])
+        if not rubric_key == '':
+            new_set = TrainingSet(doc_ids=docs[rubric_id],
+                                  name='new_5_17'+rubric_names[rubric_key], doc_num=len(docs[rubric_id]))
+            session.add(new_set)
+            set_ids[rubric_key] = new_set
+    session.commit()
+    print('Neg:')
+    print(docs['neg'])
+
+
+def create_negative_sets(session=None):
+    if session is None:
+        session = Driver.db_session()
+    negative_docs = session.query(Document.doc_id, Document.rubric_ids).filter_by(status=71).all()
+    print('neg', len(negative_docs))
+    temp_list = []
+    for doc in negative_docs:
+        temp_list.append(str(doc.doc_id))
+    len_train = round(len(temp_list) * .8)
+    new_set = TrainingSet(doc_ids=temp_list[:len_train], name='train_negative', doc_num=len_train)
+    session.add(new_set)
+    new_set2 = TrainingSet(doc_ids=temp_list[len_train:], name='test_negative', doc_num=len(temp_list[len_train:]))
+    session.add(new_set2)
+    session.commit()
+    print(new_set.set_id, len_train)
+    print(new_set2.set_id, len(temp_list[len_train:]))
+
+
+def create_new_sets(session=None):
+    if session is None:
+        session = Driver.db_session()
+    ids = {}
+    test_neg = db.get_set_docs(sets['negative']['test'])
+    train_neg = db.get_set_docs(sets['negative']['train'])
+    for key in range(1,7):
+        pos_set = []
+        db_set = db.get_set_docs(sets['1' + str(key)]['positive'])
+        for doc_id in db_set:
+            pos_set.append(doc_id)
+        random.shuffle(pos_set)
+        len_train = round(len(pos_set) * .8)
+        tr_pos_set = TrainingSet(doc_ids=pos_set[:len_train], name=rubric_names[str(key)] + 'tr_pos_1', doc_num=len_train)
+        test_pos_set = TrainingSet(doc_ids=pos_set[len_train:], name=rubric_names[str(key)] + 'test_pos_1', doc_num=len(pos_set[len_train:]))
+
+        temp_list = pos_set[:len_train]
+        for doc_id in train_neg:
+            temp_list.append(str(doc_id))
+        tr_set = TrainingSet(doc_ids=temp_list, name=rubric_names[str(key)] + '_train_1', doc_num=len(temp_list))
+
+        temp_list = pos_set[len_train:]
+        for doc_id in test_neg:
+            temp_list.append(str(doc_id))
+        test_set = TrainingSet(doc_ids=temp_list, name=rubric_names[str(key)] + '_test_1', doc_num=len(temp_list))
+        ids[str(key)] = [tr_pos_set, test_pos_set, tr_set, test_set]
+        session.add(tr_pos_set)
+        session.add(test_pos_set)
+        session.add(tr_set)
+        session.add(test_set)
+    session.commit()
+    for key in ids:
+        print(key, rubric_names[key])
+        print("'tr_pos_set': '", ids[key][0].set_id, "'")
+        print("'test_pos_set': '", ids[key][1].set_id, "'")
+        print("'tr_set': '", ids[key][2].set_id, "'")
+        print("'test_set': '", ids[key][3].set_id, "'")
+
+# for key in range(1,7):
+#     print('---------------------------------------------------------------------------------------------------------------------')
+#     print(key)
+#     prepare_docs(sets['1' + str(key)]['new'])
+
+# exit()
 
 # common
-tr_com = '265fac6f-4b3e-466d-b7fe-fcdc90978a4e'
-tr_com100 = 'c0b20817-e5f2-4fcb-bd39-ef1f53b403a3'
-test_com = '5544e81e-6dda-458f-9f79-e40d990e6e94'
+# tr_com = '265fac6f-4b3e-466d-b7fe-fcdc90978a4e'
+# tr_com100 = 'c0b20817-e5f2-4fcb-bd39-ef1f53b403a3'
+# test_com = '5544e81e-6dda-458f-9f79-e40d990e6e94'
 
 # give_name_to_sets()
 
@@ -418,7 +565,7 @@ test_com = '5544e81e-6dda-458f-9f79-e40d990e6e94'
 # rb.spot_doc_rubrics2(doc_id, conf, verbose=True)
 
 rubric_num = '4'
-version = '0'
+version = '1'
 set_num = version + rubric_num
 
 # give_name_to_sets(rubric_num, version=version)
@@ -438,6 +585,8 @@ set_num = version + rubric_num
 # set_c100 = db.put_training_set(docs_c100[:100])
 # print('set_c100', set_c100)
 
+teach_and_test(rubrics[rubric_num]['pos'], sets[set_num]['tr_set'], sets[set_num]['test_set'], True)
+exit()
 
 tr_id_pn = sets[set_num]['tr_id_pn']  # pos + neg
 tr_id_pnc = sets[set_num]['tr_id_pnc'] # pos + neg + com

@@ -374,16 +374,19 @@ def start():
             if doc_txt.get(doc_ids[i], None) is None:
                 doc_txt[doc_ids[i]] = db.get_doc_text(doc_ids[i])
             print(doc_txt[doc_ids[i]])
+            print('---------------------------------===================================--------------------------------------')
             # print([dictionary[paragraphs[i][j]] for j in range(len(paragraphs[i]))])
             print('IS')
             for k in range(top_k):
                 if nearest[k] < vocabulary_size:
                     print(sim_p[i,nearest[k]], dictionary[nearest[k]])
+                    print('---------------------------------===================================--------------------------------------')
                 else:
                     doc_id = doc_ids[nearest[k] - vocabulary_size]
                     if doc_txt.get(doc_id, None) is None:
                         doc_txt[doc_id] = db.get_doc_text(doc_id)
-                    print(doc_txt[doc_id])
+                    print(sim_p[i,nearest[k]], doc_txt[doc_id])
+                    print('---------------------------------===================================--------------------------------------')
                     # print(sim_p[i,nearest[k]], [dictionary[paragraphs[i][j]] for j in range(len(paragraphs[i]))])
         if verbose:
             for par in interesting_pars:
@@ -391,6 +394,7 @@ def start():
                 if doc_txt.get(doc_ids[par], None) is None:
                     doc_txt[doc_ids[par]] = db.get_doc_text(doc_ids[par])
                 print(doc_txt[doc_ids[par]])
+                print('---------------------------------===================================--------------------------------------')
                 # print([dictionary[paragraphs[i][j]] for j in range(len(paragraphs[i]))])
 
         final_embeddings = normalized_embeddings.eval()
