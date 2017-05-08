@@ -82,7 +82,7 @@ def convert_tomita_result_to_markup(doc, grammars,
                         'start_offset': int(offsets[0]), 'end_offset': int(offsets[1]),
                         'len_offset': int(offsets[1]) - int(offsets[0]),
                         'entity': result[i] if entity is None else entity,
-                        'entity_class': 'locality'
+                        'entity_class': 'location'
                     })
                     classes[result[i]] = ''
             if verbose:

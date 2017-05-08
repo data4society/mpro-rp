@@ -175,10 +175,10 @@ def norm_out(arr, source_name, tomita_path, order):
     out = {}
     len_of_line = 0
     for act in order:
-        print(act)
         first_symbol = source.find(act)
         last_symbol = first_symbol + len(act)
-        symbols = str(first_symbol + len_of_line) + ':' + str(last_symbol + len_of_line)
+        new_line = source[:first_symbol].count('\n')
+        symbols = str(first_symbol + len_of_line - new_line) + ':' + str(last_symbol + len_of_line - new_line)
         #print('string in original text: ' + s[first_symbol + len_of_line:last_symbol + len_of_line])
         if arr[act] != []:
             out[symbols] = str(arr[act][0].entity_id).replace("UUID('", '').replace("')", '')
