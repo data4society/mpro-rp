@@ -2,9 +2,13 @@ from mprorp.db.dbDriver import *
 from mprorp.db.models import *
 
 
-def get_codes_from_kladr(fact):
+def locality_identification(fact):
     session = db_session()
-    kladr = session.query(KLADR).filter(KLADR.level == 5).all()
-    print(set([i.type for i in kladr]))
+    types = {'CityFact': 'Город'}
+    kladr = session.query(KLADR).filter(KLADR.type == types[fact['type']]).all()
+    print(len(kladr))
     codes = [i.kladr_id for i in kladr if i.name.lower() == fact['norm']]
-    return codes
+    if len(codes) != 0:
+        return codes
+    else:
+        return ['Locality']

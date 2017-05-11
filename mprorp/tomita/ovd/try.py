@@ -101,9 +101,9 @@ def rename_norm_acts():
         session.commit()
 
 
-#doc = session.query(Document).filter(Document.doc_id == '8de1166c-3522-4f51-ba87-9c5bdb93d2f6').first()
-#print(run_tomita(doc, 'norm_act.cxx'))
-#rename_norm_acts() ИСПОЛЬЗОВАТЬ НЕ ДЛЯ ЛИВА
+#doc = session.query(Document).filter(Document.doc_id == '000166cf-826a-478b-b01a-229eb755d1cf').first()
+#print(run_tomita(doc, 'locality.cxx'))
+#rename_norm_acts()
 #norm_acts = session.query(Entity).filter(Entity.entity_class == 'norm_act').all()
 #print(len(norm_acts))
 #norm_acts = [i for i in norm_acts if 'art' not in i.data]
