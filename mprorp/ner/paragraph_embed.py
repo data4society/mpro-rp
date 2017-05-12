@@ -40,8 +40,8 @@ embedding_for_word_count = 5
 verbose = True
 
 consistent_words = True
-use_par_embed = False
-use_NN = False
+use_par_embed = True
+use_NN = True
 learning_rate = 1
 
 batch_size = 100
@@ -55,7 +55,12 @@ reg_l1 = 0.0001
 reg_emded = 0.00005
 dropout = 0.7
 
-print('embedding_for_word_count',embedding_for_word_count)
+if use_NN:
+    filename = home_dir + '/weights' + 'EP_model_NN.pic'
+else:
+    filename = home_dir + '/weights' + 'EP_model_LR.pic'
+
+print('embedding_for_word_count', embedding_for_word_count)
 
 print('consistent_words', consistent_words)
 print('use_par_embed', use_par_embed)
@@ -88,6 +93,10 @@ valid_examples_p = [0, 1, 2, 3, 4]
 data_index = 0
 par_index = 0
 
+dictionary = []
+paragraphs = []
+reverse_dictionary = {}
+doc_ids = []
 
 def new_buffer(span, paragraphs):
     global data_index
@@ -154,10 +163,14 @@ def generate_batch(batch_size, num_skips, skip_window, voc_size, paragraphs):
     return batch, labels
 
 
-def start():
+def fill_paragraphs_for_learning():
 
     global num_skips
     global skip_window
+    global dictionary
+    global paragraphs
+    global reverse_dictionary
+    global doc_ids
 
     # training_set = [set_list.sets1250[0]]
     # training_set = [set_list.set_2['dev_160']]
@@ -170,8 +183,7 @@ def start():
     # training_set = set_list.sets1250
     words_count = {}
     set_docs = []
-    doc_ids = []
-    doc_txt = {}
+
     printed = False
     for tr_set_id in training_set:
         train_set_words = db.get_ner_feature(set_id=tr_set_id, feature='embedding')
@@ -207,7 +219,6 @@ def start():
     if verbose:
         print('Most common words (+UNK)', words_order[:5])
 
-    dictionary = []
     for word in words_order:
         if words_count[word[0]] > embedding_for_word_count:
             dictionary.append(word[0])
@@ -215,13 +226,13 @@ def start():
     if verbose:
         print(dictionary[:5])
 
-    reverse_dictionary = {dictionary[i]: i for i in range(len(dictionary))}
+    for i in range(len(dictionary)):
+        reverse_dictionary[dictionary[i]] = i
     unk_word = len(dictionary)
     dictionary.append('UNKN')
     no_word = unk_word + 1
     dictionary.append('EMPTY')
 
-    paragraphs = []
     total_words = 0
     for doc in set_docs:
         par_words = [no_word for i in range(num_skips)]# В начало параграфа добавим полное окно путсых слов
@@ -229,6 +240,15 @@ def start():
             par_words.append(reverse_dictionary[word] if word in reverse_dictionary else unk_word)
         total_words += len(par_words)
         paragraphs.append(par_words)
+
+
+def run_model(learning, filename):
+
+    global dictionary
+    global paragraphs
+    global reverse_dictionary
+    global data_index
+    assert use_par_embed or learning  #If we use existed model (learning=False), use_par_embed must be True
 
     vocabulary_size = len(reverse_dictionary) + 2
     paragraph_amount = len(paragraphs)
@@ -238,13 +258,17 @@ def start():
     if verbose:
         print('paragraphs:', [dictionary[di] for di in paragraphs[100][:20]])
 
-        for num_skips, skip_window in [(2, 1), (4, 2)]:
+        for num_skips_loc, skip_window_loc in [(2, 1), (4, 2)]:
             data_index = 0
-            batch, labels = generate_batch(batch_size=8, num_skips=num_skips, skip_window=skip_window,
+            batch, labels = generate_batch(batch_size=8, num_skips=num_skips_loc, skip_window=skip_window_loc,
                                            voc_size=vocabulary_size, paragraphs=paragraphs)
-            print('\nwith num_skips = %d and skip_window = %d:' % (num_skips, skip_window))
+            print('\nwith num_skips = %d and skip_window = %d:' % (num_skips_loc, skip_window_loc))
             print('    batch:', [dictionary[bii] if bii < vocabulary_size else bii for bi in batch for bii in bi])
             print('    labels:', [dictionary[li] for li in labels.reshape(8)])
+
+    if not learning:
+        with open(filename, 'rb') as f:
+            params = pickle.load(f)
 
     graph = tf.Graph()
 
@@ -258,28 +282,51 @@ def start():
 
         # Variables.
         input_vector_size = embedding_size * num_skips if not use_par_embed else embedding_size * (num_skips + 1)
-        embed_amount = vocabulary_size if not use_par_embed else vocabulary_size + paragraph_amount
+        # embed_amount = vocabulary_size if not use_par_embed else vocabulary_size + paragraph_amount
 
-        embeddings = tf.Variable(
-                tf.random_uniform([embed_amount, embedding_size], -1.0, 1.0))
+        # embeddings = tf.Variable(
+        #     tf.random_uniform([embed_amount, embedding_size], -1.0, 1.0))
+
+        if use_par_embed:
+            if learning:
+                embeddings_w = tf.Variable(
+                        tf.random_uniform([vocabulary_size, embedding_size], -1.0, 1.0), trainable=learning)
+            else:
+                embeddings_w = tf.Variable(params['embed'], trainable=False)
+            embeddings_p = tf.Variable(
+                    tf.random_uniform([paragraph_amount, embedding_size], -1.0, 1.0))
+            embeddings = tf.concat(0, [embeddings_w, embeddings_p])
+        else:
+            embeddings = tf.Variable(
+                tf.random_uniform([vocabulary_size, embedding_size], -1.0, 1.0))
 
         if use_NN:
-            weights_l1 = tf.Variable(
-                tf.truncated_normal([input_vector_size, l1_size],
-                                    stddev=1.0 / math.sqrt(embedding_size)))
-            tf.add_to_collection('total_loss', 0.5 * reg_l1 * tf.nn.l2_loss(weights_l1))
+            if learning:
+                weights_l1 = tf.Variable(
+                    tf.truncated_normal([input_vector_size, l1_size],
+                                        stddev=1.0 / math.sqrt(embedding_size)))
+                tf.add_to_collection('total_loss', 0.5 * reg_l1 * tf.nn.l2_loss(weights_l1))
 
-            biases_l1 = tf.Variable(tf.zeros([l1_size]))
+                biases_l1 = tf.Variable(tf.zeros([l1_size]))
+            else:
+                weights_l1 = tf.Variable(params['weights_l1'], trainable=False)
+                biases_l1 = tf.Variable(params['biases_l1'], trainable=False)
             softmax_matrix_dim = l1_size
         else:
             softmax_matrix_dim = input_vector_size
 
-        softmax_weights = tf.Variable(
-            tf.truncated_normal([vocabulary_size, softmax_matrix_dim],
-                                stddev=1.0 / math.sqrt(embedding_size)))
-        # tf.add_to_collection('total_loss', 0.5 * reg_softmax * tf.nn.l2_loss(softmax_weights))
+        if learning:
+            softmax_weights = tf.Variable(
+                tf.truncated_normal([vocabulary_size, softmax_matrix_dim],
+                                    stddev=1.0 / math.sqrt(embedding_size)))
+            # tf.add_to_collection('total_loss', 0.5 * reg_softmax * tf.nn.l2_loss(softmax_weights))
+            softmax_biases = tf.Variable(tf.zeros([vocabulary_size]))
+        else:
+            softmax_weights = tf.Variable(params['softmax_weights'], trainable=False)
+            # tf.add_to_collection('total_loss', 0.5 * reg_softmax * tf.nn.l2_loss(softmax_weights))
+            softmax_biases = tf.Variable(params['softmax_biases'], trainable=False)
 
-        softmax_biases = tf.Variable(tf.zeros([vocabulary_size]))
+
 
         # Model.
         # Look up embeddings for inputs.
@@ -354,50 +401,75 @@ def start():
                             close_word = dictionary[nearest[k]] if nearest[k] < vocabulary_size else nearest[k] - vocabulary_size
                             log = '%s %s (%s),' % (log, close_word, sim[i, nearest[k]])
                         print(log)
-        interesting_pars = {}
-        sim = similarity.eval()
-        for i in range(valid_size):
-            valid_word = dictionary[valid_examples[i]]
-            top_k = 8  # number of nearest neighbors
-            nearest = (-sim[i, :]).argsort()[1:top_k + 1]
-            log = 'Nearest to %s:' % valid_word
-            for k in range(top_k):
-                close_word = dictionary[nearest[k]] if nearest[k] < vocabulary_size else nearest[k] - vocabulary_size
-                log = '%s %s (%s),' % (log, close_word, sim[i, nearest[k]])
-                if nearest[k] >= vocabulary_size:
-                    interesting_pars[nearest[k] - vocabulary_size] = ''
-            print(log)
-        sim_p = similarity_p.eval()
-        for i in range(len(valid_examples_p)):
-            nearest = (-sim_p[i, :]).argsort()[1:top_k + 1]
-            print('Nearest to ')
-            if doc_txt.get(doc_ids[i], None) is None:
-                doc_txt[doc_ids[i]] = db.get_doc_text(doc_ids[i])
-            print(doc_txt[doc_ids[i]])
-            print('---------------------------------===================================--------------------------------------')
-            # print([dictionary[paragraphs[i][j]] for j in range(len(paragraphs[i]))])
-            print('IS')
-            for k in range(top_k):
-                if nearest[k] < vocabulary_size:
-                    print(sim_p[i,nearest[k]], dictionary[nearest[k]])
-                    print('---------------------------------===================================--------------------------------------')
-                else:
-                    doc_id = doc_ids[nearest[k] - vocabulary_size]
-                    if doc_txt.get(doc_id, None) is None:
-                        doc_txt[doc_id] = db.get_doc_text(doc_id)
-                    print(sim_p[i,nearest[k]], doc_txt[doc_id])
-                    print('---------------------------------===================================--------------------------------------')
-                    # print(sim_p[i,nearest[k]], [dictionary[paragraphs[i][j]] for j in range(len(paragraphs[i]))])
-        if verbose:
-            for par in interesting_pars:
-                print(par)
-                if doc_txt.get(doc_ids[par], None) is None:
-                    doc_txt[doc_ids[par]] = db.get_doc_text(doc_ids[par])
-                print(doc_txt[doc_ids[par]])
+        # ---------- save model ----------------
+        if learning:
+            embed_for_save = embeddings.eval()[:vocabulary_size, :]
+            # embed_for_save_list = embed_for_save.tolist()
+            # print(type(embed_for_save_list), type(embed_for_save_list[0]), len(embed_for_save_list.shape), embed_for_save_list[:3, :3])
+            params_for_save = {
+                'consistent_words': consistent_words,
+                'embedding_size': embedding_size,
+                'skip_window': skip_window,
+                'num_skips': num_skips,
+                'l1_size': l1_size
+            }
+            for_save = {
+                'params': params_for_save,
+                'embed': embed_for_save,
+                'softmax_weights': softmax_weights.eval(),
+                'dict': reverse_dictionary
+            }
+            if use_NN:
+                for_save['weights_l1'] = weights_l1.eval()
+                for_save['biases_l1'] = biases_l1.eval()
+            with open(filename, 'wb') as f:
+                pickle.dump(for_save, f)
+            interesting_pars = {}
+            sim = similarity.eval()
+            for i in range(valid_size):
+                valid_word = dictionary[valid_examples[i]]
+                top_k = 8  # number of nearest neighbors
+                nearest = (-sim[i, :]).argsort()[1:top_k + 1]
+                log = 'Nearest to %s:' % valid_word
+                for k in range(top_k):
+                    close_word = dictionary[nearest[k]] if nearest[k] < vocabulary_size else nearest[k] - vocabulary_size
+                    log = '%s %s (%s),' % (log, close_word, sim[i, nearest[k]])
+                    if nearest[k] >= vocabulary_size:
+                        interesting_pars[nearest[k] - vocabulary_size] = ''
+                print(log)
+            sim_p = similarity_p.eval()
+            doc_txt = {}
+            for i in range(len(valid_examples_p)):
+                nearest = (-sim_p[i, :]).argsort()[1:top_k + 1]
+                print('Nearest to ')
+                if doc_txt.get(doc_ids[i], None) is None:
+                    doc_txt[doc_ids[i]] = db.get_doc_text(doc_ids[i])
+                print(doc_txt[doc_ids[i]])
                 print('---------------------------------===================================--------------------------------------')
                 # print([dictionary[paragraphs[i][j]] for j in range(len(paragraphs[i]))])
+                print('IS')
+                for k in range(top_k):
+                    if nearest[k] < vocabulary_size:
+                        print(sim_p[i,nearest[k]], dictionary[nearest[k]])
+                        print('---------------------------------===================================--------------------------------------')
+                    else:
+                        doc_id = doc_ids[nearest[k] - vocabulary_size]
+                        if doc_txt.get(doc_id, None) is None:
+                            doc_txt[doc_id] = db.get_doc_text(doc_id)
+                        print(sim_p[i,nearest[k]], doc_txt[doc_id])
+                        print('---------------------------------===================================--------------------------------------')
+                        # print(sim_p[i,nearest[k]], [dictionary[paragraphs[i][j]] for j in range(len(paragraphs[i]))])
+            if verbose:
+                for par in interesting_pars:
+                    print(par)
+                    if doc_txt.get(doc_ids[par], None) is None:
+                        doc_txt[doc_ids[par]] = db.get_doc_text(doc_ids[par])
+                    print(doc_txt[doc_ids[par]])
+                    print('---------------------------------===================================--------------------------------------')
+                    # print([dictionary[paragraphs[i][j]] for j in range(len(paragraphs[i]))])
 
-        final_embeddings = normalized_embeddings.eval()
+        if not learning:
+            print(embeddings_p.eval())
 
 
 def start2():
@@ -410,6 +482,12 @@ def start2():
         NERFeature.doc_id.in_(tr_set) & (NERFeature.feature == 'embedding')).order_by(
         NERFeature.sentence_index, NERFeature.word_index).all()
     print('aii_words', len(all_words))
+
+
+def start():
+
+    fill_paragraphs_for_learning()
+    run_model(True, filename)
 
 start()
 
