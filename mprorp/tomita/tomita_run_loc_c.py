@@ -6,7 +6,7 @@ from mprorp.tomita.tomita_run import create_file
 from mprorp.config.settings import *
 from mprorp.tomita.locality.tomita_out_loc import get_coordinates
 from mprorp.tomita.locality.meta_loc import get_meta
-from mprorp.tomita.locality.global_idetification import get_codes_from_kladr
+from mprorp.tomita.locality.global_idetification import locality_identification
 
 def create_file_loc_c(doc, tomita_path):
     """function to create input file"""
@@ -34,7 +34,7 @@ TTextMinerConfig {
   {Name = "Локация"}
   ]
   Facts = [
-    { Name = "LocationFact_TOMITA" }
+    { Name = "CityFact_TOMITA" }
   ]
   Output = {
     File =''' + ''' "facts_''' + file_name[:-4] + '''.xml";
@@ -72,7 +72,6 @@ def run_tomita_loc_c(doc):
     out_name, file_name, tomita_path = start_tomita_loc_c(doc)
     meta = get_meta(doc)
     results = get_coordinates(out_name, file_name, tomita_path)
-    #for result in results:
-    #    print(result)
-    #    print(get_codes_from_kladr(result))
+    for result in results:
+        result['code'] = locality_identification(result)[0]
     return {'tomita' : results, 'meta' : meta}, tomita_path

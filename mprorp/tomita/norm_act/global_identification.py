@@ -5,8 +5,8 @@ from mprorp.db.dbDriver import *
 def act_identification(allacts):
     out = {}
     session = db_session()
-    act_db_koap = session.query(Entity).filter(Entity.entity_class == 'norm_act', Entity.name.contains('KOAP')).all()
-    act_db_kk = session.query(Entity).filter(Entity.entity_class == 'norm_act', Entity.name.contains('UC')).all()
+    act_db_koap = session.query(Entity).filter(Entity.entity_class == 'norm_act', Entity.name.contains('КоАП')).all()
+    act_db_kk = session.query(Entity).filter(Entity.entity_class == 'norm_act', Entity.name.contains('УК')).all()
     for act_str in allacts:
         acts = allacts[act_str]
         acts = acts.split('split')
@@ -25,7 +25,7 @@ def get_codes(norm_db, type, acts):
             if art != []:
                 art = art[0]
                 if art[-1] != '.':
-                    art = art + '.'
+                    art += '.'
                 if 'p' in act:
                     parts = re.findall('p_(.*?)_', act)
                     for n in range(len(parts)):

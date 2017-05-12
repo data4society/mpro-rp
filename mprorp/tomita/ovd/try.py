@@ -91,7 +91,29 @@ def collect_urls():
             line += url + ' ' + rub_line + '\n'
     return line
 
+def rename_norm_acts():
+    norm_acts = session.query(Entity).filter(Entity.entity_class == 'norm_act').all()
+    print(len(norm_acts))
+    norm_acts = [i for i in norm_acts if 'UC' in i.name or 'KOAP' in i.name]
+    print(len(norm_acts))
+    for act in norm_acts:
+        act.name = act.name.replace('UC', 'УК').replace('KOAP', 'КоАП')
+        session.commit()
 
+
+#doc = session.query(Document).filter(Document.doc_id == '000166cf-826a-478b-b01a-229eb755d1cf').first()
+#print(run_tomita(doc, 'locality.cxx'))
+#rename_norm_acts()
+#norm_acts = session.query(Entity).filter(Entity.entity_class == 'norm_act').all()
+#print(len(norm_acts))
+#norm_acts = [i for i in norm_acts if 'art' not in i.data]
+#print(len(norm_acts))
+#for act in norm_acts:
+#    act.data = norm_data[act.name]
+#    session.commit()
+#x = open('norm_acts_data.py', 'w', encoding='utf-8')
+#x.write('norm_data = ' + str(upd_norm_acts()))
+#x.close()
 #print(collect_urls())
 #try_all_ovd()
 #f1('ovd')

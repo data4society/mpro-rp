@@ -8,6 +8,7 @@ from mprorp.tomita.tomita_run_ovd import run_tomita_ovd, only_russia, create_fil
 from mprorp.utils import home_dir
 from mprorp.tomita.norm_act.global_identification import act_identification
 from mprorp.tomita.tomita_run_loc_c import run_tomita_loc_c
+from mprorp.tomita.locality.global_idetification import locality_identification
 
 
 def del_files(doc_id, tomita_path):
@@ -48,7 +49,7 @@ def run_tomita(doc, grammar, session=None, commit_session=True):
         return out
     elif grammar == 'locality.cxx':
         out, tomita_path = run_tomita_loc_c(doc)
-        out = {str(result['fs']) + ':' + str(result['ls']) : 'Locality' for result in out['tomita']}
+        out = {str(result['fs']) + ':' + str(result['ls']): result['code'] for result in out['tomita']}
         del_files_ovd(str(doc.doc_id), tomita_path)
         db.put_tomita_result(str(doc.doc_id), grammar, out, session, commit_session)
         return out

@@ -1,7 +1,7 @@
 import "base.proto";
 import "facttypes_base.proto";
 
-message LocationFact_TOMITA: NFactType.TFact
+message CityFact_TOMITA: NFactType.TFact
 {
 	required string Location_TOMITA = 1;
 } 
