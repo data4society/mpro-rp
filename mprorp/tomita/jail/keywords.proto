@@ -1,0 +1,5 @@
+import "base.proto";     
+import "articles_base.proto";
+message Jail1: TAuxDicArticle {}
+message Jail2: TAuxDicArticle {}
+message Jail3: TAuxDicArticle {}

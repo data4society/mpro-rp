@@ -1,0 +1,7 @@
+import "base.proto";
+import "facttypes_base.proto";
+
+message JailFact_TOMITA: NFactType.TFact
+{
+	required string Jail_TOMITA = 1;
+} 

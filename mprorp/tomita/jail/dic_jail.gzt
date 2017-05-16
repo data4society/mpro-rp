@@ -1,0 +1,26 @@
+encoding "utf8";
+import "base.proto";     
+import "articles_base.proto";
+import "keywords.proto";
+import "facttypes.proto";
+
+
+TAuxDicArticle "Тюрьма"
+{
+    key = { "tomita:jail.cxx" type=CUSTOM }
+}
+
+Jail1 "Тюрьмы"
+{
+ key = { "jail.txt" type=FILE }
+}
+
+Jail2 "Старые названия"
+{
+ key = { "jail_old.txt" type=FILE }
+}
+
+Jail3 "Народные названия"
+{
+ key = { "jail_nar.txt" type=FILE }
+}
