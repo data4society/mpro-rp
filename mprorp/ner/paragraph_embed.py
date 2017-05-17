@@ -168,7 +168,6 @@ def generate_batch(batch_size, num_skips, skip_window, voc_size, paragraphs):
 def fill_paragraphs_for_learning(training_set, new_dictionary, verbose=False):
 
     global num_skips
-    global skip_window
     global dictionary
     global paragraphs
     global reverse_dictionary
@@ -227,12 +226,15 @@ def fill_paragraphs_for_learning(training_set, new_dictionary, verbose=False):
         if verbose:
             print(dictionary[:5])
 
-        for i in range(len(dictionary)):
-            reverse_dictionary[dictionary[i]] = i
         unk_word = len(dictionary)
         dictionary.append('UNKN')
         no_word = unk_word + 1
         dictionary.append('EMPTY')
+        for i in range(len(dictionary)):
+            reverse_dictionary[dictionary[i]] = i
+    else:
+        unk_word = reverse_dictionary['UNKN']
+        no_word = reverse_dictionary['EMPTY']
 
     total_words = 0
 
@@ -244,20 +246,23 @@ def fill_paragraphs_for_learning(training_set, new_dictionary, verbose=False):
         paragraphs.append(par_words)
 
 
-def run_model(learning, filename, num_steps):
+def run_model(learning, num_steps, filename=None, model_params=None):
 
     global dictionary
     global paragraphs
     global reverse_dictionary
-    global data_index
+    global data_index, l1_size, embedding_size
     assert use_par_embed or learning  #If we use existed model (learning=False), use_par_embed must be True
 
+    if not learning:
+        l1_size = model_params['params']['l1_size']
+        embedding_size = model_params['params']['embedding_size']
     vocabulary_size = len(reverse_dictionary) + 2
     paragraph_amount = len(paragraphs)
     if verbose:
         print('vocabulary_size:', vocabulary_size)
 
-    if verbose:
+    if verbose and learning:
         print('paragraphs:', [dictionary[di] for di in paragraphs[0][:20]])
 
         for num_skips_loc, skip_window_loc in [(2, 1), (4, 2)]:
@@ -267,10 +272,10 @@ def run_model(learning, filename, num_steps):
             print('\nwith num_skips = %d and skip_window = %d:' % (num_skips_loc, skip_window_loc))
             print('    batch:', [dictionary[bii] if bii < vocabulary_size else bii for bi in batch for bii in bi])
             print('    labels:', [dictionary[li] for li in labels.reshape(8)])
-
-    if not learning:
-        with open(home_dir + '/weights' + filename, 'rb') as f:
-            params = pickle.load(f)
+    #
+    # if not learning:
+    #     with open(home_dir + '/weights' + filename, 'rb') as f:
+    #         model_params = pickle.load(f)
 
     graph = tf.Graph()
 
@@ -294,7 +299,7 @@ def run_model(learning, filename, num_steps):
                 embeddings_w = tf.Variable(
                         tf.random_uniform([vocabulary_size, embedding_size], -1.0, 1.0), trainable=learning)
             else:
-                embeddings_w = tf.Variable(params['embed'], trainable=False)
+                embeddings_w = tf.Variable(model_params['embed'], trainable=False)
             embeddings_p = tf.Variable(
                     tf.random_uniform([paragraph_amount, embedding_size], -1.0, 1.0))
             embeddings = tf.concat(0, [embeddings_w, embeddings_p])
@@ -311,8 +316,8 @@ def run_model(learning, filename, num_steps):
 
                 biases_l1 = tf.Variable(tf.zeros([l1_size]))
             else:
-                weights_l1 = tf.Variable(params['weights_l1'], trainable=False)
-                biases_l1 = tf.Variable(params['biases_l1'], trainable=False)
+                weights_l1 = tf.Variable(model_params['weights_l1'], trainable=False)
+                biases_l1 = tf.Variable(model_params['biases_l1'], trainable=False)
             softmax_matrix_dim = l1_size
         else:
             softmax_matrix_dim = input_vector_size
@@ -324,9 +329,9 @@ def run_model(learning, filename, num_steps):
             # tf.add_to_collection('total_loss', 0.5 * reg_softmax * tf.nn.l2_loss(softmax_weights))
             softmax_biases = tf.Variable(tf.zeros([vocabulary_size]))
         else:
-            softmax_weights = tf.Variable(params['softmax_weights'], trainable=False)
+            softmax_weights = tf.Variable(model_params['softmax_weights'], trainable=False)
             # tf.add_to_collection('total_loss', 0.5 * reg_softmax * tf.nn.l2_loss(softmax_weights))
-            softmax_biases = tf.Variable(params['softmax_biases'], trainable=False)
+            softmax_biases = tf.Variable(model_params['softmax_biases'], trainable=False)
 
 
 
@@ -419,6 +424,7 @@ def run_model(learning, filename, num_steps):
                 'params': params_for_save,
                 'embed': embed_for_save,
                 'softmax_weights': softmax_weights.eval(),
+                'softmax_biases': softmax_biases.eval(),
                 'dict': reverse_dictionary
             }
             if use_NN:
@@ -488,10 +494,9 @@ def create_word_emb(my_sets):
             print(str(count) + " of " + str(len(docs)))
 
 
-def start():
+def start_prepare_docs():
     paragraph_set = []
     for ind in ['11', '12', '13', '14', '15', '16']:
-    # for ind in ['11', '14', '16']:
         paragraph_set.append(set_list.sets[ind]['tr_set_2'])
         paragraph_set.append(set_list.sets[ind]['test_set_2'])
     for ind in ['pp', 'ss']:
@@ -500,8 +505,9 @@ def start():
     create_word_emb(paragraph_set)
 
 
-def start_old():
+def start():
 
+    global reverse_dictionary, consistent_words, num_skips, skip_window
     #Learning model
 
     # training_set = [set_list.sets1250[0]]
@@ -514,29 +520,45 @@ def start_old():
     # training_set = set_list.sets1250[:5]
     # training_set = set_list.sets1250
 
-    # fill_paragraphs_for_learning(training_set, True)
-    # run_model(True, filename, 4001)
+    fill_paragraphs_for_learning(training_set, True)
+    run_model(True, 4001, filename=filename)
+    exit()
 
     #Learninng embeddings
 
     paragraph_set = []
-    for ind in ['11']:
+
+    for ind in ['11', '12', '13', '14', '15', '16']:
         paragraph_set.append(set_list.sets[ind]['tr_set_2'])
+        paragraph_set.append(set_list.sets[ind]['test_set_2'])
+    for ind in ['pp', 'ss']:
+        paragraph_set.append(set_list.sets[ind]['train_set'])
+        paragraph_set.append(set_list.sets[ind]['test_set'])
+    # print(training_set, paragraph_set)
+    with open(home_dir + '/weights' + filename, 'rb') as f:
+        model_params = pickle.load(f)
+    num_skips = model_params['params']['num_skips']
+    skip_window = model_params['params']['skip_window']
+    reverse_dictionary = model_params['dict']
+    lrd = len(reverse_dictionary)
+    print(lrd)
+    print(type(reverse_dictionary))
+    print(reverse_dictionary)
 
-    # for ind in ['11', '12', '13', '14', '15', '16']:
-    #     paragraph_set.append(set_list.sets[ind]['tr_set_2'])
-    #     paragraph_set.append(set_list.sets[ind]['test_set_2'])
-    # for ind in ['pp', 'ss']:
-    #     paragraph_set.append(set_list.sets[ind]['train_set'])
-    #     paragraph_set.append(set_list.sets[ind]['test_set'])
-    print(training_set, paragraph_set)
+    consistent_words = model_params['params']['consistent_words']
     fill_paragraphs_for_learning(paragraph_set, False, True)
-    print(len(paragraphs))
-    em_p = run_model(False, filename, 4001)
-    print(len(doc_ids))
-    print(type(em_p))
-    print(em_p.shape)
-
+    em_p = run_model(False, 2001, model_params=model_params)
+    if len(filename) > 40:
+        print('Length of filename must be less or equal 40')
+        exit()
+    session = Driver.db_session()
+    new_emb = Embedding(emb_id=filename, name='Embedding for docs built by model from ' + filename)
+    session.add(new_emb)
+    for i in range(em_p.shape[0]):
+        vec = em_p[i, :].tolist()
+        new_vec = DocEmbedding(doc_id=doc_ids[i], embedding=new_emb, vector=vec)
+        session.add(new_vec)
+    # session.commit()
 
 start()
 
