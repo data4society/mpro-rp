@@ -520,30 +520,31 @@ def start():
     # training_set = set_list.sets1250[:5]
     # training_set = set_list.sets1250
 
-    fill_paragraphs_for_learning(training_set, True)
-    run_model(True, 4001, filename=filename)
-    exit()
+    # fill_paragraphs_for_learning(training_set, True)
+    # run_model(True, 4001, filename=filename)
+    # exit()
 
     #Learninng embeddings
 
     paragraph_set = []
 
+    # for ind in ['11']:
     for ind in ['11', '12', '13', '14', '15', '16']:
         paragraph_set.append(set_list.sets[ind]['tr_set_2'])
         paragraph_set.append(set_list.sets[ind]['test_set_2'])
-    for ind in ['pp', 'ss']:
-        paragraph_set.append(set_list.sets[ind]['train_set'])
-        paragraph_set.append(set_list.sets[ind]['test_set'])
+    # for ind in ['pp', 'ss']:
+    #     paragraph_set.append(set_list.sets[ind]['train_set'])
+    #     paragraph_set.append(set_list.sets[ind]['test_set'])
     # print(training_set, paragraph_set)
     with open(home_dir + '/weights' + filename, 'rb') as f:
         model_params = pickle.load(f)
     num_skips = model_params['params']['num_skips']
     skip_window = model_params['params']['skip_window']
     reverse_dictionary = model_params['dict']
-    lrd = len(reverse_dictionary)
-    print(lrd)
-    print(type(reverse_dictionary))
-    print(reverse_dictionary)
+    # lrd = len(reverse_dictionary)
+    # print(lrd)
+    # print(type(reverse_dictionary))
+    # print(reverse_dictionary)
 
     consistent_words = model_params['params']['consistent_words']
     fill_paragraphs_for_learning(paragraph_set, False, True)
@@ -556,7 +557,7 @@ def start():
     session.add(new_emb)
     for i in range(em_p.shape[0]):
         vec = em_p[i, :].tolist()
-        new_vec = DocEmbedding(doc_id=doc_ids[i], embedding=new_emb, vector=vec)
+        new_vec = DocEmbedding(doc_id=doc_ids[i], embedding=new_emb.emb_id, vector=vec)
         session.add(new_vec)
     session.commit()
 
