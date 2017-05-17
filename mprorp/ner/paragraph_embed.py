@@ -558,7 +558,7 @@ def start():
         vec = em_p[i, :].tolist()
         new_vec = DocEmbedding(doc_id=doc_ids[i], embedding=new_emb, vector=vec)
         session.add(new_vec)
-    # session.commit()
+    session.commit()
 
 start()
 
