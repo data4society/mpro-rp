@@ -101,8 +101,9 @@ def rename_norm_acts():
         session.commit()
 
 
-#doc = session.query(Document).filter(Document.doc_id == '000166cf-826a-478b-b01a-229eb755d1cf').first()
-#print(run_tomita(doc, 'locality.cxx'))
+doc = session.query(Document).filter(Document.doc_id == '00037072-cf48-42ee-a9d9-061e5b558328').first()
+doc.stripped = 'Нас доставили в Матросскую тишину.'
+print(run_tomita(doc, 'jail.cxx'))
 #rename_norm_acts()
 #norm_acts = session.query(Entity).filter(Entity.entity_class == 'norm_act').all()
 #print(len(norm_acts))
