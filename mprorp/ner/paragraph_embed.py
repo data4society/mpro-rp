@@ -491,6 +491,7 @@ def create_word_emb(my_sets):
 def start():
     paragraph_set = []
     for ind in ['11', '12', '13', '14', '15', '16']:
+    # for ind in ['11', '14', '16']:
         paragraph_set.append(set_list.sets[ind]['tr_set_2'])
         paragraph_set.append(set_list.sets[ind]['test_set_2'])
     for ind in ['pp', 'ss']:

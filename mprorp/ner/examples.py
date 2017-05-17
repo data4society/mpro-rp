@@ -16,41 +16,61 @@ from mprorp.db.models import *
 from mprorp.analyzer.db import put_training_set
 from gensim.models import word2vec
 from mprorp.utils import home_dir
+import tensorflow as tf
 
 
 session = Driver.db_session()
-res = session.query(Markup.markup_id).filter((Markup.type == '56')).distinct().all()
 
-pre_embedding_from_file = home_dir + '/embeddings/news_win20.model.bin'
-model_w2v = word2vec.Word2Vec.load_word2vec_format(pre_embedding_from_file, binary=True)
-count = 0
-print('Всего', len(model_w2v.vocab), 'слов')
-session.add(Embedding(emb_id = 'second_embedding_1000', name = 'Вторая модель, загруженная с http://ling.go.mail.ru/'))
-for word in model_w2v.vocab:
-    session.add(WordEmbedding(lemma=word, embedding='second_embedding_1000', vector=[float(i) for i in model_w2v[word]]))
-    count += 1
-    if count % 1000 == 0:
-        session.commit()
-        print(count)
-session.commit()
-print(count)
-res = session.query(WordEmbedding.lemma).filter(WordEmbedding.embedding == 'second_embedding_1000').all()
-print(len(res))
-exit()
-    # wv_dict[word] = model_w2v[word]
+batch_size = 128
+reg_coef = 0.005
+lr=10
+tf_steps = 100
 
-print(db.is_name('василий'))
-print(db.is_name('Иван'))
-print(db.is_name('иван'))
-exit()
-classes = set()
-count = 0
-for r in res:
-    count +=1
-    if count > 5:
-        break
-    refs = db.get_references_for_doc(r.markup_id, session=session)
-    for ref in refs:
-        classes.add(ref[2])
-        print(ref)
-print(classes)
+
+def create_train_data(tr_set, rubric_id, embedding_id, verbose=False):
+    embeds = db.get_docs_embedding(embedding_id, tr_set)
+    # doc_ids = []
+    emb_list = []
+    ans_list = []
+    answers = db.get_rubric_answers(tr_set, rubric_id)
+    if verbose:
+        print('answers: ', len(answers), sum(list(answers.values())))
+    for doc_id in embeds:
+        # doc_ids.append(doc_id)
+        emb_list.append(embeds[doc_id])
+        ans_list.append(answers[doc_id])
+    return emb_list, ans_list
+
+
+def run_rubric_model(tr_data, labels, embedding_size):
+
+    graph = tf.Graph()
+
+    with graph.as_default(), tf.device('/cpu:0'):
+        # Input data.
+        train_dataset = tf.placeholder(tf.float32, shape=[batch_size, embedding_size])
+        train_labels = tf.placeholder(tf.int32, shape=[batch_size, 1])
+
+        # Variables.
+        weights = tf.Variable(tf.random_uniform([embedding_size, 1], -1.0, 1.0))
+        # tf.add_to_collection('total_loss', 0.5 * reg_softmax * tf.nn.l2_loss(weights))
+        bias = tf.Variable(0.00001)
+
+        y = tf.matmul(train_dataset, weights) + bias
+
+        cross_entropy_array = tf.log(tf.sigmoid(y)) * train_labels + tf.log(1 - tf.sigmoid(y)) * (1 - train_labels)
+
+        cross_entropy = - tf.reduce_mean(cross_entropy_array) + tf.reduce_mean(weights * weights) * reg_coef
+
+        train_step = tf.train.GradientDescentOptimizer(learning_rate=lr).minimize(cross_entropy)
+        init = tf.initialize_all_variables()
+
+        sess = tf.Session()
+        sess.run(init)
+
+        for i in range(tf_steps):
+            sess.run(train_step, feed_dict={train_dataset: tr_data, train_labels: labels})
+
+    model = weights.eval(sess)[:, 0]
+    model = model.tolist()
+    model.append(float(bias.eval(sess)))

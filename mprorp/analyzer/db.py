@@ -675,6 +675,19 @@ def get_multi_word_embedding(embedding, lemmas, session=None):
         return {i.lemma: np.array(i.vector) for i in res}
 
 
+def get_docs_embedding(embedding, set_id, session=None):
+    """read embeddings for documents"""
+    if session is None:
+        session = Driver.db_session()
+    docs = get_set_docs(set_id)
+    res = session.query(DocEmbedding).filter(
+        (DocEmbedding.embedding == embedding) & (DocEmbedding.doc_id.in_(docs))).all()
+    if res is None:
+        return None
+    else:
+        return {i.doc_id: np.array(i.vector) for i in res}
+
+
 def get_docs_with_markup(markup_type, session=None):
     """return list of doc_id having markup of type markup_type"""
     if session is None:

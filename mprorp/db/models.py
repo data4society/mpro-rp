@@ -549,6 +549,19 @@ class WordEmbedding(Base):
     __table_args__ = (PrimaryKeyConstraint(lemma, embedding),)
 
 
+class DocEmbedding(Base):
+    """embedding vector for document"""
+    __tablename__ = 'doc_embeddings'
+
+    # Document id
+    doc_id = Column(UUIDType(binary=False), ForeignKey('documents.doc_id'))
+    # Embedding:
+    embedding = Column(String(40))
+    # vector for document
+    vector = Column(ARRAY(item_type=Float, dimensions=1))
+    __table_args__ = (PrimaryKeyConstraint(doc_id, embedding),)
+
+
 class Gazetteer(Base):
     """gazetteer"""
     __tablename__ = 'gazetteers'
