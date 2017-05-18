@@ -5,6 +5,7 @@ import subprocess as sp
 from mprorp.tomita.tomita_run import create_file
 from mprorp.config.settings import *
 from mprorp.tomita.locality.tomita_out_loc import get_coordinates
+from mprorp.tomita.jail.global_identification import jail_identification
 
 
 def create_file_jail(doc, tomita_path):
@@ -70,6 +71,6 @@ def start_tomita_jail(doc):
 def run_tomita_jail(doc):
     out_name, file_name, tomita_path = start_tomita_jail(doc)
     results = get_coordinates(out_name, file_name, tomita_path)
-    #for result in results:
-    #    result['code'] = jail_identification(result)[0]
+    for result in results:
+        result['code'] = jail_identification(result)
     return results, tomita_path
