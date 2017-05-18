@@ -23,7 +23,7 @@ from mprorp.ner.saver import saver
 import mprorp.ner.feature as feature
 import mprorp.ner.set_list as set_list
 import mprorp.ner.feature as ner_feature
-
+import mprorp.analyzer.rubricator as rb
 
 import mprorp.db.dbDriver as Driver
 from mprorp.db.models import *
@@ -60,6 +60,12 @@ if use_NN:
     filename = 'EP_model_NN.pic'
 else:
     filename = 'EP_model_LR.pic'
+
+# parameters for rubrication
+reg_coef = 0.0005
+lr=0.1
+tf_steps = 5000
+
 
 print('embedding_for_word_count', embedding_for_word_count)
 
@@ -505,7 +511,7 @@ def start_prepare_docs():
     create_word_emb(paragraph_set)
 
 
-def start():
+def model_emb_par_teach_or_calc(teach=True):
 
     global reverse_dictionary, consistent_words, num_skips, skip_window
     #Learning model
@@ -520,46 +526,133 @@ def start():
     # training_set = set_list.sets1250[:5]
     # training_set = set_list.sets1250
 
-    # fill_paragraphs_for_learning(training_set, True)
-    # run_model(True, 4001, filename=filename)
-    # exit()
+    if teach:
+        fill_paragraphs_for_learning(training_set, True)
+        run_model(True, 4001, filename=filename)
+    else:
 
-    #Learninng embeddings
+        #Learninng embeddings
 
-    paragraph_set = []
+        paragraph_set = []
 
-    # for ind in ['11']:
-    for ind in ['11', '12', '13', '14', '15', '16']:
-        paragraph_set.append(set_list.sets[ind]['tr_set_2'])
-        paragraph_set.append(set_list.sets[ind]['test_set_2'])
-    # for ind in ['pp', 'ss']:
-    #     paragraph_set.append(set_list.sets[ind]['train_set'])
-    #     paragraph_set.append(set_list.sets[ind]['test_set'])
-    # print(training_set, paragraph_set)
-    with open(home_dir + '/weights' + filename, 'rb') as f:
-        model_params = pickle.load(f)
-    num_skips = model_params['params']['num_skips']
-    skip_window = model_params['params']['skip_window']
-    reverse_dictionary = model_params['dict']
-    # lrd = len(reverse_dictionary)
-    # print(lrd)
-    # print(type(reverse_dictionary))
-    # print(reverse_dictionary)
+        # for ind in ['11']:
+        for ind in ['11', '12', '13', '14', '15', '16']:
+            paragraph_set.append(set_list.sets[ind]['tr_set_2'])
+            paragraph_set.append(set_list.sets[ind]['test_set_2'])
+        # for ind in ['pp', 'ss']:
+        #     paragraph_set.append(set_list.sets[ind]['train_set'])
+        #     paragraph_set.append(set_list.sets[ind]['test_set'])
+        # print(training_set, paragraph_set)
+        with open(home_dir + '/weights' + filename, 'rb') as f:
+            model_params = pickle.load(f)
+        num_skips = model_params['params']['num_skips']
+        skip_window = model_params['params']['skip_window']
+        reverse_dictionary = model_params['dict']
+        # lrd = len(reverse_dictionary)
+        # print(lrd)
+        # print(type(reverse_dictionary))
+        # print(reverse_dictionary)
 
-    consistent_words = model_params['params']['consistent_words']
-    fill_paragraphs_for_learning(paragraph_set, False, True)
-    em_p = run_model(False, 2001, model_params=model_params)
-    if len(filename) > 40:
-        print('Length of filename must be less or equal 40')
-        exit()
-    session = Driver.db_session()
-    new_emb = Embedding(emb_id=filename, name='Embedding for docs built by model from ' + filename)
-    session.add(new_emb)
-    for i in range(em_p.shape[0]):
-        vec = em_p[i, :].tolist()
-        new_vec = DocEmbedding(doc_id=doc_ids[i], embedding=new_emb.emb_id, vector=vec)
-        session.add(new_vec)
-    session.commit()
+        consistent_words = model_params['params']['consistent_words']
+        fill_paragraphs_for_learning(paragraph_set, False, True)
+        em_p = run_model(False, 2001, model_params=model_params)
+        if len(filename) > 40:
+            print('Length of filename must be less or equal 40')
+            exit()
+        session = Driver.db_session()
+        new_emb = Embedding(emb_id=filename, name='Embedding for docs built by model from ' + filename)
+        session.add(new_emb)
+        for i in range(em_p.shape[0]):
+            vec = em_p[i, :].tolist()
+            new_vec = DocEmbedding(doc_id=doc_ids[i], embedding=new_emb.emb_id, vector=vec)
+            session.add(new_vec)
+        session.commit()
+
+
+def create_rubric_train_data(tr_set, rubric_id, embedding_id, verbose=False):
+    embeds = db.get_docs_embedding(embedding_id, tr_set)
+    # doc_ids = []
+    emb_list = []
+    ans_list = []
+    answers = db.get_rubric_answers(tr_set, rubric_id)
+    if verbose:
+        print('answers: ', len(answers), sum(list(answers.values())))
+    for doc_id in embeds:
+        # doc_ids.append(doc_id)
+        emb_list.append(embeds[doc_id])
+        ans_list.append(answers[doc_id])
+    return emb_list, ans_list
+
+
+def build_rubric_model(tr_data, labels):
+
+    graph = tf.Graph()
+
+    with graph.as_default(), tf.device('/cpu:0'):
+        # Input data.
+        train_dataset = tf.placeholder(tf.float32, shape=[batch_size, embedding_size])
+        train_labels = tf.placeholder(tf.float32, shape=[batch_size, 1])
+
+        # Variables.
+        weights = tf.Variable(tf.random_uniform([embedding_size, 1], -1.0, 1.0))
+        # tf.add_to_collection('total_loss', 0.5 * reg_softmax * tf.nn.l2_loss(weights))
+        bias = tf.Variable(0.00001)
+
+        y = tf.matmul(train_dataset, weights) + bias
+
+        cross_entropy_array = tf.log(tf.sigmoid(y)) * train_labels + tf.log(1 - tf.sigmoid(y)) * (1 - train_labels)
+
+        cross_entropy = - tf.reduce_mean(cross_entropy_array) + tf.reduce_mean(weights * weights) * reg_coef
+
+        train_step = tf.train.GradientDescentOptimizer(learning_rate=lr).minimize(cross_entropy)
+        init = tf.initialize_all_variables()
+
+        sess = tf.Session()
+        sess.run(init)
+
+        for i in range(tf_steps):
+            sess.run(train_step, feed_dict={train_dataset: tr_data, train_labels: labels})
+
+    model = weights.eval(sess)[:, 0]
+    model = model.tolist()
+    model.append(float(bias.eval(sess)))
+    return model
+
+
+def test_model(set_id, embedding, rubric_id, tr_set=None, name=''):
+    model_id = rb.spot_test_set_embedding_rubric(set_id, embedding, rubric_id, training_set_id=tr_set)
+    print('При тестировании для рубрики ', rubric_id, ' использована модель ', model_id)
+    # for doc_id in db.get_set_docs(set_id):
+    #     rb.spot_doc_rubrics2(doc_id, {rubric_id: None}, verbose=True)
+    # model_id = db.get_model(rubric_id)["model_id"]
+    # if protocol != '':
+    #     file_name = protocol + '_' + name + '.txt'
+    result = rb.f1_score(model_id, set_id, rubric_id)
+    return result
+
+
+def teach_and_test():
+    # model_emb_par_teach_or_calc(True)
+    global batch_size
+    global filename
+    filename = 'ModelEP_1705.pic'
+    tr_set = set_list.sets['14']['tr_set_2']
+    test_set = set_list.sets['14']['test_set_2']
+    rubric_id = set_list.rubrics['4']['pos']
+    emb, ans = create_rubric_train_data(tr_set, rubric_id, filename)
+    batch_size = len(ans)
+    answers_array = np.zeros((batch_size, 1))
+    answers_array[:, 0] = ans
+    model = build_rubric_model(emb, answers_array)
+    db.put_model(rubric_id, tr_set, model, embedding=filename)
+    print('Результаты рубрикатора на учебной выборке')
+    print(test_model(tr_set, filename, rubric_id))
+    print('Результаты рубрикатора на тестовой выборке')
+    print(test_model(test_set, filename, rubric_id))
+
+
+def start():
+    teach_and_test()
 
 start()
 

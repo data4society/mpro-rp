@@ -942,6 +942,93 @@ def spot_test_set_rubric(test_set_id, rubric_id, training_set_id=None):
     return model['model_id']
 
 
+def spot_doc_embedding_rubrics(doc, embedding_id, rubrics, session=None, commit_session=True, verbose=False):
+    """spot rubrics for document"""
+    # get embedding vector by doc_id
+    embedding_list = db.get_doc_embedding(embedding_id, doc.doc_id, session)
+    embedding_list.append(1)
+    embedding = np.array(embedding_list)
+    # models for rubrics
+    models = {}
+    negative_rubrics = {}
+    train_set = {}
+    probabilities = {}
+    probability_limits = {}
+    # fill set_id in rubrics and data in models
+    for rubric_dict in rubrics:
+        rubric_id = rubric_dict['rubric_id']
+        negative_rubrics[rubric_id] = rubric_dict.get('rubric_minus_id', None)
+        probability_limits[rubric_id] = rubric_dict.get('limit', probab_limit)
+        train_set_id = db.get_set_id_by_name(rubric_dict['set_name'])
+        if train_set_id is None or train_set_id == '':
+            continue
+        train_set[rubric_id] = train_set_id
+        # correct_answers[rubric_id] = db.get_rubric_answer_doc(doc_id, rubric_id)
+        models[rubric_id] = db.get_model_embedding(rubric_id, embedding_id, train_set_id, session)
+        # get_model: return {'model': model[0], 'features': model[1],
+        #                   'features_num': model[2], 'model_id': str(model[3])}
+        if verbose:
+            print('Для рубрики ', rubric_id, ' используется модель ', models[rubric_id])
+    # for each rubric
+    answers = []
+    result = []
+    for rubric_id in train_set:
+
+        probability = sigmoid(np.dot(embedding, models[rubric_id]['model']))
+        probabilities[rubric_id] = probability
+        if verbose:
+            print('Вероятность: ', probability)
+        if probability > probability_limits[rubric_id]:
+            answers.append(rubric_id)
+        elif negative_rubrics[rubric_id] is not None:
+            answers.append(negative_rubrics[rubric_id])
+        result.append(
+                {'rubric_id': rubric_id, 'result': round(probability), 'model_id': models[rubric_id]['model_id'],
+                 'doc_id': doc.doc_id, 'probability': probability})
+        if negative_rubrics[rubric_id] is not None:
+            result.append(
+                    {'rubric_id': negative_rubrics[rubric_id], 'result': 1 - round(probability),
+                     'model_id': models[rubric_id]['model_id'],
+                     'doc_id': doc.doc_id, 'probability': probability})
+
+    db.put_rubrics(result, session, commit_session)
+    if verbose:
+        print(answers)
+    doc.rubric_ids = answers
+    if doc.meta is None:
+        doc.meta = dict()
+    doc.meta['rubric_probabilities'] = probabilities
+    flag_modified(doc, "meta")
+
+
+# take 1 rubric and all doc from test_set
+# save in DB doc_id, rubric_id and YES or NO
+def spot_test_set_embedding_rubric(test_set_id, embedding_id, rubric_id, training_set_id=None):
+    """spot rubrics for all documents from test_set"""
+    # get lemmas
+    docs_emb = db.get_docs_embedding(embedding_id, test_set_id)
+
+    # models for rubrics
+    if training_set_id is None:
+        training_set_id = db.get_set_id_by_rubric_id(rubric_id)
+    model = db.get_model_embedding(rubric_id, embedding_id, training_set_id)
+
+    answers = []
+    for doc_id in docs_emb:
+        emb_list = docs_emb[doc_id]
+        emb_list.append(1)
+        probability = sigmoid(np.dot(np.array(emb_list), model['model']))
+        # print(probability)
+        if probability > probab_limit:
+            result = 1
+        else:
+            result = 0
+        answers.append({'result': result, 'model_id': model['model_id'],
+                        'rubric_id': rubric_id, 'doc_id': doc_id, 'probability': probability})
+
+    db.put_rubrics(answers)
+    return model['model_id']
+
 # compute TP, FP, TN, FN, Precision, Recall and F-score on data from db
 def f1_score(model_id, test_set_id, rubric_id, protocol_file_name=""):
     """compute TP, FP, TN, FN, Precision, Recall and F-score on data from db"""

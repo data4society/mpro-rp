@@ -362,6 +362,8 @@ class RubricationModel(Base):
     rubric_id = Column(UUIDType(binary=False), ForeignKey('rubrics.rubric_id'))
     # Training set used for model
     set_id = Column(UUIDType(binary=False), ForeignKey('trainingsets.set_id'))
+    # embedding for models trained with paragraph embeddings
+    embedding = Column(String(40))
     # model = vector
     model = Column(ARRAY(item_type=Float, dimensions=1))
     # Array with length equal number features in training set.

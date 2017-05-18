@@ -27,7 +27,7 @@ lr=10
 tf_steps = 100
 
 
-def create_train_data(tr_set, rubric_id, embedding_id, verbose=False):
+def create_rubric_train_data(tr_set, rubric_id, embedding_id, verbose=False):
     embeds = db.get_docs_embedding(embedding_id, tr_set)
     # doc_ids = []
     emb_list = []

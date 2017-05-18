@@ -153,7 +153,7 @@ def get_set_docs(set_id, session=None):
 
 
 # writing model compute for one rubric (rubric_id) with training set (set_id) using selected features (features)
-def put_model(rubric_id, set_id, model, features, features_number, session=None, commit_session=True):
+def put_model(rubric_id, set_id, model, features=None, features_number=0, embedding=None, session=None, commit_session=True):
     if session is None:
         session = Driver.db_session()
     new_model = RubricationModel()
@@ -162,6 +162,7 @@ def put_model(rubric_id, set_id, model, features, features_number, session=None,
     new_model.model = model
     new_model.features = features
     new_model.features_num = features_number
+    new_model.embedding = embedding
     new_model.learning_date = datetime.now()
     session.add(new_model)
     if commit_session:
@@ -192,10 +193,29 @@ def get_model(rubric_id, set_id=None, session=None):
                           RubricationModel.model_id,
                           RubricationModel.learning_date).filter(
                           (RubricationModel.rubric_id == rubric_id) &
-                          (RubricationModel.set_id == set_id)).order_by(
+                          (RubricationModel.set_id == set_id) &
+                          (RubricationModel.embedding == '')).order_by(
                           desc(RubricationModel.learning_date)).all()[0]
     # print(model[4])
     return {'model': model[0], 'features': model[1], 'features_num': model[2], 'model_id': str(model[3])}
+
+
+# reading last computing model for rubric_id and set_id
+def get_model_embedding(rubric_id, embedding, set_id=None, session=None):
+    """reading last computing model for rubric_id and set_id"""
+    if session is None:
+        session = Driver.db_session()
+    if set_id is None:
+        set_id = get_set_id_by_rubric_id(rubric_id)
+    model = session.query(RubricationModel.model,
+                          RubricationModel.model_id,
+                          RubricationModel.learning_date).filter(
+                          (RubricationModel.rubric_id == rubric_id) &
+                          (RubricationModel.set_id == set_id) &
+                          (RubricationModel.embedding == embedding)).order_by(
+                          desc(RubricationModel.learning_date)).all()[0]
+    # print(model[4])
+    return {'model': model[0], 'model_id': str(model[1])}
 
 
 # get dict with idf and lemma_index for each set_id
@@ -675,6 +695,18 @@ def get_multi_word_embedding(embedding, lemmas, session=None):
         return {i.lemma: np.array(i.vector) for i in res}
 
 
+def get_doc_embedding(embedding, doc_id, session=None):
+    """read embeddings for documents"""
+    if session is None:
+        session = Driver.db_session()
+    res = session.query(DocEmbedding).filter(
+        (DocEmbedding.embedding == embedding) & (DocEmbedding.doc_id == doc_id)).all()
+    if res is None:
+        return None
+    else:
+        return res[0].vector
+
+
 def get_docs_embedding(embedding, set_id, session=None):
     """read embeddings for documents"""
     if session is None:
@@ -685,7 +717,7 @@ def get_docs_embedding(embedding, set_id, session=None):
     if res is None:
         return None
     else:
-        return {i.doc_id: np.array(i.vector) for i in res}
+        return {str(i.doc_id): i.vector for i in res}
 
 
 def get_docs_with_markup(markup_type, session=None):
