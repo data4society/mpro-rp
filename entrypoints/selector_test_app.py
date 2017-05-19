@@ -23,9 +23,11 @@ if __name__ == '__main__':
 
     for test_arr in test_arrs:
         print(test_arr)
-        links = selector_start_parsing(test_arr[0], [test_arr[1]], 'test', session)
+        links = selector_start_parsing(test_arr[0], [test_arr[1]], 'test', session, True)
         for link in links:
             print(link)
+        if len(links) == 0:
+            print('________!!!NO LINKS!!!________')
     session.remove()
 
     print("SELECTOR TEST COMPLETE")
