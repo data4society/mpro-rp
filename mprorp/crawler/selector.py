@@ -9,7 +9,7 @@ from mprorp.crawler.utils import *
 from sqlalchemy import or_
 
 
-def selector_start_parsing(source_url, link_patterns, app_id, session):
+def selector_start_parsing(source_url, link_patterns, app_id, session, test_mode=False):
     """parse custom page, find link and add publish, if it needs"""
     domain = domain_from_path(source_url)
     publisher = session.query(Publisher).filter(or_(Publisher.site.like('%//'+domain+'%'), Publisher.site.like('%www.'+domain+'%'))).first()
@@ -33,6 +33,8 @@ def selector_start_parsing(source_url, link_patterns, app_id, session):
         link_pattern = link_pattern.replace('(anytext)', '.*')
         pattern = re.compile(link_pattern)
         pat_links = [link for link in links if pattern.match(domain_clear(link))]
+        if test_mode:
+            return pat_links
         #print(doc.xpath("//a[starts-with(@href, '/"+link_pattern+"')]/@href"))
         for link in pat_links:
             add_item(link, publisher, app_id, session, docs, guids)

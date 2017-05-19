@@ -23,9 +23,9 @@ if __name__ == '__main__':
 
     for test_arr in test_arrs:
         print(test_arr)
-        docs = selector_start_parsing(test_arr[0], [test_arr[1]], 'test', session)
-        for doc in docs:
-            print(doc.url)
+        links = selector_start_parsing(test_arr[0], [test_arr[1]], 'test', session)
+        for link in links:
+            print(link)
     session.remove()
 
     print("SELECTOR TEST COMPLETE")
