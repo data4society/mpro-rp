@@ -194,7 +194,7 @@ def get_model(rubric_id, set_id=None, session=None):
                           RubricationModel.learning_date).filter(
                           (RubricationModel.rubric_id == rubric_id) &
                           (RubricationModel.set_id == set_id) &
-                          (RubricationModel.embedding == '')).order_by(
+                          (RubricationModel.embedding.is_(None))).order_by(
                           desc(RubricationModel.learning_date)).all()[0]
     # print(model[4])
     return {'model': model[0], 'features': model[1], 'features_num': model[2], 'model_id': str(model[3])}

@@ -414,17 +414,7 @@ rubric_num = '4'
 version = '1'
 set_num = version + rubric_num
 
-# tr_id_pn = sets[set_num]['tr_id_pn']  # pos + neg
-# tr_id_pnc = sets[set_num]['tr_id_pnc'] # pos + neg + com
-# tr_id_pc = sets[set_num]['tr_id_pc']
-# tr_id_pc100 = sets[set_num]['tr_id_pc100']
-# test_positive = sets[set_num]['test_positive']
-# test_negative = sets[set_num]['test_negative']
-# test_pn = sets[set_num]['test_pn']
-# tr_pos = sets[set_num]['tr_pos']
-# tr_neg = sets[set_num]['tr_neg']
 
-# training_set = tr_id_pnc
 training_set = sets[set_num]['tr_set_2']
 test_set = sets[set_num]['test_set_2']
 

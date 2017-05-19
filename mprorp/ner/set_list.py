@@ -29,7 +29,10 @@ sets1250 = ['1b8f7501-c7a8-41dc-8b06-fda7d04461a2',
             'c349032b-ba3c-4fb8-a888-39869fad05de',
             '7f6ff022-9cd3-41b0-9457-8d7057de4d28',
             'd7b056df-4341-4e8a-967c-6b9bdb5557b9']
-    
+
+tr_com = '265fac6f-4b3e-466d-b7fe-fcdc90978a4e'
+tr_com100 = 'c0b20817-e5f2-4fcb-bd39-ef1f53b403a3'
+test_com = '5544e81e-6dda-458f-9f79-e40d990e6e94'
     
 set_2 = {
     'dev_160': '9e0473dd-6f9d-4ddc-8740-5f39ae802d8f',

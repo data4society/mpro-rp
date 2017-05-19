@@ -74,3 +74,10 @@ def run_rubric_model(tr_data, labels, embedding_size):
     model = weights.eval(sess)[:, 0]
     model = model.tolist()
     model.append(float(bias.eval(sess)))
+
+
+model = session.query(RubricationModel.model,
+                      RubricationModel.features,
+                      RubricationModel.features_num,
+                      RubricationModel.model_id,
+                      RubricationModel.learning_date).filter(RubricationModel.embedding.is_(None)).all()[0]

@@ -62,9 +62,9 @@ else:
     filename = 'EP_model_LR.pic'
 
 # parameters for rubrication
-reg_coef = 0.0005
-lr=0.1
-tf_steps = 5000
+reg_coef = 0.000005
+lr=0.0025
+tf_steps = 100000
 
 
 print('embedding_for_word_count', embedding_for_word_count)
@@ -636,9 +636,9 @@ def teach_and_test():
     global batch_size
     global filename
     filename = 'ModelEP_1705.pic'
-    tr_set = set_list.sets['14']['tr_set_2']
-    test_set = set_list.sets['14']['test_set_2']
-    rubric_id = set_list.rubrics['4']['pos']
+    tr_set = set_list.sets['13']['tr_set_2']
+    test_set = set_list.sets['13']['test_set_2']
+    rubric_id = set_list.rubrics['3']['pos']
     emb, ans = create_rubric_train_data(tr_set, rubric_id, filename)
     batch_size = len(ans)
     answers_array = np.zeros((batch_size, 1))
