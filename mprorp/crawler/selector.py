@@ -36,6 +36,7 @@ def selector_start_parsing(source_url, link_patterns, app_id, session):
         #print(doc.xpath("//a[starts-with(@href, '/"+link_pattern+"')]/@href"))
         for link in pat_links:
             add_item(link, publisher, app_id, session, docs, guids)
+    return docs
 
 
 def add_item(url, publisher, app_id, session, docs, guids):
