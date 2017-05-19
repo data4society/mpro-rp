@@ -55,9 +55,4 @@ def add_item(url, publisher, app_id, session, docs, guids):
 
 
 if __name__ == '__main__':
-    session = db_session()
-    selector_start_parsing('https://ria.ru/society/','https://ria.ru/society/(digits)/(digits).html','test',session)
-    selector_start_parsing('http://www.interfax.ru/russia/news/','http://www.interfax.ru/russia/(digits)','test',session)
-    selector_start_parsing('http://rapsinews.ru/news/','http://rapsinews.ru/judicial_news/(digits)/(digits).html','test',session)
-    selector_start_parsing('https://zona.media/news/','https://zona.media/news/(digits)/(digits)/(digits)/(text)','test',session)
-    selector_start_parsing('https://meduza.io/','https://meduza.io/news/(digits)/(digits)/(digits)/(text)','test',session)
+    pass
