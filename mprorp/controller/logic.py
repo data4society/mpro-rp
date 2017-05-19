@@ -21,6 +21,7 @@ from mprorp.crawler.google_alerts import ga_start_parsing
 from mprorp.crawler.vk import vk_start_parsing, vk_parse_item
 from mprorp.crawler.csv_to_rubricator import csv_start_parsing
 from mprorp.crawler.from_other_app import other_app_cloning
+from mprorp.crawler.selector import selector_start_parsing
 
 from mprorp.analyzer.theming.themer import regular_themization
 
@@ -354,7 +355,7 @@ def regular_selector_start_parsing(source_key, **kwargs):
     app_id = kwargs["app_id"]
     source = apps_config[app_id]["crawler"]["selector"][source_key]
     try:
-        docs = gn_start_parsing(source_key, source["patterns"], app_id, session)
+        docs = selector_start_parsing(source_key, source["patterns"], app_id, session)
         for doc in docs:
             doc.status = SELECTOR_INIT_STATUS
             doc.source_with_type = "selector "+source_key

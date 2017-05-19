@@ -27,8 +27,10 @@ def selector_start_parsing(source_url, link_patterns, app_id, session):
     guids = []
     for link_pattern in link_patterns:
         link_pattern = domain_clear(link_pattern)
-        link_pattern = link_pattern.replace('(digits)', '\d*')
-        link_pattern = link_pattern.replace('(text)', '[^/]*')
+        link_pattern = link_pattern.replace('.', '\.')
+        link_pattern = link_pattern.replace('(digits)', '\d+')
+        link_pattern = link_pattern.replace('(text)', '[^/]+')
+        link_pattern = link_pattern.replace('(anytext)', '.*')
         pattern = re.compile(link_pattern)
         pat_links = [link for link in links if pattern.match(domain_clear(link))]
         #print(doc.xpath("//a[starts-with(@href, '/"+link_pattern+"')]/@href"))
