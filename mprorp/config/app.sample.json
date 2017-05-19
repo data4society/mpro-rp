@@ -10,6 +10,13 @@
       },
       "yandex_news":{
         "login:pass":600
+      },
+      "selector":{
+        "http://rapsinews.ru/news/":{
+          "patterns":["http://rapsinews.ru/judicial_news/(digits)/(digits).html","http://rapsinews.ru/incident_news/(digits)/(digits).html"],
+          "period":300,
+          "on":false
+		}
       }
     },
     "special_final_status":1000,

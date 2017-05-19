@@ -93,3 +93,32 @@ class MLStripper(HTMLParser):
         self.fed.append(d)
     def get_data(self):
         return ''.join(self.fed)
+
+
+def domain_clear(path):
+    """remove protocol and www from absolute path"""
+    pos = path.rfind('//')
+    path = path[pos+2:]
+    if path[:4] == 'www.':
+        path = path[4:]
+    return path
+
+
+def domain_from_path(path):
+    """return domain without www"""
+    domain = domain_clear(path_clear(path))
+    pos = domain.find('/')
+    if pos != -1:
+        domain = domain[:pos]
+    return domain
+
+
+def path_clear(path):
+    """remove hash and query string"""
+    pos = path.find('#')
+    if pos != -1:
+        path = path[:pos]
+    pos = path.find('?')
+    if pos != -1:
+        path = path[:pos]
+    return path
