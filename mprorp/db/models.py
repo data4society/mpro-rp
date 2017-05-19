@@ -154,7 +154,7 @@ class Document(Base):
     # title of document
     title = Column(String(511))
     # timestamp for material publishing date
-    published_date = Column(TIMESTAMP())
+    published_date = Column(TIMESTAMP(), server_default=functions.current_timestamp())
     # timestamp for adding to database
     created = Column(TIMESTAMP(), server_default=functions.current_timestamp())
     # document metadata

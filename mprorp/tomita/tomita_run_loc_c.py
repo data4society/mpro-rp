@@ -6,7 +6,7 @@ from mprorp.tomita.tomita_run import create_file
 from mprorp.config.settings import *
 from mprorp.tomita.locality.tomita_out_loc import get_coordinates
 from mprorp.tomita.locality.meta_loc import get_meta
-from mprorp.tomita.locality.global_idetification import locality_identification
+from mprorp.tomita.locality.global_identification import locality_identification
 
 def create_file_loc_c(doc, tomita_path):
     """function to create input file"""

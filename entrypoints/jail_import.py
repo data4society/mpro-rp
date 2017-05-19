@@ -16,7 +16,8 @@ def normalization(name):
 def put_jail():
     session = db_session()
     print('Import START')
-    jails = open(home_dir + '/jail/jail.json', 'r', encoding='utf-8').read()
+    #jails = open(home_dir + '/jail/jail.json', 'r', encoding='utf-8').read()
+    jails = open('jail.json', 'r', encoding='utf-8').read()
     jails = eval(jails, {})
     for idd in jails:
         jail = jails[idd]
@@ -25,7 +26,8 @@ def put_jail():
             if key != 'name' and key != 'url':
                 names += jail[key]
         norm = [normalization(i) for i in names]
-        new_entity = Entity(name=jail['name'], entity_class='org', data={'names': names, 'url': jail['url'], 'norm': norm})
+        new_entity = Entity(name=jail['name'], entity_class='org', data={'names': names, 'url': jail['url'],
+                                                                         'type': 'jail', 'norm': norm})
         session.add(new_entity)
         session.commit()
     print('Import DONE')

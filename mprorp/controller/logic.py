@@ -21,10 +21,11 @@ from mprorp.crawler.google_alerts import ga_start_parsing
 from mprorp.crawler.vk import vk_start_parsing, vk_parse_item
 from mprorp.crawler.csv_to_rubricator import csv_start_parsing
 from mprorp.crawler.from_other_app import other_app_cloning
+from mprorp.crawler.selector import selector_start_parsing
 
 from mprorp.analyzer.theming.themer import regular_themization
 
-from mprorp.utils import home_dir, relative_file_path
+from mprorp.utils import home_dir, relative_file_path, print_exception
 from mprorp.ner.feature import create_capital_feature
 from mprorp.ner.NER import NER_predict
 from mprorp.ner.identification import create_markup_regular
@@ -42,6 +43,7 @@ GOOGLE_ALERTS_INIT_STATUS = 20
 YANDEX_NEWS_INIT_STATUS = 40
 CSV_INIT_STATUS = 50
 YANDEX_RSS_INIT_STATUS = 60
+SELECTOR_INIT_STATUS = 70
 #GOOGLE_NEWS_COMPLETE_STATUS = 21
 SITE_PAGE_LOADING_FAILED = 91
 SITE_PAGE_COMPLETE_STATUS = 99
@@ -99,7 +101,7 @@ def router(doc_id, app_id, status):
             session.commit()
             session.remove()
         return
-    if status in [GOOGLE_NEWS_INIT_STATUS, GOOGLE_ALERTS_INIT_STATUS, YANDEX_NEWS_INIT_STATUS, YANDEX_RSS_INIT_STATUS, CSV_INIT_STATUS]:  # to find full text of HTML page
+    if status in [GOOGLE_NEWS_INIT_STATUS, GOOGLE_ALERTS_INIT_STATUS, YANDEX_NEWS_INIT_STATUS, YANDEX_RSS_INIT_STATUS, CSV_INIT_STATUS, SELECTOR_INIT_STATUS]:  # to find full text of HTML page
         regular_find_full_text.delay(doc_id, SITE_PAGE_COMPLETE_STATUS, app_id=app_id)
         return
     if status == VK_INIT_STATUS:  # to complete vk item parsing
@@ -217,9 +219,10 @@ def regular_gn_start_parsing(source_key, **kwargs):
         for doc in docs:
             router(doc.doc_id, app_id,  GOOGLE_NEWS_INIT_STATUS)
     except Exception as err:
-        err_txt = repr(err)
+        #err_txt = repr(err)
         logging.error("Неизвестная ошибка google_news краулера, source: " + source_key)
-        print(err_txt)
+        #print(err_txt)
+        print_exception()
     source_status = session.query(SourceStatus).filter_by(app_id=app_id, type='google_news', source_key=source_key).first()
     source_status.ready = True
     source_status.next_crawling_time = datetime.datetime.now().timestamp() + source["period"]
@@ -247,9 +250,10 @@ def regular_ga_start_parsing(source_key, **kwargs):
         for doc in docs:
             router(doc.doc_id, app_id, GOOGLE_ALERTS_INIT_STATUS)
     except Exception as err:
-        err_txt = repr(err)
+        #err_txt = repr(err)
         logging.error("Неизвестная ошибка google_alerts краулера, source: " + source_key)
-        print(err_txt)
+        #print(err_txt)
+        print_exception()
     source_status = session.query(SourceStatus).filter_by(app_id=app_id, type='google_alerts', source_key=source_key).first()
     source_status.ready = True
     source_status.next_crawling_time = datetime.datetime.now().timestamp() + source["period"]
@@ -277,9 +281,10 @@ def regular_yn_start_parsing(source_key, **kwargs):
         for doc in docs:
             router(doc.doc_id, app_id, YANDEX_NEWS_INIT_STATUS)
     except Exception as err:
-        err_txt = repr(err)
+        #err_txt = repr(err)
         logging.error("Неизвестная ошибка yandex_news краулера, source: " + source_key)
-        print(err_txt)
+        #print(err_txt)
+        print_exception()
     source_status = session.query(SourceStatus).filter_by(app_id=app_id, type='yandex_news', source_key=source_key).first()
     source_status.ready = True
     source_status.next_crawling_time = datetime.datetime.now().timestamp() + source["period"]
@@ -307,9 +312,10 @@ def regular_ya_rss_start_parsing(source_key, **kwargs):
         for doc in docs:
             router(doc.doc_id, app_id,  YANDEX_RSS_INIT_STATUS)
     except Exception as err:
-        err_txt = repr(err)
+        #err_txt = repr(err)
         logging.error("Неизвестная ошибка yandex_rss краулера, source: " + source_key)
-        print(err_txt)
+        #print(err_txt)
+        print_exception()
     source_status = session.query(SourceStatus).filter_by(app_id=app_id, type='yandex_rss', source_key=source_key).first()
     source_status.ready = True
     source_status.next_crawling_time = datetime.datetime.now().timestamp() + source["period"]
@@ -337,11 +343,42 @@ def regular_csv_start_parsing(source_key, **kwargs):
         for doc in docs:
             router(doc.doc_id, app_id, CSV_INIT_STATUS)
     except Exception as err:
-        err_txt = repr(err)
+        #err_txt = repr(err)
         logging.error("Неизвестная ошибка csv краулера, source: " + source_key)
-        print(err_txt)
+        #print(err_txt)
+        print_exception()
     session.remove()
     print("CSV CRAWL COMPLETE: "+source_key)
+
+
+@app.task(ignore_result=True, time_limit=660, soft_time_limit=600)
+def regular_selector_start_parsing(source_key, **kwargs):
+    """parsing custom site request"""
+    print("SELECTOR START: "+source_key)
+    session = db_session()
+    apps_config = variable_get(cur_config, session)
+    app_id = kwargs["app_id"]
+    source = apps_config[app_id]["crawler"]["selector"][source_key]
+    try:
+        docs = selector_start_parsing(source_key, source["patterns"], app_id, session)
+        for doc in docs:
+            doc.status = SELECTOR_INIT_STATUS
+            doc.source_with_type = "selector "+source_key
+            doc.app_id = app_id
+        session.commit()
+        for doc in docs:
+            router(doc.doc_id, app_id,  SELECTOR_INIT_STATUS)
+    except Exception as err:
+        #err_txt = repr(err)
+        logging.error("Неизвестная ошибка selector краулера, source: " + source_key)
+        #print(err_txt)
+        print_exception()
+    source_status = session.query(SourceStatus).filter_by(app_id=app_id, type='selector', source_key=source_key).first()
+    source_status.ready = True
+    source_status.next_crawling_time = datetime.datetime.now().timestamp() + source["period"]
+    session.commit()
+    session.remove()
+    print("SELECTOR CRAWL COMPLETE: "+source_key)
 
 
 @app.task(ignore_result=True, time_limit=660, soft_time_limit=600)
@@ -363,9 +400,10 @@ def regular_other_app_start_parsing(source_key, **kwargs):
         for doc in docs:
             router(doc.doc_id, app_id, source["start_status"])
     except Exception as err:
-        err_txt = repr(err)
+        #err_txt = repr(err)
         logging.error("Неизвестная ошибка other_app краулера, source: " + source_key)
-        print(err_txt)
+        #print(err_txt)
+        print_exception()
     session.remove()
     print("OA CRAWL COMPLETE: "+source_key)
 
@@ -389,9 +427,10 @@ def regular_vk_start_parsing(source_key, **kwargs):
         for doc in docs:
             router(doc.doc_id, doc.app_id, VK_INIT_STATUS)
     except Exception as err:
-        err_txt = repr(err)
+        #err_txt = repr(err)
         logging.error("Неизвестная ошибка vk краулера, source: " + source_key)
-        print(err_txt)
+        #print(err_txt)
+        print_exception()
     source_status = session.query(SourceStatus).filter_by(app_id=app_id, type='yandex_news', source_key=source_key).first()
     source_status.ready = True
     source_status.next_crawling_time = datetime.datetime.now().timestamp() + source["period"]
@@ -443,6 +482,7 @@ def regular_find_full_text(doc_id, new_status, **kwargs):
             new_status = SITE_PAGE_PARSE_FAILED
             logging.error("Неизвестная ошибка парсинга doc_id: " + doc_id + "url:" + doc.url)
         print(err_txt)
+        print_exception()
     return set_doc(doc, new_status, session)
 
 
