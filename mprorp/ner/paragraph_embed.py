@@ -535,8 +535,8 @@ def model_emb_par_teach_or_calc(teach=True):
 
         paragraph_set = []
 
-        # for ind in ['11']:
-        for ind in ['11', '12', '13', '14', '15', '16']:
+        for ind in ['11']:
+        # for ind in ['11', '12', '13', '14', '15', '16']:
             paragraph_set.append(set_list.sets[ind]['tr_set_2'])
             paragraph_set.append(set_list.sets[ind]['test_set_2'])
         # for ind in ['pp', 'ss']:
@@ -560,8 +560,12 @@ def model_emb_par_teach_or_calc(teach=True):
             print('Length of filename must be less or equal 40')
             exit()
         session = Driver.db_session()
-        new_emb = Embedding(emb_id=filename, name='Embedding for docs built by model from ' + filename)
-        session.add(new_emb)
+        embeds = session.query(Embedding).filter(Embedding.emb_id == filename).all()
+        if embeds is None or len(embeds) == 0:
+            new_emb = Embedding(emb_id=filename, name='Embedding for docs built by model from ' + filename)
+            session.add(new_emb)
+        else:
+            new_emb = embeds[0]
         for i in range(em_p.shape[0]):
             vec = em_p[i, :].tolist()
             new_vec = DocEmbedding(doc_id=doc_ids[i], embedding=new_emb.emb_id, vector=vec)
@@ -652,7 +656,8 @@ def teach_and_test():
 
 
 def start():
-    teach_and_test()
+    model_emb_par_teach_or_calc(False)
+    # teach_and_test()
 
 start()
 
