@@ -208,6 +208,8 @@ def get_model_embedding(rubric_id, embedding, set_id=None, session=None):
     if set_id is None:
         set_id = get_set_id_by_rubric_id(rubric_id)
     model = session.query(RubricationModel.model,
+                          RubricationModel.features,
+                          RubricationModel.features_num,
                           RubricationModel.model_id,
                           RubricationModel.learning_date).filter(
                           (RubricationModel.rubric_id == rubric_id) &
@@ -215,7 +217,7 @@ def get_model_embedding(rubric_id, embedding, set_id=None, session=None):
                           (RubricationModel.embedding == embedding)).order_by(
                           desc(RubricationModel.learning_date)).all()[0]
     # print(model[4])
-    return {'model': model[0], 'model_id': str(model[1])}
+    return {'model': model[0], 'features': model[1], 'features_num': model[2], 'model_id': str(model[3])}
 
 
 # get dict with idf and lemma_index for each set_id

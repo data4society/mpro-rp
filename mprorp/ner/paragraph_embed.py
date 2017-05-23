@@ -66,7 +66,6 @@ reg_coef = 0.000005
 lr=0.0025
 tf_steps = 100000
 
-
 print('embedding_for_word_count', embedding_for_word_count)
 
 print('consistent_words', consistent_words)
@@ -573,32 +572,41 @@ def model_emb_par_teach_or_calc(teach=True):
         session.commit()
 
 
-def create_rubric_train_data(tr_set, rubric_id, embedding_id, verbose=False):
+def create_rubric_train_data(tr_set, rubric_id, embedding_id, add_tf_idf=False, verbose=False):
     embeds = db.get_docs_embedding(embedding_id, tr_set)
     # doc_ids = []
     emb_list = []
     ans_list = []
     answers = db.get_rubric_answers(tr_set, rubric_id)
+    mif_indexes = None
+    if add_tf_idf:
+        mif_indexes, doc_index, tf_idf_features = rb.create_train_data_tf_idf(tr_set, answers)
     if verbose:
         print('answers: ', len(answers), sum(list(answers.values())))
     for doc_id in embeds:
         # doc_ids.append(doc_id)
+        doc_data = embeds[doc_id]
+        if add_tf_idf:
+            tf_idf_vec = rb.coef_for_tf_idf * tf_idf_features[doc_index[doc_id]]
+            tf_idf_list = tf_idf_vec.tolist()
+            doc_data.extend(tf_idf_list)
         emb_list.append(embeds[doc_id])
         ans_list.append(answers[doc_id])
-    return emb_list, ans_list
+    return mif_indexes, emb_list, ans_list
 
 
 def build_rubric_model(tr_data, labels):
 
+    vec_size = len(tr_data[0])
     graph = tf.Graph()
 
     with graph.as_default(), tf.device('/cpu:0'):
         # Input data.
-        train_dataset = tf.placeholder(tf.float32, shape=[batch_size, embedding_size])
+        train_dataset = tf.placeholder(tf.float32, shape=[batch_size, vec_size])
         train_labels = tf.placeholder(tf.float32, shape=[batch_size, 1])
 
         # Variables.
-        weights = tf.Variable(tf.random_uniform([embedding_size, 1], -1.0, 1.0))
+        weights = tf.Variable(tf.random_uniform([vec_size, 1], -1.0, 1.0))
         # tf.add_to_collection('total_loss', 0.5 * reg_softmax * tf.nn.l2_loss(weights))
         bias = tf.Variable(0.00001)
 
@@ -635,7 +643,7 @@ def test_model(set_id, embedding, rubric_id, tr_set=None, name=''):
     return result
 
 
-def teach_and_test():
+def teach_and_test(add_tf_idf=False):
     # model_emb_par_teach_or_calc(True)
     global batch_size
     global filename
@@ -643,12 +651,15 @@ def teach_and_test():
     tr_set = set_list.sets['13']['tr_set_2']
     test_set = set_list.sets['13']['test_set_2']
     rubric_id = set_list.rubrics['3']['pos']
-    emb, ans = create_rubric_train_data(tr_set, rubric_id, filename)
+    mif_indexes, emb, ans = create_rubric_train_data(tr_set, rubric_id, filename, add_tf_idf=add_tf_idf)
     batch_size = len(ans)
     answers_array = np.zeros((batch_size, 1))
     answers_array[:, 0] = ans
     model = build_rubric_model(emb, answers_array)
-    db.put_model(rubric_id, tr_set, model, embedding=filename)
+    if add_tf_idf:
+        db.put_model(rubric_id, tr_set, model, mif_indexes, len(mif_indexes), embedding=filename)
+    else:
+        db.put_model(rubric_id, tr_set, model, embedding=filename)
     print('Результаты рубрикатора на учебной выборке')
     print(test_model(tr_set, filename, rubric_id))
     print('Результаты рубрикатора на тестовой выборке')
@@ -656,9 +667,22 @@ def teach_and_test():
 
 
 def start():
-    model_emb_par_teach_or_calc(False)
-    # teach_and_test()
+    # model_emb_par_teach_or_calc(False)
+    teach_and_test(True)
+    # tr_set = set_list.sets['13']['tr_set_2']
+    # test_set = set_list.sets['13']['test_set_2']
+    # rubric_id = set_list.rubrics['3']['pos']
 
+    # filename = 'ModelEP_1705.pic'
+    # mif_indexes, emb, ans = create_rubric_train_data(tr_set, rubric_id, filename, add_tf_idf=True)
+    # print(len(emb))
+    # print(len(ans))
+    # print(emb[0])
+
+    # answers = db.get_rubric_answers(tr_set, rubric_id)
+    # mif_indexes, doc_index, res = rb.create_train_data_tf_idf(tr_set, answers)
+    # print(type(res), len(res), len(res[0]))
+    # print(res[0])
 start()
 
 

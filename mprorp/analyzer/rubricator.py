@@ -21,6 +21,7 @@ tf_steps = 40000
 lr=10
 l2 = 0.005
 probab_limit = 0.5
+coef_for_tf_idf = 1000  # Коэффициент, который используется для вектора tf_idf,когда он присоединяется к эмбеддингу
 # words to exclude from model
 
 # one document morphological analysis regular
@@ -515,8 +516,60 @@ def print_lemmas(set_id, numbers, lemmas=None, idf=None):
     #     print(i, [k for k in lemmas if lemmas[k] == i])
 
 
+def create_train_data_tf_idf(set_id, answers, verbose=False):
+    doc_index, object_features = db.get_doc_index_object_features(set_id)
+
+    # print(np.min(np.sum(object_features, axis=0)))
+    # print(np.min(np.sum(object_features, axis=1)))
+
+    doc_number = len(doc_index)
+    # answers_index - answers by indexes, answers_array - array for compute cross_entropy in tensorflow
+    answers_array = np.zeros((doc_number, 1))
+    answers_index = np.zeros(doc_number, dtype=int)
+    for doc_id in doc_index:
+        answers_index[doc_index[doc_id]] = answers[doc_id]
+        # answers_array[doc_index[doc_id], 0] = answers[doc_id] * 2 - 1
+        answers_array[doc_index[doc_id], 0] = answers[doc_id]
+
+    # if we know answers, we can select most important features (mif):
+    # mif[k] = l:
+    # feature k from object_features is used in position l, if l >= 0
+    # if feature k ins not most important, l = -1
+    features_number = len(object_features[0])
+    # mif = np.empty(features_number)
+    # mif.fill(-1)
+    mif_indexes = []
+    use_mif = features_number > optimal_features_number
+    if use_mif:
+        feature_entropy = np.zeros(features_number)
+        for i in range(features_number):
+            # compute Entropic Criterion for feature i
+            if feature_selection == 1:
+                feature_entropy[i] = entropy_difference(object_features[:, i], answers_index, i)
+            else:
+                feature_entropy[i] = mutual_information(object_features[:, i], answers_index, i)
+                if (i < 20) and verbose:
+                    print('MI', feature_entropy[i])
+            if (i < 20) and verbose:
+                print('E', entropy_difference(object_features[:, i], answers_index, i))
+
+                print('---')
+
+        good_numbers = np.argsort(feature_entropy)
+        for i in range(optimal_features_number):
+            # mif[good_numbers[i]] = i
+            mif_indexes.append(int(good_numbers[i]))
+        # print_lemmas(set_id, good_numbers[0:100])
+        # print(feature_entropy[good_numbers[0:100]])
+        return mif_indexes, doc_index, object_features[:, mif_indexes]
+    else:
+        for i in range(features_number):
+            mif_indexes.append(i)
+        return mif_indexes, doc_index, object_features
+
+
 # learn model for rubrication
-def learning_rubric_model(set_id, rubric_id, savefiles = False, verbose=False):
+def learning_rubric_model(set_id, rubric_id, savefiles=False, verbose=False):
     """learn model for rubrication"""
     # get answers for rubric
     answers = db.get_rubric_answers(set_id, rubric_id)
@@ -888,16 +941,6 @@ def spot_doc_rubrics(doc, rubrics, session=None, commit_session=True, verbose=Fa
 # save in DB doc_id, rubric_id and YES or NO
 def spot_test_set_rubric(test_set_id, rubric_id, training_set_id=None):
     """spot rubrics for all documents from test_set"""
-    # get lemmas
-    docs = db.get_lemmas_freq(test_set_id)
-    docs_size = {}
-
-    # compute document size
-    for doc_id in docs:
-        lemmas = docs[doc_id]
-        docs_size[doc_id] = 0
-        for lemma in lemmas:
-            docs_size[doc_id] += lemmas[lemma]
 
     # models for rubrics
     if training_set_id is None:
@@ -909,6 +952,17 @@ def spot_test_set_rubric(test_set_id, rubric_id, training_set_id=None):
     idf_lemma_index = db.get_idf_lemma_index_by_set_id([training_set_id])[training_set_id]
     lemma_index = idf_lemma_index['lemma_index']
     training_idf = idf_lemma_index['idf']
+
+    # get lemmas
+    docs = db.get_lemmas_freq(test_set_id)
+    docs_size = {}
+
+    # compute document size
+    for doc_id in docs:
+        lemmas = docs[doc_id]
+        docs_size[doc_id] = 0
+        for lemma in lemmas:
+            docs_size[doc_id] += lemmas[lemma]
 
     answers = []
     for doc_id in docs:
@@ -1013,9 +1067,42 @@ def spot_test_set_embedding_rubric(test_set_id, embedding_id, rubric_id, trainin
         training_set_id = db.get_set_id_by_rubric_id(rubric_id)
     model = db.get_model_embedding(rubric_id, embedding_id, training_set_id)
 
+    add_tf_idf = model['features'] is not None
+    if add_tf_idf:
+        mif_number = model['features_num']
+        idf_lemma_index = db.get_idf_lemma_index_by_set_id([training_set_id])[training_set_id]
+        lemma_index = idf_lemma_index['lemma_index']
+        training_idf = idf_lemma_index['idf']
+
+        docs_lemmas = db.get_lemmas_freq(test_set_id)
+        docs_size = {}
+
+        # compute document size
+        for doc_id in docs_lemmas:
+            lemmas = docs_lemmas[doc_id]
+            docs_size[doc_id] = 0
+            for lemma in lemmas:
+                docs_size[doc_id] += lemmas[lemma]
+
     answers = []
     for doc_id in docs_emb:
         emb_list = docs_emb[doc_id]
+        if add_tf_idf:
+            if docs_size[doc_id]:
+                # print(doc_id)
+                features_array = np.zeros(len(lemma_index), dtype=float)
+                lemmas = docs_lemmas[doc_id]
+                for lemma in lemmas:
+                    # lemma index in lemmas of training set
+                    ind_lemma = lemma_index.get(lemma, -1)
+                    # if lemma from doc is in lemmas for training set
+                    if ind_lemma > -1:
+                        features_array[ind_lemma] = coef_for_tf_idf * lemmas[lemma] * training_idf[lemma] / docs_size[doc_id]
+                mif = features_array[model['features']]
+            else:
+                mif = np.zeros(mif_number, dtype=float)
+            emb_list.extend(mif)
+
         emb_list.append(1)
         probability = sigmoid(np.dot(np.array(emb_list), model['model']))
         # print(probability)
