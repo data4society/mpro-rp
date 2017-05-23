@@ -133,7 +133,7 @@ def dropall_and_create():
     Base.metadata.create_all(engine)
 
 
-def delete_document(doc_id, session=None, force_commit=False):
+def delete_document(doc_id, session=None, force_commit=False, full=True):
     has_session = True
     if not session:
         has_session = False
@@ -150,7 +150,10 @@ def delete_document(doc_id, session=None, force_commit=False):
     session.execute(
         "DELETE FROM changes c USING records r WHERE c.document_id = r.document_id AND r.source = '" + doc_id + "'")
     session.execute("DELETE FROM records WHERE source = '" + doc_id + "'")
-    session.execute("DELETE FROM documents WHERE doc_id = '" + doc_id + "'")
+    if full:
+        session.execute("DELETE FROM documents WHERE doc_id = '" + doc_id + "'")
+    else:
+        session.execute("UPDATE documents SET doc_source=NULL, stripped=NULL, morpho=NULL, lemmas=NULL, title=NULL, meta=NULL, publisher_id=NULL, published_date=NULL, source_with_type=NULL WHERE doc_id = '" + doc_id + "'")
     if not has_session:
         session.commit()
         session.remove()
