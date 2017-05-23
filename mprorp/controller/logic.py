@@ -97,7 +97,7 @@ def router(doc_id, app_id, status):
         if "mode" in app_conf and app_conf["mode"] == "live":
             logging.info("delete doc: " + str(doc_id) + " status: " + str(status) + " app_id: " + app_id)
             session = db_session()
-            delete_document(doc_id, session)
+            delete_document(doc_id, session, full=False)
             session.commit()
             session.remove()
         return
