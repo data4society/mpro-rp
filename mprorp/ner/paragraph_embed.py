@@ -651,6 +651,7 @@ def teach_and_test(add_tf_idf=False):
     tr_set = set_list.sets['13']['tr_set_2']
     test_set = set_list.sets['13']['test_set_2']
     rubric_id = set_list.rubrics['3']['pos']
+    # в следующей строке до знака равенства написано mif_indexes, emb, ans
     mif_indexes, emb, ans = create_rubric_train_data(tr_set, rubric_id, filename, add_tf_idf=add_tf_idf)
     batch_size = len(ans)
     answers_array = np.zeros((batch_size, 1))
