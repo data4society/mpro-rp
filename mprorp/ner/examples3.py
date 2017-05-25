@@ -560,6 +560,4 @@ def script_exec2():
             doc_no += 1
     print('Yes: ', doc_yes, ' No: ', doc_no )
 
-script_exec2()
-
 
