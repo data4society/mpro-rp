@@ -37,9 +37,19 @@ def script_exec2():
 
 def script_exec():
     docs_74 = session.query(Document.doc_id, Document.rubric_ids).filter_by(status=74).all()
+    count = 0
+    count_skip = 460
     for item in docs_74:
-        rb.morpho_doc2(str(item.doc_id))
-        rb.lemmas_freq_doc2(item.doc_id)
-        ner_feature.create_embedding_feature2(str(item.doc_id))
+        count += 1
+        if count < count_skip:
+            continue
+        doc = session.query(Document).filter(Document.doc_id == item.doc_id).one()
+        rb.morpho_doc(doc)
+        rb.lemmas_freq_doc(doc)
+        ner_feature.create_embedding_feature(doc, session=session, commit_session=False)
+        if count % 100 == 0:
+            session.commit()
+            print('count', count)
+
 
 script_exec()
