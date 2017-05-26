@@ -57,12 +57,12 @@ def combiner(facts, fact_type):
                     cross_codes = new_cross([fact1['codes'], fact2['codes']])
                 if cross_codes != []:
                     new_fact = {'type': fact_type,
-                                'string' : fact1['string'] + ' ' + fact2['string'],
-                                'id' : str(fact1['id']) + '_' +  str(fact2['id']),
-                                'sn' : fact1['sn'],
-                                'fs' : fact1['fs'],
-                                'ls' : fact2['ls'],
-                                'codes' : cross_codes}
+                                'string': fact1['string'] + ' ' + fact2['string'],
+                                'id': str(fact1['id']) + '_' +  str(fact2['id']),
+                                'sn': fact1['sn'],
+                                'fs': fact1['fs'],
+                                'ls': fact2['ls'],
+                                'codes': cross_codes}
                     out.append(new_fact)
                     used.append(fact1)
                     used.append(fact2)
@@ -105,6 +105,17 @@ def variants(facts):
                                          'codes': [ovd_code]},
                                         1 / (max(loc['fs'], ovd['fs']) - min(loc['ls'], ovd['ls']))))
                             used.append(ovd)
+            if loc['codes'] == []:
+                session = db_session()
+                codes = loc_in_name2(ovd, loc, session)
+                out.append(({'type': 'OVDVariant',
+                             'string': ovd['string'],
+                             'fs': ovd['fs'],
+                             'ls': ovd['ls'],
+                             'loc_used': loc['string'],
+                             'codes': codes},
+                            1 / (max(loc['fs'], ovd['fs']) - min(loc['ls'], ovd['ls']))))
+                used.append(ovd)
         if ovd not in used:
             out.append((ovd, 0))
     return out
@@ -281,3 +292,16 @@ def loc_in_name(out, session):
         else:
             out2.append(new_out)
     return out2
+
+def loc_in_name2(ovd, loc, session):
+    out = []
+    names = [loc['norm'][i][0][0] for i in loc['norm']]
+    mvd_root = 'eaf0a69a-74d7-4e1a-9187-038a202c7698'
+    ovds = session.query(Entity).filter(Entity.data["jurisdiction"].astext == '["' + mvd_root + '"]').all()
+    codes = ovd['codes']
+    for ovd in ovds:
+       if ovd.external_data['kladr'] in codes:
+           for name in names:
+               if name in ovd.data['name'].lower():
+                   out.append(ovd.external_data['kladr'])
+    return out

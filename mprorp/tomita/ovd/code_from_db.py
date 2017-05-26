@@ -11,7 +11,7 @@ def get_level_of_fact(el):
 def get_codes_for_fact(fact, session):
     out = []
     norms = fact['norm']
-    if 'ovd' not in norms:
+    if 'OVD' not in norms:
         for fact_type in norms:
             if fact_type == 'Location':
                 codes = Location(norms[fact_type], session, city=False, level=0)
@@ -25,6 +25,7 @@ def get_codes_for_fact(fact, session):
                 for l in levels:
                     codes += Location(norms[fact_type], session, city=False, level=int(l))
                 out.append(codes)
+
     else:
         codes = OVD_codes(norms, session)
         out.append([codes])
