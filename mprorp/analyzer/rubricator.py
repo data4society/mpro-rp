@@ -609,12 +609,12 @@ def learning_rubric_model(set_id, rubric_id, savefiles=False, verbose=False):
                 feature_entropy[i] = entropy_difference(object_features[:, i], answers_index, i)
             else:
                 feature_entropy[i] = mutual_information(object_features[:, i], answers_index, i)
-                if i < 20:
-                    print('MI', feature_entropy[i])
-            if i < 20:
-                print('E', entropy_difference(object_features[:, i], answers_index, i))
-
-                print('---')
+            #     if i < 20:
+            #         print('MI', feature_entropy[i])
+            # if i < 20:
+            #     print('E', entropy_difference(object_features[:, i], answers_index, i))
+            #
+            #     print('---')
 
         good_numbers = np.argsort(feature_entropy)
         for i in range(optimal_features_number):
