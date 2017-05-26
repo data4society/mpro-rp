@@ -224,16 +224,23 @@ sets['26'] = {'new':          'a5130989-cf38-448a-85a1-07c3cfe7aaa2',  # 195 doc
 sets['negative'] = {'all':   '779bd1d0-887c-4c81-bfc5-8b4632f9b81e',
                     'train': '2009195a-2c4a-4120-88ac-147464a9ccb5',
                     'test':  '2b4be3c1-b217-4e3e-a4a7-8ab3fc767d7d',
-                    'new2': '96a1ff65-cebb-4de9-b095-3797736e609d'  # created 26/05/17 - status 74
+                    'new2': '96a1ff65-cebb-4de9-b095-3797736e609d',  # created 26/05/17 - status 74
+                    'all2': '9caba252-b154-4286-8a96-637e94958b3e'  # created 26/05/17
                     }
 sets['pp'] = {'train_set': '0364c8e3-ebcd-4fa2-b14a-3f10c498bcd3',
               'test_set':  'dca01625-d655-4900-9b32-6a548c7dc0dd',
               'new2': 'ba701270-1f60-4ed4-9cc4-d98bb3d8f842',  # 167 docs
+              'positive': 'd50e4124-297f-428f-af02-5e924016e031',  # 4094 docs
+              'train_set_0': 'ce1511f7-9807-407d-b185-4ddec1a5f1e9',
+              'test_set_0': '13b9ab84-64de-44ca-ad8e-7d272b8cb95c'
               }
 
 sets['ss'] = {'train_set': '69565f15-73ea-4d06-84aa-d3e5cea57ee7',
               'test_set':  '498aac37-efd8-4b9c-932a-17d6291a2ab6',
-              'new2': 'c81c8f13-e285-4889-9f39-d2cdb24d0084'  # 314 docs
+              'new2': 'c81c8f13-e285-4889-9f39-d2cdb24d0084',  # 314 docs
+              'positive': 'bf643e8a-1305-40f2-baa3-0f5d91a75b85',  # 3919 docs
+              'train_set_0': '516872f8-e539-4a03-b506-f968396f5a41',
+              'test_set_0': '1353bc9c-186c-423a-9823-aab9edd65ac7'
               }
 
 rubrics = {
