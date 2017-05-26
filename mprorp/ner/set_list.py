@@ -198,28 +198,28 @@ sets['16'] = {'new':          '8e90e65a-25e4-493b-beda-3bb920c230d1',
 
 sets['21'] = {'new': 'b3b88f50-26f9-43a9-90ff-487870ffb91b',  # 41 docs
               'positive': '1bb42f73-9fa2-46f2-8311-89433ffe1924',
-              'tr_set': '99718993-0bfa-4110-a289-aa8d81d6233f',
-              'test_set': '759ddf9c-fb9a-4920-99d5-490e90411dcb'}
+              'tr_set': 'efd003c8-05d9-4315-a0e1-10fde45085df',  # 150+150
+              'test_set': '9519a4b6-227e-4c0b-9423-5cfebe3d1cd8'}  # 38+38
 sets['22'] = {'new': 'b96a5a35-01af-48e7-b622-39c7b046b0d0',  # 29 docs
               'positive': '9d4aa521-5161-4cff-98fe-4347cfa381c7',
-              'tr_set':       'caf3094e-747e-48e3-ac89-a19f2203bc9b',
-              'test_set':     '03c32666-3131-42f0-a905-0abf0a0e2c89'}
+              'tr_set':       'f3609b13-40a6-4183-9c41-c28665b37050',  # 174+174
+              'test_set':     'd41e0291-e09f-4f7b-95ab-97295d6d2eca'}  # 44+44
 sets['23'] = {'new': '3f6f6b23-440f-4f2f-a71d-1bed5c12178b',  # 96 docs
               'positive': '2d85888a-0945-4c23-9d1d-7075ac542781',
-              'tr_set': '1a33a811-5f83-427e-9859-40ba6291da6b',
-              'test_set': '13e966e4-c05b-434c-9bb5-9a7c621e9eaa'}
+              'tr_set': 'fccec914-7e15-4b0d-b8c4-204160241d85',  # 252+252
+              'test_set': 'c6b07d17-6fdf-4d13-a58f-f6e0bb2f6910'}  # 63+63
 sets['24'] = {'new': '2f434c8d-f19a-4627-ac4b-b9ba731bdc50',  # 270 docs
               'positive': 'd3788c44-dd6e-48c0-b6c0-48d694bb58b5',
-              'tr_set': '897441c2-5e60-4ea5-9d2d-d9db3fb86520',
-              'test_set': '22b10b32-5ee6-463a-86da-87c6b17f7476'}
+              'tr_set': '047d8774-0229-44fd-ad73-6911691e4eaa',  # 393+393
+              'test_set': '208d2688-5798-47be-8ae5-d10062024dc7'}  # 98+98
 sets['25'] = {'new': '4577146d-f585-45ab-bd52-b6c94576e977',  # 45 docs
               'positive': 'b3b39503-2797-4093-a36e-159ab2ab8523',
-              'tr_set': '65827c81-bb13-4d0b-b5ac-65d7252f8be6',
-              'test_set': 'c37ebdd4-dd9b-47a6-89ce-e4ba2a86b144'}
+              'tr_set': '7aca0c27-2e3a-4838-abd3-a646f9708287',  # 216+216
+              'test_set': '52769a4a-b276-420e-9ecb-fdc76be4997e'}  # 54+54
 sets['26'] = {'new':          'a5130989-cf38-448a-85a1-07c3cfe7aaa2',  # 195 docs
               'positive':     'fbab2d72-0901-4fa6-a9d3-e421e9fe39d4',
-              'tr_set':       '4702e62f-f6bc-437e-8984-b59071766dee',
-              'test_set':     'd33301f7-1a50-44f8-9223-dcecfd203273'}
+              'tr_set':       '35936517-90e1-4058-a517-e120264e6e13',  # 383+383
+              'test_set':     '8d2f81fc-dab3-457a-b363-fd0eaea97fea'}  # 96+96
 
 sets['negative'] = {'all':   '779bd1d0-887c-4c81-bfc5-8b4632f9b81e',
                     'train': '2009195a-2c4a-4120-88ac-147464a9ccb5',

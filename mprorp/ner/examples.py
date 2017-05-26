@@ -75,7 +75,7 @@ def set_train_and_test():
         print(i, str(tr_len), 'train', db.put_training_set(tr_set, str(i) + ' train 26.05.17 pos=neg=' + str(tr_len)))
         test_set = pos_docs[tr_len:]
         test_set.extend(neg_list[tr_len:pos_len])
-        print(i, str(pos_len - tr_len), 'test', db.put_training_set(tr_set, str(i) + ' test 26.05.17 pos=neg=' + str(pos_len - tr_len)))
+        print(i, str(pos_len - tr_len), 'test', db.put_training_set(test_set, str(i) + ' test 26.05.17 pos=neg=' + str(pos_len - tr_len)))
 
 
 def test():
