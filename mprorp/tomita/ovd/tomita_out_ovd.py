@@ -11,7 +11,7 @@ def coordinates(fact):
             print('ERROR : Find = -1 id: ' + str(fact['id']))
             print(str(fact))
         ls = fs + len(f[1]) - 1
-        parameters[f[0]] = [fs,ls]
+        parameters[f[0]] = [fs, ls]
     fact['facts'] = parameters
     return fact
 
@@ -43,12 +43,12 @@ def get_coordinates(facts, sourse, tomita_path):
     text = open(tomita_path + '/' + facts, 'r', encoding='utf-8').read()
     sourse = open(tomita_path + '/' + sourse, 'r', encoding='utf-8').read()
     facts = re.findall('<.*?_TOMITA FactID="(\d+?)" .*?pos="(\d+?)" len="(\d+?)" sn="(\d+?)".*?>(.*?)</([A-z]*?)_TOMITA>', text)
-    l = [{'id' : int(i[0]),
-          'fs' : int(i[1]),
-          'string' : sourse[int(i[1]):int(i[1])+int(i[2])].lower(),
-          'facts' : re.findall('<(.*?)_TOMITA val="(.*?)" pos', i[4]),
-          'type' : i[5],
-          'sn' : int(i[3]),
+    l = [{'id': int(i[0]),
+          'fs': int(i[1]),
+          'string': sourse[int(i[1]):int(i[1])+int(i[2])].lower(),
+          'facts': re.findall('<(.*?)_TOMITA val="(.*?)" pos', i[4]),
+          'type': i[5],
+          'sn': int(i[3]),
           'ls': int(i[1]) + int(i[2])} for i in facts]
     for fact in l:
         fact = normalization(fact)
@@ -62,14 +62,14 @@ def delete_loc(fact_arr):
     ovd_coord = []
     loc = []
     for fact in fact_arr:
-        if fact['type'][:3] == 'ovd':
+        if fact['type'][:3] == 'OVD':
             all_facts.append(fact)
             for f in fact['facts']:
                 ovd_coord.append([fact['facts'][f][0] + fact['fs'], fact['facts'][f][1] + fact['fs']])
         elif fact['type'] == 'LocationFact':
             loc.append(fact)
         else:
-            print('ERROR : Wrong type' + str(fact['id']))
+            print('ERROR : Wrong type ' + str(fact['id']))
     for fact in loc:
         for f in fact['facts']:
             if good_fact(fact, ovd_coord):
@@ -97,14 +97,3 @@ def sen_division(facts):
         else:
             sentences[fact['sn']].append(str(fact['id']) + '_' + str(fact['type'][:3]))
     return sentences
-
-def pprint():
-    a = delete_loc(get_coordinates('facts.xml', 'text_no_n.txt'))
-    for i in a:
-        print(i)
-    print('\n==========\n')
-    arr = sen_division(a).keys()
-    arr2 = [[] for i in range(min(arr), max(arr) + 1)]
-    for i in sen_division(a):
-        arr2[i] = sen_division(a)[i]
-    print(arr2)

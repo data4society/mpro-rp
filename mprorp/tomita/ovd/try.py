@@ -12,6 +12,7 @@ from mprorp.tomita.norm_act.global_identification import act_identification
 import os
 from mprorp.tomita.tomita_run_loc_c import run_tomita_loc_c
 from mprorp.tomita.locality.meta_loc import get_meta
+from mprorp.ner.tomita_to_markup import convert_tomita_result_to_markup, convert_tomita_result_to_markup2
 
 session = db_session()
 #object = session.query(Entity).filter(Entity.external_data['kladr'].astext == "77000000000062700").all()
@@ -100,17 +101,21 @@ def rename_norm_acts():
         act.name = act.name.replace('UC', 'УК').replace('KOAP', 'КоАП')
         session.commit()
 
+def locality_import(type):
+    kladr = session.query(KLADR).filter(KLADR.type == type).all()
+    print(len(kladr))
+    for i in kladr:
+        data = {'kladr_level': i.level, 'kladr_type': i.type, 'kladr_id': i.kladr_id, 'name_lemmas': i.name_lemmas}
+        new_entity = Entity(name=i.name, entity_class='location', data=data)
+        session.add(new_entity)
+        session.commit()
 
-doc = session.query(Document).filter(Document.doc_id == '00037072-cf48-42ee-a9d9-061e5b558328').first()
-doc.stripped = '''В российском СИЗО украинскому политзаключенному и журналисту Роману Сущенко запретили отправлять письма украинским дипломатам и президенту
-Об этом сообщает Укринформ со ссылкой на адвоката Марка Фейгина.
--Был сегодня в СИЗО у Романа Сущенко. Узнал, что цензура не пропустила его письма, отправленные обычной почтой президенту Петру Порошенко, главе МИД Павлу Климкину и украинскому консулу в Москве Геннадию Брескаленко… Я не очень понимаю, по каким причинам это сделано, и никаких объяснений мне не дают. На мой взгляд, это ущемляет права моего подзащитного, — сказал Фейгин.
-Адвокат также отметил, что в СИЗО «Лефортово» поступает большое количество писем для Сущенко, но ему передают только малую часть из них.
-В связи с этим, Фейгин обратиться с жалобой в Генпрокуратуру РФ.
-Как сообщал Соцпортал, Сущенко в СИЗО написал письмо президенту.'''
-print(run_tomita(doc, 'jail.cxx'))
+doc = session.query(Document).filter(Document.doc_id == '102a7d7b-b131-42e3-9bf9-39f431fefbbe').first()
+print(run_tomita(doc, 'ovd.cxx'))
 #rename_norm_acts()
-#norm_acts = session.query(Entity).filter(Entity.entity_class == 'norm_act').all()
+#norm_acts = session.query(Entity).filter(Entity.name == 'Москва').all()
+#for i in norm_acts:
+#    print(i.data)
 #print(len(norm_acts))
 #norm_acts = [i for i in norm_acts if 'art' not in i.data]
 #print(len(norm_acts))
