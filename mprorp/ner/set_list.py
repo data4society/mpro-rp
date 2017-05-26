@@ -195,14 +195,46 @@ sets['16'] = {'new':          '8e90e65a-25e4-493b-beda-3bb920c230d1',
               'test_set_2': '6e481c09-36a9-4ca7-a8cc-fb42c7e72098',
               'tr_set':       '70e6ec17-2a60-41b0-adcd-e8360cdc0792',
               'test_set':     '8ae5bd11-77ce-4718-9045-8e0967460260'}
+
+sets['21'] = {'new': 'b3b88f50-26f9-43a9-90ff-487870ffb91b',  # 41 docs
+              'positive': '1bb42f73-9fa2-46f2-8311-89433ffe1924',
+              'tr_set': '99718993-0bfa-4110-a289-aa8d81d6233f',
+              'test_set': '759ddf9c-fb9a-4920-99d5-490e90411dcb'}
+sets['22'] = {'new': 'b96a5a35-01af-48e7-b622-39c7b046b0d0',  # 29 docs
+              'positive': '9d4aa521-5161-4cff-98fe-4347cfa381c7',
+              'tr_set':       'caf3094e-747e-48e3-ac89-a19f2203bc9b',
+              'test_set':     '03c32666-3131-42f0-a905-0abf0a0e2c89'}
+sets['23'] = {'new': '3f6f6b23-440f-4f2f-a71d-1bed5c12178b',  # 96 docs
+              'positive': '2d85888a-0945-4c23-9d1d-7075ac542781',
+              'tr_set': '1a33a811-5f83-427e-9859-40ba6291da6b',
+              'test_set': '13e966e4-c05b-434c-9bb5-9a7c621e9eaa'}
+sets['24'] = {'new': '2f434c8d-f19a-4627-ac4b-b9ba731bdc50',  # 270 docs
+              'positive': 'd3788c44-dd6e-48c0-b6c0-48d694bb58b5',
+              'tr_set': '897441c2-5e60-4ea5-9d2d-d9db3fb86520',
+              'test_set': '22b10b32-5ee6-463a-86da-87c6b17f7476'}
+sets['25'] = {'new': '4577146d-f585-45ab-bd52-b6c94576e977',  # 45 docs
+              'positive': 'b3b39503-2797-4093-a36e-159ab2ab8523',
+              'tr_set': '65827c81-bb13-4d0b-b5ac-65d7252f8be6',
+              'test_set': 'c37ebdd4-dd9b-47a6-89ce-e4ba2a86b144'}
+sets['26'] = {'new':          'a5130989-cf38-448a-85a1-07c3cfe7aaa2',  # 195 docs
+              'positive':     'fbab2d72-0901-4fa6-a9d3-e421e9fe39d4',
+              'tr_set':       '4702e62f-f6bc-437e-8984-b59071766dee',
+              'test_set':     'd33301f7-1a50-44f8-9223-dcecfd203273'}
+
 sets['negative'] = {'all':   '779bd1d0-887c-4c81-bfc5-8b4632f9b81e',
                     'train': '2009195a-2c4a-4120-88ac-147464a9ccb5',
-                    'test':  '2b4be3c1-b217-4e3e-a4a7-8ab3fc767d7d'}
+                    'test':  '2b4be3c1-b217-4e3e-a4a7-8ab3fc767d7d',
+                    'new2': '96a1ff65-cebb-4de9-b095-3797736e609d'  # created 26/05/17 - status 74
+                    }
 sets['pp'] = {'train_set': '0364c8e3-ebcd-4fa2-b14a-3f10c498bcd3',
-              'test_set':  'dca01625-d655-4900-9b32-6a548c7dc0dd'}
+              'test_set':  'dca01625-d655-4900-9b32-6a548c7dc0dd',
+              'new2': 'ba701270-1f60-4ed4-9cc4-d98bb3d8f842',  # 167 docs
+              }
 
 sets['ss'] = {'train_set': '69565f15-73ea-4d06-84aa-d3e5cea57ee7',
-              'test_set':  '498aac37-efd8-4b9c-932a-17d6291a2ab6'}
+              'test_set':  '498aac37-efd8-4b9c-932a-17d6291a2ab6',
+              'new2': 'c81c8f13-e285-4889-9f39-d2cdb24d0084'  # 314 docs
+              }
 
 rubrics = {
     '1': {'pos': '10180591-8d58-4d6e-a3dd-cc7df1cbb671',

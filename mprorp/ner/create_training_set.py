@@ -411,12 +411,12 @@ def create_new_sets(session=None):
 # rb.spot_doc_rubrics2(doc_id, conf, verbose=True)
 
 rubric_num = '4'
-version = '1'
+version = '2'
 set_num = version + rubric_num
 
 
-training_set = sets[set_num]['tr_set_2']
-test_set = sets[set_num]['test_set_2']
+training_set = sets[set_num]['tr_set']
+test_set = sets[set_num]['test_set']
 
 teach_and_test(rubrics[rubric_num]['pos'], training_set, test_set, True)
 
