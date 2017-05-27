@@ -567,6 +567,8 @@ def model_emb_par_teach_or_calc(teach=True):
             new_emb = embeds[0]
         for i in range(em_p.shape[0]):
             vec = em_p[i, :].tolist()
+            session.query(DocEmbedding).filter(
+                (DocEmbedding.doc_id == doc_ids[i]) & (DocEmbedding.embedding == new_emb.emb_id)).delete()
             new_vec = DocEmbedding(doc_id=doc_ids[i], embedding=new_emb.emb_id, vector=vec)
             session.add(new_vec)
         session.commit()
