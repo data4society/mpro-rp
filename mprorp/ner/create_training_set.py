@@ -389,35 +389,14 @@ def create_new_sets(session=None):
         print("'test_set_2': '" + str(ids[key][1].set_id) + "',")
 
 
+def do_job():
+    rubric_num = '4'
+    version = '2'
+    set_num = version + rubric_num
 
-# for key in range(1,7):
-#     print('---------------------------------------------------------------------------------------------------------------------')
-#     print(key)
-#     prepare_docs(sets['1' + str(key)]['new'])
+    training_set = sets[set_num]['tr_set']
+    test_set = sets[set_num]['test_set']
 
-# exit()
-
-# common
-# tr_com = '265fac6f-4b3e-466d-b7fe-fcdc90978a4e'
-# tr_com100 = 'c0b20817-e5f2-4fcb-bd39-ef1f53b403a3'
-# test_com = '5544e81e-6dda-458f-9f79-e40d990e6e94'
-
-# give_name_to_sets()
-
-# conf = [{'rubric_id': rubrics['4']['pos'], 'rubric_minus_id': rubrics['4']['neg'], 'set_name': 'lgbt_tr_id_pc'},
-#         {'rubric_id': rubrics['6']['pos'], 'rubric_minus_id': rubrics['6']['neg'], 'set_name': 'internet_tr_id_pn'}]
-#
-# doc_id = 'f98e75ea-feee-480d-80cc-fe5b4a21e727'
-# rb.spot_doc_rubrics2(doc_id, conf, verbose=True)
-
-rubric_num = '4'
-version = '2'
-set_num = version + rubric_num
-
-
-training_set = sets[set_num]['tr_set']
-test_set = sets[set_num]['test_set']
-
-teach_and_test(rubrics[rubric_num]['pos'], training_set, test_set, True)
+    teach_and_test(rubrics[rubric_num]['pos'], training_set, test_set, True)
 
 
