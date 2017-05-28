@@ -169,9 +169,9 @@ def test():
 
 
 def script_exec():
-    docs_74 = session.query(Document.doc_id, Document.rubric_ids).filter_by(status=74).all()
+    docs_74 = session.query(Document.doc_id, Document.rubric_ids).filter_by(status=77).all()
     count = 0
-    count_skip = 3900
+    count_skip = 0
     for item in docs_74:
         count += 1
         if count < count_skip:
@@ -180,7 +180,7 @@ def script_exec():
         rb.morpho_doc(doc)
         rb.lemmas_freq_doc(doc)
         ner_feature.create_embedding_feature(doc, session=session, commit_session=False)
-        if count % 10 == 0:
+        if count % 100 == 0:
             session.commit()
             print('count', count)
     print('for - end. Last commit')
