@@ -225,22 +225,31 @@ sets['negative'] = {'all':   '779bd1d0-887c-4c81-bfc5-8b4632f9b81e',
                     'train': '2009195a-2c4a-4120-88ac-147464a9ccb5',
                     'test':  '2b4be3c1-b217-4e3e-a4a7-8ab3fc767d7d',
                     'new2': '96a1ff65-cebb-4de9-b095-3797736e609d',  # created 26/05/17 - status 74
-                    'all2': '9caba252-b154-4286-8a96-637e94958b3e'  # created 26/05/17
+                    'all2': '9caba252-b154-4286-8a96-637e94958b3e',  # created 26/05/17
+                    'shlack': '8682b3ad-9ec7-4aa6-bedf-51212a4d8d60' # created 30/05/17 - status 77, 70125 docs
                     }
 sets['pp'] = {'train_set': '0364c8e3-ebcd-4fa2-b14a-3f10c498bcd3',
               'test_set':  'dca01625-d655-4900-9b32-6a548c7dc0dd',
               'new2': 'ba701270-1f60-4ed4-9cc4-d98bb3d8f842',  # 167 docs
               'positive': 'd50e4124-297f-428f-af02-5e924016e031',  # 4094 docs
               'train_set_0': 'ce1511f7-9807-407d-b185-4ddec1a5f1e9',
-              'test_set_0': '13b9ab84-64de-44ca-ad8e-7d272b8cb95c'
-              }
+              'test_set_0': '13b9ab84-64de-44ca-ad8e-7d272b8cb95c',
+              'train_set_2': 'bb782acd-8a35-43e3-8297-c1233b274665', # 9825 docs (3275 - positive)
+              'test_set_2':  '72539de2-b140-4b4a-a4ca-170321bf457c',  # 2457 docs (819 - positive)
+              'train_set_10': '65d10ab7-6b4b-4f9d-9b2d-306035fa4389',  # 36027 docs (3275 - positive)
+              'test_set_10': 'f54f186c-61a1-4d9c-b727-e6e7853fcd77'  # 9007 docs (819 - positive)
+}
 
 sets['ss'] = {'train_set': '69565f15-73ea-4d06-84aa-d3e5cea57ee7',
               'test_set':  '498aac37-efd8-4b9c-932a-17d6291a2ab6',
               'new2': 'c81c8f13-e285-4889-9f39-d2cdb24d0084',  # 314 docs
               'positive': 'bf643e8a-1305-40f2-baa3-0f5d91a75b85',  # 3919 docs
               'train_set_0': '516872f8-e539-4a03-b506-f968396f5a41',
-              'test_set_0': '1353bc9c-186c-423a-9823-aab9edd65ac7'
+              'test_set_0': '1353bc9c-186c-423a-9823-aab9edd65ac7',
+              'train_set_2': '44954b8d-c5b1-4b6a-8893-e620faddc91f', # 9405 docs (3135 - positive)
+              'test_set_2':  '43058020-da5f-496f-a73f-43e85746b41e',  # 2352 docs (784 - positive)
+              'train_set_10': '8f851764-cc5d-48cc-80c7-e61804a11d59',  # 34487 docs (3275 - positive)
+              'test_set_10': 'bd7552e2-23e0-4d5c-8f6b-81dc263cd3c3'  # 8622 docs (819 - positive)
               }
 
 rubrics = {

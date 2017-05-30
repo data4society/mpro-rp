@@ -79,23 +79,35 @@ def set_train_and_test_pp_ss():
         create_tr_and_test_sets(i, neg_list)
 
 
-def create_tr_and_test_sets(key, neg_list):
-        pos_docs = list(db.get_set_docs(set_list.sets[key]['positive']))
-        random.shuffle(pos_docs)
-        pos_len = len(pos_docs)
-        tr_len = round(pos_len * 0.8)
-        tr_set = pos_docs[:tr_len]
-        test_set = pos_docs[tr_len:]
-        if len(neg_list) < pos_len:
-            tr_neg_len = round(len(neg_list) * .8)
-            tr_set.extend(neg_list[:tr_neg_len])
-            test_set.extend(neg_list[tr_neg_len:])
-        else:
-            tr_neg_len = tr_len
-            tr_set.extend(neg_list[:tr_len])
-            test_set.extend(neg_list[tr_len:pos_len])
-        print(key, str(tr_len), len(tr_set), 'train', db.put_training_set(tr_set, key + ' train 26.05.17 pos=' + str(tr_len) + ' neg=' + str(tr_neg_len)))
-        print(key, str(pos_len - tr_len), len(test_set), 'test', db.put_training_set(test_set, key + ' test 26.05.17 pos=' + str(pos_len - tr_len)))
+def set_train_and_test_pp_ss_big(coef=1):
+    neg_list = list(db.get_set_docs(set_list.sets['negative']['all2']))
+    print(len(neg_list))
+    random.shuffle(neg_list)
+    shlack_list = list(db.get_set_docs(set_list.sets['negative']['shlack']))
+    random.shuffle(shlack_list)
+    neg_list.extend(shlack_list)
+
+    for i in ['pp', 'ss']:
+        create_tr_and_test_sets(i, neg_list, coef)
+
+
+def create_tr_and_test_sets(key, neg_list, coef=1):
+    pos_docs = list(db.get_set_docs(set_list.sets[key]['positive']))
+    random.shuffle(pos_docs)
+    pos_len = len(pos_docs)
+    tr_len = round(pos_len * 0.8)
+    tr_set = pos_docs[:tr_len]
+    test_set = pos_docs[tr_len:]
+    climbed_neg_len = coef * pos_len
+    if len(neg_list) < climbed_neg_len:
+        climbed_neg_len = len(neg_list)
+    tr_neg_len = round(climbed_neg_len * .8)
+    tr_set.extend(neg_list[:tr_neg_len])
+    test_set.extend(neg_list[tr_neg_len:climbed_neg_len])
+    print(key, str(tr_len), len(tr_set), 'train', db.put_training_set(tr_set, key +
+            ' train 1:2 30.05.17 pos=' + str(tr_len) + ' neg=' + str(tr_neg_len)))
+    print(key, str(pos_len - tr_len), len(test_set), 'test', db.put_training_set(test_set, key +
+            ' test 1:2 30.05.17 pos=' + str(pos_len - tr_len) + ' neg=' + str(climbed_neg_len - tr_neg_len)))
 
 
 def add_rubric_to_docs(rubric_id, doc_ids, session=None):
@@ -154,6 +166,13 @@ def new_negative():
     print(db.put_training_set(docs, 'negativ new2'))
 
 
+def new_shlack():
+    docs_s = session.query(Document.doc_id).filter_by(status=77).all()
+    doc_set = [str(i) for (i,) in docs_s]
+    print('all 77', len(docs_s), doc_set[0])
+    set_id = db.put_training_set(doc_set, 'shlack 30.05.17')
+    print(set_id)
+
 
 def test():
     docs = db.get_set_docs(set_list.sets['negative']['new2'])
@@ -191,5 +210,6 @@ def script_exec():
 # put_rubric_answers()
 # pp_ss_positive_sets()
 # create_pp_ss_positive_sets()
-set_train_and_test_pp_ss()
+# set_train_and_test_pp_ss()
 # new_negative()
+set_train_and_test_pp_ss_big(10)

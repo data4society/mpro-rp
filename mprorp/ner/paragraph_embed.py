@@ -592,7 +592,7 @@ def create_rubric_train_data(tr_set, rubric_id, embedding_id, add_tf_idf=False, 
             tf_idf_vec = rb.coef_for_tf_idf * tf_idf_features[doc_index[doc_id]]
             tf_idf_list = tf_idf_vec.tolist()
             doc_data.extend(tf_idf_list)
-        emb_list.append(embeds[doc_id])
+        emb_list.append(doc_data)
         ans_list.append(answers[doc_id])
     return mif_indexes, emb_list, ans_list
 
@@ -618,7 +618,11 @@ def build_rubric_model(tr_data, labels):
 
         cross_entropy = - tf.reduce_mean(cross_entropy_array) + tf.reduce_mean(weights * weights) * reg_coef
 
-        train_step = tf.train.GradientDescentOptimizer(learning_rate=lr).minimize(cross_entropy)
+        global_step = tf.Variable(0, trainable=False)
+        learning_rate = tf.train.exponential_decay(lr, global_step,
+                                                   1000, 0.96, staircase=True)
+        # Passing global_step to minimize() will increment it at each step.
+        train_step = tf.train.GradientDescentOptimizer(learning_rate=learning_rate).minimize(cross_entropy, global_step = global_step)
         init = tf.initialize_all_variables()
 
         sess = tf.Session()
