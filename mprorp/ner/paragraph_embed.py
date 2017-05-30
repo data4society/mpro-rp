@@ -587,7 +587,7 @@ def create_rubric_train_data(tr_set, rubric_id, embedding_id, add_tf_idf=False, 
         print('answers: ', len(answers), sum(list(answers.values())))
     for doc_id in embeds:
         # doc_ids.append(doc_id)
-        doc_data = embeds[doc_id]
+        doc_data = [i * rb.coef_for_embed for i in embeds[doc_id]]
         if add_tf_idf:
             tf_idf_vec = rb.coef_for_tf_idf * tf_idf_features[doc_index[doc_id]]
             tf_idf_list = tf_idf_vec.tolist()

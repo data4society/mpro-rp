@@ -21,7 +21,8 @@ tf_steps = 40000
 lr=10
 l2 = 0.005
 probab_limit = 0.5
-coef_for_tf_idf = 1000  # Коэффициент, который используется для вектора tf_idf,когда он присоединяется к эмбеддингу
+coef_for_tf_idf = 100  # Коэффициент, который используется для вектора tf_idf,когда он присоединяется к эмбеддингу
+coef_for_embed = 0.1
 # words to exclude from model
 
 # one document morphological analysis regular
@@ -1086,7 +1087,7 @@ def spot_test_set_embedding_rubric(test_set_id, embedding_id, rubric_id, trainin
 
     answers = []
     for doc_id in docs_emb:
-        emb_list = docs_emb[doc_id]
+        emb_list = [i * coef_for_embed for i in docs_emb[doc_id]]
         if add_tf_idf:
             if docs_size[doc_id]:
                 # print(doc_id)
