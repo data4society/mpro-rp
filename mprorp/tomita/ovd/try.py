@@ -110,8 +110,47 @@ def locality_import(type):
         session.add(new_entity)
         session.commit()
 
-doc = session.query(Document).filter(Document.doc_id == '102a7d7b-b131-42e3-9bf9-39f431fefbbe').first()
-print(run_tomita(doc, 'ovd.cxx'))
+
+def delete_old_locations():
+    locs = session.query(Entity).filter(Entity.entity_class == 'location').all()
+    old_locs = {}
+    new_locs = {}
+    for i in locs:
+        if i.name != '':
+            if 'kladr_id' not in i.data:
+                if i.name not in old_locs:
+                    old_locs[i.name] = [i.entity_id]
+                else:
+                    old_locs[i.name] += [i.entity_id]
+            else:
+                if i.name not in new_locs:
+                    new_locs[i.name] = [i.entity_id]
+                else:
+                    new_locs[i.name] += [i.entity_id]
+    print(len(old_locs), len(new_locs))
+    used = []
+    for loc in old_locs:
+        if loc in new_locs:
+            for idd in old_locs[loc]:
+                markups = session.query(Reference).filter(Reference.entity == idd).all()
+                if markups != []:
+                    print(loc)
+                    new_id = new_locs[loc][0]
+                    for markup in markups:
+                        markup.entity = new_id
+                        session.commit()
+            used += old_locs[loc]
+    return used
+
+#used = delete_old_locations()
+#print('Markup changed')
+#print(len(used))
+#for entity_id in used:
+#    session.query(Entity).filter(Entity.entity_id == entity_id).delete()
+#    session.commit()
+record = session.query(Record).filter(Record.document_id == '47808e82-0586-4dca-bbdc-0928578cffdb').first()
+doc = session.query(Document).filter(Document.doc_id == record.source).first()
+print(run_tomita(doc, 'locality.cxx'))
 #rename_norm_acts()
 #norm_acts = session.query(Entity).filter(Entity.name == 'Москва').all()
 #for i in norm_acts:
