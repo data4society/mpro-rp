@@ -166,6 +166,21 @@ def new_negative():
     print(db.put_training_set(docs, 'negativ new2'))
 
 
+def new_set(sets):
+    setset = set()
+    for my_set in sets:
+        docs = [str(i) for i in db.get_set_docs(my_set)]
+        # print(len(docs))
+        # docs_set = set(docs)
+        # print(len(docs_set))
+        setset.update(set(docs))
+    # print(len(setset))
+    res_list = list(setset)
+    # print(len(res_list))
+    print(db.put_training_set(res_list, 'big set for par embed'))
+    # print(res_list[0], len(res_list))
+
+
 def new_shlack():
     docs_s = session.query(Document.doc_id).filter_by(status=77).all()
     doc_set = [str(i) for (i,) in docs_s]
@@ -207,9 +222,20 @@ def script_exec():
     print('count', count)
 
 
+
+
 # put_rubric_answers()
 # pp_ss_positive_sets()
 # create_pp_ss_positive_sets()
 # set_train_and_test_pp_ss()
 # new_negative()
-set_train_and_test_pp_ss_big(10)
+new_set([set_list.sets['negative']['all2'], set_list.sets['negative']['shlack'],
+        set_list.sets['pp']['train_set_10'], set_list.sets['pp']['test_set_10'],
+        set_list.sets['ss']['train_set_10'], set_list.sets['ss']['test_set_10'],
+        set_list.sets['21']['tr_set'], set_list.sets['21']['test_set'],
+         set_list.sets['22']['tr_set'], set_list.sets['22']['test_set'],
+         set_list.sets['23']['tr_set'], set_list.sets['23']['test_set'],
+         set_list.sets['24']['tr_set'], set_list.sets['24']['test_set'],
+         set_list.sets['25']['tr_set'], set_list.sets['25']['test_set'],
+         set_list.sets['26']['tr_set'], set_list.sets['26']['test_set']])
+# set_train_and_test_pp_ss_big(10)

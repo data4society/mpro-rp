@@ -252,6 +252,9 @@ sets['ss'] = {'train_set': '69565f15-73ea-4d06-84aa-d3e5cea57ee7',
               'test_set_10': 'bd7552e2-23e0-4d5c-8f6b-81dc263cd3c3'  # 8622 docs (819 - positive)
               }
 
+
+sets['all'] = {'0406': '2873d9e5-17ce-4faf-98b0-e74294539fb9'}
+
 rubrics = {
     '1': {'pos': '10180591-8d58-4d6e-a3dd-cc7df1cbb671',
           'neg': 'ec434320-3a42-4bbc-aa2f-fb95dc28e9db'},# искусство
