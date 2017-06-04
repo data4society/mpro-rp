@@ -188,6 +188,13 @@ def new_shlack():
     set_id = db.put_training_set(doc_set, 'shlack 30.05.17')
     print(set_id)
 
+def set_slicing(set_id, size):
+    docs = [str(i) for i in db.get_set_docs(set_id)]
+    count = 0
+    while (count + 1)* size < len(docs):
+        print("'" + str(db.put_training_set(docs[count*size: (count + 1)*size], 'all. part ' + str(count))) + "',")
+        count += 1
+    print("'" + str(db.put_training_set(docs[(count + 1) * size:], 'all. part ' + str(count))) + "',")
 
 def test():
     docs = db.get_set_docs(set_list.sets['negative']['new2'])
@@ -229,13 +236,15 @@ def script_exec():
 # create_pp_ss_positive_sets()
 # set_train_and_test_pp_ss()
 # new_negative()
-new_set([set_list.sets['negative']['all2'], set_list.sets['negative']['shlack'],
-        set_list.sets['pp']['train_set_10'], set_list.sets['pp']['test_set_10'],
-        set_list.sets['ss']['train_set_10'], set_list.sets['ss']['test_set_10'],
-        set_list.sets['21']['tr_set'], set_list.sets['21']['test_set'],
-         set_list.sets['22']['tr_set'], set_list.sets['22']['test_set'],
-         set_list.sets['23']['tr_set'], set_list.sets['23']['test_set'],
-         set_list.sets['24']['tr_set'], set_list.sets['24']['test_set'],
-         set_list.sets['25']['tr_set'], set_list.sets['25']['test_set'],
-         set_list.sets['26']['tr_set'], set_list.sets['26']['test_set']])
+# new_set([set_list.sets['negative']['all2'], set_list.sets['negative']['shlack'],
+#         set_list.sets['pp']['train_set_10'], set_list.sets['pp']['test_set_10'],
+#         set_list.sets['ss']['train_set_10'], set_list.sets['ss']['test_set_10'],
+#         set_list.sets['21']['tr_set'], set_list.sets['21']['test_set'],
+#          set_list.sets['22']['tr_set'], set_list.sets['22']['test_set'],
+#          set_list.sets['23']['tr_set'], set_list.sets['23']['test_set'],
+#          set_list.sets['24']['tr_set'], set_list.sets['24']['test_set'],
+#          set_list.sets['25']['tr_set'], set_list.sets['25']['test_set'],
+#          set_list.sets['26']['tr_set'], set_list.sets['26']['test_set'],
+#          set_list.set34751])
 # set_train_and_test_pp_ss_big(10)
+set_slicing(set_list.sets['all']['0406_2'], 1250)
