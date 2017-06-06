@@ -575,13 +575,19 @@ def model_emb_par_teach_or_calc(teach=True):
 
 
 def create_rubric_train_data(tr_set, rubric_id, embedding_id, add_tf_idf=False, verbose=False):
+    if verbose:
+        print('start read embedding')
     embeds = db.get_docs_embedding(embedding_id, tr_set)
     # doc_ids = []
     emb_list = []
     ans_list = []
+    if verbose:
+        print('start read answers')
     answers = db.get_rubric_answers(tr_set, rubric_id)
     mif_indexes = None
     if add_tf_idf:
+        if verbose:
+            print('start read tf-idf data')
         mif_indexes, doc_index, tf_idf_features = rb.create_train_data_tf_idf(tr_set, answers)
     if verbose:
         print('answers: ', len(answers), sum(list(answers.values())))
@@ -649,7 +655,7 @@ def test_model(set_id, embedding, rubric_id, tr_set=None, name=''):
     return result
 
 
-def teach_and_test(add_tf_idf=False):
+def teach_and_test(add_tf_idf=False, verbose=False):
     # model_emb_par_teach_or_calc(True)
     global batch_size
     global filename
@@ -658,11 +664,13 @@ def teach_and_test(add_tf_idf=False):
     test_set = set_list.sets['13']['test_set_2']
     rubric_id = set_list.rubrics['3']['pos']
     # в следующей строке до знака равенства написано mif_indexes, emb, ans
-    mif_indexes, emb, ans = create_rubric_train_data(tr_set, rubric_id, filename, add_tf_idf=add_tf_idf)
+    mif_indexes, emb, ans = create_rubric_train_data(tr_set, rubric_id, filename, add_tf_idf=add_tf_idf, verbose=verbose)
     batch_size = len(ans)
     answers_array = np.zeros((batch_size, 1))
     answers_array[:, 0] = ans
     model = build_rubric_model(emb, answers_array)
+    if verbose:
+        print('start put model in bd')
     if add_tf_idf:
         db.put_model(rubric_id, tr_set, model, mif_indexes, len(mif_indexes), embedding=filename)
     else:
@@ -674,8 +682,8 @@ def teach_and_test(add_tf_idf=False):
 
 
 def start():
-    model_emb_par_teach_or_calc(False)
-    # teach_and_test(True)
+    # model_emb_par_teach_or_calc(False)
+    teach_and_test(True)
     # tr_set = set_list.sets['13']['tr_set_2']
     # test_set = set_list.sets['13']['test_set_2']
     # rubric_id = set_list.rubrics['3']['pos']
