@@ -85,7 +85,7 @@ def write_sets(rubric_id, session=None):
 
 
 def teach_rubricator(set_id, rubric_id, session=None, verbose=False):
-    rb.idf_object_features_set(set_id)
+    rb.idf_object_features_set(set_id, verbose=verbose)
     rb.learning_rubric_model(set_id, rubric_id, verbose=verbose)
     # rb.learning_rubric_model_coeffs(set_id, doc_coefficients, rubric_id, savefiles=False, verbose=verbose)
 
@@ -254,9 +254,9 @@ def create_sets_polit_press(rubric_id, rubric_name, session=None):
     return train_set.set_id, test_set.set_id
 
 
-def teach_and_test(rubric_id, tr_id, test_set, teach=False):
+def teach_and_test(rubric_id, tr_id, test_set, teach=False, verbose=False):
     if teach:
-       teach_rubricator(tr_id, rubric_id)
+       teach_rubricator(tr_id, rubric_id, verbose=verbose)
        print('Обучение рубрикатора завершено')
 
     print('Результаты рубрикатора на учебной выборке')
@@ -394,10 +394,10 @@ def do_job():
     version = '2'
     set_num = version + rubric_num
 
-    training_set = sets[set_num]['tr_set']
-    test_set = sets[set_num]['test_set']
+    training_set = sets['pp']['train_set_0']
+    test_set = sets['pp']['test_set_0']
 
-    teach_and_test(rubrics[rubric_num]['pos'], training_set, test_set, True)
+    teach_and_test(rubrics[rubric_num]['pos'], training_set, test_set, True, verbose=True)
 
 
 def test_2_models(model_id_1, model_id_2, test_set_id, rubric_id, protocol_file_name=""):

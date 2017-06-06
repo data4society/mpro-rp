@@ -349,7 +349,7 @@ def lemmas_freq_doc(doc, stop_lemmas = None):
 # object-features for learning model
 # doc_index links doc_id and row index in object-features
 # lemma_index links lemmas and column index in object-features
-def idf_object_features_set(set_id):
+def idf_object_features_set(set_id, verbose=False):
     """ compute idf and object-features matrix for training set """
     # idf for calc features of new docs
     # object-features for learning model
@@ -359,6 +359,8 @@ def idf_object_features_set(set_id):
     # get lemmas of all docs in set
     docs = db.get_lemmas_freq(set_id)
 
+    if verbose:
+        print('read docs - oc')
     # document frequency - number of documents with lemma
     doc_freq = {}
     # number (sum of weights) of lemmas in document
@@ -414,10 +416,12 @@ def idf_object_features_set(set_id):
     # print(np.min(np.sum(object_features, axis=1)))
     # print('for set_id: ', set_id)
     # print('save idf: ', idf)
-
+    if verbose:
+        print('computation - ok')
     # save to db: idf, indexes and object_features
     db.put_training_set_params(set_id, idf,  doc_index, lemma_index, object_features)
-
+    if verbose:
+        print('saving - ok')
     # print(idf)
     # print(doc_index)
     # print(lemma_index)
@@ -574,10 +578,14 @@ def learning_rubric_model(set_id, rubric_id, savefiles=False, verbose=False):
     """learn model for rubrication"""
     # get answers for rubric
     answers = db.get_rubric_answers(set_id, rubric_id)
+    if verbose:
+        print('read answers - ok')
     # get object_features, lemma_index, doc_index
     if verbose:
         print('answers: ', len(answers), sum(list(answers.values())))
     doc_index, object_features = db.get_doc_index_object_features(set_id)
+    if verbose:
+        print('read features - ok')
 
     # print(np.min(np.sum(object_features, axis=0)))
     # print(np.min(np.sum(object_features, axis=1)))
@@ -655,6 +663,9 @@ def learning_rubric_model(set_id, rubric_id, savefiles=False, verbose=False):
             print(object_features[10, :][mif_indexes])
         else:
             print(object_features[10, :])
+    if verbose:
+        print('start tensorFlow - ok')
+
     for i in range(tf_steps):
         # if i == big_counter * 100:
         #     big_counter = round(i/100) + 1
@@ -682,6 +693,9 @@ def learning_rubric_model(set_id, rubric_id, savefiles=False, verbose=False):
     model = model.tolist()
     model.append(float(b.eval(sess)))
     if savefiles is True:
+        if verbose:
+            print('start save in file')
+
         session = Driver.db_session()
         my_set = session.query(TrainingSet).filter(TrainingSet.set_id == set_id).one()
         lemm_dic = my_set.lemma_index
@@ -694,6 +708,8 @@ def learning_rubric_model(set_id, rubric_id, savefiles=False, verbose=False):
         x.write('mif_number = ' + str(mif_number))
         x.close()
         save_info(lemm_dic, mif_indexes, model, set_id)
+    if verbose:
+        print('start save model in db')
     db.put_model(rubric_id, set_id, model, mif_indexes, mif_number)
 
     # print(W.eval(sess))
