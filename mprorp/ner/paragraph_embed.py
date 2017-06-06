@@ -57,9 +57,9 @@ reg_emded = 0.00005
 dropout = 0.7
 
 if use_NN:
-    filename = 'EP_model_NN.pic'
+    filename = 'ModelEP_0406_128_NonCons_6_3.pic'
 else:
-    filename = 'EP_model_LR.pic'
+    filename = 'ModelEP_0406_128_NonCons_6_3.pic'
 
 # parameters for rubrication
 reg_coef = 0.000005
@@ -653,7 +653,7 @@ def teach_and_test(add_tf_idf=False):
     # model_emb_par_teach_or_calc(True)
     global batch_size
     global filename
-    filename = 'ModelEP_1705.pic'
+    filename = 'ModelEP_0406_128_NonCons_6_3.pic'
     tr_set = set_list.sets['13']['tr_set_2']
     test_set = set_list.sets['13']['test_set_2']
     rubric_id = set_list.rubrics['3']['pos']
@@ -674,8 +674,8 @@ def teach_and_test(add_tf_idf=False):
 
 
 def start():
-    # model_emb_par_teach_or_calc(False)
-    teach_and_test(True)
+    model_emb_par_teach_or_calc(False)
+    # teach_and_test(True)
     # tr_set = set_list.sets['13']['tr_set_2']
     # test_set = set_list.sets['13']['test_set_2']
     # rubric_id = set_list.rubrics['3']['pos']

@@ -1067,7 +1067,7 @@ def spot_test_set_embedding_rubric(test_set_id, embedding_id, rubric_id, trainin
     # models for rubrics
     if training_set_id is None:
         training_set_id = db.get_set_id_by_rubric_id(rubric_id)
-    print('Обучающая выборка: ', training_set_id)
+    # print('Обучающая выборка: ', training_set_id)
     model = db.get_model_embedding(rubric_id, embedding_id, training_set_id)
 
     add_tf_idf = model['features'] is not None

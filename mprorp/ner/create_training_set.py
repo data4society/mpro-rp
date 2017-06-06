@@ -401,8 +401,6 @@ def do_job():
 
 
 def test_2_models(model_id_1, model_id_2, test_set_id, rubric_id, protocol_file_name=""):
-    print('Fact        Tf-idf        Embeddings')
-
 
     """compute TP, FP, TN, FN, Precision, Recall and F-score on data from db"""
     result = {}
@@ -416,10 +414,10 @@ def test_2_models(model_id_1, model_id_2, test_set_id, rubric_id, protocol_file_
     rubrication_result_2 = db.get_rubrication_result(model_id_2, test_set_id, rubric_id)
     rubrication_result_1 = db.get_rubrication_result(model_id_1, test_set_id, rubric_id)
 
-    print(len(rubrication_result_1))
-    print(len(rubrication_result_2))
+    print('Клличество ответов tf-idf', len(rubrication_result_1))
+    print('Количество ответвв embedding', len(rubrication_result_2))
     print('Результаты рубрикатора на тестовой выборке')
-
+    print('Fact        Tf-idf        Embeddings')
     for key in rubrication_result_1:
         key1 = answers[key]
         key2 = rubrication_result_1[key]
@@ -428,7 +426,7 @@ def test_2_models(model_id_1, model_id_2, test_set_id, rubric_id, protocol_file_
         result[result_key] = result.get(result_key, 0) + 1
 
     for result_key in result:
-        print(result_key[0], '     ',result_key[1], '     ', result_key[2], '     ', result[result_key])
+        print(result_key[0], '          ',result_key[1], '          ', result_key[2], '          ', result[result_key])
 
     # if protocol_file_name:
     #     x = open(protocol_file_name, 'a', encoding='utf-8')
@@ -441,24 +439,23 @@ def test_2_models(model_id_1, model_id_2, test_set_id, rubric_id, protocol_file_
     #     x.close()
 
 
-
 def compare_rubrication_result():
     rubric_num = '4'
     version = '2'
     set_num = version + rubric_num
 
     rubric_id = rubrics['pp']['pos']
-    # test_set = sets['pp']['test_set_0']
-    test_set = sets['1']['test_pn']
-    embedding_id = 'ModelEP_2105_128_NonCons_6_3.pic'
+    test_set = sets['pp']['new2']
+    # test_set = sets['1']['test_pn']
+    embedding_id = 'ModelEP_0406_128_NonCons_6_3.pic'
 
     # На чем тренировали рубиику в последний раз
     training_set_id_for_rubric = db.get_set_id_by_rubric_id(rubric_id)
     # Буеем использовать модели, полученные на следующих учебных выборках
     training_set_id_tf_idf = training_set_id_for_rubric
-    print('TF-IDF', training_set_id_tf_idf)
-    # training_set_id_embed = training_set_id_for_rubric
-    training_set_id_embed = sets['pp']['train_set_0']
+    print('TF-IDF используем модель, обученную по выборке', training_set_id_tf_idf)
+    training_set_id_embed = training_set_id_for_rubric
+    # training_set_id_embed = sets['pp']['train_set_0']
     print('Embedding', training_set_id_embed)
 
     # Применение моделей, обученных на указанных выборках к тестовой выборке
