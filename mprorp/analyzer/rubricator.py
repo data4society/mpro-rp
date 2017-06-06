@@ -946,6 +946,7 @@ def spot_test_set_rubric(test_set_id, rubric_id, training_set_id=None):
     # models for rubrics
     if training_set_id is None:
         training_set_id = db.get_set_id_by_rubric_id(rubric_id)
+    print('Обучающая выборка: ', training_set_id)
     model = db.get_model(rubric_id, training_set_id)
     # print('model')
     # print(model)
@@ -1062,10 +1063,11 @@ def spot_test_set_embedding_rubric(test_set_id, embedding_id, rubric_id, trainin
     """spot rubrics for all documents from test_set"""
     # get lemmas
     docs_emb = db.get_docs_embedding(embedding_id, test_set_id)
-
+    print('Найдено ' + str(len(docs_emb)) + ' эмбеддингов параграфвв')
     # models for rubrics
     if training_set_id is None:
         training_set_id = db.get_set_id_by_rubric_id(rubric_id)
+    print('Обучающая выборка: ', training_set_id)
     model = db.get_model_embedding(rubric_id, embedding_id, training_set_id)
 
     add_tf_idf = model['features'] is not None
@@ -1113,7 +1115,7 @@ def spot_test_set_embedding_rubric(test_set_id, embedding_id, rubric_id, trainin
             result = 0
         answers.append({'result': result, 'model_id': model['model_id'],
                         'rubric_id': rubric_id, 'doc_id': doc_id, 'probability': probability})
-
+    print('answers embed rub', len(answers))
     db.put_rubrics(answers)
     return model['model_id']
 
