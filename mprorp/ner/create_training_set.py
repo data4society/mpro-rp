@@ -390,12 +390,12 @@ def create_new_sets(session=None):
 
 
 def do_job():
-    rubric_num = '4'
+    rubric_num = '1'
     version = '2'
     set_num = version + rubric_num
 
-    training_set = sets['pp']['train_set_0']
-    test_set = sets['pp']['test_set_0']
+    training_set = sets[set_num]['tr_set']
+    test_set = sets[set_num]['test_set']
 
     teach_and_test(rubrics[rubric_num]['pos'], training_set, test_set, True, verbose=True)
 
@@ -465,4 +465,5 @@ def compare_rubrication_result():
     test_2_models(tf_idf_model_id, embedding_model_id, test_set, rubric_id)
 
 
-compare_rubrication_result()
+# compare_rubrication_result()
+do_job()

@@ -16,8 +16,8 @@ from sqlalchemy.orm.attributes import flag_modified
 mystem_analyzer = Mystem(disambiguation=False)
 # words number for tf-idf model
 feature_selection = 2 # 1 - entropy_difference, 2 - mutual_information
-optimal_features_number = 50
-tf_steps = 40000
+optimal_features_number = 250
+tf_steps = 4000
 lr=10
 l2 = 0.005
 probab_limit = 0.5
@@ -399,15 +399,18 @@ def idf_object_features_set(set_id, verbose=False):
             lemma_counter += 1
 
     # initialization objects-features matrix
-    object_features = np.zeros((doc_counter, lemma_counter))
-
+    # object_features = np.zeros((doc_counter, lemma_counter))
+    object_features = {}
     # fill objects-features matrix
     for doc_id in docs:
+        object_features[doc_id] = {'indexes': [], 'values': []}
         doc_lemmas = docs[doc_id]
         for lemma in doc_lemmas:
             if lemma_index.get(lemma, -1) != -1:
-                object_features[doc_index[doc_id], lemma_index[lemma]] = \
-                    doc_lemmas[lemma] / doc_size[doc_id] * idf[lemma]
+                object_features[doc_id]['indexes'].append(lemma_index[lemma])
+                object_features[doc_id]['values'].append(doc_lemmas[lemma] / doc_size[doc_id] * idf[lemma])
+                # object_features[doc_index[doc_id], lemma_index[lemma]] = \
+                #     doc_lemmas[lemma] / doc_size[doc_id] * idf[lemma]
 
     # check features with 0 for all documents
     feat_max = np.sum(object_features, axis=0)
@@ -664,7 +667,7 @@ def learning_rubric_model(set_id, rubric_id, savefiles=False, verbose=False):
         else:
             print(object_features[10, :])
     if verbose:
-        print('start tensorFlow - ok')
+        print('start tensorFlow')
 
     for i in range(tf_steps):
         # if i == big_counter * 100:

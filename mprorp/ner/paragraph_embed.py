@@ -527,6 +527,8 @@ def model_emb_par_teach_or_calc(teach=True):
 
     if teach:
         fill_paragraphs_for_learning(training_set, True)
+        if verbose:
+            print('learning start')
         run_model(True, 4001, filename=filename)
     else:
 
@@ -553,12 +555,18 @@ def model_emb_par_teach_or_calc(teach=True):
         # print(reverse_dictionary)
 
         consistent_words = model_params['params']['consistent_words']
+        if verbose:
+            print('fill paragraphs start')
         fill_paragraphs_for_learning(paragraph_set, False, True)
+        if verbose:
+            print('calc embeddings start')
         em_p = run_model(False, 2001, model_params=model_params)
         if len(filename) > 40:
             print('Length of filename must be less or equal 40')
             exit()
         session = Driver.db_session()
+        if verbose:
+            print('delete old embedding start')
         embeds = session.query(Embedding).filter(Embedding.emb_id == filename).all()
         if embeds is None or len(embeds) == 0:
             new_emb = Embedding(emb_id=filename, name='Embedding for docs built by model from ' + filename)
@@ -668,6 +676,8 @@ def teach_and_test(add_tf_idf=False, verbose=False):
     batch_size = len(ans)
     answers_array = np.zeros((batch_size, 1))
     answers_array[:, 0] = ans
+    if verbose:
+        print('start tensorFlow')
     model = build_rubric_model(emb, answers_array)
     if verbose:
         print('start put model in bd')
@@ -682,8 +692,8 @@ def teach_and_test(add_tf_idf=False, verbose=False):
 
 
 def start():
-    # model_emb_par_teach_or_calc(False)
-    teach_and_test(True)
+    model_emb_par_teach_or_calc(False)
+    # teach_and_test(True)
     # tr_set = set_list.sets['13']['tr_set_2']
     # test_set = set_list.sets['13']['test_set_2']
     # rubric_id = set_list.rubrics['3']['pos']
