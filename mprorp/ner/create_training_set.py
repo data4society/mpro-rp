@@ -390,12 +390,12 @@ def create_new_sets(session=None):
 
 
 def do_job():
-    rubric_num = '1'
-    version = '2'
+    rubric_num = 'pp'
+    version = ''
     set_num = version + rubric_num
 
-    training_set = sets[set_num]['tr_set']
-    test_set = sets[set_num]['test_set']
+    training_set = sets[set_num]['train_set_10']
+    test_set = sets[set_num]['test_set_10']
 
     teach_and_test(rubrics[rubric_num]['pos'], training_set, test_set, True, verbose=True)
 
@@ -466,4 +466,4 @@ def compare_rubrication_result():
 
 
 # compare_rubrication_result()
-do_job()
+# do_job()
