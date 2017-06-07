@@ -418,7 +418,7 @@ def test_2_models(model_id_1, model_id_2, test_set_id, rubric_id, protocol_file_
     print('Количество ответвв embedding', len(rubrication_result_2))
     print('Результаты рубрикатора на тестовой выборке')
     print('Fact        Tf-idf        Embeddings')
-    for key in rubrication_result_1:
+    for key in rubrication_result_2:
         key1 = answers[key]
         key2 = rubrication_result_1[key]
         key3 = rubrication_result_2[key]

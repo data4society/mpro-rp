@@ -171,6 +171,35 @@ def generate_batch(batch_size, num_skips, skip_window, voc_size, paragraphs):
     return batch, labels
 
 
+def append_doc_words(doc_list, set_docs, new_dictionary, words_count):
+    global doc_ids
+    train_set_words = db.get_ner_feature(doc_id_list=doc_list, feature='embedding')
+    if verbose:
+        print(len(doc_list))
+    for doc_id in train_set_words:
+        if doc_id in doc_ids:
+            continue
+        # if verbose and len(set_docs) % 1000 == 0:
+        #     print('set_docs: ', len(set_docs))
+        doc_words = train_set_words[doc_id]
+        doc = []
+        for element in doc_words:
+            main_word = ''
+            rate = 0
+            for word in element[2]:
+                if rate < element[2][word]:
+                    rate = element[2][word]
+                    main_word = word
+            doc.append(main_word)
+            if new_dictionary:
+                if main_word in words_count:
+                    words_count[main_word] += 1
+                else:
+                    words_count[main_word] = 1
+        set_docs.append(doc)
+        doc_ids.append(doc_id)
+
+
 def fill_paragraphs_for_learning(training_set, new_dictionary, verbose=False):
 
     global num_skips
@@ -184,40 +213,16 @@ def fill_paragraphs_for_learning(training_set, new_dictionary, verbose=False):
     paragraphs.clear()
     doc_ids.clear()
 
-    printed = False
     for tr_set_id in training_set:
-        train_set_words = db.get_ner_feature(set_id=tr_set_id, feature='embedding')
-        if verbose:
-            print(len(train_set_words))
-        for doc_id in train_set_words:
-            if doc_id in doc_ids:
-                continue
-            if verbose and len(set_docs) % 1000 == 0:
-                print('set_docs: ', len(set_docs))
-            doc_words = train_set_words[doc_id]
-            doc = []
-            for element in doc_words:
-                main_word = ''
-                rate = 0
-                for word in element[2]:
-                    if rate < element[2][word]:
-                        rate = element[2][word]
-                        main_word = word
-                doc.append(main_word)
-                if new_dictionary:
-                    if main_word in words_count:
-                        words_count[main_word] += 1
-                    else:
-                        words_count[main_word] = 1
-            set_docs.append(doc)
-            doc_ids.append(doc_id)
-            if verbose and not printed:
-                print(doc_words)
-                print(doc)
-                printed = True
+        train_set_docs = [str(i) for i in db.get_set_docs(tr_set_id)]
+        start_doc = 0
+        while len(train_set_docs) - start_doc > 2000:
+            append_doc_words(train_set_docs[start_doc: start_doc + 1250], set_docs, new_dictionary, words_count)
+            start_doc += 1250
+        append_doc_words(train_set_docs[start_doc:], set_docs, new_dictionary, words_count)
+
     if verbose:
         print('set_docs - ok')
-    train_set_words = None
     if new_dictionary:
         dictionary.clear()
         reverse_dictionary.clear()

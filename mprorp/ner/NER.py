@@ -318,7 +318,7 @@ class NERModel(LanguageModel):
         #  train_set_words[doc_id] = [(sentence, word, [lemma1, lemma2]), ... (...)]
         # doc_set_words = {}
         # doc_set_words[doc_id] = db.get_ner_feature_one_feature(doc_id=doc_id, feature='embedding', session=session)
-        doc_set_words = db.get_ner_feature(doc_id=doc_id, feature='embedding', session=session)
+        doc_set_words = db.get_ner_feature(doc_id_list=[doc_id], feature='embedding', session=session)
 
         if Config.pre_embedding:
             words_for_embedding = {}
