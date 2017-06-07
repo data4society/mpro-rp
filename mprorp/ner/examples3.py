@@ -561,3 +561,18 @@ def script_exec2():
     print('Yes: ', doc_yes, ' No: ', doc_no )
 
 
+def lemmas_from_set():
+    set_id = set_list.sets['pp']['train_set_10']
+    some_set = session.query(TrainingSet).filter(TrainingSet.set_id == set_id).one()
+    print(len(some_set.lemma_index))
+    lemmas = some_set.lemma_index
+    print(type(lemmas))
+    llist = list(lemmas.keys())
+    print(llist[:100])
+    print(llist[10000:10100])
+    print(llist[50000:50100])
+    print(llist[100000:100100])
+
+
+lemmas_from_set()
+

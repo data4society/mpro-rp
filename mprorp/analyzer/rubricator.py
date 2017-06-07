@@ -29,6 +29,8 @@ coef_for_embed = params['coef_for_embed']
 
 # one document morphological analysis regular
 
+lemma_frequency_limit = params['lemma_frequency_limit']  # Если лемма встретилась в выборке меньше, чем это число раз, игнорируем ее
+
 run_stop_lemmas = params['run_stop_lemmas'] # Использование файла для чтения стоп-лемм
 stop_lemmas_filename = home_dir + params['stop_lemmas_filename'] # Имя файла, содержащего стоп-леммы
 stop_lemmas_count = params['stop_lemmas_count'] # Порог, при превышении которго лемма считается не интересной и попадает в стоп-леммы
@@ -398,7 +400,7 @@ def idf_object_features_set(set_id, verbose=False):
 
     # and lemmas add in overall list by giving index
     for lemma in idf:
-        if idf[lemma] != 0:
+        if (idf[lemma] != 0) and doc_freq[lemma] > 20:
             lemma_index[lemma] = lemma_counter
             lemma_counter += 1
 
@@ -418,6 +420,10 @@ def idf_object_features_set(set_id, verbose=False):
 
     if verbose:
         print('computation - ok')
+        print('Количество лемм ', lemma_counter)
+        llist = list(lemma_index.keys())
+        print(llist[:100])
+        print(llist[lemma_counter - 100:])
     # save to db: idf, indexes and object_features
     db.put_training_set_params(set_id, idf,  doc_index, lemma_index, object_features)
     if verbose:

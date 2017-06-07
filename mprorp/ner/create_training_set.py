@@ -466,4 +466,4 @@ def compare_rubrication_result():
 
 
 # compare_rubrication_result()
-# do_job()
+do_job()
