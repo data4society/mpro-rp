@@ -532,7 +532,7 @@ def model_emb_par_teach_or_calc(teach=True):
     # training_set = set_list.sets1250
 
     if teach:
-        fill_paragraphs_for_learning(training_set, True)
+        fill_paragraphs_for_learning(training_set, True, verbose=verbose)
         if verbose:
             print('learning start')
         run_model(True, 4001, filename=filename)

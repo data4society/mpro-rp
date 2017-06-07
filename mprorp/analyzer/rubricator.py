@@ -521,13 +521,15 @@ def print_lemmas(set_id, numbers, lemmas=None, idf=None):
     #     print(i, [k for k in lemmas if lemmas[k] == i])
 
 
-def find_main_features(object_features, doc_index, answers_index, features_number):
+def find_main_features(object_features, doc_index, answers_index, features_number, verbose=False):
     mif_indexes = []
     use_mif = features_number > optimal_features_number
     object_num = len(object_features)
     if use_mif:
         feature_entropy = np.zeros(features_number)
         for i in range(features_number):
+            if verbose and (i % 10000 == 0):
+                print('selection ', i)
             feature_i = np.zeros(object_num)
             for doc_id in object_features:
                 if i in object_features[doc_id]['indexes']:
@@ -610,8 +612,12 @@ def learning_rubric_model(set_id, rubric_id, savefiles=False, verbose=False):
     # mif[k] = l:
     # feature k from object_features is used in position l, if l >= 0
     # if feature k ins not most important, l = -1
-    mif_indexes = find_main_features(object_features, doc_index, answers_index, lemma_num)
+    if verbose:
+        print('start feature selection')
+    mif_indexes = find_main_features(object_features, doc_index, answers_index, lemma_num, verbose=verbose)
     mif_number = len(mif_indexes)
+    if verbose:
+        print('start obj feat matrix')
     ob_fe_matrix = object_features_from_dict(object_features, mif_indexes, doc_index)
     object_features = None
 
