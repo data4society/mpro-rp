@@ -27,7 +27,7 @@ import mprorp.analyzer.rubricator as rb
 
 import mprorp.db.dbDriver as Driver
 from mprorp.db.models import *
-
+from mprorp.config.local_settings import learning_parameters as lp
 
 # set_docs = {}
 # for cl in sets:
@@ -36,35 +36,36 @@ from mprorp.db.models import *
 #         set_docs[cl][set_type] = db.get_set_docs(sets[cl][set_type])
 #         print(cl, set_type, len(set_docs[cl][set_type]), 'documents')
 
-embedding_for_word_count = 5
+params = lp['paragraph embeddings']
+embedding_for_word_count = params['embedding_for_word_count'] # 5
 
-verbose = True
+verbose = params['verbose'] # True
 
-consistent_words = True
-use_par_embed = True
-use_NN = True
-learning_rate = 1
+consistent_words = params['consistent_words'] # True
+use_par_embed = params['use_par_embed'] # True
+use_NN = params['use_NN'] # True
+learning_rate = params['learning_rate'] # 1
 
-batch_size = 100
-embedding_size = 128  # 128  # Dimension of the embedding vector.
+batch_size = params['batch_size'] # 100
+embedding_size = params['embedding_size'] # 128  # 128  # Dimension of the embedding vector.
 # embed_par_size = 400
-skip_window = 1  # How many words to consider left and right (if not consistent_words)
-num_skips = 3  # Size of the window with consistent or random order words
-l1_size = 512  # 256
+skip_window = params['skip_window'] # 1  # How many words to consider left and right (if not consistent_words)
+num_skips = params['num_skips'] # 3  # Size of the window with consistent or random order words
+l1_size = params['l1_size'] # 512  # 256
 
-reg_l1 = 0.0001
-reg_emded = 0.00005
-dropout = 0.7
+reg_l1 = params['reg_l1'] # 0.0001
+reg_emded = params['reg_emded'] # 0.00005
+dropout = params['dropout'] # 0.7
 
 if use_NN:
-    filename = 'ModelEP_0406_128_NonCons_6_3.pic'
+    filename = params['filename_NN'] # 'ModelEP_0406_128_NonCons_6_3.pic'
 else:
-    filename = 'ModelEP_0406_128_NonCons_6_3.pic'
+    filename = params['filename_no_NN'] # 'ModelEP_0406_128_NonCons_6_3.pic'
 
 # parameters for rubrication
-reg_coef = 0.000005
-lr=0.0025
-tf_steps = 100000
+reg_coef = params['reg_coef'] # 0.000005
+lr=params['lr'] # 0.0025
+tf_steps = params['tf_steps'] # 100000
 
 print('embedding_for_word_count', embedding_for_word_count)
 
@@ -89,10 +90,10 @@ print('dropout', dropout)
 # We pick a random validation set to sample nearest neighbors. here we limit the
 # validation samples to the words that have a low numeric ID, which by
 # construction are also the most frequent.
-valid_size = 10  # Random set of words to evaluate similarity on.
-valid_window = 100  # Only pick dev samples in the head of the distribution.
+valid_size = params['valid_size']  # 10  # Random set of words to evaluate similarity on.
+valid_window = params['valid_window']  #100  # Only pick dev samples in the head of the distribution.
 valid_examples = np.array(random.sample(range(valid_window), valid_size))
-num_sampled = 64  # Number of negative examples to sample.
+num_sampled = params['num_sampled']  # 64  # Number of negative examples to sample.
 
 valid_examples_p = [0, 1, 2, 3, 4]
 

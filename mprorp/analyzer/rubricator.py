@@ -11,27 +11,29 @@ from mprorp.analyzer.save_info import save_info
 import pickle as pickle
 from mprorp.utils import home_dir
 from sqlalchemy.orm.attributes import flag_modified
+from mprorp.config.local_settings import learning_parameters as lp
 
 # initialization mystem
 mystem_analyzer = Mystem(disambiguation=False)
 # words number for tf-idf model
-feature_selection = 2 # 1 - entropy_difference, 2 - mutual_information
-optimal_features_number = 250
-tf_steps = 4000
-lr=10
-l2 = 0.005
-probab_limit = 0.5
-coef_for_tf_idf = 100  # Коэффициент, который используется для вектора tf_idf,когда он присоединяется к эмбеддингу
-coef_for_embed = 0.1
+params = lp['rubricator']
+feature_selection = params['feature_selection'] # 2 # 1 - entropy_difference, 2 - mutual_information
+optimal_features_number = params['optimal_features_number']
+tf_steps = params['tf_steps']
+lr=params['lr']
+l2 = params['l2']
+probab_limit = params['probab_limit']
+coef_for_tf_idf = params['coef_for_tf_idf']  # Коэффициент, который используется для вектора tf_idf,когда он присоединяется к эмбеддингу
+coef_for_embed = params['coef_for_embed']
 # words to exclude from model
 
 # one document morphological analysis regular
 
-run_stop_lemmas = False # Использование файла для чтения стоп-лемм
-stop_lemmas_filename = home_dir + '/lex_count' # Имя файла, содержащего стоп-леммы
-stop_lemmas_count = 1000 # Порог, при превышении которго лемма считается не интересной и попадает в стоп-леммы
+run_stop_lemmas = params['run_stop_lemmas'] # Использование файла для чтения стоп-лемм
+stop_lemmas_filename = home_dir + params['stop_lemmas_filename'] # Имя файла, содержащего стоп-леммы
+stop_lemmas_count = params['stop_lemmas_count'] # Порог, при превышении которго лемма считается не интересной и попадает в стоп-леммы
 
-eliminate_once_found_lemma = True # Исключаются те леммы, которые встретились только в одном документе
+eliminate_once_found_lemma = params['eliminate_once_found_lemma'] # Исключаются те леммы, которые встретились только в одном документе
 
 
 def get_stop_lemmas(training_set=""):
