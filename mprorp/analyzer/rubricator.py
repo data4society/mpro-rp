@@ -497,6 +497,7 @@ def mutual_information(feature, answers, num_lemma):
     sumN = N[0, 0] + N[1, 0] + N[0, 1]+N[1, 1]
     if num_lemma < 20:
         print(N[0,:], N[1,:])
+
     def part(i, j):
         if N[i, j] > 0:
             return N[i, j]/sumN * math.log2(sumN * N[i,j]/(N[i, 0]+N[i, 1])/(N[0, j]+N[1, j]))
@@ -528,13 +529,14 @@ def find_main_features(object_features, doc_index, answers_index, features_numbe
     if use_mif:
         feature_entropy = np.zeros(features_number)
         for i in range(features_number):
-            if verbose and (i % 10000 == 0):
-                print('selection ', i)
+            if verbose and ((i % 10000 == 0) or (i in [1,2,3,4,5,10,50,100,1000])):
+                print('selection. creating vector ', i)
             feature_i = np.zeros(object_num)
             for doc_id in object_features:
                 if i in object_features[doc_id]['indexes']:
                     feature_i[doc_index[doc_id]] = object_features[doc_id]['features'][object_features[doc_id]['indexes'].index(i)]
-
+            if verbose and ((i % 10000 == 0) or (i in [1, 2, 3, 4, 5, 10, 50, 100, 1000])):
+                print('selection. Created vector ', i)
             # compute Entropic Criterion for feature i
             if feature_selection == 1:
                 feature_entropy[i] = entropy_difference(feature_i, answers_index, i)
