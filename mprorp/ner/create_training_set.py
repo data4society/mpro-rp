@@ -445,9 +445,9 @@ def compare_rubrication_result():
     set_num = version + rubric_num
 
     rubric_id = rubrics['pp']['pos']
-    test_set = sets['pp']['new2']
+    test_set = sets['pp']['test_set_2']
     # test_set = sets['1']['test_pn']
-    embedding_id = 'ModelEP_0406_128_NonCons_6_3.pic'
+    embedding_id = 'ModelEP_0506_128_NonCons_6_3.pic'
 
     # На чем тренировали рубиику в последний раз
     training_set_id_for_rubric = db.get_set_id_by_rubric_id(rubric_id)

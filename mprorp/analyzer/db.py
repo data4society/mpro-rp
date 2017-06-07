@@ -135,14 +135,16 @@ def get_doc_index_object_features(set_id, session=None):
     doc_index = my_set.doc_index
     lemma_num = len(my_set.lemma_index)
     result = session.query(ObjectFeatures).filter(ObjectFeatures.set_id == set_id).all()
-    docs_num = len(doc_index)
-    object_features = np.zeros((docs_num, lemma_num))
+    # docs_num = len(doc_index)
+    # object_features = np.zeros((docs_num, lemma_num))
+    object_features = {}
     for row in result:
-        if row.compressed:
-            object_features[doc_index[str(row.doc_id)], :] = uncompress(row.features, row.indexes, lemma_num)
-        else:
-            object_features[doc_index[str(row.doc_id)], :] = row.features
-    return doc_index, object_features
+        # if row.compressed:
+        #     object_features[doc_index[str(row.doc_id)], :] = uncompress(row.features, row.indexes, lemma_num)
+        # else:
+        #     object_features[doc_index[str(row.doc_id)], :] = row.features
+        object_features[str(row.doc_id)] = {'features': row.features, 'indexes': row.indexes}
+    return doc_index, object_features, lemma_num
 
 
 # reading documents in set

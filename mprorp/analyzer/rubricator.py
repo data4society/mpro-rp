@@ -35,6 +35,8 @@ stop_lemmas_count = params['stop_lemmas_count'] # Порог, при превы�
 
 eliminate_once_found_lemma = params['eliminate_once_found_lemma'] # Исключаются те леммы, которые встретились только в одном документе
 
+num_docs_in_step = params['num_docs_in_step']  # количество документов в одном шаге при обучении рубрикатора
+
 
 def get_stop_lemmas(training_set=""):
 
@@ -414,13 +416,6 @@ def idf_object_features_set(set_id, verbose=False):
                 # object_features[doc_index[doc_id], lemma_index[lemma]] = \
                 #     doc_lemmas[lemma] / doc_size[doc_id] * idf[lemma]
 
-    # check features with 0 for all documents
-    feat_max = np.sum(object_features, axis=0)
-    # print_lemmas(set_id, [k for k, v in enumerate(feat_max) if v == 0], lemma_index, idf)
-    # check documents with 0 for all lemmas
-    # print(np.min(np.sum(object_features, axis=1)))
-    # print('for set_id: ', set_id)
-    # print('save idf: ', idf)
     if verbose:
         print('computation - ok')
     # save to db: idf, indexes and object_features
@@ -526,8 +521,46 @@ def print_lemmas(set_id, numbers, lemmas=None, idf=None):
     #     print(i, [k for k in lemmas if lemmas[k] == i])
 
 
+def find_main_features(object_features, doc_index, answers_index, features_number):
+    mif_indexes = []
+    use_mif = features_number > optimal_features_number
+    object_num = len(object_features)
+    if use_mif:
+        feature_entropy = np.zeros(features_number)
+        for i in range(features_number):
+            feature_i = np.zeros(object_num)
+            for doc_id in object_features:
+                if i in object_features[doc_id]['indexes']:
+                    feature_i[doc_index[doc_id]] = object_features[doc_id]['features'][object_features[doc_id]['indexes'].index(i)]
+
+            # compute Entropic Criterion for feature i
+            if feature_selection == 1:
+                feature_entropy[i] = entropy_difference(feature_i, answers_index, i)
+            else:
+                feature_entropy[i] = mutual_information(feature_i, answers_index, i)
+
+        good_numbers = np.argsort(feature_entropy)
+        for i in range(optimal_features_number):
+            mif_indexes.append(int(good_numbers[i]))
+    else:
+        for i in range(features_number):
+            mif_indexes.append(i)
+    return mif_indexes
+
+
+def object_features_from_dict(object_features, mif_indexes, doc_index):
+    result = np.zeros((len(doc_index), len(mif_indexes)))
+    for doc_id in doc_index:
+        feat_index = object_features[doc_id]['indexes']
+        feat_value = object_features[doc_id]['features']
+        for i in range(len(feat_index)):
+            if feat_index[i] in mif_indexes:
+                result[doc_index[doc_id], mif_indexes.index(feat_index[i])] = feat_value[i]
+    return result
+
+
 def create_train_data_tf_idf(set_id, answers, verbose=False):
-    doc_index, object_features = db.get_doc_index_object_features(set_id)
+    doc_index, object_features, lemma_num = db.get_doc_index_object_features(set_id)
 
     # print(np.min(np.sum(object_features, axis=0)))
     # print(np.min(np.sum(object_features, axis=1)))
@@ -541,41 +574,10 @@ def create_train_data_tf_idf(set_id, answers, verbose=False):
         # answers_array[doc_index[doc_id], 0] = answers[doc_id] * 2 - 1
         answers_array[doc_index[doc_id], 0] = answers[doc_id]
 
-    # if we know answers, we can select most important features (mif):
-    # mif[k] = l:
-    # feature k from object_features is used in position l, if l >= 0
-    # if feature k ins not most important, l = -1
-    features_number = len(object_features[0])
-    # mif = np.empty(features_number)
-    # mif.fill(-1)
-    mif_indexes = []
-    use_mif = features_number > optimal_features_number
-    if use_mif:
-        feature_entropy = np.zeros(features_number)
-        for i in range(features_number):
-            # compute Entropic Criterion for feature i
-            if feature_selection == 1:
-                feature_entropy[i] = entropy_difference(object_features[:, i], answers_index, i)
-            else:
-                feature_entropy[i] = mutual_information(object_features[:, i], answers_index, i)
-                if (i < 20) and verbose:
-                    print('MI', feature_entropy[i])
-            if (i < 20) and verbose:
-                print('E', entropy_difference(object_features[:, i], answers_index, i))
+    mif_indexes = find_main_features(object_features, doc_index, answers_index, lemma_num)
+    ob_fe_matrix = object_features_from_dict(object_features, mif_indexes, doc_index)
 
-                print('---')
-
-        good_numbers = np.argsort(feature_entropy)
-        for i in range(optimal_features_number):
-            # mif[good_numbers[i]] = i
-            mif_indexes.append(int(good_numbers[i]))
-        # print_lemmas(set_id, good_numbers[0:100])
-        # print(feature_entropy[good_numbers[0:100]])
-        return mif_indexes, doc_index, object_features[:, mif_indexes]
-    else:
-        for i in range(features_number):
-            mif_indexes.append(i)
-        return mif_indexes, doc_index, object_features
+    return  mif_indexes, doc_index, ob_fe_matrix
 
 
 # learn model for rubrication
@@ -588,7 +590,7 @@ def learning_rubric_model(set_id, rubric_id, savefiles=False, verbose=False):
     # get object_features, lemma_index, doc_index
     if verbose:
         print('answers: ', len(answers), sum(list(answers.values())))
-    doc_index, object_features = db.get_doc_index_object_features(set_id)
+    doc_index, object_features, lemma_num = db.get_doc_index_object_features(set_id)
     if verbose:
         print('read features - ok')
 
@@ -608,37 +610,10 @@ def learning_rubric_model(set_id, rubric_id, savefiles=False, verbose=False):
     # mif[k] = l:
     # feature k from object_features is used in position l, if l >= 0
     # if feature k ins not most important, l = -1
-    features_number = len(object_features[0])
-    # mif = np.empty(features_number)
-    # mif.fill(-1)
-    mif_number = features_number
-    mif_indexes = []
-    use_mif = features_number > optimal_features_number
-    if use_mif:
-        mif_number = optimal_features_number
-        feature_entropy = np.zeros(features_number)
-        for i in range(features_number):
-            # compute Entropic Criterion for feature i
-            if feature_selection == 1:
-                feature_entropy[i] = entropy_difference(object_features[:, i], answers_index, i)
-            else:
-                feature_entropy[i] = mutual_information(object_features[:, i], answers_index, i)
-            #     if i < 20:
-            #         print('MI', feature_entropy[i])
-            # if i < 20:
-            #     print('E', entropy_difference(object_features[:, i], answers_index, i))
-            #
-            #     print('---')
-
-        good_numbers = np.argsort(feature_entropy)
-        for i in range(optimal_features_number):
-            # mif[good_numbers[i]] = i
-            mif_indexes.append(int(good_numbers[i]))
-        # print_lemmas(set_id, good_numbers[0:100])
-        # print(feature_entropy[good_numbers[0:100]])
-    else:
-        for i in range(features_number):
-            mif_indexes.append(i)
+    mif_indexes = find_main_features(object_features, doc_index, answers_index, lemma_num)
+    mif_number = len(mif_indexes)
+    ob_fe_matrix = object_features_from_dict(object_features, mif_indexes, doc_index)
+    object_features = None
 
     x = tf.placeholder(tf.float32, shape=[None, mif_number])
     y_ = tf.placeholder(tf.float32, shape=[None, 1])
@@ -663,36 +638,19 @@ def learning_rubric_model(set_id, rubric_id, savefiles=False, verbose=False):
     indexes = [i for i in range(doc_number)]
     # big_counter = 0
     if verbose:
-        print('object_features:')
-        if use_mif:
-            print(object_features[10, :][mif_indexes])
-        else:
-            print(object_features[10, :])
-    if verbose:
         print('start tensorFlow')
 
     for i in range(tf_steps):
         # if i == big_counter * 100:
         #     big_counter = round(i/100) + 1
         #     print(i)
-        if doc_number > 150:
-            local_answers = answers_array[indexes[0:100], :]
-            if use_mif:
-                sess.run(train_step,
-                         feed_dict={x: object_features[indexes[0:100], :][:, mif_indexes], y_: local_answers})
-            else:
-                sess.run(train_step, feed_dict={x: object_features[indexes[0:100], :], y_: local_answers})
+        if doc_number > num_docs_in_step:
+            local_answers = answers_array[indexes[0:num_docs_in_step], :]
+            sess.run(train_step,
+                     feed_dict={x: ob_fe_matrix[indexes[0:num_docs_in_step], :], y_: local_answers})
             random.shuffle(indexes)
         else:
-            if use_mif:
-                sess.run(train_step, feed_dict={x: object_features[:, mif_indexes], y_: answers_array})
-            else:
-                sess.run(train_step, feed_dict={x: object_features, y_: answers_array})
-        # my_cea = cross_entropy_array.eval(sess)
-        # print(my_cea)
-        # my_w = w.eval(sess)
-        # my_b = b.eval(sess)
-        # print(i, (sigmoid(np.dot(np.asarray(object_features), my_W) + my_b) * np.asarray(answers_array)))
+            sess.run(train_step, feed_dict={x: ob_fe_matrix, y_: answers_array})
 
     model = w.eval(sess)[:, 0]
     model = model.tolist()
@@ -749,7 +707,7 @@ def learning_rubric_model_coeffs(set_id, doc_coefficients, rubric_id, savefiles 
         print('answers: ', len(answers), sum(list(answers.values())))
         # print(answers)
     # get object_features, lemma_index, doc_index
-    doc_index, object_features = db.get_doc_index_object_features(set_id)
+    doc_index, object_features, lemma_num = db.get_doc_index_object_features(set_id)
 
     doc_number = len(doc_index)
 
@@ -769,27 +727,10 @@ def learning_rubric_model_coeffs(set_id, doc_coefficients, rubric_id, savefiles 
     # mif[k] = l:
     # feature k from object_features is used in position l, if l >= 0
     # if feature k ins not most important, l = -1
-    features_number = len(object_features[0])
-    # mif = np.empty(features_number)
-    # mif.fill(-1)
-    mif_number = features_number
-    mif_indexes = []
-    use_mif = features_number > optimal_features_number
-    if use_mif:
-        mif_number = optimal_features_number
-        feature_entropy = np.zeros(features_number)
-        for i in range(features_number):
-            # compute Entropic Criterion for feature i
-            feature_entropy[i] = entropy_difference(object_features[:, i], answers_index, i)
-        good_numbers = np.argsort(feature_entropy)
-        for i in range(optimal_features_number):
-            # mif[good_numbers[i]] = i
-            mif_indexes.append(int(good_numbers[i]))
-        # print_lemmas(set_id, good_numbers[0:100])
-        # print(feature_entropy[good_numbers[0:100]])
-    else:
-        for i in range(features_number):
-            mif_indexes.append(i)
+    mif_indexes = find_main_features(object_features, doc_index, answers_index, lemma_num)
+    mif_number = len(mif_indexes)
+    ob_fe_matrix = object_features_from_dict(object_features, mif_indexes, doc_index)
+    object_features = None
 
     x = tf.placeholder(tf.float32, shape=[None, mif_number])
     y_ = tf.placeholder(tf.float32, shape=[None, 1])
@@ -814,24 +755,15 @@ def learning_rubric_model_coeffs(set_id, doc_coefficients, rubric_id, savefiles 
         # if i == big_counter * 100:
         #     big_counter = round(i/100) + 1
         #     print(i)
-        if doc_number > 150:
-            local_answers = answers_array[indexes[0:100], :]
-            local_coeffs = coeffs_array[indexes[0:100], :]
-            if use_mif:
-                sess.run(train_step,
-                         feed_dict={x: object_features[indexes[0:100], :][:, mif_indexes],
-                                    y_: local_answers, co: local_coeffs})
-            else:
-                sess.run(train_step, feed_dict={x: object_features[indexes[0:100], :],
-                                                y_: local_answers, co: local_coeffs})
+        if doc_number > num_docs_in_step:
+            local_answers = answers_array[indexes[0:num_docs_in_step], :]
+            local_coeffs  = coeffs_array[indexes[0:num_docs_in_step], :]
+            sess.run(train_step, feed_dict={x: ob_fe_matrix[indexes[0:num_docs_in_step], :],
+                                y_: local_answers, co: local_coeffs})
             random.shuffle(indexes)
         else:
-            if use_mif:
-                sess.run(train_step, feed_dict={x: object_features[:, mif_indexes],
-                                                y_: answers_array, co: local_coeffs})
-            else:
-                sess.run(train_step, feed_dict={x: object_features, y_: answers_array, co: local_coeffs})
-
+            sess.run(train_step, feed_dict={x: ob_fe_matrix,
+                                            y_: answers_array, co: local_coeffs})
         # if verbose:
         #     if i % 500 == 0:
         #         my_cea = cross_entropy_array.eval(sess)
