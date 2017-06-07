@@ -542,12 +542,12 @@ def model_emb_par_teach_or_calc(teach=True):
 
         paragraph_set = []
 
-        for ind in ['11']:
+        # for ind in ['11']:
         # for ind in ['11', '12', '13', '14', '15', '16']:
-            paragraph_set.append(set_list.sets[ind]['tr_set_2'])
-            paragraph_set.append(set_list.sets[ind]['test_set_2'])
-        # for ind in ['pp', 'ss']:
-        #     paragraph_set.append(set_list.sets[ind]['train_set'])
+        #     paragraph_set.append(set_list.sets[ind]['tr_set_2'])
+        #     paragraph_set.append(set_list.sets[ind]['test_set_2'])
+        for ind in ['pp']:
+            paragraph_set.append(set_list.sets[ind]['test_set_0'])
         #     paragraph_set.append(set_list.sets[ind]['test_set'])
         # print(training_set, paragraph_set)
         with open(home_dir + '/weights' + filename, 'rb') as f:
@@ -566,6 +566,8 @@ def model_emb_par_teach_or_calc(teach=True):
         fill_paragraphs_for_learning(paragraph_set, False, True)
         if verbose:
             print('calc embeddings start')
+            print('paragraphs: ', len(paragraphs))
+            print('doc_ids: ', len(doc_ids))
         em_p = run_model(False, 2001, model_params=model_params)
         if len(filename) > 40:
             print('Length of filename must be less or equal 40')
@@ -579,7 +581,7 @@ def model_emb_par_teach_or_calc(teach=True):
             session.add(new_emb)
         else:
             new_emb = embeds[0]
-        for i in range(em_p.shape[0]):
+        for i in range(len(doc_ids)):
             vec = em_p[i, :].tolist()
             session.query(DocEmbedding).filter(
                 (DocEmbedding.doc_id == doc_ids[i]) & (DocEmbedding.embedding == new_emb.emb_id)).delete()
