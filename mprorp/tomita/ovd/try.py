@@ -105,8 +105,9 @@ def locality_import(type):
     kladr = session.query(KLADR).filter(KLADR.type == type).all()
     print(len(kladr))
     for i in kladr:
-        data = {'kladr_level': i.level, 'kladr_type': i.type, 'kladr_id': i.kladr_id, 'name_lemmas': i.name_lemmas}
-        new_entity = Entity(name=i.name, entity_class='location', data=data)
+        external_data = {'kladr_level': i.level, 'kladr_type': i.type, 'kladr_id': i.kladr_id, 'name_lemmas': i.name_lemmas}
+        data = {'name': i.name, 'loc_type': 'населенный пункт'}
+        new_entity = Entity(name=i.name, entity_class='location', external_data=external_data, data=data)
         session.add(new_entity)
         session.commit()
 
@@ -142,15 +143,33 @@ def delete_old_locations():
             used += old_locs[loc]
     return used
 
+
+def update_locality():
+    locs = session.query(Entity).filter(Entity.entity_class == 'location').all()
+    print(len(locs))
+    to_upd = [i for i in locs if 'kladr_id' in i.data]
+    print(len(to_upd))
+    for loc in to_upd:
+        external_data = loc.data
+        new_data = {'name': loc.name, 'loc_type': 'населенный пункт'}
+        loc.data = new_data
+        loc.external_data = external_data
+        session.commit()
+
+#update_locality()
+f1('locations')
+#record = session.query(Record).filter(Record.document_id == '7dfa26d7-349e-7644-ef2b-0138b1f63158').first()
+#doc = session.query(Document).filter(Document.doc_id == record.source).first()
+#doc = Document(stripped='''Начальник отдела по делам несовершеннолетних ОМВД России по району Гольяново г. Москвы, майор полиции
+#Людмила Смирнова награждена особой благодарностью от Ассоциации женщин московской полиции.''')
+#run_tomita2('ovd.cxx', '89ff32f2-40ca-4b62-bbfd-768910f67c2b')
+#print(run_tomita(doc, 'jail.cxx'))
 #used = delete_old_locations()
 #print('Markup changed')
 #print(len(used))
 #for entity_id in used:
 #    session.query(Entity).filter(Entity.entity_id == entity_id).delete()
 #    session.commit()
-record = session.query(Record).filter(Record.document_id == '47808e82-0586-4dca-bbdc-0928578cffdb').first()
-doc = session.query(Document).filter(Document.doc_id == record.source).first()
-print(run_tomita(doc, 'locality.cxx'))
 #rename_norm_acts()
 #norm_acts = session.query(Entity).filter(Entity.name == 'Москва').all()
 #for i in norm_acts:
