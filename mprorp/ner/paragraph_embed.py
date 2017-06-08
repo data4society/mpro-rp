@@ -175,9 +175,11 @@ def append_doc_words(doc_list, set_docs, new_dictionary, words_count):
     global doc_ids
     train_set_words = db.get_ner_feature(doc_id_list=doc_list, feature='embedding')
     if verbose:
-        print(len(doc_list))
+        print('doc_list', len(doc_list))
+        print('train_set_words', len(train_set_words))
     for doc_id in train_set_words:
         if doc_id in doc_ids:
+            print('skip doc ', doc_id, ' длина doc_ids ', len(doc_ids))
             continue
         # if verbose and len(set_docs) % 1000 == 0:
         #     print('set_docs: ', len(set_docs))
@@ -493,11 +495,16 @@ def run_model(learning, num_steps, filename=None, model_params=None):
             return embeddings_p.eval()
 
 
-def create_word_emb(my_sets):
+def create_word_emb(my_sets, just_new=False):
     docs = set()
     for s in my_sets:
         docs.update(set(db.get_set_docs(s)))
     count = 0
+    if just_new:
+        old_docs = db.get_ner_feature(doc_id_list=list(docs), feature='embedding')
+        docs.difference_update(set(old_docs.keys()))
+        print(len(docs))
+
     for doc_id in docs:
         ner_feature.create_embedding_feature2(str(doc_id))
         count += 1
@@ -505,15 +512,15 @@ def create_word_emb(my_sets):
             print(str(count) + " of " + str(len(docs)))
 
 
-def start_prepare_docs():
+def start_prepare_docs(just_new=False):
     paragraph_set = []
-    for ind in ['11', '12', '13', '14', '15', '16']:
-        paragraph_set.append(set_list.sets[ind]['tr_set_2'])
-        paragraph_set.append(set_list.sets[ind]['test_set_2'])
+    # for ind in ['11', '12', '13', '14', '15', '16']:
+    #     paragraph_set.append(set_list.sets[ind]['tr_set_2'])
+    #     paragraph_set.append(set_list.sets[ind]['test_set_2'])
     for ind in ['pp', 'ss']:
-        paragraph_set.append(set_list.sets[ind]['train_set'])
-        paragraph_set.append(set_list.sets[ind]['test_set'])
-    create_word_emb(paragraph_set)
+        paragraph_set.append(set_list.sets[ind]['train_set_0'])
+        paragraph_set.append(set_list.sets[ind]['test_set_0'])
+    create_word_emb(paragraph_set, just_new)
 
 
 def model_emb_par_teach_or_calc(teach=True):
@@ -700,7 +707,8 @@ def teach_and_test(add_tf_idf=False, verbose=False):
 
 
 def start():
-    model_emb_par_teach_or_calc(False)
+    start_prepare_docs(True)
+    # model_emb_par_teach_or_calc(False)
     # teach_and_test(True)
     # tr_set = set_list.sets['13']['tr_set_2']
     # test_set = set_list.sets['13']['test_set_2']
@@ -716,6 +724,8 @@ def start():
     # mif_indexes, doc_index, res = rb.create_train_data_tf_idf(tr_set, answers)
     # print(type(res), len(res), len(res[0]))
     # print(res[0])
+
+
 start()
 
 

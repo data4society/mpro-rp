@@ -574,5 +574,11 @@ def lemmas_from_set():
     print(llist[100000:100100])
 
 
-lemmas_from_set()
+def how_many_docs(set_id):
+    docs = [str(i) for i in db.get_set_docs(set_id)]
+    set_set = set(docs)
+    print(len(docs))
+    print(len(set_set))
 
+# lemmas_from_set()
+how_many_docs(set_list.sets['pp']['test_set_0'])
