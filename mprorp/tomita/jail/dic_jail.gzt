@@ -12,7 +12,7 @@ TAuxDicArticle "Тюрьма"
 
 Jail1 "Тюрьмы"
 {
- key = { "jail.txt" type=FILE }
+ key = { "jail_start.txt" type=FILE }
 }
 
 Jail2 "Старые названия"
@@ -23,4 +23,19 @@ Jail2 "Старые названия"
 Jail3 "Народные названия"
 {
  key = { "jail_nar.txt" type=FILE }
+}
+
+Jail4 "СИЗО"
+{
+ key = "СИЗО"|"КП"|"ЛИУ"|"ИК"
+}
+
+City "Город"
+{
+ key = { "City.txt" type=FILE }
+}
+
+TAuxDicArticle "FIO"
+{
+ key = {"alg:fio" type = CUSTOM}
 }
