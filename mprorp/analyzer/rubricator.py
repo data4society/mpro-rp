@@ -11,7 +11,7 @@ from mprorp.analyzer.save_info import save_info
 import pickle as pickle
 from mprorp.utils import home_dir
 from sqlalchemy.orm.attributes import flag_modified
-from mprorp.config.local_settings import learning_parameters as lp
+from mprorp.config.settings import learning_parameters as lp
 
 # initialization mystem
 mystem_analyzer = Mystem(disambiguation=False)

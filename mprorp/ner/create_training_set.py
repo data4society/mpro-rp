@@ -4,8 +4,19 @@ import mprorp.analyzer.db as db
 import mprorp.analyzer.rubricator as rb
 import random
 from mprorp.ner.set_list import sets, rubrics, rubric_names
+from mprorp.config.settings import learning_parameters as lp
 
 rubric_no_name = '35ed00df-3be5-4533-9f13-7535a95dba62'
+
+params = lp['models and sets']
+rubric_num = params['rubric_num']
+train_set_name = params['train_set_name']
+test_set_name = params['test_set_name']
+embedding_id = params['embedding_id']
+
+training_set = sets[rubric_num][train_set_name]
+test_set = sets[rubric_num][test_set_name]
+
 
 
 def create_training_set(rubric_id, session=None):
@@ -390,12 +401,6 @@ def create_new_sets(session=None):
 
 
 def do_job():
-    rubric_num = 'pp'
-    version = ''
-    set_num = version + rubric_num
-
-    training_set = sets[set_num]['train_set_10']
-    test_set = sets[set_num]['test_set_10']
 
     teach_and_test(rubrics[rubric_num]['pos'], training_set, test_set, True, verbose=True)
 
@@ -440,14 +445,10 @@ def test_2_models(model_id_1, model_id_2, test_set_id, rubric_id, protocol_file_
 
 
 def compare_rubrication_result():
-    rubric_num = '4'
-    version = '2'
-    set_num = version + rubric_num
 
-    rubric_id = rubrics['pp']['pos']
-    test_set = sets['pp']['test_set_2']
+    rubric_id = rubrics[rubric_num]['pos']
+    test_set = sets[rubric_num][test_set_name]
     # test_set = sets['1']['test_pn']
-    embedding_id = 'ModelEP_0506_128_NonCons_6_3.pic'
 
     # На чем тренировали рубиику в последний раз
     training_set_id_for_rubric = db.get_set_id_by_rubric_id(rubric_id)

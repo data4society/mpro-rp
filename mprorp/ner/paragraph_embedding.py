@@ -27,7 +27,7 @@ import mprorp.analyzer.rubricator as rb
 
 import mprorp.db.dbDriver as Driver
 from mprorp.db.models import *
-from mprorp.config.local_settings import learning_parameters as lp
+from mprorp.config.settings import learning_parameters as lp
 
 # set_docs = {}
 # for cl in sets:
@@ -36,8 +36,18 @@ from mprorp.config.local_settings import learning_parameters as lp
 #         set_docs[cl][set_type] = db.get_set_docs(sets[cl][set_type])
 #         print(cl, set_type, len(set_docs[cl][set_type]), 'documents')
 
+
+models_and_set = lp['models and sets']
+rubric_num = models_and_set['rubric_num']
+train_set_name = models_and_set['train_set_name']
+training_set = set_list.sets[rubric_num][train_set_name]
+
+embedding_id = models_and_set['embedding_id']
+
 params = lp['paragraph embeddings']
 embedding_for_word_count = params['embedding_for_word_count'] # 5
+learning_steps = params['learning_steps']
+calc_steps = params['calc_steps']
 
 verbose = params['verbose'] # True
 
@@ -499,13 +509,21 @@ def create_word_emb(my_sets, just_new=False):
     docs = set()
     for s in my_sets:
         docs.update(set(db.get_set_docs(s)))
+    print(len(docs))
+    docs_list = [str(i) for i in docs]
+    print(docs_list[0])
+    docs_str = set(docs_list)
     count = 0
     if just_new:
         old_docs = db.get_ner_feature(doc_id_list=list(docs), feature='embedding')
-        docs.difference_update(set(old_docs.keys()))
-        print(len(docs))
+        old_docs_list = [str(i) for i in old_docs.keys()]
+        print(old_docs_list[0])
+        docs_str.difference_update(set(old_docs_list))
+        print(len(docs_str))
 
-    for doc_id in docs:
+    for doc_id in docs_str:
+        rb.morpho_doc2(str(doc_id))
+        rb.lemmas_freq_doc2(str(doc_id))
         ner_feature.create_embedding_feature2(str(doc_id))
         count += 1
         if count % 10 == 0:
@@ -518,8 +536,8 @@ def start_prepare_docs(just_new=False):
     #     paragraph_set.append(set_list.sets[ind]['tr_set_2'])
     #     paragraph_set.append(set_list.sets[ind]['test_set_2'])
     for ind in ['pp', 'ss']:
-        paragraph_set.append(set_list.sets[ind]['train_set_0'])
-        paragraph_set.append(set_list.sets[ind]['test_set_0'])
+        paragraph_set.append(set_list.sets[ind]['train_set_2'])
+        paragraph_set.append(set_list.sets[ind]['test_set_2'])
     create_word_emb(paragraph_set, just_new)
 
 
@@ -534,7 +552,7 @@ def model_emb_par_teach_or_calc(teach=True):
     # training_set = [set_list.set_2['train_5120']]
     # training_set = [set_list.set_2['all_8323']]
     # training_set = '1b8f7501-c7a8-41dc-8b06-fda7d04461a2'
-    training_set = [set_list.set_2['dev_160'], set_list.set_2['dev_320']]
+    # training_set = [set_list.set_2['dev_160'], set_list.set_2['dev_320']]
     # training_set = set_list.sets1250[:5]
     # training_set = set_list.sets1250
 
@@ -542,7 +560,7 @@ def model_emb_par_teach_or_calc(teach=True):
         fill_paragraphs_for_learning(training_set, True, verbose=verbose)
         if verbose:
             print('learning start')
-        run_model(True, 4001, filename=filename)
+        run_model(True, learning_steps, filename=filename)
     else:
 
         #Learninng embeddings
@@ -575,7 +593,7 @@ def model_emb_par_teach_or_calc(teach=True):
             print('calc embeddings start')
             print('paragraphs: ', len(paragraphs))
             print('doc_ids: ', len(doc_ids))
-        em_p = run_model(False, 2001, model_params=model_params)
+        em_p = run_model(False, calc_steps, model_params=model_params)
         if len(filename) > 40:
             print('Length of filename must be less or equal 40')
             exit()
@@ -595,6 +613,9 @@ def model_emb_par_teach_or_calc(teach=True):
             new_vec = DocEmbedding(doc_id=doc_ids[i], embedding=new_emb.emb_id, vector=vec)
             session.add(new_vec)
         session.commit()
+
+
+# def calc_paragraph_embedding():
 
 
 def create_rubric_train_data(tr_set, rubric_id, embedding_id, add_tf_idf=False, verbose=False):
@@ -681,13 +702,14 @@ def test_model(set_id, embedding, rubric_id, tr_set=None, name=''):
 def teach_and_test(add_tf_idf=False, verbose=False):
     # model_emb_par_teach_or_calc(True)
     global batch_size
-    global filename
-    filename = 'ModelEP_0406_128_NonCons_6_3.pic'
+    # global filename
+    # filename = 'ModelEP_0406_128_NonCons_6_3.pic'
+    embedding_id = filename
     tr_set = set_list.sets['13']['tr_set_2']
     test_set = set_list.sets['13']['test_set_2']
     rubric_id = set_list.rubrics['3']['pos']
     # в следующей строке до знака равенства написано mif_indexes, emb, ans
-    mif_indexes, emb, ans = create_rubric_train_data(tr_set, rubric_id, filename, add_tf_idf=add_tf_idf, verbose=verbose)
+    mif_indexes, emb, ans = create_rubric_train_data(tr_set, rubric_id, embedding_id, add_tf_idf=add_tf_idf, verbose=verbose)
     batch_size = len(ans)
     answers_array = np.zeros((batch_size, 1))
     answers_array[:, 0] = ans
@@ -697,18 +719,18 @@ def teach_and_test(add_tf_idf=False, verbose=False):
     if verbose:
         print('start put model in bd')
     if add_tf_idf:
-        db.put_model(rubric_id, tr_set, model, mif_indexes, len(mif_indexes), embedding=filename)
+        db.put_model(rubric_id, tr_set, model, mif_indexes, len(mif_indexes), embedding=embedding_id)
     else:
-        db.put_model(rubric_id, tr_set, model, embedding=filename)
+        db.put_model(rubric_id, tr_set, model, embedding=embedding_id)
     print('Результаты рубрикатора на учебной выборке')
-    print(test_model(tr_set, filename, rubric_id))
+    print(test_model(tr_set, embedding_id, rubric_id))
     print('Результаты рубрикатора на тестовой выборке')
-    print(test_model(test_set, filename, rubric_id))
+    print(test_model(test_set, embedding_id, rubric_id))
 
 
 def start():
-    start_prepare_docs(True)
-    # model_emb_par_teach_or_calc(False)
+    # start_prepare_docs(True)
+    model_emb_par_teach_or_calc(False)
     # teach_and_test(True)
     # tr_set = set_list.sets['13']['tr_set_2']
     # test_set = set_list.sets['13']['test_set_2']
