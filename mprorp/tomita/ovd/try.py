@@ -144,9 +144,9 @@ def delete_old_locations():
     return used
 
 
-def update_locality():
+def update_locality_and_jail():
     locs = session.query(Entity).filter(Entity.entity_class == 'location').all()
-    print(len(locs))
+    print('locs', len(locs))
     to_upd = [i for i in locs if 'kladr_id' in i.data]
     print(len(to_upd))
     for loc in to_upd:
@@ -155,15 +155,20 @@ def update_locality():
         loc.data = new_data
         loc.external_data = external_data
         session.commit()
+    jails = session.query(Entity).filter(Entity.data["type"].astext == 'jail').all()
+    print('jails', len(jails))
+    for jail in jails:
+        external_data = jail.data
+        jail.data = {'name': jail.name, 'jurisdiction': '', 'location': '', 'org_type': 'jail'}
+        jail.external_data = external_data
+        session.commit()
 
-#update_locality()
-f1('locations')
-#record = session.query(Record).filter(Record.document_id == '7dfa26d7-349e-7644-ef2b-0138b1f63158').first()
-#doc = session.query(Document).filter(Document.doc_id == record.source).first()
-#doc = Document(stripped='''Начальник отдела по делам несовершеннолетних ОМВД России по району Гольяново г. Москвы, майор полиции
-#Людмила Смирнова награждена особой благодарностью от Ассоциации женщин московской полиции.''')
+#update_locality_and_jail()
+#f1('locations')
+record = session.query(Record).filter(Record.document_id == 'ffa9027c-9d23-6b0d-d48e-2c64313661eb').first()
+doc = session.query(Document).filter(Document.doc_id == record.source).first()
 #run_tomita2('ovd.cxx', '89ff32f2-40ca-4b62-bbfd-768910f67c2b')
-#print(run_tomita(doc, 'jail.cxx'))
+print(run_tomita(doc, 'jail.cxx'))
 #used = delete_old_locations()
 #print('Markup changed')
 #print(len(used))

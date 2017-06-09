@@ -16,7 +16,8 @@ def coordinates(fact):
         if fs == -1:
             print('ERROR : Find = -1 id: ' + str(fact['id']))
             print(str(fact))
-        ls = fs + len(f[1]) - 1
+            fs = 0
+        ls = fs + len(f[1].replace('  ', ' ')) - 1
         parameters[f[0]] = [fs,ls]
     fact['facts'] = parameters
     return fact
