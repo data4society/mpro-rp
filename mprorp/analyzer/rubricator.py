@@ -967,10 +967,16 @@ def spot_test_set_rubric(test_set_id, rubric_id, training_set_id=None):
 
 def spot_doc_embedding_rubrics(doc, embedding_id, rubrics, session=None, commit_session=True, verbose=False):
     """spot rubrics for document"""
+    # get lemmas from doc
+    lemmas = doc.lemmas
+    # compute document size
+    doc_size = 0
+    for lemma in lemmas:
+        doc_size += lemmas[lemma]
     # get embedding vector by doc_id
     embedding_list = db.get_doc_embedding(embedding_id, doc.doc_id, session)
-    embedding_list.append(1)
-    embedding = np.array(embedding_list)
+    # embedding_list.append(1)
+    # embedding = np.array(embedding_list)
     # models for rubrics
     models = {}
     negative_rubrics = {}
@@ -995,9 +1001,37 @@ def spot_doc_embedding_rubrics(doc, embedding_id, rubrics, session=None, commit_
     # for each rubric
     answers = []
     result = []
+    sets = {}
     for rubric_id in train_set:
+        model_coef_for_embed = models[rubric_id]['settings']['coef_for_embed']
+        model_coef_for_tf_idf = models[rubric_id]['settings']['coef_for_tf_idf']
+        add_tf_idf = models[rubric_id]['features'] is not None
 
-        probability = sigmoid(np.dot(embedding, models[rubric_id]['model']))
+        if add_tf_idf:
+            # mif_number = models[rubric_id]['features_num']
+            tr_set_id = train_set[rubric_id]
+            if sets.get(tr_set_id, None) is None:
+                str[tr_set_id] = db.get_idf_lemma_index_by_set_id([tr_set_id])[tr_set_id]
+            lemma_index = str[tr_set_id]['lemma_index']
+            training_idf = str[tr_set_id]['idf']
+
+        emb_list = [i * model_coef_for_embed for i in embedding_list]
+        if add_tf_idf:
+
+            features_array = np.zeros(len(lemma_index), dtype=float)
+            for lemma in lemmas:
+                # lemma index in lemmas of training set
+                ind_lemma = lemma_index.get(lemma, -1)
+                # if lemma from doc is in lemmas for training set
+                if ind_lemma > -1:
+                    features_array[ind_lemma] = model_coef_for_tf_idf * lemmas[lemma] * training_idf[lemma] / doc_size
+            mif = features_array[models[rubric_id]]
+
+            emb_list.extend(mif)
+
+        emb_list.append(1)
+
+        probability = sigmoid(np.dot(np.array(emb_list), models[rubric_id]['model']))
         probabilities[rubric_id] = probability
         if verbose:
             print('Вероятность: ', probability)
@@ -1036,6 +1070,8 @@ def spot_test_set_embedding_rubric(test_set_id, embedding_id, rubric_id, trainin
         training_set_id = db.get_set_id_by_rubric_id(rubric_id)
     # print('Обучающая выборка: ', training_set_id)
     model = db.get_model_embedding(rubric_id, embedding_id, training_set_id)
+    model_coef_for_embed = model['settings']['coef_for_embed']
+    model_coef_for_tf_idf = model['settings']['coef_for_tf_idf']
 
     add_tf_idf = model['features'] is not None
     if add_tf_idf:
@@ -1056,7 +1092,7 @@ def spot_test_set_embedding_rubric(test_set_id, embedding_id, rubric_id, trainin
 
     answers = []
     for doc_id in docs_emb:
-        emb_list = [i * coef_for_embed for i in docs_emb[doc_id]]
+        emb_list = [i * model_coef_for_embed for i in docs_emb[doc_id]]
         if add_tf_idf:
             if docs_size[doc_id]:
                 # print(doc_id)
@@ -1067,7 +1103,7 @@ def spot_test_set_embedding_rubric(test_set_id, embedding_id, rubric_id, trainin
                     ind_lemma = lemma_index.get(lemma, -1)
                     # if lemma from doc is in lemmas for training set
                     if ind_lemma > -1:
-                        features_array[ind_lemma] = coef_for_tf_idf * lemmas[lemma] * training_idf[lemma] / docs_size[doc_id]
+                        features_array[ind_lemma] = model_coef_for_tf_idf * lemmas[lemma] * training_idf[lemma] / docs_size[doc_id]
                 mif = features_array[model['features']]
             else:
                 mif = np.zeros(mif_number, dtype=float)

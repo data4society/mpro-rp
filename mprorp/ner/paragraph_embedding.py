@@ -51,17 +51,17 @@ calc_steps = params['calc_steps']
 
 verbose = params['verbose'] # True
 
-consistent_words = params['consistent_words'] # True
+params_consistent_words = params['consistent_words'] # True
 use_par_embed = params['use_par_embed'] # True
 use_NN = params['use_NN'] # True
 learning_rate = params['learning_rate'] # 1
 
-batch_size = params['batch_size'] # 100
-embedding_size = params['embedding_size'] # 128  # 128  # Dimension of the embedding vector.
+params_batch_size = params['batch_size'] # 100
+params_embedding_size = params['embedding_size'] # 128  # 128  # Dimension of the embedding vector.
 # embed_par_size = 400
-skip_window = params['skip_window'] # 1  # How many words to consider left and right (if not consistent_words)
-num_skips = params['num_skips'] # 3  # Size of the window with consistent or random order words
-l1_size = params['l1_size'] # 512  # 256
+params_skip_window = params['skip_window'] # 1  # How many words to consider left and right (if not consistent_words)
+params_num_skips = params['num_skips'] # 3  # Size of the window with consistent or random order words
+params_l1_size = params['l1_size'] # 512  # 256
 
 reg_l1 = params['reg_l1'] # 0.0001
 reg_emded = params['reg_emded'] # 0.00005
@@ -79,17 +79,17 @@ tf_steps = params['tf_steps'] # 100000
 
 print('embedding_for_word_count', embedding_for_word_count)
 
-print('consistent_words', consistent_words)
+print('consistent_words', params_consistent_words)
 print('use_par_embed', use_par_embed)
 print('use_NN', use_NN)
 print('learning_rate', learning_rate)
 
-print('batch_size',batch_size)
-print('embedding_size', embedding_size)
+print('batch_size',params_batch_size)
+print('embedding_size', params_embedding_size)
 # embed_par_size = 400
-print('skip_window', skip_window)
-print('num_skips', num_skips)
-print('l1_size', l1_size)
+print('skip_window', params_skip_window)
+print('num_skips', params_num_skips)
+print('l1_size', params_l1_size)
 
 print('reg_l1', reg_l1)
 print('reg_emded', reg_emded)
@@ -110,11 +110,6 @@ valid_examples_p = [0, 1, 2, 3, 4]
 data_index = 0
 par_index = 0
 
-dictionary = []
-paragraphs = []
-reverse_dictionary = {}
-doc_ids = []
-
 
 def new_buffer(span, paragraphs):
     global data_index
@@ -134,7 +129,7 @@ def new_buffer(span, paragraphs):
     return buffer
 
 
-def generate_batch(batch_size, num_skips, skip_window, voc_size, paragraphs):
+def generate_batch(batch_size, num_skips, skip_window, consistent_words, voc_size, paragraphs):
     global data_index
     global par_index
     global use_par_embed
@@ -181,8 +176,8 @@ def generate_batch(batch_size, num_skips, skip_window, voc_size, paragraphs):
     return batch, labels
 
 
-def append_doc_words(doc_list, set_docs, new_dictionary, words_count):
-    global doc_ids
+def append_doc_words(doc_list, set_docs, new_dictionary, words_count, doc_ids):
+
     train_set_words = db.get_ner_feature(doc_id_list=doc_list, feature='embedding')
     if verbose:
         print('doc_list', len(doc_list))
@@ -212,32 +207,30 @@ def append_doc_words(doc_list, set_docs, new_dictionary, words_count):
         doc_ids.append(doc_id)
 
 
-def fill_paragraphs_for_learning(training_set, new_dictionary, verbose=False):
+def fill_paragraphs_for_learning(training_set, num_skips, doc_id=None, dictionary=None, reverse_dictionary=None, verbose=False):
 
-    global num_skips
-    global dictionary
-    global paragraphs
-    global reverse_dictionary
-    global doc_ids
+    new_dictionary = dictionary is None
 
+    paragraphs = []
     words_count = {}
     set_docs = []
-    paragraphs.clear()
-    doc_ids.clear()
+    doc_ids=[]
 
-    for tr_set_id in training_set:
-        train_set_docs = [str(i) for i in db.get_set_docs(tr_set_id)]
-        start_doc = 0
-        while len(train_set_docs) - start_doc > 2000:
-            append_doc_words(train_set_docs[start_doc: start_doc + 1250], set_docs, new_dictionary, words_count)
-            start_doc += 1250
-        append_doc_words(train_set_docs[start_doc:], set_docs, new_dictionary, words_count)
+    if doc_id is None:
+        train_set_docs = [str(i) for i in db.get_set_docs(training_set)]
+    else:
+        train_set_docs = [doc_id]
+    start_doc = 0
+    while len(train_set_docs) - start_doc > 2000:
+        append_doc_words(train_set_docs[start_doc: start_doc + 1250], set_docs, new_dictionary, words_count, doc_ids)
+        start_doc += 1250
+    append_doc_words(train_set_docs[start_doc:], set_docs, new_dictionary, words_count, doc_ids)
 
     if verbose:
         print('set_docs - ok')
     if new_dictionary:
-        dictionary.clear()
-        reverse_dictionary.clear()
+        dictionary = []
+        reverse_dictionary = {}
         words_order = sorted(words_count.items(), key=lambda x: -x[1])
         if verbose:
             print('Most common words (+UNK)', words_order[:5])
@@ -268,18 +261,29 @@ def fill_paragraphs_for_learning(training_set, new_dictionary, verbose=False):
         total_words += len(par_words)
         paragraphs.append(par_words)
 
+    if new_dictionary:
+        return paragraphs, doc_ids, dictionary, reverse_dictionary
+    else:
+        return paragraphs, doc_ids, None, None
+
 
 def run_model(learning, num_steps, filename=None, model_params=None):
 
-    global dictionary
-    global paragraphs
-    global reverse_dictionary
-    global data_index, l1_size, embedding_size
+    global data_index
+
     assert use_par_embed or learning  #If we use existed model (learning=False), use_par_embed must be True
 
-    if not learning:
-        l1_size = model_params['params']['l1_size']
-        embedding_size = model_params['params']['embedding_size']
+    if learning:
+        dictionary = model_params['word_list']
+    reverse_dictionary = model_params['dict']
+    paragraphs = model_params['paragraphs']
+    doc_ids = model_params['doc_ids']
+    l1_size = model_params['params']['l1_size']
+    embedding_size = model_params['params']['embedding_size']
+    num_skips = model_params['params']['num_skips']
+    skip_window = model_params['params']['skip_window']
+    consistent_words = model_params['params']['consistent_words']
+    batch_size = model_params['params']['batch_size']
     vocabulary_size = len(reverse_dictionary) + 2
     paragraph_amount = len(paragraphs)
     if verbose:
@@ -291,7 +295,8 @@ def run_model(learning, num_steps, filename=None, model_params=None):
         for num_skips_loc, skip_window_loc in [(2, 1), (4, 2)]:
             data_index = 0
             batch, labels = generate_batch(batch_size=8, num_skips=num_skips_loc, skip_window=skip_window_loc,
-                                           voc_size=vocabulary_size, paragraphs=paragraphs)
+                                           consistent_words=consistent_words, voc_size=vocabulary_size,
+                                           paragraphs=paragraphs)
             print('\nwith num_skips = %d and skip_window = %d:' % (num_skips_loc, skip_window_loc))
             print('    batch:', [dictionary[bii] if bii < vocabulary_size else bii for bi in batch for bii in bi])
             print('    labels:', [dictionary[li] for li in labels.reshape(8)])
@@ -407,7 +412,7 @@ def run_model(learning, num_steps, filename=None, model_params=None):
         average_loss = 0
         for step in range(num_steps):
             batch_data, batch_labels = generate_batch(
-                batch_size, num_skips, skip_window, vocabulary_size, paragraphs)
+                batch_size, num_skips, skip_window, consistent_words, vocabulary_size, paragraphs)
             feed_dict = {train_dataset : batch_data, train_labels : batch_labels}
             _, l = session.run([optimizer, loss], feed_dict=feed_dict)
             average_loss += l
@@ -442,13 +447,15 @@ def run_model(learning, num_steps, filename=None, model_params=None):
                 'skip_window': skip_window,
                 'num_skips': num_skips,
                 'l1_size': l1_size
+                # 'batch_size': batch_size
             }
             for_save = {
                 'params': params_for_save,
                 'embed': embed_for_save,
                 'softmax_weights': softmax_weights.eval(),
                 'softmax_biases': softmax_biases.eval(),
-                'dict': reverse_dictionary
+                'dict': reverse_dictionary,
+                'word_list': dictionary
             }
             if use_NN:
                 for_save['weights_l1'] = weights_l1.eval()
@@ -543,7 +550,6 @@ def start_prepare_docs(just_new=False):
 
 def model_emb_par_teach_or_calc(teach=True):
 
-    global reverse_dictionary, consistent_words, num_skips, skip_window
     #Learning model
 
     # training_set = [set_list.sets1250[0]]
@@ -557,10 +563,23 @@ def model_emb_par_teach_or_calc(teach=True):
     # training_set = set_list.sets1250
 
     if teach:
-        fill_paragraphs_for_learning(training_set, True, verbose=verbose)
+        paragraphs, doc_ids, word_list, reverse_dictionary = fill_paragraphs_for_learning(training_set, params_num_skips, verbose=verbose)
         if verbose:
             print('learning start')
-        run_model(True, learning_steps, filename=filename)
+        model_params = dict()
+        model_params['word_list'] = word_list
+        model_params['dict'] = reverse_dictionary
+        model_params['paragraphs'] = paragraphs
+        model_params['doc_ids'] = doc_ids
+        model_params['params'] = {
+            'l1_size': params_l1_size,
+            'embedding_size': params_embedding_size,
+            'skip_window': params_skip_window,
+            'num_skips': params_num_skips,
+            'batch_size': params_batch_size,
+            'consistent_words': params_consistent_words
+        }
+        run_model(True, learning_steps, filename=filename, model_params=model_params)
     else:
 
         #Learninng embeddings
@@ -577,22 +596,21 @@ def model_emb_par_teach_or_calc(teach=True):
         # print(training_set, paragraph_set)
         with open(home_dir + '/weights' + filename, 'rb') as f:
             model_params = pickle.load(f)
-        num_skips = model_params['params']['num_skips']
-        skip_window = model_params['params']['skip_window']
-        reverse_dictionary = model_params['dict']
-        # lrd = len(reverse_dictionary)
-        # print(lrd)
-        # print(type(reverse_dictionary))
-        # print(reverse_dictionary)
 
-        consistent_words = model_params['params']['consistent_words']
         if verbose:
             print('fill paragraphs start')
-        fill_paragraphs_for_learning(paragraph_set, False, True)
+        paragraphs, doc_ids, _, _ = fill_paragraphs_for_learning(paragraph_set,
+                                                                 model_params['params']['num_skips'],
+                                                                 dictionary=model_params['word_list'],
+                                                                 reverse_dictionary=model_params['dict'],
+                                                                 verbose=verbose)
         if verbose:
             print('calc embeddings start')
             print('paragraphs: ', len(paragraphs))
             print('doc_ids: ', len(doc_ids))
+        model_params['paragraphs'] = paragraphs
+        model_params['doc_ids'] = doc_ids
+        model_params['params']['batch_size'] = params_batch_size
         em_p = run_model(False, calc_steps, model_params=model_params)
         if len(filename) > 40:
             print('Length of filename must be less or equal 40')
@@ -615,7 +633,35 @@ def model_emb_par_teach_or_calc(teach=True):
         session.commit()
 
 
-# def calc_paragraph_embedding():
+def calc_paragraph_embedding2(doc_id):
+    """wrap for spot_doc_rubrics with local session"""
+    db.doc_apply(doc_id, calc_paragraph_embedding)
+
+
+def calc_paragraph_embedding(doc, session=None, commit_session=True):
+    if session is None:
+        session = Driver.db_session()
+    with open(home_dir + '/weights' + filename, 'rb') as f:
+        model_params = pickle.load(f)
+    paragraphs, doc_ids, _, _ = fill_paragraphs_for_learning(None,
+                                                             model_params['params']['num_skips'],
+                                                             doc_id=doc.doc_id,
+                                                             dictionary=model_params['word_list'],
+                                                             reverse_dictionary=model_params['dict'],
+                                                             verbose=verbose)
+    model_params['paragraphs'] = paragraphs
+    model_params['doc_ids'] = doc_ids
+    model_params['params']['batch_size'] = len(paragraphs[0]) - 2*model_params['params']['num_skips']
+    em_p = run_model(False, calc_steps, model_params=model_params)
+
+    vec = em_p[0, :].tolist()
+    emb_id = embedding_id  # нужно брать из файла с параметрами, а ту
+    session.query(DocEmbedding).filter(
+        (DocEmbedding.doc_id == doc.doc_id) & (DocEmbedding.embedding == emb_id)).delete()
+    new_vec = DocEmbedding(doc_id=doc.doc_id, embedding=emb_id, vector=vec)
+    session.add(new_vec)
+    if commit_session:
+        session.commit()
 
 
 def create_rubric_train_data(tr_set, rubric_id, embedding_id, add_tf_idf=False, verbose=False):
@@ -647,7 +693,7 @@ def create_rubric_train_data(tr_set, rubric_id, embedding_id, add_tf_idf=False, 
     return mif_indexes, emb_list, ans_list
 
 
-def build_rubric_model(tr_data, labels):
+def build_rubric_model(tr_data, labels, batch_size):
 
     vec_size = len(tr_data[0])
     graph = tf.Graph()
@@ -701,7 +747,6 @@ def test_model(set_id, embedding, rubric_id, tr_set=None, name=''):
 
 def teach_and_test(add_tf_idf=False, verbose=False):
     # model_emb_par_teach_or_calc(True)
-    global batch_size
     # global filename
     # filename = 'ModelEP_0406_128_NonCons_6_3.pic'
     embedding_id = filename
@@ -709,29 +754,58 @@ def teach_and_test(add_tf_idf=False, verbose=False):
     test_set = set_list.sets['13']['test_set_2']
     rubric_id = set_list.rubrics['3']['pos']
     # в следующей строке до знака равенства написано mif_indexes, emb, ans
-    mif_indexes, emb, ans = create_rubric_train_data(tr_set, rubric_id, embedding_id, add_tf_idf=add_tf_idf, verbose=verbose)
+    mif_indexes, emb, ans = create_rubric_train_data(tr_set, rubric_id, embedding_id,
+                                                     add_tf_idf=add_tf_idf, verbose=verbose)
     batch_size = len(ans)
     answers_array = np.zeros((batch_size, 1))
     answers_array[:, 0] = ans
     if verbose:
         print('start tensorFlow')
-    model = build_rubric_model(emb, answers_array)
+    model = build_rubric_model(emb, answers_array, batch_size)
     if verbose:
         print('start put model in bd')
+    model_settings = {
+        'coef_for_embed': rb.coef_for_embed,
+        'coef_for_tf_idf': rb.coef_for_tf_idf
+    }
     if add_tf_idf:
-        db.put_model(rubric_id, tr_set, model, mif_indexes, len(mif_indexes), embedding=embedding_id)
+        db.put_model(rubric_id, tr_set, model, mif_indexes, len(mif_indexes),
+                     embedding=embedding_id, settings=model_settings)
     else:
-        db.put_model(rubric_id, tr_set, model, embedding=embedding_id)
+        db.put_model(rubric_id, tr_set, model, embedding=embedding_id, settings=model_settings)
     print('Результаты рубрикатора на учебной выборке')
     print(test_model(tr_set, embedding_id, rubric_id))
     print('Результаты рубрикатора на тестовой выборке')
     print(test_model(test_set, embedding_id, rubric_id))
 
 
+def check_reg_paragraph_embedding():
+    docs = db.get_set_docs(set_list.sets['pp']['test_set_0'])
+    doc_id = str(docs[0])
+    vector = np.array(db.get_doc_embedding(embedding_id, doc_id))
+    calc_paragraph_embedding2(doc_id)
+    vector2 = np.array(db.get_doc_embedding(embedding_id, doc_id))
+    print(vector.dot(vector2), vector.dot(vector))
+
+
+def put_settings_in_model(model_id, coef_for_embed, coef_for_tf_idf):
+    session = Driver.db_session()
+    model = session.query(RubricationModel).filter(RubricationModel.model_id == model_id).all()[0]
+    model.settings = {
+        'coef_for_embed': coef_for_embed,
+        'coef_for_tf_idf': coef_for_tf_idf
+    }
+    db.flag_modified(model, "settings")
+    session.commit()
+
+
 def start():
     # start_prepare_docs(True)
-    model_emb_par_teach_or_calc(False)
+    # model_emb_par_teach_or_calc(True)
+    # check_reg_paragraph_embedding()
+    put_settings_in_model('e9a30a58-bee3-4a36-b94f-02f95c4a2d1d', .1,1)
     # teach_and_test(True)
+
     # tr_set = set_list.sets['13']['tr_set_2']
     # test_set = set_list.sets['13']['test_set_2']
     # rubric_id = set_list.rubrics['3']['pos']

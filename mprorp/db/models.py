@@ -373,6 +373,8 @@ class RubricationModel(Base):
     features_num = Column(Integer())
     # Date of model learning
     learning_date = Column(TIMESTAMP(), server_default=functions.current_timestamp())
+    # Parameters of Model
+    settings = Column(JSONB())
 
 
 class RubricationResult(Base):

@@ -409,6 +409,7 @@ def test_2_models(model_id_1, model_id_2, test_set_id, rubric_id, protocol_file_
 
     """compute TP, FP, TN, FN, Precision, Recall and F-score on data from db"""
     result = {}
+    res_ids = {}
     # if protocol_file_name:
     #     result_docs = {'true_positive': [], 'false_positive': [], 'true_negative': [], 'false_negative': []}
     # right answers
@@ -429,11 +430,18 @@ def test_2_models(model_id_1, model_id_2, test_set_id, rubric_id, protocol_file_
         key3 = rubrication_result_2[key]
         result_key = (key1, key2, key3)
         result[result_key] = result.get(result_key, 0) + 1
+        if res_ids.get(result_key, None) is None:
+            res_ids[result_key] = []
+        res_ids[result_key].append(key)
 
     for result_key in result:
         print(result_key[0], '          ',result_key[1], '          ', result_key[2], '          ', result[result_key])
 
-    # if protocol_file_name:
+    for result_key in result:
+        print(result_key[0], '          ', result_key[1], '          ', result_key[2])
+        print(res_ids[result_key])
+
+            # if protocol_file_name:
     #     x = open(protocol_file_name, 'a', encoding='utf-8')
     #     x.write('ТЕКСТЫ ДОКУМЕНТОВ РАСРПДЕЛЕННЫЕ ПО ВАРИАНТАМ ОТВЕТА РУБРИКАТОРА:' + '\n')
     #     for result_key in result_docs:
@@ -466,5 +474,12 @@ def compare_rubrication_result():
     test_2_models(tf_idf_model_id, embedding_model_id, test_set, rubric_id)
 
 
+def print_docs(id_list):
+    for doc_id in id_list:
+        doc_txt = db.get_doc_text(doc_id)
+        print(doc_id)
+        print(doc_txt)
+
 # compare_rubrication_result()
+print_docs([])
 do_job()
