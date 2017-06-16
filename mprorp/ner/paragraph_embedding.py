@@ -803,7 +803,7 @@ def start():
     # start_prepare_docs(True)
     # model_emb_par_teach_or_calc(True)
     # check_reg_paragraph_embedding()
-    put_settings_in_model('e9a30a58-bee3-4a36-b94f-02f95c4a2d1d', .1,1)
+    put_settings_in_model('4c930599-d189-4a11-8c85-f58096351613', 1, 7)
     # teach_and_test(True)
 
     # tr_set = set_list.sets['13']['tr_set_2']

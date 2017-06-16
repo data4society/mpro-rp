@@ -205,22 +205,36 @@ def get_model(rubric_id, set_id=None, session=None):
 
 
 # reading last computing model for rubric_id and set_id
-def get_model_embedding(rubric_id, embedding, set_id=None, session=None):
+def get_model_embedding(rubric_id, embedding, set_id=None, hybrid=False, session=None):
     """reading last computing model for rubric_id and set_id"""
     if session is None:
         session = Driver.db_session()
     if set_id is None:
         set_id = get_set_id_by_rubric_id(rubric_id)
-    model = session.query(RubricationModel.model,
-                          RubricationModel.features,
-                          RubricationModel.features_num,
-                          RubricationModel.model_id,
-                          RubricationModel.settings,
-                          RubricationModel.learning_date).filter(
-                          (RubricationModel.rubric_id == rubric_id) &
-                          (RubricationModel.set_id == set_id) &
-                          (RubricationModel.embedding == embedding)).order_by(
-                          desc(RubricationModel.learning_date)).all()[0]
+    if hybrid:
+        model = session.query(RubricationModel.model,
+                              RubricationModel.features,
+                              RubricationModel.features_num,
+                              RubricationModel.model_id,
+                              RubricationModel.settings,
+                              RubricationModel.learning_date).filter(
+                              (RubricationModel.rubric_id == rubric_id) &
+                              (RubricationModel.set_id == set_id) &
+                              (RubricationModel.embedding == embedding) &
+                              (RubricationModel.features.isnot(None))).order_by(
+                              desc(RubricationModel.learning_date)).all()[0]
+    else:
+        model = session.query(RubricationModel.model,
+                              RubricationModel.features,
+                              RubricationModel.features_num,
+                              RubricationModel.model_id,
+                              RubricationModel.settings,
+                              RubricationModel.learning_date).filter(
+                              (RubricationModel.rubric_id == rubric_id) &
+                              (RubricationModel.set_id == set_id) &
+                              (RubricationModel.embedding == embedding) &
+                              (RubricationModel.features.is_(None))).order_by(
+                              desc(RubricationModel.learning_date)).all()[0]
     # print(model[4])
     return {'model': model[0], 'features': model[1], 'features_num': model[2],
             'model_id': str(model[3]), 'settings': model[4]}

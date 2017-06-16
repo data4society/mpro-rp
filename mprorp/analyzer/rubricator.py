@@ -1060,7 +1060,7 @@ def spot_doc_embedding_rubrics(doc, embedding_id, rubrics, session=None, commit_
 
 # take 1 rubric and all doc from test_set
 # save in DB doc_id, rubric_id and YES or NO
-def spot_test_set_embedding_rubric(test_set_id, embedding_id, rubric_id, training_set_id=None):
+def spot_test_set_embedding_rubric(test_set_id, embedding_id, rubric_id, training_set_id=None, hybrid=False):
     """spot rubrics for all documents from test_set"""
     # get lemmas
     docs_emb = db.get_docs_embedding(embedding_id, test_set_id)
@@ -1069,7 +1069,7 @@ def spot_test_set_embedding_rubric(test_set_id, embedding_id, rubric_id, trainin
     if training_set_id is None:
         training_set_id = db.get_set_id_by_rubric_id(rubric_id)
     # print('Обучающая выборка: ', training_set_id)
-    model = db.get_model_embedding(rubric_id, embedding_id, training_set_id)
+    model = db.get_model_embedding(rubric_id, embedding_id, training_set_id, hybrid)
     model_coef_for_embed = model['settings']['coef_for_embed']
     model_coef_for_tf_idf = model['settings']['coef_for_tf_idf']
 
