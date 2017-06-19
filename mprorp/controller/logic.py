@@ -31,6 +31,8 @@ from mprorp.ner.NER import NER_predict
 from mprorp.ner.identification import create_markup_regular
 from mprorp.analyzer.rubrication_by_comparing import reg_rubrication_by_comparing
 
+from mprorp.ner.paragraph_embedding import calc_paragraph_embedding
+
 import json
 import datetime
 import inspect
@@ -50,7 +52,10 @@ SITE_PAGE_COMPLETE_STATUS = 99
 
 MORPHO_COMPLETE_STATUS = 100
 LEMMAS_COMPLETE_STATUS = 101
-RUBRICATION_COMPLETE_STATUS = 102
+OLD_RUBRICATION_COMPLETE_STATUS = 102
+
+CALC_EMBEDDING_COMPLETE_STATUS = 130
+RUBRICATION_COMPLETE_STATUS = 140
 CAPITAL_FEATURE_COMPLETE_STATUS = 150
 
 TOMITA_FIRST_COMPLETE_STATUS = 200
@@ -143,6 +148,9 @@ def router(doc_id, app_id, status):
         return
     if "lemmas" in app_conf and status < LEMMAS_COMPLETE_STATUS:  # to lemmas
         regular_lemmas.delay(doc_id, LEMMAS_COMPLETE_STATUS, app_id=app_id)
+        return
+    if "calc_embedding" in app_conf and status < CALC_EMBEDDING_COMPLETE_STATUS:  # to lemmas
+        regular_calc_embedding.delay(doc_id, CALC_EMBEDDING_COMPLETE_STATUS, app_id=app_id)
         return
     if "rubrication" in app_conf and status < RUBRICATION_COMPLETE_STATUS:  # to rubrication
         regular_rubrication.delay(app_conf["rubrication"], doc_id, RUBRICATION_COMPLETE_STATUS, WITHOUT_RUBRICS, app_id=app_id)
@@ -501,6 +509,15 @@ def regular_lemmas(doc_id, new_status, **kwargs):
     """counting lemmas frequency for one document"""
     session, doc = get_doc(doc_id)
     rb.lemmas_freq_doc(doc)
+    return set_doc(doc, new_status, session)
+
+
+#@app.task(ignore_result=True)
+@app.task()
+def regular_calc_embedding(doc_id, new_status, **kwargs):
+    """calculate paragraph embeddings"""
+    session, doc = get_doc(doc_id)
+    calc_paragraph_embedding(doc, session, False)
     return set_doc(doc, new_status, session)
 
 
