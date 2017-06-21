@@ -831,24 +831,53 @@ def spot_doc_rubrics(doc, rubrics, session=None, commit_session=True, verbose=Fa
     train_set = {}
     probabilities = {}
     probability_limits = {}
+    rubrication_type = {}
+    model_types = {}
+    embeddings = {}
+    all_tf_idf_train_sets = set()
+    all_embeddings = set()
     # fill set_id in rubrics and data in models
     for rubric_dict in rubrics:
         rubric_id = rubric_dict['rubric_id']
         negative_rubrics[rubric_id] = rubric_dict.get('rubric_minus_id', None)
-        probability_limits[rubric_id] = rubric_dict.get('limit', probab_limit)
-        train_set_id = db.get_set_id_by_name(rubric_dict['set_name'])
-        if train_set_id is None or train_set_id == '':
-            continue
-        train_set[rubric_id] = train_set_id
-        # correct_answers[rubric_id] = db.get_rubric_answer_doc(doc_id, rubric_id)
-        models[rubric_id] = db.get_model(rubric_id, train_set_id, session)
+        rubrication_type[rubric_id] = rubric_dict.get('rubrication_type', None)
+        probability_limits[rubric_id] = []
+        train_set[rubric_id] = []
+        models[rubric_id] = []
+        model_types[rubric_id] = []
+        if rubrication_type[rubric_id] in ['simple_vote']:
+            postfix_list = ['', '_2']
+        else:
+            postfix_list = ['']
+
+        for postfix in postfix_list:
+            probability_limits[rubric_id].append(rubric_dict.get('limit' + postfix, probab_limit))
+            train_set_id = db.get_set_id_by_name(rubric_dict['set_name' + postfix])
+            train_set[rubric_id].append(train_set_id)
+            model_types[rubric_id].append(rubric_dict.get('model_type' + postfix, 'tf_idf'))
+            embeddings[rubric_id].append(rubric_dict.get('embedding' + postfix, None))
+            if model_types[rubric_id][-1] in ['tf_idf','hybrid']:
+                all_tf_idf_train_sets.add(train_set_id)
+            if model_types[rubric_id][-1] in ['embedding','hybrid']:
+                all_embeddings.add(embeddings[rubric_id][-1])
+            if model_types[rubric_id][-1] == 'tf_idf':
+                models[rubric_id].append(db.get_model(rubric_id, train_set_id, session))
+            else:
+                if embeddings[rubric_id][-1] is None:
+                    raise Exception("No embedding for rubric ", rubric_dict['rubric_id'],
+                                    'model_type:', model_types[rubric_id][-1])
+                models[rubric_id].append(db.get_model_embedding(rubric_id, embeddings[rubric_id][-1], train_set_id,
+                                                                model_types[rubric_id][-1] == 'hybrid', session))
         # get_model: return {'model': model[0], 'features': model[1],
         #                   'features_num': model[2], 'model_id': str(model[3])}
         if verbose:
-            print('Для рубрики ', rubric_id, ' используется модель ', models[rubric_id])
+            print('Для рубрики ', rubric_id, ' используется модель ', models[rubric_id][0])
+            if models[rubric_id]:
+                print('а также модель ',models[rubric_id][1])
     # get dict with idf and lemma_index for each set_id
     # sets[...] is dict: {'idf':..., 'lemma_index': ...}
-    sets = db.get_idf_lemma_index_by_set_id(train_set.values(), session)
+
+    sets = db.get_idf_lemma_index_by_set_id(all_tf_idf_train_sets, session)
     for set_id in sets:
         # if verbose:
         #     print('sets: ', set_id, sets[set_id])
@@ -858,34 +887,67 @@ def spot_doc_rubrics(doc, rubrics, session=None, commit_session=True, verbose=Fa
             idf_doc[lemma] = lemmas[lemma] * sets[set_id]['idf'].get(lemma, 0) / doc_size
         sets[set_id]['idf_doc'] = idf_doc
     # for each rubric
+    embedding_lists = {}
+    for emb_id in all_embeddings:
+        embedding_lists[emb_id] = db.get_doc_embedding(emb_id, doc.doc_id, session)
+
     answers = []
     result = []
     for rubric_id in train_set:
-        set_id = train_set[rubric_id]
-        mif_number = models[rubric_id]['features_num']
-        lemma_index = sets[set_id]['lemma_index']
-        features_array = np.zeros(len(lemma_index), dtype=float)
-        # form features row with size and order like in object_features of training set
-        for lemma in lemmas:
-            # lemma index in lemmas of set
-            ind_lemma = lemma_index.get(lemma, -1)
-            # if lemma from doc is in lemmas for training set
-            if ind_lemma > -1:
-                features_array[ind_lemma] = sets[set_id]['idf_doc'][lemma]
-        # take most important features of model
-        mif = features_array[models[rubric_id]['features']]
-        # add 1 for coefficient b in model
-        # mif[mif_number] = 1
-        mif.resize(mif_number + 1)
-        mif[mif_number] = 1
-        probability = sigmoid(np.dot(mif, models[rubric_id]['model']))
-        probabilities[rubric_id] = probability
-        if verbose:
-            print('Вероятность: ', probability)
-        if probability > probability_limits[rubric_id]:
-            answers.append(rubric_id)
-        elif negative_rubrics[rubric_id] is not None:
-            answers.append(negative_rubrics[rubric_id])
+        probabilities[rubric_id] = []
+        for index in range(len(model_types[rubric_id])):
+            use_embedding = model_types[rubric_id][index] in ['hybrid', 'embedding']
+            use_tf_idf = model_types[rubric_id][index] in ['hybrid', 'tf_idf']
+
+            if use_embedding:
+                model_coef_for_embed = models[rubric_id]['settings']['coef_for_embed']
+                model_coef_for_tf_idf = models[rubric_id]['settings']['coef_for_tf_idf']
+                features_list = [i * model_coef_for_embed for i in embedding_lists[embeddings[rubric_id][index]]]
+            else:
+                features_list = []
+
+            if use_tf_idf:
+                # mif_number = models[rubric_id]['features_num']
+                tr_set_id = train_set[rubric_id]
+                lemma_index = str[tr_set_id]['lemma_index']
+                training_idf = str[tr_set_id]['idf']
+
+                features_array = np.zeros(len(lemma_index), dtype=float)
+                for lemma in lemmas:
+                    # lemma index in lemmas of training set
+                    ind_lemma = lemma_index.get(lemma, -1)
+                    # if lemma from doc is in lemmas for training set
+                    if ind_lemma > -1:
+                        features_array[ind_lemma] = model_coef_for_tf_idf * lemmas[lemma] * training_idf[
+                            lemma] / doc_size
+                mif = features_array[models[rubric_id][index]['features']]
+
+                features_list.extend(mif)
+
+            features_list.append(1)
+
+            probability = sigmoid(np.dot(features_list, models[rubric_id][index]['model']))
+            probabilities[rubric_id].append(probability)
+            if verbose:
+                print('Вероятность: ', probability)
+
+        if rubrication_type[rubric_id] == 'simple_vote':
+            ans = True
+            probability = 0
+            for index in range(len(probabilities[rubric_id])):
+                ans = ans and (probabilities[rubric_id][index] > probability_limits[rubric_id][index])
+                probability += probabilities[rubric_id][index]
+            probability /= len(probabilities[rubric_id])
+            if ans:
+                answers.append(rubric_id)
+            elif negative_rubrics[rubric_id] is not None:
+                answers.append(negative_rubrics[rubric_id])
+        else:
+            probability = probabilities[rubric_id][0]
+            if probability > probability_limits[rubric_id]:
+                answers.append(rubric_id)
+            elif negative_rubrics[rubric_id] is not None:
+                answers.append(negative_rubrics[rubric_id])
         result.append(
                 {'rubric_id': rubric_id, 'result': round(probability), 'model_id': models[rubric_id]['model_id'],
                  'doc_id': doc.doc_id, 'probability': probability})
@@ -1025,7 +1087,7 @@ def spot_doc_embedding_rubrics(doc, embedding_id, rubrics, session=None, commit_
                 # if lemma from doc is in lemmas for training set
                 if ind_lemma > -1:
                     features_array[ind_lemma] = model_coef_for_tf_idf * lemmas[lemma] * training_idf[lemma] / doc_size
-            mif = features_array[models[rubric_id]]
+            mif = features_array[models[rubric_id]['features_num']]
 
             emb_list.extend(mif)
 
