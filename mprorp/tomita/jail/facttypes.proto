@@ -5,3 +5,8 @@ message JailFact_TOMITA: NFactType.TFact
 {
 	required string Jail_TOMITA = 1;
 } 
+
+message CityFact_TOMITA: NFactType.TFact
+{
+	required string City_TOMITA = 1;
+} 

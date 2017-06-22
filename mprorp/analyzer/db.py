@@ -543,7 +543,7 @@ def put_markup_2(doc_id, name, classes, markup_type, refs):
 
 
 def put_markup(doc, name, classes, markup_type, refs, new_doc_markup=True, session=None,
-               commit_session=True, verbose=False):
+               commit_session=True, verbose=False, tomita_on_top=False):
     """write markup with references with symbol coordinates in db"""
     if session is None:
         session = Driver.db_session()
@@ -573,7 +573,19 @@ def put_markup(doc, name, classes, markup_type, refs, new_doc_markup=True, sessi
         if verbose:
             print('my_markup', my_markup)
             print('markup_for_doc', markup_for_doc)
-        my_markup.update(markup_for_doc)
+        if tomita_on_top:
+            for markup_element_1 in [i for i in my_markup]:
+                old_start = my_markup[markup_element_1]["start_offset"]
+                old_end = my_markup[markup_element_1]["end_offset"]
+                for markup_element_2 in [i for i in markup_for_doc]:
+                    new_start = markup_for_doc[markup_element_2]["start_offset"]
+                    new_end = markup_for_doc[markup_element_2]["end_offset"]
+                    if new_start <= old_start <= new_end or new_start <= old_end <= new_end:
+                        if markup_for_doc[markup_element_2]['class'] == my_markup[markup_element_1]['class']:
+                            my_markup.pop(markup_element_1)
+            my_markup.update(markup_for_doc)
+        else:
+            my_markup.update(markup_for_doc)
         if verbose:
             print('new_my_markup', my_markup)
 

@@ -30,7 +30,7 @@ Jail4 "СИЗО"
  key = "СИЗО"|"КП"|"ЛИУ"|"ИК"
 }
 
-City "Город"
+city "Город"
 {
  key = { "City.txt" type=FILE }
 }
