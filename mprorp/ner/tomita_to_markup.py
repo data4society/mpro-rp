@@ -88,7 +88,7 @@ def convert_tomita_result_to_markup(doc, grammars,
             if verbose:
                 print('refs ', refs)
             db.put_markup(doc, markup_name, classes.keys(), '20', refs, new_doc_markup=False, session=session,
-                          commit_session=commit_session, verbose=verbose)
+                          commit_session=commit_session, verbose=verbose, tomita_on_top=True)
             # db.put_references(doc_id, markup_id, refs, new_status)
         elif grammar == 'jail.cxx':
             doc_id = doc.doc_id
@@ -111,7 +111,7 @@ def convert_tomita_result_to_markup(doc, grammars,
             if verbose:
                 print('refs ', refs)
             db.put_markup(doc, markup_name, classes.keys(), '20', refs, new_doc_markup=False, session=session,
-                          commit_session=commit_session, verbose=verbose)
+                          commit_session=commit_session, verbose=verbose, tomita_on_top=True)
             # db.put_references(doc_id, markup_id, refs, new_status)
         # else:
         #     default_entity = '0057375a-8242-1c6d-bf64-d5cb5a7ad7dd'

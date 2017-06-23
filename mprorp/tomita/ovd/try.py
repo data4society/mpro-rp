@@ -111,44 +111,40 @@ def locality_import(type):
         session.add(new_entity)
         session.commit()
 
+def delete_entity2(entity, session=None):
+    if session is None:
+        session = Driver.db_session()
+    session.query(Entity).filter(Entity.entity_id == entity.entity_id).delete()
+    session.commit()
 
-def delete_old_locations():
-    locs = session.query(Entity).filter(Entity.entity_class == 'location').all()
-    old_locs = {}
-    new_locs = {}
-    for i in locs:
-        if i.name != '':
-            if 'kladr_id' not in i.data:
-                if i.name not in old_locs:
-                    old_locs[i.name] = [i.entity_id]
+def delete_same(locs, session=None):
+    if session is None:
+        session = Driver.db_session()
+    names = [i.name for i in locs if i.name != '']
+    print(len(names), len(set(names)))
+    for name in names:
+        if names.count(name) > 1:
+            print(name)
+            entities = session.query(Entity).filter(Entity.name == name).all()
+            print(len(entities))
+            good = entities[0]
+            for entity in entities[1:]:
+                markups = session.query(Reference).filter(Reference.entity == entity.entity_id).all()
+                if markups is []:
+                    delete_entity2(entity)
                 else:
-                    old_locs[i.name] += [i.entity_id]
-            else:
-                if i.name not in new_locs:
-                    new_locs[i.name] = [i.entity_id]
-                else:
-                    new_locs[i.name] += [i.entity_id]
-    print(len(old_locs), len(new_locs))
-    used = []
-    for loc in old_locs:
-        if loc in new_locs:
-            for idd in old_locs[loc]:
-                markups = session.query(Reference).filter(Reference.entity == idd).all()
-                if markups != []:
-                    print(loc)
-                    new_id = new_locs[loc][0]
                     for markup in markups:
-                        markup.entity = new_id
+                        if session is None:
+                            session = Driver.db_session()
+                        markup.entity = good.entity_id
                         session.commit()
-            used += old_locs[loc]
-    return used
-
+                    delete_entity2(entity)
+            print(len(session.query(Entity).filter(Entity.name == name).all()))
 
 def update_locality_and_jail():
     locs = session.query(Entity).filter(Entity.entity_class == 'location').all()
-    print('locs', len(locs))
     to_upd = [i for i in locs if 'kladr_id' in i.data]
-    print(len(to_upd))
+    print('locs', len(to_upd))
     for loc in to_upd:
         external_data = loc.data
         new_data = {'name': loc.name, 'loc_type': 'населенный пункт'}
@@ -162,13 +158,36 @@ def update_locality_and_jail():
         jail.data = {'name': jail.name, 'jurisdiction': '', 'location': '', 'org_type': 'jail'}
         jail.external_data = external_data
         session.commit()
+    delete_same(session.query(Entity).filter(Entity.data['org_type'].astext == 'jail'))
+    delete_same(session.query(Entity).filter(Entity.external_data['kladr_type'].astext == 'Город'))
+
+
+#jl = eval(open('jail_locations.json', 'r', encoding='utf-8').read(), {})
+#jails = session.query(Entity).filter(Entity.data['org_type'].astext == 'jail').all()
+#jails = [i for i in jails if 'jail_location' not in i.external_data]
+#print(len(jails))
+#for jail in jails:
+#    if jail.name in jl:
+#        external_data = jail.external_data
+#        external_data['jail_location'] = jl[jail.name]
+#        jail.external_data = external_data
+#        print(jail.external_data)
+#        session.commit()
+#    else:
+#        print(jail.name)
+
+a= [i for i in session.query(Entity).filter(Entity.entity_class == 'organization').all()]
+print(len(a))
+if len(a) < 100:
+    for i in a:
+        print(i.name)
 
 #update_locality_and_jail()
 #f1('locations')
-record = session.query(Record).filter(Record.document_id == 'ffa9027c-9d23-6b0d-d48e-2c64313661eb').first()
-doc = session.query(Document).filter(Document.doc_id == record.source).first()
+#record = session.query(Record).filter(Record.document_id == '3a41c9af484b562dca9b3dd118e21fbd').first()
+#doc = session.query(Document).filter(Document.doc_id == '6933b295-8ea4-4306-9673-7be03450f73e').first()
 #run_tomita2('ovd.cxx', '89ff32f2-40ca-4b62-bbfd-768910f67c2b')
-print(run_tomita(doc, 'jail.cxx'))
+#print(run_tomita(doc, 'locality.cxx'))
 #used = delete_old_locations()
 #print('Markup changed')
 #print(len(used))
