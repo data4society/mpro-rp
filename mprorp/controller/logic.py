@@ -54,13 +54,15 @@ MORPHO_COMPLETE_STATUS = 100
 LEMMAS_COMPLETE_STATUS = 101
 OLD_RUBRICATION_COMPLETE_STATUS = 102
 
+NER_TOMITA_EMBEDDING_FEATURES_COMPLETE_STATUS = 120
+
 CALC_EMBEDDING_COMPLETE_STATUS = 130
 RUBRICATION_COMPLETE_STATUS = 140
 CAPITAL_FEATURE_COMPLETE_STATUS = 150
 
 TOMITA_FIRST_COMPLETE_STATUS = 200
 NER_TOMITA_FEATURES_COMPLETE_STATUS = 300
-NER_TOMITA_EMBEDDING_FEATURES_COMPLETE_STATUS = 301
+OLD_NER_TOMITA_EMBEDDING_FEATURES_COMPLETE_STATUS = 301
 NER_TOMITA_MORPHO_FEATURES_COMPLETE_STATUS = 302
 NER_PREDICT_COMPLETE_STATUS = 350
 MARKUP_COMPLETE_STATUS = 400
@@ -149,6 +151,9 @@ def router(doc_id, app_id, status):
     if "lemmas" in app_conf and status < LEMMAS_COMPLETE_STATUS:  # to lemmas
         regular_lemmas.delay(doc_id, LEMMAS_COMPLETE_STATUS, app_id=app_id)
         return
+    if "ner_tomita_embedding_features" in app_conf and status < NER_TOMITA_EMBEDDING_FEATURES_COMPLETE_STATUS:  # to preparing lemmas
+        regular_embedding_features.delay(doc_id, NER_TOMITA_EMBEDDING_FEATURES_COMPLETE_STATUS, app_id=app_id)
+        return
     if "calc_embedding" in app_conf and status < CALC_EMBEDDING_COMPLETE_STATUS:  # to lemmas
         regular_calc_embedding.delay(doc_id, CALC_EMBEDDING_COMPLETE_STATUS, app_id=app_id)
         return
@@ -169,9 +174,6 @@ def router(doc_id, app_id, status):
         if "tomita_features" in app_conf["tomita"] and status < NER_TOMITA_FEATURES_COMPLETE_STATUS:  # to ner tomita
             regular_tomita_features.delay(grammars, doc_id, NER_TOMITA_FEATURES_COMPLETE_STATUS, app_id=app_id)
             return
-    if "ner_tomita_embedding_features" in app_conf and status < NER_TOMITA_EMBEDDING_FEATURES_COMPLETE_STATUS:  # to preparing lemmas
-        regular_embedding_features.delay(doc_id, NER_TOMITA_EMBEDDING_FEATURES_COMPLETE_STATUS, app_id=app_id)
-        return
     if "ner_tomita_morpho_features" in app_conf and status < NER_TOMITA_MORPHO_FEATURES_COMPLETE_STATUS:  # to preparing morpho
         regular_morpho_features.delay(doc_id, NER_TOMITA_MORPHO_FEATURES_COMPLETE_STATUS, app_id=app_id)
         return
