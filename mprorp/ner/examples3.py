@@ -17,6 +17,9 @@ from mprorp.ner.tomita_to_markup import convert_tomita_result_to_markup
 import mprorp.ner.feature as feature
 import random
 import mprorp.ner.set_list as set_list
+import pickle as pickle
+from mprorp.ner.paragraph_embedding import filename
+
 
 session = Driver.db_session()
 # 1. Create sets: training and dev
@@ -411,6 +414,25 @@ def get_doc_id(rec_id):
 
 
 def script_exec():
+    with open(home_dir + '/weights' + filename, 'rb') as f:
+        model_params = pickle.load(f)
+    dict = model_params['dict']
+    word_list = list
+    for i in range(len(dict)):
+        for lemma in dict:
+            if dict[lemma] == i:
+                word_list.append(lemma)
+                break
+        if len(word_list) == i:
+            print('не найдено номер', i)
+            break
+    if len(dict) == len(word_list):
+        model_params['word_list'] = word_list
+    with open(home_dir + '/weights' + filename, 'wb') as f:
+        pickle.dump(model_params, f)
+
+
+def script_exec3():
 
     # my_list = list(db.get_set_docs(set_list.set_factRuEval['devset']))
     # my_list.extend(list(db.get_set_docs(set_list.set_factRuEval['testset'])))
@@ -581,4 +603,4 @@ def how_many_docs(set_id):
     print(len(set_set))
 
 # lemmas_from_set()
-how_many_docs(set_list.sets['pp']['test_set_0'])
+# how_many_docs(set_list.sets['pp']['test_set_0'])
