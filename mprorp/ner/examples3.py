@@ -417,7 +417,7 @@ def script_exec():
     with open(home_dir + '/weights' + filename, 'rb') as f:
         model_params = pickle.load(f)
     dict = model_params['dict']
-    word_list = list
+    word_list = []
     for i in range(len(dict)):
         for lemma in dict:
             if dict[lemma] == i:
