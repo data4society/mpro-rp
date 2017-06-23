@@ -110,6 +110,9 @@ valid_examples_p = [0, 1, 2, 3, 4]
 data_index = 0
 par_index = 0
 
+with open(home_dir + '/weights' + filename, 'rb') as f:
+    model_params_reg = pickle.load(f)
+
 
 def new_buffer(span, paragraphs):
     global data_index
@@ -641,18 +644,18 @@ def calc_paragraph_embedding2(doc_id):
 def calc_paragraph_embedding(doc, session=None, commit_session=True):
     if session is None:
         session = Driver.db_session()
-    with open(home_dir + '/weights' + filename, 'rb') as f:
-        model_params = pickle.load(f)
+    # with open(home_dir + '/weights' + filename, 'rb') as f:
+    #     model_params = pickle.load(f)
     paragraphs, doc_ids, _, _ = fill_paragraphs_for_learning(None,
-                                                             model_params['params']['num_skips'],
+                                                             model_params_reg['params']['num_skips'],
                                                              doc_id=doc.doc_id,
-                                                             dictionary=model_params['word_list'],
-                                                             reverse_dictionary=model_params['dict'],
+                                                             dictionary=model_params_reg['word_list'],
+                                                             reverse_dictionary=model_params_reg['dict'],
                                                              verbose=verbose)
-    model_params['paragraphs'] = paragraphs
-    model_params['doc_ids'] = doc_ids
-    model_params['params']['batch_size'] = len(paragraphs[0]) - 2*model_params['params']['num_skips']
-    em_p = run_model(False, calc_steps, model_params=model_params)
+    model_params_reg['paragraphs'] = paragraphs
+    model_params_reg['doc_ids'] = doc_ids
+    model_params_reg['params']['batch_size'] = len(paragraphs[0]) - 2*model_params_reg['params']['num_skips']
+    em_p = run_model(False, calc_steps, model_params=model_params_reg)
 
     vec = em_p[0, :].tolist()
     emb_id = embedding_id  # нужно брать из файла с параметрами, а ту

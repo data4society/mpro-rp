@@ -111,4 +111,6 @@ def print_lemmas_from_ribric_models(rubrics):
         print(wm)
 
 
-print_lemmas_from_ribric_models(rubricator)
+# print_lemmas_from_ribric_models(rubricator)
+doc_id = '664db67f-cc86-4933-82c0-20a555a38281'
+rb.spot_doc_rubrics2(doc_id,rubricator)

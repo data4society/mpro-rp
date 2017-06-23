@@ -845,6 +845,7 @@ def spot_doc_rubrics(doc, rubrics, session=None, commit_session=True, verbose=Fa
         train_set[rubric_id] = []
         models[rubric_id] = []
         model_types[rubric_id] = []
+        embeddings[rubric_id] = []
         if rubrication_type[rubric_id] in ['simple_vote']:
             postfix_list = ['', '_2']
         else:
@@ -904,13 +905,15 @@ def spot_doc_rubrics(doc, rubrics, session=None, commit_session=True, verbose=Fa
                 model_coef_for_tf_idf = models[rubric_id]['settings']['coef_for_tf_idf']
                 features_list = [i * model_coef_for_embed for i in embedding_lists[embeddings[rubric_id][index]]]
             else:
+                model_coef_for_tf_idf = 1
                 features_list = []
 
             if use_tf_idf:
                 # mif_number = models[rubric_id]['features_num']
-                tr_set_id = train_set[rubric_id]
-                lemma_index = str[tr_set_id]['lemma_index']
-                training_idf = str[tr_set_id]['idf']
+                tr_set_id = train_set[rubric_id][index]
+                set_id_data = sets[tr_set_id]
+                lemma_index = set_id_data['lemma_index']
+                training_idf = set_id_data['idf']
 
                 features_array = np.zeros(len(lemma_index), dtype=float)
                 for lemma in lemmas:
@@ -944,17 +947,18 @@ def spot_doc_rubrics(doc, rubrics, session=None, commit_session=True, verbose=Fa
                 answers.append(negative_rubrics[rubric_id])
         else:
             probability = probabilities[rubric_id][0]
-            if probability > probability_limits[rubric_id]:
+            if probability > probability_limits[rubric_id][0]:
                 answers.append(rubric_id)
             elif negative_rubrics[rubric_id] is not None:
                 answers.append(negative_rubrics[rubric_id])
+        # В случае голосования или иного использования нескольких моделей, результат будет привязан к первой из моделей
         result.append(
-                {'rubric_id': rubric_id, 'result': round(probability), 'model_id': models[rubric_id]['model_id'],
+                {'rubric_id': rubric_id, 'result': round(probability), 'model_id': models[rubric_id][0]['model_id'],
                  'doc_id': doc.doc_id, 'probability': probability})
         if negative_rubrics[rubric_id] is not None:
             result.append(
                     {'rubric_id': negative_rubrics[rubric_id], 'result': 1 - round(probability),
-                     'model_id': models[rubric_id]['model_id'],
+                     'model_id': models[rubric_id][0]['model_id'],
                      'doc_id': doc.doc_id, 'probability': probability})
 
     db.put_rubrics(result, session, commit_session)
@@ -1073,9 +1077,9 @@ def spot_doc_embedding_rubrics(doc, embedding_id, rubrics, session=None, commit_
             # mif_number = models[rubric_id]['features_num']
             tr_set_id = train_set[rubric_id]
             if sets.get(tr_set_id, None) is None:
-                str[tr_set_id] = db.get_idf_lemma_index_by_set_id([tr_set_id])[tr_set_id]
-            lemma_index = str[tr_set_id]['lemma_index']
-            training_idf = str[tr_set_id]['idf']
+                sets[tr_set_id] = db.get_idf_lemma_index_by_set_id([tr_set_id])[tr_set_id]
+            lemma_index = sets[tr_set_id]['lemma_index']
+            training_idf = sets[tr_set_id]['idf']
 
         emb_list = [i * model_coef_for_embed for i in embedding_list]
         if add_tf_idf:
