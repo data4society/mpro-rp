@@ -13,6 +13,7 @@ import os
 from mprorp.tomita.tomita_run_loc_c import run_tomita_loc_c
 from mprorp.tomita.locality.meta_loc import get_meta
 from mprorp.ner.tomita_to_markup import convert_tomita_result_to_markup, convert_tomita_result_to_markup2
+from sqlalchemy.orm.attributes import flag_modified
 
 session = db_session()
 #object = session.query(Entity).filter(Entity.external_data['kladr'].astext == "77000000000062700").all()
@@ -164,30 +165,32 @@ def update_locality_and_jail():
 
 #jl = eval(open('jail_locations.json', 'r', encoding='utf-8').read(), {})
 #jails = session.query(Entity).filter(Entity.data['org_type'].astext == 'jail').all()
-#jails = [i for i in jails if 'jail_location' not in i.external_data]
+#jails = [i for i in jails if i.data['location'] == '']
 #print(len(jails))
 #for jail in jails:
 #    if jail.name in jl:
-#        external_data = jail.external_data
-#        external_data['jail_location'] = jl[jail.name]
-#        jail.external_data = external_data
-#        print(jail.external_data)
+#        print(jail.name)
+#        jail.data['location'] = jl[jail.name]
+#        flag_modified(jail, 'data')
 #        session.commit()
 #    else:
-#        print(jail.name)
+#        print('bad name', jail.name, jail.external_data['url'])
 
-a= [i for i in session.query(Entity).filter(Entity.entity_class == 'organization').all()]
-print(len(a))
-if len(a) < 100:
-    for i in a:
-        print(i.name)
+#a = [i for i in session.query(Entity).filter(Entity.entity_class == 'organization').all()]
+#print(len(a))
+#if len(a) < 100:
+#    for i in a:
+#        print(i.name)
 
 #update_locality_and_jail()
 #f1('locations')
 #record = session.query(Record).filter(Record.document_id == '3a41c9af484b562dca9b3dd118e21fbd').first()
-#doc = session.query(Document).filter(Document.doc_id == '6933b295-8ea4-4306-9673-7be03450f73e').first()
-#run_tomita2('ovd.cxx', '89ff32f2-40ca-4b62-bbfd-768910f67c2b')
-#print(run_tomita(doc, 'locality.cxx'))
+doc = session.query(Document).filter(Document.doc_id == '6933b295-8ea4-4306-9673-7be03450f73e').first()
+doc.stripped = '''В Верховном суде Хакасии сегодня ряд фигурантов коррупционного дела использовал шанс на обжалование своих арестов.
+Первым на связь из СИЗО №2 Абакана вышел экс-руководитель администрации главы РХ Владимир Бызов. Напомним, ему инкриминируют мошенничество, взятку в составе ОПГ, а также создание преступного сообщества.
+Недавно Абаканский городской суд продлил Бызову арест до конца августа. Защита, отрабатывая гонорары, продление стражи обжаловала. В апелляции адвокаты указали, что постановление носит формальный характер, незаконно и необоснованно.
+В частности, по мнению защиты, нет доказательств того, что Бызов, находясь под домашним арестом, может продолжить заниматься преступной деятельностью. Он уже лишён должности руководителя администрации глав РХ, соответственно, не может как-то оказать влияние на ход следствия.'''
+print(run_tomita(doc, 'jail.cxx'))
 #used = delete_old_locations()
 #print('Markup changed')
 #print(len(used))

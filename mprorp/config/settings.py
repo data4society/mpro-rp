@@ -10,7 +10,7 @@ google_spreadsheet_id = ''
 
 tomita_log_path = ''
 
-learning_parameters = {
+local_learning_parameters = {
     'rubricator':{
         'feature_selection': 2, # 1 - entropy_difference, 2 - mutual_information
         'optimal_features_number': 250,
@@ -80,7 +80,7 @@ try:
         if big_key in local_learning_parameters.keys():
             params = local_learning_parameters[big_key]
             for key in params.keys():
-                learning_parameters[big_key][key] = params[key]
+                local_learning_parameters[big_key][key] = params[key]
 
 except ImportError:
     pass
