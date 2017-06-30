@@ -146,6 +146,7 @@ def delete_document(doc_id, session=None, force_commit=False, full=True):
     session.execute("DELETE FROM documentrubrics d WHERE d.doc_id = '" + doc_id + "'")
     session.execute("DELETE FROM tomita_results d WHERE d.doc_id = '" + doc_id + "'")
     session.execute("DELETE FROM objectfeatures o WHERE o.doc_id = '" + doc_id + "'")
+    session.execute("DELETE FROM doc_embeddings d WHERE d.doc_id = '" + doc_id + "'")
     session.execute("DELETE FROM ner_features n WHERE n.doc_id = '" + doc_id + "'")
     session.execute(
         "DELETE FROM changes c USING records r WHERE c.document_id = r.document_id AND r.source = '" + doc_id + "'")
