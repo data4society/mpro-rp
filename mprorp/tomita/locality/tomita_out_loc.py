@@ -14,9 +14,11 @@ def coordinates(fact):
     for f in fact['facts']:
         fs = fact['string'].find(f[1].lower())
         if fs == -1:
-            print('ERROR : Find = -1 id: ' + str(fact['id']))
-            print(str(fact))
-            fs = 0
+            fs = fact['string'].find(f[1].lower().replace('№ ', '№'))
+            if fs == -1:
+                print('ERROR : Find = -1 id: ' + str(fact['id']))
+                print(str(fact))
+                fs = 0
         ls = fs + len(f[1].replace('  ', ' ')) - 1
         parameters[f[0]] = [fs,ls]
     fact['facts'] = parameters

@@ -1,5 +1,6 @@
 from mprorp.db.dbDriver import *
 from mprorp.db.models import *
+import math
 
 
 def compare(arr1, arr2):
@@ -10,7 +11,7 @@ def compare(arr1, arr2):
 
 
 def clean_fact(fact):
-    fact = fact.replace(' №', '').replace('(', '').replace('"', '').replace(')', '')
+    fact = fact.replace(' №', '-').replace('(', '').replace('"', '').replace(')', '')
     return fact
 
 
@@ -22,3 +23,39 @@ def jail_identification(fact):
         if compare(fact['norm'].split(), jail.external_data['norm']):
             return str(jail.entity_id).replace("UUID('", '').replace("')", '')
     return 'org'
+
+
+def find_nearest_location(jail, all_jails, locs):
+    out = {}
+    jails = [i for i in all_jails if clean_fact(jail['norm']) in str(i.external_data['norm'])]
+    if len(jails) == 0:
+        return {}
+    elif len(jails) == 1:
+        return {0: jails[0]}
+    else:
+        for loc in locs:
+            dist = min(math.fabs(jail['fs'] - loc['ls']), math.fabs(loc['fs'] - jail['ls']))
+            for jail in jails:
+                if loc['norm'] in jail.data['location'].lower():
+                    if dist in out:
+                        out[dist].append(jail)
+                    else:
+                        out[dist] = [jail]
+        return out
+
+
+def jail_identification_new(facts):
+    out = {}
+    session = db_session()
+    all_jails = session.query(Entity).filter(Entity.data["org_type"].astext == 'jail').all()
+    cities = [i for i in facts if i['type'] == 'CityFact']
+    jails = [i for i in facts if i['type'] == 'JailFact']
+    print(jails)
+    print(cities)
+    for jail in jails:
+        variants = find_nearest_location(jail, all_jails, cities)
+        print(variants)
+        if variants != {}:
+            best_dist = min([i for i in variants.keys()])
+            out[str(jail['fs'])+':'+str(jail['ls'])] = str(variants[best_dist][0].entity_id).replace("UUID('", '').replace("')", '')
+    return out
