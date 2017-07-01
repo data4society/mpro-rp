@@ -19,3 +19,8 @@ TAuxDicArticle "FIO"
 {
  key = {"alg:fio" type = CUSTOM}
 }
+
+Area "Область"
+{
+ key = "область"
+}
