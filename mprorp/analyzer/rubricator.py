@@ -848,8 +848,10 @@ def spot_doc_rubrics(doc, rubrics, session=None, commit_session=True, verbose=Fa
         embeddings[rubric_id] = []
         if rubrication_type[rubric_id] in ['simple_vote']:
             postfix_list = ['', '_2']
-        else:
+        elif rubrication_type[rubric_id] is None:
             postfix_list = ['']
+        else:
+            raise NameError('Unknown rubrication type: ' + str(rubrication_type[rubric_id]))
 
         for postfix in postfix_list:
             probability_limits[rubric_id].append(rubric_dict.get('limit' + postfix, probab_limit))
@@ -857,6 +859,8 @@ def spot_doc_rubrics(doc, rubrics, session=None, commit_session=True, verbose=Fa
             train_set[rubric_id].append(train_set_id)
             model_types[rubric_id].append(rubric_dict.get('model_type' + postfix, 'tf_idf'))
             embeddings[rubric_id].append(rubric_dict.get('embedding' + postfix, None))
+            if not(model_types[rubric_id][-1] in ['tf_idf','hybrid', 'embedding']):
+                raise NameError('Unknown model type: ' + str(model_types[rubric_id][-1]))
             if model_types[rubric_id][-1] in ['tf_idf','hybrid']:
                 all_tf_idf_train_sets.add(train_set_id)
             if model_types[rubric_id][-1] in ['embedding','hybrid']:
@@ -940,7 +944,7 @@ def spot_doc_rubrics(doc, rubrics, session=None, commit_session=True, verbose=Fa
             for index in range(len(probabilities[rubric_id])):
                 ans = ans and (probabilities[rubric_id][index] > probability_limits[rubric_id][index])
                 probability += probabilities[rubric_id][index]
-            probability /= len(probabilities[rubric_id])
+            # probability /= len(probabilities[rubric_id])
             if ans:
                 answers.append(rubric_id)
             elif negative_rubrics[rubric_id] is not None:
@@ -951,6 +955,7 @@ def spot_doc_rubrics(doc, rubrics, session=None, commit_session=True, verbose=Fa
                 answers.append(rubric_id)
             elif negative_rubrics[rubric_id] is not None:
                 answers.append(negative_rubrics[rubric_id])
+
         # В случае голосования или иного использования нескольких моделей, результат будет привязан к первой из моделей
         result.append(
                 {'rubric_id': rubric_id, 'result': round(probability), 'model_id': models[rubric_id][0]['model_id'],
