@@ -71,8 +71,5 @@ def start_tomita_jail(doc):
 def run_tomita_jail(doc):
     out_name, file_name, tomita_path = start_tomita_jail(doc)
     results = get_coordinates(out_name, file_name, tomita_path)
-    print(results)
-    #for result in results:
-    #    result['code'] = jail_identification(result)
     results = jail_identification_new(results)
     return results, tomita_path

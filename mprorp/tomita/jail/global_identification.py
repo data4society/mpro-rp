@@ -50,12 +50,10 @@ def jail_identification_new(facts):
     all_jails = session.query(Entity).filter(Entity.data["org_type"].astext == 'jail').all()
     cities = [i for i in facts if i['type'] == 'CityFact']
     jails = [i for i in facts if i['type'] == 'JailFact']
-    print(jails)
-    print(cities)
     for jail in jails:
         variants = find_nearest_location(jail, all_jails, cities)
-        print(variants)
         if variants != {}:
             best_dist = min([i for i in variants.keys()])
-            out[str(jail['fs'])+':'+str(jail['ls'])] = str(variants[best_dist][0].entity_id).replace("UUID('", '').replace("')", '')
+            if best_dist <= 250:
+                out[str(jail['fs'])+':'+str(jail['ls'])] = str(variants[best_dist][0].entity_id).replace("UUID('", '').replace("')", '')
     return out
