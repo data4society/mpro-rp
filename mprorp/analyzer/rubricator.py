@@ -830,6 +830,7 @@ def spot_doc_rubrics(doc, rubrics, session=None, commit_session=True, verbose=Fa
     negative_rubrics = {}
     train_set = {}
     probabilities = {}
+    probabilities_for_client = {}
     probability_limits = {}
     rubrication_type = {}
     model_types = {}
@@ -956,6 +957,7 @@ def spot_doc_rubrics(doc, rubrics, session=None, commit_session=True, verbose=Fa
             elif negative_rubrics[rubric_id] is not None:
                 answers.append(negative_rubrics[rubric_id])
 
+        probabilities_for_client[rubric_id] = sum(probabilities[rubric_id])
         # В случае голосования или иного использования нескольких моделей, результат будет привязан к первой из моделей
         result.append(
                 {'rubric_id': rubric_id, 'result': round(probability), 'model_id': models[rubric_id][0]['model_id'],
@@ -972,7 +974,7 @@ def spot_doc_rubrics(doc, rubrics, session=None, commit_session=True, verbose=Fa
     doc.rubric_ids = answers
     if doc.meta is None:
         doc.meta = dict()
-    doc.meta['rubric_probabilities'] = probabilities
+    doc.meta['rubric_probabilities'] = probabilities_for_client
     flag_modified(doc, "meta")
 
 
