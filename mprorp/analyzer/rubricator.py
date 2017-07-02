@@ -906,8 +906,8 @@ def spot_doc_rubrics(doc, rubrics, session=None, commit_session=True, verbose=Fa
             use_tf_idf = model_types[rubric_id][index] in ['hybrid', 'tf_idf']
 
             if use_embedding:
-                model_coef_for_embed = models[rubric_id]['settings']['coef_for_embed']
-                model_coef_for_tf_idf = models[rubric_id]['settings']['coef_for_tf_idf']
+                model_coef_for_embed = models[rubric_id][index]['settings']['coef_for_embed']
+                model_coef_for_tf_idf = models[rubric_id][index]['settings']['coef_for_tf_idf']
                 features_list = [i * model_coef_for_embed for i in embedding_lists[embeddings[rubric_id][index]]]
             else:
                 model_coef_for_tf_idf = 1
