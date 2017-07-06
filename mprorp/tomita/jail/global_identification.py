@@ -31,7 +31,7 @@ def find_nearest_location(jail, all_jails, locs):
     if len(jails) == 0:
         return {}
     elif len(jails) == 1:
-        return {0: jails[0]}
+        return {0: jails}
     else:
         for loc in locs:
             dist = min(math.fabs(jail['fs'] - loc['ls']), math.fabs(loc['fs'] - jail['ls']))
