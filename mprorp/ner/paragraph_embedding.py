@@ -748,14 +748,14 @@ def test_model(set_id, embedding, rubric_id, tr_set=None, name=''):
     return result
 
 
-def teach_and_test(add_tf_idf=False, verbose=False):
+def teach_and_test(tr_set, test_set, rubric_id, add_tf_idf=False, verbose=False):
     # model_emb_par_teach_or_calc(True)
     # global filename
     # filename = 'ModelEP_0406_128_NonCons_6_3.pic'
     embedding_id = filename
-    tr_set = set_list.sets['13']['tr_set_2']
-    test_set = set_list.sets['13']['test_set_2']
-    rubric_id = set_list.rubrics['3']['pos']
+    # tr_set = set_list.sets['13']['tr_set_2']
+    # test_set = set_list.sets['13']['test_set_2']
+    # rubric_id = set_list.rubrics['3']['pos']
     # в следующей строке до знака равенства написано mif_indexes, emb, ans
     mif_indexes, emb, ans = create_rubric_train_data(tr_set, rubric_id, embedding_id,
                                                      add_tf_idf=add_tf_idf, verbose=verbose)

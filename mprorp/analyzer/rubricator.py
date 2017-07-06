@@ -400,7 +400,7 @@ def idf_object_features_set(set_id, verbose=False):
 
     # and lemmas add in overall list by giving index
     for lemma in idf:
-        if (idf[lemma] != 0) and doc_freq[lemma] > 20:
+        if (idf[lemma] != 0) and doc_freq[lemma] > lemma_frequency_limit:
             lemma_index[lemma] = lemma_counter
             lemma_counter += 1
 

@@ -237,7 +237,9 @@ sets['pp'] = {'train_set': '0364c8e3-ebcd-4fa2-b14a-3f10c498bcd3',
               'train_set_2': 'bb782acd-8a35-43e3-8297-c1233b274665', # 9825 docs (3275 - positive)
               'test_set_2':  '72539de2-b140-4b4a-a4ca-170321bf457c',  # 2457 docs (819 - positive)
               'train_set_10': '65d10ab7-6b4b-4f9d-9b2d-306035fa4389',  # 36027 docs (3275 - positive)
-              'test_set_10': 'f54f186c-61a1-4d9c-b727-e6e7853fcd77'  # 9007 docs (819 - positive)
+              'test_set_10': 'f54f186c-61a1-4d9c-b727-e6e7853fcd77',  # 9007 docs (819 - positive)
+              'quick_start_1': 'd4725108-4a1c-467f-8f8e-e11e2ef6f3d3',  # 150 docs (50 - positive)
+              'quick_start_2': '70b7aa29-d73d-4402-a6df-750419b2d379'  # 300 docs (100-positive), include quick_start_1
 }
 
 sets['ss'] = {'train_set': '69565f15-73ea-4d06-84aa-d3e5cea57ee7',
