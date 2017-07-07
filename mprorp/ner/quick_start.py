@@ -196,7 +196,7 @@ def quick_start_pe():
     session.commit()
     print(quick_start_3_set.set_id)
     # quick_start_3 = '31a4ce43-d7e0-4646-93d7-cc27195349c6'
-    quick_start_3 = quick_start_3_set.set_id
+    quick_start_3 = str(quick_start_3_set.set_id)
 
     teach_rubricator(quick_start_3, rubric_id, calc_idf=True, verbose=True)
     print('Обучение рубрикатора на 2й выборке завершено')
