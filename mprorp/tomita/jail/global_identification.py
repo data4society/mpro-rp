@@ -31,7 +31,7 @@ def find_nearest_location(jail, all_jails, locs):
     if len(jails) == 0:
         return {}
     elif len(jails) == 1:
-        return {0: jails[0]}
+        return {0: jails}
     else:
         for loc in locs:
             dist = min(math.fabs(jail['fs'] - loc['ls']), math.fabs(loc['fs'] - jail['ls']))
@@ -50,7 +50,10 @@ def jail_identification_new(facts):
     all_jails = session.query(Entity).filter(Entity.data["org_type"].astext == 'jail').all()
     cities = [i for i in facts if i['type'] == 'CityFact']
     jails = [i for i in facts if i['type'] == 'JailFact']
+    print(cities)
+    print('\n', jails)
     for jail in jails:
+        jail['norm'] = jail['norm'].replace('«', '"')
         variants = find_nearest_location(jail, all_jails, cities)
         if variants != {}:
             best_dist = min([i for i in variants.keys()])
