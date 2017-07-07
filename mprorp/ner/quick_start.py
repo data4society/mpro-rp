@@ -189,14 +189,15 @@ def quick_start_pe():
     quick_start_1_docs.extend(new_docs)
 
     print(len(quick_start_1_docs))
+    print(len(probability))
     print(min_prob, max_prob)
-    session = Driver.db_session()
-    quick_start_3_set = TrainingSet(doc_ids=quick_start_1_docs, doc_num=len(quick_start_1_docs), name='Active Learning set 3')
-    session.add(quick_start_3_set)
-    session.commit()
-    print(quick_start_3_set.set_id)
-    # quick_start_3 = '31a4ce43-d7e0-4646-93d7-cc27195349c6'
-    quick_start_3 = str(quick_start_3_set.set_id)
+    # session = Driver.db_session()
+    # quick_start_3_set = TrainingSet(doc_ids=quick_start_1_docs, doc_num=len(quick_start_1_docs), name='Active Learning set 3')
+    # session.add(quick_start_3_set)
+    # session.commit()
+    # print(quick_start_3_set.set_id)
+    # quick_start_3 = str(quick_start_3_set.set_id)
+    quick_start_3 = '27cbe046-073f-4996-a058-2db75888aed5'
 
     teach_rubricator(quick_start_3, rubric_id, calc_idf=True, verbose=True)
     print('Обучение рубрикатора на 2й выборке завершено')
