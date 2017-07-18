@@ -384,8 +384,10 @@ def run_model(learning, num_steps, filename=None, model_params=None):
                 tf.nn.sampled_softmax_loss(weights=softmax_weights, biases=softmax_biases, inputs=embed,
                                            labels=train_labels, num_sampled=num_sampled, num_classes=vocabulary_size))
 
+        # tf.summary.scalar('cross_entropy', cross_entropy)
         tf.add_to_collection('total_loss', cross_entropy)
         loss = tf.add_n(tf.get_collection('total_loss'))
+        # tf.summary.scalar('loss', loss)
 
         # Optimizer.
         # Note: The optimizer will optimize the softmax_weights AND the embeddings.
@@ -406,6 +408,8 @@ def run_model(learning, num_steps, filename=None, model_params=None):
             valid_embeddings_p = tf.nn.embedding_lookup(
                 normalized_embeddings, valid_dataset_p)
             similarity_p = tf.matmul(valid_embeddings_p, tf.transpose(normalized_embeddings))
+        # merged = tf.summary.merge_all()
+        # train_writer = tf.summary.FileWriter(home_dir + '/train_summary')
         init = tf.initialize_all_variables()
 
     with tf.Session(graph=graph) as session:
@@ -417,8 +421,14 @@ def run_model(learning, num_steps, filename=None, model_params=None):
             batch_data, batch_labels = generate_batch(
                 batch_size, num_skips, skip_window, consistent_words, vocabulary_size, paragraphs)
             feed_dict = {train_dataset : batch_data, train_labels : batch_labels}
-            _, l = session.run([optimizer, loss], feed_dict=feed_dict)
+            _, l, cross_e = session.run([optimizer, loss, cross_entropy], feed_dict=feed_dict)
+            # summary, _, l = session.run([merged, optimizer, loss], feed_dict=feed_dict)
+            # train_writer.add_summary(summary, step)
             average_loss += l
+            if verbose and step % 10 == 0:
+                sys.stdout.write('\r{} / {} : loss = {}'.format(
+                    step, num_steps, average_loss/step))
+                sys.stdout.flush()
             if learning:
                 if step % 2000 == 0:
                     if step > 0:
@@ -827,4 +837,4 @@ def start():
 
 # start()
 
-
+check_reg_paragraph_embedding()
