@@ -122,6 +122,10 @@ class Publisher(Base):
     desc = Column(Text())
     # additional information
     meta = Column(JSONB())
+    # rss path
+    rss = Column(String(127))
+    # for yandex rss path
+    ya_rss = Column(String(127))
 
 
 class Document(Base):
