@@ -35,8 +35,8 @@ def get_coordinates(facts, sourse, tomita_path):
           'facts': re.findall('<(.*?)_TOMITA val="(.*?)" pos', i[4]),
           'type': i[5],
           'sn': int(i[3]),
-          'ls': int(i[1]) + int(i[2]) - sourse[:int(i[2])].count('\n')} for i in facts if sourse[int(i[1]) - 1] not in ['"', '«']
-         and sourse[int(i[1]) + int(i[2]) + 1] not in ['"', '»']]
+          'ls': int(i[1]) + int(i[2]) - sourse[:int(i[2])].count('\n')} for i in facts]# if sourse[int(i[1]) - 1] not in ['"', '«']
+#         and sourse[int(i[1]) + int(i[2]) + 1] not in ['"', '»']]
     for n in range(len(l)):
         l[n] = coordinates(l[n])
         l[n] = normalization(l[n])
