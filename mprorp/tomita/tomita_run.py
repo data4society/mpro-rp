@@ -56,7 +56,7 @@ def run_tomita(doc, grammar, session=None, commit_session=True):
     elif grammar == 'jail.cxx':
         out, tomita_path = run_tomita_jail(doc)
         del_files_ovd(str(doc.doc_id), tomita_path)
-        #db.put_tomita_result(str(doc.doc_id), grammar, out, session, commit_session)
+        db.put_tomita_result(str(doc.doc_id), grammar, out, session, commit_session)
         return out
     else:
         output, tomita_path = start_tomita(grammar, doc)
