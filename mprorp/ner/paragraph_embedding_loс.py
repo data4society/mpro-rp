@@ -6,18 +6,18 @@ import random
 import collections
 import tensorflow as tf
 import math
-# import mprorp.analyzer.db as db
+import mprorp.analyzer.db as db
 import pickle as pickle
 from mprorp.utils import home_dir
-# import mprorp.ner.set_list as set_list
+import mprorp.ner.set_list as set_list
 
 import json
 
 data_filename = 'data.json'
 
 embedding_for_word_count = 5
-learning_steps = 300000
-calc_steps = 3000
+learning_steps = 30000
+calc_steps = 300
 
 verbose = True
 
@@ -142,6 +142,52 @@ def generate_batch(batch_size, num_skips, skip_window, consistent_words, voc_siz
             # data_index = (data_index + 1) % len(data)
     return batch, labels
 
+
+#
+def words_to_file(doc_list, filename=None, type=0):
+    if filename is None:
+        filename = data_filename
+    set_to_file = {}
+    printed = False
+    if type<2:
+        train_set_words = db.get_ner_feature(doc_id_list=doc_list, feature='embedding')
+        print('end reading from db')
+
+        count = 0
+        for doc_id in train_set_words:
+            count += 1
+            if count % 1000 == 0:
+                print(count)
+            doc_words = train_set_words[doc_id]
+            doc = []
+            for element in doc_words:
+                if type == 0:
+                    main_word = ''
+                    rate = 0
+                    if not printed:
+                        print(element)
+                        printed = True
+                    for word in element[2]:
+                        if rate < element[2][word]:
+                            rate = element[2][word]
+                            main_word = word
+                    doc.append(main_word)
+                else:
+                    doc.append(element[2])
+            set_to_file[doc_id] = doc
+    else:
+        for doc_id in doc_list:
+            if type==2:
+                set_to_file[doc_id] = db.get_morpho(doc_id)
+            else:
+                set_to_file[doc_id] = db.get_doc_text(doc_id)
+            if not printed:
+                print(set_to_file[doc_id])
+                printed = True
+    print('start dump')
+    with open(home_dir + '/' + filename, 'w') as f:
+        json.dump(set_to_file, f)
+#
 
 def append_doc_words(train_set_words, doc_list, set_docs, new_dictionary, words_count, doc_ids):
 
@@ -268,8 +314,8 @@ def run_model(learning, num_steps, filename=None, model_params=None):
 
     graph = tf.Graph()
 
-    # with graph.as_default(), tf.device('/cpu:0'):
-    with graph.as_default(), tf.device('/gpu:0'):
+    with graph.as_default():
+    # with graph.as_default(), tf.device('/gpu:0'):
         # Input data.
         features_number = num_skips + use_par_embed
         train_dataset = tf.placeholder(tf.int32, shape=[batch_size, features_number])
@@ -371,7 +417,7 @@ def run_model(learning, num_steps, filename=None, model_params=None):
         # train_writer = tf.summary.FileWriter(home_dir + '/train_summary')
         init = tf.initialize_all_variables()
 
-    with tf.Session(graph=graph, config=tf.ConfigProto(allow_soft_placement=True)) as session:
+    with tf.Session(graph=graph) as session:
         # tf.global_variables_initializer().run()
         session.run(init)
         print('Initialized')
@@ -531,8 +577,26 @@ def model_emb_par_teach_or_calc(teach=True):
             print('docs embedding is ready')
 
 
-# doc_list = db.get_set_docs(set_list.sets['pp']['train_set_0'])
-# words_to_file(doc_list)
-# print('ok')
+def words_to_files(set_type):
+    set_id = set_list.sets['pp'][set_type + '_set_2']
+    doc_list_0 = []
+    doc_list_1 = []
+    rubric_id = set_list.rubrics['pp']['pos']
+    answers = db.get_rubric_answers(set_id, rubric_id)
+    print(len(answers))
+    for doc_id in answers:
+        if answers[doc_id]:
+            doc_list_1.append(doc_id)
+        else:
+            doc_list_0.append(doc_id)
 
-model_emb_par_teach_or_calc(True)
+    print(len(doc_list_0))
+    print(len(doc_list_1))
+    for type in range(4):
+        words_to_file(doc_list_0, 'data_' + set_type + '_False_' + str(type) + '.json', type)
+        print(set_type, type, False)
+        words_to_file(doc_list_0, 'data_' + set_type + '_True_' + str(type) + '.json', type)
+        print(set_type, type, True)
+    print('ok')
+
+# model_emb_par_teach_or_calc(True)
