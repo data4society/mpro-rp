@@ -2,13 +2,13 @@
 import sys
 sys.path.insert(0, '..')
 # from mprorp.ner.examples3 import script_exec
-from mprorp.ner.paragraph_embedding_local import words_to_file
+from mprorp.ner.paragraph_embedding_loс import words_to_files
 
 
 
 if __name__ == '__main__':
-    exit()
-    words_to_file()
+    words_to_files('test')
+    words_to_files('train')
     print("STARTING example3.py")
     # script_exec()
     print("example3.py COMPLETE")
