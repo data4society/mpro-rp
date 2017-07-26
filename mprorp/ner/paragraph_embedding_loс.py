@@ -178,7 +178,16 @@ def words_to_file(doc_list, filename=None, type=0):
     else:
         for doc_id in doc_list:
             if type==2:
-                set_to_file[doc_id] = db.get_morpho(doc_id)
+                doc_morpho = db.get_morpho(doc_id)
+                doc = []
+                for word in doc_morpho:
+                    if word.get('analysis', None) is not None:
+                        word_lex = []
+                        for element in word['analysis']:
+                            if element.get('lex', None) is not None:
+                                word_lex.append({'lex': element['lex'], 'wt': element['wt']})
+                        doc.append(word_lex)
+                set_to_file[doc_id] = doc
             else:
                 set_to_file[doc_id] = db.get_doc_text(doc_id)
             if not printed:
@@ -577,7 +586,7 @@ def model_emb_par_teach_or_calc(teach=True):
             print('docs embedding is ready')
 
 
-def words_to_files(set_type):
+def words_to_files(set_type, types):
     set_id = set_list.sets['pp'][set_type + '_set_2']
     doc_list_0 = []
     doc_list_1 = []
@@ -592,7 +601,7 @@ def words_to_files(set_type):
 
     print(len(doc_list_0))
     print(len(doc_list_1))
-    for type in range(4):
+    for type in types:
         words_to_file(doc_list_0, 'data_' + set_type + '_False_' + str(type) + '.json', type)
         print(set_type, type, False)
         words_to_file(doc_list_0, 'data_' + set_type + '_True_' + str(type) + '.json', type)
