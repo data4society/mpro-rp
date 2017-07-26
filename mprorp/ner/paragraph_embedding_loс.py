@@ -10,6 +10,7 @@ import mprorp.analyzer.db as db
 import pickle as pickle
 from mprorp.utils import home_dir
 import mprorp.ner.set_list as set_list
+import mprorp.db.dbDriver as Driver
 
 import json
 
@@ -145,6 +146,7 @@ def generate_batch(batch_size, num_skips, skip_window, consistent_words, voc_siz
 
 #
 def words_to_file(doc_list, filename=None, type=0):
+    session = Driver.db_session()
     if filename is None:
         filename = data_filename
     set_to_file = {}
@@ -178,7 +180,7 @@ def words_to_file(doc_list, filename=None, type=0):
     else:
         for doc_id in doc_list:
             if type==2:
-                doc_morpho = db.get_morpho(doc_id)
+                doc_morpho = db.get_morpho(doc_id, session)
                 doc = []
                 for word in doc_morpho:
                     if word.get('analysis', None) is not None:
@@ -189,7 +191,7 @@ def words_to_file(doc_list, filename=None, type=0):
                         doc.append(word_lex)
                 set_to_file[doc_id] = doc
             else:
-                set_to_file[doc_id] = db.get_doc_text(doc_id)
+                set_to_file[doc_id] = db.get_doc_text(doc_id, session)
             if not printed:
                 print(set_to_file[doc_id])
                 printed = True
