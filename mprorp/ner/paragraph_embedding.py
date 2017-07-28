@@ -112,6 +112,7 @@ par_index = 0
 
 with open(home_dir + '/weights' + filename, 'rb') as f:
     model_params_reg = pickle.load(f)
+print(model_params_reg.keys())
 
 
 def new_buffer(span, paragraphs):
@@ -646,6 +647,17 @@ def model_emb_par_teach_or_calc(teach=True):
         session.commit()
 
 
+def calc_bag_of_embedding(training_set, doc_id=None):
+    if doc_id is None:
+        train_set_docs = [str(i) for i in db.get_set_docs(training_set)]
+    else:
+        train_set_docs = [doc_id]
+    train_set_words = db.get_ner_feature(doc_id_list=train_set_docs, feature='embedding')
+    for doc_id in train_set_words:
+        doc_words = train_set_words[doc_id]
+
+
+
 def calc_paragraph_embedding2(doc_id):
     """wrap for spot_doc_rubrics with local session"""
     db.doc_apply(doc_id, calc_paragraph_embedding)
@@ -815,8 +827,8 @@ def put_settings_in_model(model_id, coef_for_embed, coef_for_tf_idf):
 def start():
     # start_prepare_docs(True)
     # model_emb_par_teach_or_calc(True)
-    # check_reg_paragraph_embedding()
-    put_settings_in_model('4c930599-d189-4a11-8c85-f58096351613', 1, 7)
+    check_reg_paragraph_embedding()
+    # put_settings_in_model('4c930599-d189-4a11-8c85-f58096351613', 1, 7)
     # teach_and_test(True)
 
     # tr_set = set_list.sets['13']['tr_set_2']
@@ -837,4 +849,5 @@ def start():
 
 # start()
 
-check_reg_paragraph_embedding()
+# check_reg_paragraph_embedding()
+
