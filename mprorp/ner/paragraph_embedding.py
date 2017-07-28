@@ -113,6 +113,11 @@ par_index = 0
 with open(home_dir + '/weights' + filename, 'rb') as f:
     model_params_reg = pickle.load(f)
 print(type(model_params_reg['dict']))
+if model_params_reg.get('word_list', None) is None:
+    model_params_reg['word_list'] = ['' for i in range(len(model_params_reg['dict']))]
+    for word in model_params_reg['dict']:
+        num = model_params_reg['dict'][word]
+        model_params_reg['word_list'][num] = word
 
 
 def new_buffer(span, paragraphs):
