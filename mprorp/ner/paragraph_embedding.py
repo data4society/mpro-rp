@@ -339,7 +339,8 @@ def run_model(learning, num_steps, filename=None, model_params=None):
                 embeddings_w = tf.Variable(model_params['embed'], trainable=False)
             embeddings_p = tf.Variable(
                     tf.random_uniform([paragraph_amount, embedding_size], -1.0, 1.0))
-            embeddings = tf.concat(0, [embeddings_w, embeddings_p])
+            # embeddings = tf.concat(0, [embeddings_w, embeddings_p])
+            embeddings = tf.concat([embeddings_w, embeddings_p], 0)
         else:
             embeddings = tf.Variable(
                 tf.random_uniform([vocabulary_size, embedding_size], -1.0, 1.0))
