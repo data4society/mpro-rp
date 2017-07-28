@@ -112,7 +112,7 @@ par_index = 0
 
 with open(home_dir + '/weights' + filename, 'rb') as f:
     model_params_reg = pickle.load(f)
-print(model_params_reg.keys())
+print(type(model_params_reg['dict']))
 
 
 def new_buffer(span, paragraphs):
