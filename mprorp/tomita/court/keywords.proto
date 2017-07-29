@@ -1,0 +1,9 @@
+import "base.proto";     
+import "articles_base.proto";
+message Court_R: TAuxDicArticle {}
+message Court_G: TAuxDicArticle {}
+message Court_O: TAuxDicArticle {}
+message Court_K: TAuxDicArticle {}
+message Court_Else: TAuxDicArticle {}
+message Court: TAuxDicArticle {}
+message Type: TAuxDicArticle {}

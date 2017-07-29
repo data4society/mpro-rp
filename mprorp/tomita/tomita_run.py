@@ -9,6 +9,7 @@ from mprorp.utils import home_dir
 from mprorp.tomita.norm_act.global_identification import act_identification
 from mprorp.tomita.tomita_run_loc_c import run_tomita_loc_c
 from mprorp.tomita.tomita_run_jail import run_tomita_jail
+from mprorp.tomita.tomita_run_court import run_tomita_court
 
 
 def del_files(doc_id, tomita_path):
@@ -55,6 +56,11 @@ def run_tomita(doc, grammar, session=None, commit_session=True):
         return out
     elif grammar == 'jail.cxx':
         out, tomita_path = run_tomita_jail(doc)
+        del_files_ovd(str(doc.doc_id), tomita_path)
+        db.put_tomita_result(str(doc.doc_id), grammar, out, session, commit_session)
+        return out
+    elif grammar == 'court.cxx':
+        out, tomita_path = run_tomita_court(doc)
         del_files_ovd(str(doc.doc_id), tomita_path)
         db.put_tomita_result(str(doc.doc_id), grammar, out, session, commit_session)
         return out

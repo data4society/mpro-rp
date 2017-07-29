@@ -1,0 +1,7 @@
+import "base.proto";
+import "facttypes_base.proto";
+
+message CourtFact_TOMITA: NFactType.TFact
+{
+	required string Court_TOMITA = 1;
+} 
