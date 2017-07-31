@@ -162,7 +162,12 @@ def update_locality_and_jail():
     delete_same(session.query(Entity).filter(Entity.data['org_type'].astext == 'jail'))
     delete_same(session.query(Entity).filter(Entity.external_data['kladr_type'].astext == 'Город'))
 
-
+#j = Entity()
+#j.name = 'ИК-16 Краснотурьинск'
+#j.data = {'name': 'ИК-16 Краснотурьинск', 'jurisdiction': '', 'location': '', 'org_type': 'jail'}
+#j.external_data = {'norm': ['ик-16 краснотурьинск'], 'type': 'jail', 'names': ['ИК-16 Краснотурьинск'], 'url': '/catalog/object/ik16kras/'}
+#session.add(j)
+#session.commit()
 #jl = eval(open('jail_locations.json', 'r', encoding='utf-8').read(), {})
 #jails = session.query(Entity).filter(Entity.data['org_type'].astext == 'jail').all()
 #jails = [i for i in jails if i.data['location'] == '']
@@ -186,10 +191,12 @@ def update_locality_and_jail():
 #f1('jails')
 #jail = session.query(Entity).filter(Entity.name.contains('СИЗО-2 Лефортово')).first()
 #print(jail.external_data)
-doc = Document()
-doc.stripped = '''Постановление судьи Приволжского районного суда в отношении Насырова изменить, дополнить резолютивную часть постановления показанием на разрешение Насырову покидать место исполнения домашнего ареста для прогулок, приобретения лекарств, продуктов питания ежедневно с 18 до 20 часов. В остальной части постановление судьи оставить без изменения, апелляционную жалобу удовлетворить частично. Верховный суд республика Ингушетия приговорил его к сроку.
-'''
-print(run_tomita(doc, 'court.cxx'))
+#doc = Document()
+#doc.stripped = '''В Краснотурьинске в клубе женской колонии ИК-16 была проведена музыкально-поэтическая композиция, посвященная началу Сталинградской битве «Город из стали»
+#Зрителям, собравшимся в зале, участниками композиции была представлена полная эпопея шестимесячной легендарной битвы. Во славу беспримерного подвига защитников Сталинграда звучали стихи и песни в хоровом и сольном исполнении, был подготовлен и показан видеоряд «Мамаев курган».
+#Самоотверженность, мужество и героизм советских воинов у стен Сталинграда – это одна из самых легендарных страниц  летописи Великой Отечественной войны, именно поэтому в преддверии ее 75-летней даты в учреждении состоялось это памятное мероприятие.
+#Пресс-служба ГУФСИН России по Свердловской области'''
+#print(run_tomita(doc, 'jail.cxx'))
 #used = delete_old_locations()
 #print('Markup changed')
 #print(len(used))

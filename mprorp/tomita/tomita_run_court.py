@@ -62,5 +62,5 @@ def start_tomita_court(doc):
 def run_tomita_court(doc):
     out_name, file_name, tomita_path = start_tomita_court(doc)
     results = get_coordinates(out_name, file_name, tomita_path)
-    results = {str(i['fs']) + ':' + str(i['ls']) : 'Court' for i in results}
+    results = {str(i['fs']) + ':' + str(i['ls']): 'Org' for i in results}
     return results, tomita_path
