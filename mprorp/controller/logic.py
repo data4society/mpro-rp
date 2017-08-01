@@ -20,6 +20,7 @@ from mprorp.crawler.yandex_news import yn_start_parsing
 from mprorp.crawler.google_alerts import ga_start_parsing
 from mprorp.crawler.vk import vk_start_parsing, vk_parse_item
 from mprorp.crawler.csv_to_rubricator import csv_start_parsing
+from mprorp.crawler.from_csv import from_csv_start_parsing
 from mprorp.crawler.from_other_app import other_app_cloning
 from mprorp.crawler.selector import selector_start_parsing
 
@@ -46,6 +47,7 @@ YANDEX_NEWS_INIT_STATUS = 40
 CSV_INIT_STATUS = 50
 YANDEX_RSS_INIT_STATUS = 60
 SELECTOR_INIT_STATUS = 70
+FROM_CSV_INIT_STATUS = 80
 #GOOGLE_NEWS_COMPLETE_STATUS = 21
 SITE_PAGE_LOADING_FAILED = 91
 SITE_PAGE_COMPLETE_STATUS = 99
@@ -347,6 +349,32 @@ def regular_csv_start_parsing(source_key, **kwargs):
         docs = csv_start_parsing(source_key, blacklist, app_id, session)
         for doc in docs:
             doc.status = CSV_INIT_STATUS
+            doc.source_with_type = "csv "+source_key
+            doc.app_id = app_id
+        session.commit()
+        for doc in docs:
+            router(doc.doc_id, app_id, CSV_INIT_STATUS)
+    except Exception as err:
+        #err_txt = repr(err)
+        logging.error("Неизвестная ошибка csv краулера, source: " + source_key)
+        #print(err_txt)
+        print_exception()
+    session.remove()
+    print("CSV CRAWL COMPLETE: "+source_key)
+
+
+@app.task(ignore_result=True, time_limit=660, soft_time_limit=600)
+def regular_from_csv_start_parsing(source_key, **kwargs):
+    """parsing csv"""
+    print("CSV CRAWL START: "+source_key)
+    session = db_session()
+    apps_config = variable_get(cur_config,session)
+    app_id = kwargs["app_id"]
+    source = apps_config[app_id]["crawler"]["csv_to_rubricator"][source_key]
+    try:
+        docs = from_csv_start_parsing(source_key, app_id, session)
+        for doc in docs:
+            doc.status = FROM_CSV_INIT_STATUS
             doc.source_with_type = "csv "+source_key
             doc.app_id = app_id
         session.commit()

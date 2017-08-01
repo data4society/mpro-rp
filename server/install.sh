@@ -31,7 +31,7 @@ sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg
 wget -q https://www.postgresql.org/media/keys/ACCC4CF8.asc -O - | sudo apt-key add -
 apt-get update
 apt-get -y upgrade
-apt-get -y install mc python-virtualenv rabbitmq-server python3-pip libpq-dev nginx libblas-dev liblapack-dev libatlas-base-dev gfortran postgresql postgresql-contrib
+apt-get -y install mc git python-virtualenv rabbitmq-server python3-pip libpq-dev nginx libblas-dev liblapack-dev libatlas-base-dev gfortran postgresql postgresql-contrib
 apt-get -y build-dep python3-lxml
 
 echo "postgres:$POSTGRES_USER_PASS" | chpasswd
