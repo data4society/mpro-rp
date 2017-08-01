@@ -370,23 +370,28 @@ def regular_from_csv_start_parsing(source_key, **kwargs):
     session = db_session()
     apps_config = variable_get(cur_config,session)
     app_id = kwargs["app_id"]
-    source = apps_config[app_id]["crawler"]["csv_to_rubricator"][source_key]
+    source = apps_config[app_id]["crawler"]["from_csv"][source_key]
     try:
         docs = from_csv_start_parsing(source_key, app_id, session)
         for doc in docs:
             doc.status = FROM_CSV_INIT_STATUS
-            doc.source_with_type = "csv "+source_key
+            doc.source_with_type = "from_csv "+source_key
             doc.app_id = app_id
         session.commit()
         for doc in docs:
             router(doc.doc_id, app_id, CSV_INIT_STATUS)
     except Exception as err:
         #err_txt = repr(err)
-        logging.error("Неизвестная ошибка csv краулера, source: " + source_key)
+        logging.error("Неизвестная ошибка from_csv краулера, source: " + source_key)
         #print(err_txt)
         print_exception()
+    source_status = session.query(SourceStatus).filter_by(app_id=app_id, type='from_csv',
+                                                          source_key=source_key).first()
+    source_status.ready = True
+    source_status.next_crawling_time = datetime.datetime.now().timestamp() + source["period"]
+    session.commit()
     session.remove()
-    print("CSV CRAWL COMPLETE: "+source_key)
+    print("FROM CSV CRAWL COMPLETE: "+source_key)
 
 
 @app.task(ignore_result=True, time_limit=660, soft_time_limit=600)
