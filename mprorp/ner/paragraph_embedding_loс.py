@@ -606,7 +606,7 @@ def words_to_files(set_type, types):
     for type in types:
         words_to_file(doc_list_0, 'data_' + set_type + '_False_' + str(type) + '.json', type)
         print(set_type, type, False)
-        words_to_file(doc_list_0, 'data_' + set_type + '_True_' + str(type) + '.json', type)
+        words_to_file(doc_list_1, 'data_' + set_type + '_True_' + str(type) + '.json', type)
         print(set_type, type, True)
     print('ok')
 
