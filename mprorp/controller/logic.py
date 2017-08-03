@@ -20,6 +20,7 @@ from mprorp.crawler.yandex_news import yn_start_parsing
 from mprorp.crawler.google_alerts import ga_start_parsing
 from mprorp.crawler.vk import vk_start_parsing, vk_parse_item
 from mprorp.crawler.csv_to_rubricator import csv_start_parsing
+from mprorp.crawler.from_csv import from_csv_start_parsing
 from mprorp.crawler.from_other_app import other_app_cloning
 from mprorp.crawler.selector import selector_start_parsing
 
@@ -46,6 +47,7 @@ YANDEX_NEWS_INIT_STATUS = 40
 CSV_INIT_STATUS = 50
 YANDEX_RSS_INIT_STATUS = 60
 SELECTOR_INIT_STATUS = 70
+FROM_CSV_INIT_STATUS = 80
 #GOOGLE_NEWS_COMPLETE_STATUS = 21
 SITE_PAGE_LOADING_FAILED = 91
 SITE_PAGE_COMPLETE_STATUS = 99
@@ -108,7 +110,7 @@ def router(doc_id, app_id, status):
             session.commit()
             session.remove()
         return
-    if status in [GOOGLE_NEWS_INIT_STATUS, GOOGLE_ALERTS_INIT_STATUS, YANDEX_NEWS_INIT_STATUS, YANDEX_RSS_INIT_STATUS, CSV_INIT_STATUS, SELECTOR_INIT_STATUS]:  # to find full text of HTML page
+    if status in [GOOGLE_NEWS_INIT_STATUS, GOOGLE_ALERTS_INIT_STATUS, YANDEX_NEWS_INIT_STATUS, YANDEX_RSS_INIT_STATUS, CSV_INIT_STATUS, SELECTOR_INIT_STATUS, FROM_CSV_INIT_STATUS]:  # to find full text of HTML page
         regular_find_full_text.delay(doc_id, SITE_PAGE_COMPLETE_STATUS, app_id=app_id)
         return
     if status == VK_INIT_STATUS:  # to complete vk item parsing
@@ -359,6 +361,37 @@ def regular_csv_start_parsing(source_key, **kwargs):
         print_exception()
     session.remove()
     print("CSV CRAWL COMPLETE: "+source_key)
+
+
+@app.task(ignore_result=True, time_limit=660, soft_time_limit=600)
+def regular_from_csv_start_parsing(source_key, **kwargs):
+    """parsing csv"""
+    print("CSV CRAWL START: "+source_key)
+    session = db_session()
+    apps_config = variable_get(cur_config,session)
+    app_id = kwargs["app_id"]
+    source = apps_config[app_id]["crawler"]["from_csv"][source_key]
+    try:
+        docs = from_csv_start_parsing(source_key, app_id, session)
+        for doc in docs:
+            doc.status = FROM_CSV_INIT_STATUS
+            doc.source_with_type = "from_csv "+source_key
+            doc.app_id = app_id
+        session.commit()
+        for doc in docs:
+            router(doc.doc_id, app_id, CSV_INIT_STATUS)
+    except Exception as err:
+        #err_txt = repr(err)
+        logging.error("Неизвестная ошибка from_csv краулера, source: " + source_key)
+        #print(err_txt)
+        print_exception()
+    source_status = session.query(SourceStatus).filter_by(app_id=app_id, type='from_csv',
+                                                          source_key=source_key).first()
+    source_status.ready = True
+    source_status.next_crawling_time = datetime.datetime.now().timestamp() + source["period"]
+    session.commit()
+    session.remove()
+    print("FROM CSV CRAWL COMPLETE: "+source_key)
 
 
 @app.task(ignore_result=True, time_limit=660, soft_time_limit=600)

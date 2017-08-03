@@ -18,7 +18,7 @@ def csv_start_parsing(source_name, blacklist, app_id, session):
             url = row[1]
             if check_url_with_blacklist(url, blacklist):
                 print("BLACKLIST STOP: "+url)
-                return
+                continue
             date = datetime.datetime.fromtimestamp(datetime.datetime.now().timestamp())
             guid = app_id + url
             if guid not in guids:

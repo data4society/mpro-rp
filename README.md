@@ -1,3 +1,16 @@
+# setup
+`wget https://github.com/data4society/mpro-rp/raw/dev/server/install.sh`
+
+`chmod +x install.sh`
+
+edit constants in install.sh and run it:
+
+`bash install.sh`
+
+edit /home/mprorp/app.json and start mprorp by command:
+
+`start celeryd`
+
 # mpro-rp
 regular processes for mpro
 

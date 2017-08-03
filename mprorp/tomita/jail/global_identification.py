@@ -50,6 +50,7 @@ def jail_identification_new(facts):
     session = db_session()
     all_jails = session.query(Entity).filter(Entity.data["org_type"].astext == 'jail').all()
     cities = [i for i in facts if i['type'] == 'CityFact']
+    print(cities)
     jails = [i for i in facts if i['type'] == 'JailFact']
     for jail in jails:
         jail['norm'] = jail['norm'].replace('«', '"')

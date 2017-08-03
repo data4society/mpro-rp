@@ -1,0 +1,45 @@
+encoding "utf8";
+import "base.proto";     
+import "articles_base.proto";
+import "keywords.proto";
+import "facttypes.proto";
+
+TAuxDicArticle "Суды"
+{
+    key = { "tomita:court.cxx" type=CUSTOM }
+}
+
+Court_R "Районные"
+{
+ key = { "court_r.txt" type=FILE }
+}
+
+Court_G "Городские"
+{
+ key = { "court_g.txt" type=FILE }
+}
+
+Court_O "Областные"
+{
+ key = { "court_o.txt" type=FILE }
+}
+
+Court_K "Краевые"
+{
+ key = { "court_K.txt" type=FILE }
+}
+
+Court_Else "Остальные"
+{
+ key = { "court_else.txt" type=FILE }
+}
+
+Court "Суд"
+{
+ key = "суд"
+}
+
+Type "Тип"
+{
+ key = "Районный"|"Городской"|"Областной"|"Краевой"
+}
