@@ -78,7 +78,7 @@ try:
     from mprorp.config.local_settings import *
     for big_key in ['rubricator', 'paragraph embeddings', 'models and sets']:
         if big_key in local_learning_parameters.keys():
-            params = learning_parameters[big_key]
+            params = local_learning_parameters[big_key]
             print(big_key)
             for key in params.keys():
                 learning_parameters[big_key][key] = params[key]
