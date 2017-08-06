@@ -14,8 +14,8 @@ def from_csv_start_parsing(source_name, app_id, session):
     docs = []
     guids = []
     item_nums = variable_get("item_nums_csv_"+source_name)
-    if session.query(Document).filter(Document.app_id==app_id,Document.status != 0).count() == item_nums:
-        with open('/home/mprorp/data/csv/'+source_name, 'r',encoding='utf-8') as csvfile:
+    if session.query(Document).filter(Document.app_id == app_id, Document.status != 0).count() == item_nums:
+        with open('/home/mprorp/data/csv/'+source_name, 'r', encoding='utf-8') as csvfile:
             spamreader = csv.reader(csvfile, delimiter='\t')
             i = 0
             for row in spamreader:
@@ -28,7 +28,7 @@ def from_csv_start_parsing(source_name, app_id, session):
                 url = row[0]
                 guid = app_id + url
                 if url.find('http') != 0:
-                    url = 'http'+url
+                    url = 'http://'+url
                 #date = datetime.datetime.fromtimestamp(datetime.datetime.now().timestamp())
                 if guid not in guids:
                     guids.append(guid)
