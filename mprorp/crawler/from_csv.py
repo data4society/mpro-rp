@@ -1,6 +1,7 @@
 """csv parser"""
 from mprorp.db.models import *
 from mprorp.db.dbDriver import *
+import urllib.parse as urlparse
 
 import csv
 from mprorp.utils import relative_file_path
@@ -34,7 +35,9 @@ def from_csv_start_parsing(source_name, app_id, session):
                     guids.append(guid)
                     if session.query(Document).filter_by(guid=guid).count() == 0:
                         meta = dict()
-                        meta["publisher"] = dict()
+                        parsed_uri = urlparse.urlparse(url)
+                        publisher = parsed_uri.netloc
+                        meta["publisher"] = {"name": publisher}
                         doc = Document(guid=guid, app_id=app_id, url=url, title=row[1], status=0, type='article', meta=meta)
                         session.add(doc)
                         docs.append(doc)

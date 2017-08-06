@@ -5,6 +5,7 @@ import csv
 from mprorp.utils import relative_file_path
 from mprorp.crawler.utils import check_url_with_blacklist
 import datetime
+import urllib.parse as urlparse
 
 def csv_start_parsing(source_name, blacklist, app_id, session):
     """download google news start feed and feeds for every story"""
@@ -25,7 +26,9 @@ def csv_start_parsing(source_name, blacklist, app_id, session):
                 guids.append(guid)
                 if session.query(Document).filter_by(guid=guid).count() == 0:
                     meta = dict()
-                    meta["publisher"] = dict()
+                    parsed_uri = urlparse.urlparse(url)
+                    publisher = parsed_uri.netloc
+                    meta["publisher"] = {"name": publisher}
                     doc = Document(guid=guid, app_id=app_id, url=url, status=0, type='article', meta=meta, rubric_ids=[rubric.rubric_id], published_date=date)
                     session.add(doc)
                     docs.append(doc)
