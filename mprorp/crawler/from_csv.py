@@ -1,5 +1,7 @@
 """csv parser"""
 from mprorp.db.models import *
+from mprorp.db.dbDriver import *
+
 import csv
 from mprorp.utils import relative_file_path
 from mprorp.crawler.utils import check_url_with_blacklist
@@ -41,8 +43,7 @@ def from_csv_start_parsing(source_name, app_id, session):
 
 
 if __name__ == '__main__':
-    from mprorp.db.dbDriver import *
     session = db_session()
-    csv_start_parsing('mpro-urls_to_csv', 'test', session)
+    from_csv_start_parsing('mpro-urls_to_csv', 'test', session)
     session.commit()
     session.remove()
