@@ -592,7 +592,7 @@ class NERModel(LanguageModel):
         """
         ### YOUR CODE HERE
         cross_entropy = tf.reduce_mean(
-            tf.nn.softmax_cross_entropy_with_logits(y, self.labels_placeholder))
+            tf.nn.softmax_cross_entropy_with_logits(logits=y, labels=self.labels_placeholder))
         tf.add_to_collection('total_loss', cross_entropy)
         loss = tf.add_n(tf.get_collection('total_loss'))
         ### END YOUR CODE
