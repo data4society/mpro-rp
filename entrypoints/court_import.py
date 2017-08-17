@@ -19,9 +19,10 @@ def put_court():
     courts = eval(open(home_dir + '/court/court_full.json', 'r', encoding='utf-8').read(), {})
     for court in courts:
         a = Entity()
-        a.name = court['full name']
+        a.name = court['full name'] + ' (' + court['adr'].split(',')[0] + ')'
         a.data = {'location': '', 'jurisdiction': '', 'org_type': 'court', 'name': court['full name']}
-        a.external_data = {'norm': normalization(court['full name']), 'type': court['type'], "cut name": court['name']}
+        a.external_data = {'norm': normalization(court['full name']), 'type': court['type'], "cut name": court['name'],
+                           'adr': court['adr']}
         a.entity_class = 'org'
         session.add(a)
         session.commit()
