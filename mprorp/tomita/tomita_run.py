@@ -50,7 +50,6 @@ def run_tomita(doc, grammar, session=None, commit_session=True):
         return out
     elif grammar == 'locality.cxx':
         out, tomita_path = run_tomita_loc_c(doc)
-        out = {str(result['fs']) + ':' + str(result['ls']): result['code'] for result in out['tomita']}
         del_files_ovd(str(doc.doc_id), tomita_path)
         db.put_tomita_result(str(doc.doc_id), grammar, out, session, commit_session)
         return out
