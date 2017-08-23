@@ -152,14 +152,14 @@ def update_locality_and_jail():
         loc.data = new_data
         loc.external_data = external_data
         session.commit()
-    jails = session.query(Entity).filter(Entity.data["type"].astext == 'jail').all()
+    jails = session.query(Entity).filter(Entity.data["type"].astext == 'тюрьма').all()
     print('jails', len(jails))
     for jail in jails:
         external_data = jail.data
-        jail.data = {'name': jail.name, 'jurisdiction': '', 'location': '', 'org_type': 'jail'}
+        jail.data = {'name': jail.name, 'jurisdiction': '', 'location': '', 'org_type': 'тюрьма'}
         jail.external_data = external_data
         session.commit()
-    delete_same(session.query(Entity).filter(Entity.data['org_type'].astext == 'jail'))
+    delete_same(session.query(Entity).filter(Entity.data['org_type'].astext == 'тюрьма'))
     delete_same(session.query(Entity).filter(Entity.external_data['kladr_type'].astext == 'Город'))
 
 #j = Entity()
@@ -181,25 +181,27 @@ def update_locality_and_jail():
 #    else:
 #        print('bad name', jail.name, jail.external_data['url'])
 
-#a = [i for i in session.query(Entity).filter(Entity.entity_class == 'organization').all()]
+#a = [i for i in session.query(Entity).filter(Entity.data['org_type'].astext == 'jail').all()]
 #print(len(a))
-#if len(a) < 100:
-#    for i in a:
-#        print(i.name)
+#for i in a:
+#    i.data['org_type'] = 'тюрьма'
+#    flag_modified(i, 'data')
+#    session.commit()
+#a = [i for i in session.query(Entity).filter(Entity.data['org_type'].astext == 'jail').all()]
+#print(len(a))
 
 #update_locality_and_jail()
 #f1('jails')
 #jail = session.query(Entity).filter(Entity.name.contains('СИЗО-2 Лефортово')).first()
 #print(jail.external_data)
 #doc = Document()
-#doc.stripped = '''Прокуратура опровергла информацию правозащитников об истязании заключенных ИК-1 в Брянске.
-#Проверка в колонии прошла 19 июля, после появления публикации правозащитников. Напомним, последние сообщали, что 17 июля около 100 заключенных сначала избили ОМОНовцы, а затем «сотрудники колонии ИК-1 продолжили издевательства: ставили людей на длительное время на растяжку, надевали пакеты на голову, заклеивали рты скотчем».
-#По данным прокуратуры, 17 июля в колонии проводился общий обыск.
-#Во время прокурорской проверки на прием пришли 13 заключенных.
-#«Каких-либо заявлений и сообщений о нарушении прав осужденных по проведенному обыску не поступило. Оперативно-режимное мероприятие проведено в соответствии с требованиями закона. Доводы, изложенные в публикации об избиении осужденных, некорректном поведении сотрудников уголовно-исполнительной системы, в ходе проверки не нашли своего подтверждения», – сообщили в прокуратуре.
-#Проверку в колонии также провели сотрудники регионального СУ СК РФ.'''
-#doc = session.query(Document).filter(Document.doc_id == '8e0fea0c-cb48-4330-a7c3-adb098f5ddf4').first()
-#print(run_tomita(doc, 'jail.cxx'))
+#doc.stripped = '''Хотя о перспективах ввода этого объекта в регионе говорилось много. Строительство нового СИЗО в Кемеровской области было просто жизненно необходимо. Перелимит обитателей изоляторов пенитенциарной системы России давно стал большой проблемой. На данный момент в Кузбассе расположено 4 следственных изолятора — СИЗО-1 в Кемерове, СИЗО-2 в Новокузнецке, СИЗО-3 в Мариинске и СИЗО-4 в Анжеро-Судженске.'''
+#jail = session.query(Entity).filter(Entity.name == 'ГУФСИН').first()
+#print(jail.entity_id)
+#record = session.query(Record).filter(Record.document_id == 'd6418ad42520e3be86577712eaad259e').first()
+#print(record.source)
+doc = session.query(Document).filter(Document.doc_id == '01edd213-f2e8-4ace-88a5-5118c94ff697').first()
+print(run_tomita(doc, 'org.cxx'))
 #used = delete_old_locations()
 #print('Markup changed')
 #print(len(used))

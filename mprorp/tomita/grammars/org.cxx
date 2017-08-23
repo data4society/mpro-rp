@@ -6,12 +6,12 @@ Q -> quot<quoted> interp(OrgFact_TOMITA.Org_TOMITA::not_norm);
 Words -> Word<~lat, ~l-quoted, ~r-quoted> {count = 3};
 
 // Суды
-Trial -> Word<kwtype='trial'>;
+//Trial -> Word<kwtype='trial'>;
 
 // Тюрьмы
-Jail1 -> Word<kwtype='jail', h-reg1> | 'колония' Word<kwtype='jail', h-reg1>;
-SIZO -> 'сизо' AnyWord<wfl="[0-9]+"> | 'сизо' '№' AnyWord<wfl="[0-9]+">;
-Jail -> Jail1 | SIZO;
+//Jail1 -> Word<kwtype='jail', h-reg1> | 'колония' Word<kwtype='jail', h-reg1>;
+//SIZO -> 'сизо' AnyWord<wfl="[0-9]+"> | 'сизо' '№' AnyWord<wfl="[0-9]+">;
+//Jail -> Jail1 | SIZO;
 
 // ОАО
 OOO -> Word<kwtype='OOO'> Q | Word<kwtype='OOO'> lat+;
@@ -43,6 +43,6 @@ Org2_NoWords -> Word<kwtype='ag'> Q | Word<kwtype='ag'> lat;
 Org2_Words -> Word<kwtype='ag'> Q | Word<kwtype='ag'> Words lat;
 Org2 -> Org2_NoWords | Org2_Words;
 
-Org -> Trial | Fonds | RusOrg | Min | Jail | Org1<kwtype=~'KoAP'> | Org3 | Q<h-reg1>| International;
+Org -> Fonds | RusOrg | Min | Org1<kwtype=~'KoAP'> | Org3 | Q<h-reg1>| International; //| Jail | Trial;
 Organisation1 -> Org interp(OrgFact_TOMITA.Org_TOMITA::not_norm);
 Organisation -> Organisation1 | Org2 | OOO;

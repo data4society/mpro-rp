@@ -70,8 +70,9 @@ def start_tomita_loc_c(doc):
 
 def run_tomita_loc_c(doc):
     out_name, file_name, tomita_path = start_tomita_loc_c(doc)
-    meta = get_meta(doc)
+    #meta = get_meta(doc)
     results = get_coordinates(out_name, file_name, tomita_path)
     for result in results:
-        result['code'] = locality_identification(result)[0]
-    return {'tomita' : results, 'meta' : meta}, tomita_path
+        result['code'] = locality_identification(result)
+    #return {'tomita': results, 'meta': meta}, tomita_path
+    return {str(result['fs']) + ':' + str(result['ls']): result['code'][0] for result in results if result['code'] != []}, tomita_path
