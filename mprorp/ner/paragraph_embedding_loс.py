@@ -177,7 +177,7 @@ def words_to_file(doc_list, filename=None, type=0):
                 else:
                     doc.append(element[2])
             set_to_file[doc_id] = doc
-    else:
+    elif type < 4:
         for doc_id in doc_list:
             if type==2:
                 doc_morpho = db.get_morpho(doc_id, session)
@@ -195,6 +195,10 @@ def words_to_file(doc_list, filename=None, type=0):
             if not printed:
                 print(set_to_file[doc_id])
                 printed = True
+    else:
+        for doc_id in doc_list:
+            set_to_file[doc_id] = db.get_doc_embedding('ModelEP_0506_128_NonCons_6_3.pic', doc_id, session)
+
     print('start dump')
     with open(home_dir + '/' + filename, 'w') as f:
         json.dump(set_to_file, f)
