@@ -636,6 +636,30 @@ class KLADR(Base):
     type = Column(String(40))
 
 
+class FastartRubric(Base):
+    """publisher geo and other info"""
+    __tablename__ = 'fastartrubrics'
+
+    # id of rubric
+    rubric_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
+    # rubric's name
+    name = Column(String(127))
+    # rubric's description
+    desc = Column(Text())
+    # search query
+    query = Column(String(2047))
+    # search query in sql representation
+    sql_query = Column(String(2047))
+    # models
+    models = Column(JSONB())
+    # docs for training
+    docs = Column(JSONB())
+    # index of current document in docs
+    doc_ind = Column(Integer(), server_default=0)
+    # current step
+    step = Column(Integer(), server_default=0)
+
+
 ######################################## NO USED
 class TomitaGrammar(Base):
     __tablename__ = 'tomita_grammars'
@@ -664,7 +688,6 @@ class NERModel(Base):
     morpho_features = Column(ARRAY(String(40)))
     hyper_parameters = Column(JSONB())
     parameters = Column(JSONB())
-
 
 
 ######################################## NO USED FIN
