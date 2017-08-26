@@ -18,7 +18,7 @@ def clean_fact(fact):
 def jail_identification(fact):
     fact['norm'] = clean_fact(fact['norm'])
     session = db_session()
-    jails = session.query(Entity).filter(Entity.data["org_type"].astext == 'jail').all()
+    jails = session.query(Entity).filter(Entity.data["org_type"].astext == 'тюрьма').all()
     for jail in jails:
         if compare(fact['norm'].split(), jail.external_data['norm']):
             return str(jail.entity_id).replace("UUID('", '').replace("')", '')
@@ -48,7 +48,7 @@ def find_nearest_location(jail, all_jails, locs):
 def jail_identification_new(facts):
     out = {}
     session = db_session()
-    all_jails = session.query(Entity).filter(Entity.data["org_type"].astext == 'jail').all()
+    all_jails = session.query(Entity).filter(Entity.data["org_type"].astext == 'тюрьма').all()
     cities = [i for i in facts if i['type'] == 'CityFact']
     jails = [i for i in facts if i['type'] == 'JailFact']
     for jail in jails:
