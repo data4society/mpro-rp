@@ -181,14 +181,38 @@ def update_locality_and_jail():
 #    else:
 #        print('bad name', jail.name, jail.external_data['url'])
 
-#a = [i for i in session.query(Entity).filter(Entity.data['org_type'].astext == 'jail').all()]
+a = [i for i in session.query(Entity).filter(Entity.data['org_type'].astext == 'тюрьма').all()]
+print(len(a))
+#for i in a:
+#    if i.data["jurisdiction"] == '':
+#        i.data["jurisdiction"] = []
+#    elif i.data["jurisdiction"] == [[]]:
+#        i.data["jurisdiction"] = []
+#
+#    if i.data["location"] == '':
+#        i.data["location"] = []
+#    elif i.data["location"] == [[]]:
+#        i.data["location"] = []
+#
+#    if i.data["location"] != []:
+#        loc = [i for i in session.query(Entity).filter(Entity.name == i.data["location"][0]).all() if i.external_data is not None]
+#        if len(loc) > 1:
+#            print(loc[0].name)
+#        elif len(loc) == 1:
+#            i.data["location"] = [str(loc[0].entity_id)]
+#            flag_modified(i, 'data')
+#            session.commit()
+#a = [i for i in session.query(Entity).filter(Entity.data['org_type'].astext == 'тюрьма').all() if i.data['jurisdiction'] == '']
 #print(len(a))
 #for i in a:
-#    i.data['org_type'] = 'тюрьма'
-#    flag_modified(i, 'data')
-#    session.commit()
-#a = [i for i in session.query(Entity).filter(Entity.data['org_type'].astext == 'jail').all()]
-#print(len(a))
+#    if i.data['location'] != [] and str(i.data['location']).count('-') > 2:
+#        loc = session.query(Entity).filter(Entity.entity_id == i.data['location'][0]).all()
+#        if len(loc) == 1:
+#            i.external_data['location'] = loc[0].name
+#            flag_modified(i, 'external_data')
+#            session.commit()
+#        else:
+#            print(i.entity_id)
 
 #update_locality_and_jail()
 #f1('jails')
@@ -200,7 +224,7 @@ def update_locality_and_jail():
 #Фото: Андрей Луковский.'''
 #jail = session.query(Entity).filter(Entity.entity_id == 'da796201-a4b7-459a-9e18-a2527f91690a').first()
 #print(jail.external_data)
-record = session.query(Record).filter(Record.document_id == '1c777be4-1eb5-d802-3511-ea6a0b483398').first()
+record = session.query(Record).filter(Record.document_id == '66047987-668f-0e5b-8771-ea07a48335c0').first()
 print(record.source)
 doc = session.query(Document).filter(Document.doc_id == record.source).first()
 print(run_tomita(doc, 'jail.cxx'))

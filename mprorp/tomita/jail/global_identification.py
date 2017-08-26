@@ -27,7 +27,6 @@ def jail_identification(fact):
 
 
 def find_nearest_location(jail, all_jails, locs):
-    print(jail)
     out = {}
     jails = [i for i in all_jails if clean_fact(jail['norm']) in str(i.external_data['norm'])]
     if len(jails) == 0:
@@ -38,7 +37,7 @@ def find_nearest_location(jail, all_jails, locs):
         for loc in locs:
             dist = min(math.fabs(jail['fs'] - loc['ls']), math.fabs(loc['fs'] - jail['ls']))
             for j in jails:
-                if loc['norm'] in j.data['location'].lower():
+                if loc['norm'] in str(j.external_data).lower():
                     if dist in out:
                         out[dist].append(j)
                     else:

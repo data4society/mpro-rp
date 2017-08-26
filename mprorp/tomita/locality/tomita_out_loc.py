@@ -10,6 +10,7 @@ def normalization(fact):
     return fact
 
 def coordinates(fact):
+    fact['string'] = fact['string'].replace('\u202f', ' ')
     parameters = {}
     for f in fact['facts']:
         fs = fact['string'].find(f[1].lower())
