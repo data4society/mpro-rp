@@ -11,7 +11,8 @@ def compare(arr1, arr2):
 
 
 def clean_fact(fact):
-    fact = fact.replace(' №', '-').replace('(', '').replace('"', '').replace(')', '')
+    fact = fact.replace(' №', '-').replace('(', '').replace('"', '').replace(')', '').replace('исправительный колония', 'ик')
+    fact = fact.replace('- ', '-')
     return fact
 
 
@@ -48,7 +49,8 @@ def find_nearest_location(jail, all_jails, locs):
 def jail_identification_new(facts):
     out = {}
     session = db_session()
-    all_jails = session.query(Entity).filter(Entity.data["org_type"].astext == 'тюрьма').all()
+    all_jails = [i for i in session.query(Entity).filter(Entity.data["org_type"].astext == 'тюрьма').all()
+                 if i.external_data is not None]
     cities = [i for i in facts if i['type'] == 'CityFact']
     jails = [i for i in facts if i['type'] == 'JailFact']
     for jail in jails:

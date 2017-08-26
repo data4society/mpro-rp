@@ -195,13 +195,15 @@ def update_locality_and_jail():
 #jail = session.query(Entity).filter(Entity.name.contains('СИЗО-2 Лефортово')).first()
 #print(jail.external_data)
 #doc = Document()
-#doc.stripped = '''Хотя о перспективах ввода этого объекта в регионе говорилось много. Строительство нового СИЗО в Кемеровской области было просто жизненно необходимо. Перелимит обитателей изоляторов пенитенциарной системы России давно стал большой проблемой. На данный момент в Кузбассе расположено 4 следственных изолятора — СИЗО-1 в Кемерове, СИЗО-2 в Новокузнецке, СИЗО-3 в Мариинске и СИЗО-4 в Анжеро-Судженске.'''
-#jail = session.query(Entity).filter(Entity.name == 'ГУФСИН').first()
-#print(jail.entity_id)
-#record = session.query(Record).filter(Record.document_id == 'd6418ad42520e3be86577712eaad259e').first()
-#print(record.source)
-#doc = session.query(Document).filter(Document.doc_id == '01edd213-f2e8-4ace-88a5-5118c94ff697').first()
-#print(run_tomita(doc, 'org.cxx'))
+#doc.stripped = '''Первенство УФСИН России по Алтайскому краю среди кинологов со служебными собаками прошло в поселке Куета, сообщает ведомство.
+#Кинологи и их питомцы выполняли различные задания, в том числе силовое задержание нарушителя. По итогам первое место взяли сотрудники "тройки" - Исправительной колонии № 3 в Барнауле.
+#Фото: Андрей Луковский.'''
+#jail = session.query(Entity).filter(Entity.entity_id == 'da796201-a4b7-459a-9e18-a2527f91690a').first()
+#print(jail.external_data)
+record = session.query(Record).filter(Record.document_id == '1c777be4-1eb5-d802-3511-ea6a0b483398').first()
+print(record.source)
+doc = session.query(Document).filter(Document.doc_id == record.source).first()
+print(run_tomita(doc, 'jail.cxx'))
 #used = delete_old_locations()
 #print('Markup changed')
 #print(len(used))
