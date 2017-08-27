@@ -181,8 +181,8 @@ def update_locality_and_jail():
 #    else:
 #        print('bad name', jail.name, jail.external_data['url'])
 
-a = [i for i in session.query(Entity).filter(Entity.data['org_type'].astext == 'тюрьма').all()]
-print(len(a))
+#a = [i for i in session.query(Entity).filter(Entity.data['org_type'].astext == 'тюрьма').all()]
+#print(len(a))
 #for i in a:
 #    if i.data["jurisdiction"] == '':
 #        i.data["jurisdiction"] = []
@@ -219,15 +219,13 @@ print(len(a))
 #jail = session.query(Entity).filter(Entity.name.contains('СИЗО-2 Лефортово')).first()
 #print(jail.external_data)
 #doc = Document()
-#doc.stripped = '''Первенство УФСИН России по Алтайскому краю среди кинологов со служебными собаками прошло в поселке Куета, сообщает ведомство.
-#Кинологи и их питомцы выполняли различные задания, в том числе силовое задержание нарушителя. По итогам первое место взяли сотрудники "тройки" - Исправительной колонии № 3 в Барнауле.
-#Фото: Андрей Луковский.'''
+#doc.stripped = ''''''
 #jail = session.query(Entity).filter(Entity.entity_id == 'da796201-a4b7-459a-9e18-a2527f91690a').first()
 #print(jail.external_data)
-record = session.query(Record).filter(Record.document_id == '66047987-668f-0e5b-8771-ea07a48335c0').first()
+record = session.query(Record).filter(Record.document_id == '20caf89d-e155-d50f-0c80-596d4ebba4d4').first()
 print(record.source)
 doc = session.query(Document).filter(Document.doc_id == record.source).first()
-print(run_tomita(doc, 'jail.cxx'))
+print(run_tomita(doc, 'court.cxx'))
 #used = delete_old_locations()
 #print('Markup changed')
 #print(len(used))

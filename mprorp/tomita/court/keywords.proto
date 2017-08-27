@@ -7,3 +7,4 @@ message Court_K: TAuxDicArticle {}
 message Court_Else: TAuxDicArticle {}
 message Court: TAuxDicArticle {}
 message Type: TAuxDicArticle {}
+message City: TAuxDicArticle {}
