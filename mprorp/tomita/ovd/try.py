@@ -181,27 +181,51 @@ def update_locality_and_jail():
 #    else:
 #        print('bad name', jail.name, jail.external_data['url'])
 
-#a = [i for i in session.query(Entity).filter(Entity.data['org_type'].astext == 'jail').all()]
+#a = [i for i in session.query(Entity).filter(Entity.data['org_type'].astext == 'тюрьма').all()]
 #print(len(a))
 #for i in a:
-#    i.data['org_type'] = 'тюрьма'
-#    flag_modified(i, 'data')
-#    session.commit()
-#a = [i for i in session.query(Entity).filter(Entity.data['org_type'].astext == 'jail').all()]
+#    if i.data["jurisdiction"] == '':
+#        i.data["jurisdiction"] = []
+#    elif i.data["jurisdiction"] == [[]]:
+#        i.data["jurisdiction"] = []
+#
+#    if i.data["location"] == '':
+#        i.data["location"] = []
+#    elif i.data["location"] == [[]]:
+#        i.data["location"] = []
+#
+#    if i.data["location"] != []:
+#        loc = [i for i in session.query(Entity).filter(Entity.name == i.data["location"][0]).all() if i.external_data is not None]
+#        if len(loc) > 1:
+#            print(loc[0].name)
+#        elif len(loc) == 1:
+#            i.data["location"] = [str(loc[0].entity_id)]
+#            flag_modified(i, 'data')
+#            session.commit()
+#a = [i for i in session.query(Entity).filter(Entity.data['org_type'].astext == 'тюрьма').all() if i.data['jurisdiction'] == '']
 #print(len(a))
+#for i in a:
+#    if i.data['location'] != [] and str(i.data['location']).count('-') > 2:
+#        loc = session.query(Entity).filter(Entity.entity_id == i.data['location'][0]).all()
+#        if len(loc) == 1:
+#            i.external_data['location'] = loc[0].name
+#            flag_modified(i, 'external_data')
+#            session.commit()
+#        else:
+#            print(i.entity_id)
 
 #update_locality_and_jail()
 #f1('jails')
 #jail = session.query(Entity).filter(Entity.name.contains('СИЗО-2 Лефортово')).first()
 #print(jail.external_data)
 #doc = Document()
-#doc.stripped = '''Хотя о перспективах ввода этого объекта в регионе говорилось много. Строительство нового СИЗО в Кемеровской области было просто жизненно необходимо. Перелимит обитателей изоляторов пенитенциарной системы России давно стал большой проблемой. На данный момент в Кузбассе расположено 4 следственных изолятора — СИЗО-1 в Кемерове, СИЗО-2 в Новокузнецке, СИЗО-3 в Мариинске и СИЗО-4 в Анжеро-Судженске.'''
-#jail = session.query(Entity).filter(Entity.name == 'ГУФСИН').first()
-#print(jail.entity_id)
-#record = session.query(Record).filter(Record.document_id == 'd6418ad42520e3be86577712eaad259e').first()
-#print(record.source)
-doc = session.query(Document).filter(Document.doc_id == '01edd213-f2e8-4ace-88a5-5118c94ff697').first()
-print(run_tomita(doc, 'org.cxx'))
+#doc.stripped = ''''''
+#jail = session.query(Entity).filter(Entity.entity_id == 'da796201-a4b7-459a-9e18-a2527f91690a').first()
+#print(jail.external_data)
+record = session.query(Record).filter(Record.document_id == '20caf89d-e155-d50f-0c80-596d4ebba4d4').first()
+print(record.source)
+doc = session.query(Document).filter(Document.doc_id == record.source).first()
+print(run_tomita(doc, 'court.cxx'))
 #used = delete_old_locations()
 #print('Markup changed')
 #print(len(used))

@@ -11,14 +11,15 @@ def compare(arr1, arr2):
 
 
 def clean_fact(fact):
-    fact = fact.replace(' №', '-').replace('(', '').replace('"', '').replace(')', '')
+    fact = fact.replace(' №', '-').replace('(', '').replace('"', '').replace(')', '').replace('исправительный колония', 'ик')
+    fact = fact.replace('- ', '-')
     return fact
 
 
 def jail_identification(fact):
     fact['norm'] = clean_fact(fact['norm'])
     session = db_session()
-    jails = session.query(Entity).filter(Entity.data["org_type"].astext == 'jail').all()
+    jails = session.query(Entity).filter(Entity.data["org_type"].astext == 'тюрьма').all()
     for jail in jails:
         if compare(fact['norm'].split(), jail.external_data['norm']):
             return str(jail.entity_id).replace("UUID('", '').replace("')", '')
@@ -26,7 +27,6 @@ def jail_identification(fact):
 
 
 def find_nearest_location(jail, all_jails, locs):
-    print(jail)
     out = {}
     jails = [i for i in all_jails if clean_fact(jail['norm']) in str(i.external_data['norm'])]
     if len(jails) == 0:
@@ -37,7 +37,7 @@ def find_nearest_location(jail, all_jails, locs):
         for loc in locs:
             dist = min(math.fabs(jail['fs'] - loc['ls']), math.fabs(loc['fs'] - jail['ls']))
             for j in jails:
-                if loc['norm'] in j.data['location'].lower():
+                if loc['norm'] in str(j.external_data).lower():
                     if dist in out:
                         out[dist].append(j)
                     else:
@@ -48,7 +48,8 @@ def find_nearest_location(jail, all_jails, locs):
 def jail_identification_new(facts):
     out = {}
     session = db_session()
-    all_jails = session.query(Entity).filter(Entity.data["org_type"].astext == 'jail').all()
+    all_jails = [i for i in session.query(Entity).filter(Entity.data["org_type"].astext == 'тюрьма').all()
+                 if i.external_data is not None]
     cities = [i for i in facts if i['type'] == 'CityFact']
     jails = [i for i in facts if i['type'] == 'JailFact']
     for jail in jails:

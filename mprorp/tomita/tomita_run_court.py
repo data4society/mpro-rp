@@ -5,6 +5,7 @@ import subprocess as sp
 from mprorp.tomita.tomita_run import create_file
 from mprorp.config.settings import *
 from mprorp.tomita.locality.tomita_out_loc import get_coordinates
+from mprorp.tomita.court.global_identification import court_identification
 
 
 def create_config_court(file_name, tomita_path):
@@ -24,7 +25,7 @@ TTextMinerConfig {
   {Name = "Суды"}
   ]
   Facts = [
-    { Name = "CourtFact_TOMITA" }
+    { Name = "CourtFact_TOMITA" }, { Name = "CityFact_TOMITA" }
   ]
   Output = {
     File =''' + ''' "facts_''' + file_name[:-4] + '''.xml";
@@ -62,5 +63,5 @@ def start_tomita_court(doc):
 def run_tomita_court(doc):
     out_name, file_name, tomita_path = start_tomita_court(doc)
     results = get_coordinates(out_name, file_name, tomita_path)
-    results = {str(i['fs']) + ':' + str(i['ls']): 'Org' for i in results}
+    results = court_identification(results)
     return results, tomita_path
