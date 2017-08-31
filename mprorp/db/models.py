@@ -637,7 +637,7 @@ class KLADR(Base):
 
 
 class FastartRubric(Base):
-    """publisher geo and other info"""
+    """temp rubrics for fastart"""
     __tablename__ = 'fastartrubrics'
 
     # id of rubric
@@ -655,9 +655,9 @@ class FastartRubric(Base):
     # docs for training
     docs = Column(JSONB())
     # index of current document in docs
-    doc_ind = Column(Integer(), server_default=0)
+    doc_ind = Column(Integer(), server_default="0")
     # current step
-    step = Column(Integer(), server_default=0)
+    step = Column(Integer(), server_default="0")
 
 
 ######################################## NO USED
