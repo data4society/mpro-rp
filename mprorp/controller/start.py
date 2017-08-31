@@ -7,7 +7,10 @@ from mprorp.db.models import *
 
 import datetime
 
-from mprorp.controller.logic import regular_gn_start_parsing, regular_ga_start_parsing, regular_ya_rss_start_parsing, regular_vk_start_parsing, regular_yn_start_parsing, regular_csv_start_parsing, regular_other_app_start_parsing, regular_selector_start_parsing, regular_from_csv_start_parsing
+from mprorp.controller.logic import regular_gn_start_parsing, regular_ga_start_parsing, \
+    regular_ya_rss_start_parsing, regular_vk_start_parsing, regular_yn_start_parsing, \
+    regular_csv_start_parsing, regular_other_app_start_parsing, regular_selector_start_parsing, \
+    regular_from_csv_start_parsing, regular_refactor_start_parsing
 from sqlalchemy.orm import load_only
 
 
@@ -71,6 +74,8 @@ def check_sources():
                             regular_from_csv_start_parsing.delay(source_key, app_id=app_id)
                         elif source_type == "other_app":  # clone from other app
                             regular_other_app_start_parsing.delay(source_key, app_id=app_id)
+                        elif source_type == "refactor":  # continue working with bad documents
+                            regular_refactor_start_parsing.delay(source_key, app_id=app_id)
                     elif (not source_status.ready) and source["on"] and source_status.next_crawling_time < datetime.datetime.now().timestamp():
                         print("wait for "+source_key)
     # variable_set("last_config", apps_config)

@@ -23,6 +23,7 @@ from mprorp.crawler.csv_to_rubricator import csv_start_parsing
 from mprorp.crawler.from_csv import from_csv_start_parsing
 from mprorp.crawler.from_other_app import other_app_cloning
 from mprorp.crawler.selector import selector_start_parsing
+from mprorp.crawler.refactor import refactor_start_parsing
 
 from mprorp.analyzer.theming.themer import regular_themization
 
@@ -449,6 +450,33 @@ def regular_other_app_start_parsing(source_key, **kwargs):
         print_exception()
     session.remove()
     print("OA CRAWL COMPLETE: "+source_key)
+
+
+@app.task(ignore_result=True, time_limit=660, soft_time_limit=600)
+def regular_refactor_start_parsing(source_key, **kwargs):
+    """cloning docs from other app"""
+    print("REFACTOR CRAWL START: "+source_key)
+    session = db_session()
+    apps_config = variable_get(cur_config, session)
+    app_id = kwargs["app_id"]
+    source = apps_config[app_id]["crawler"]["refactor"][source_key]
+    source_key = int(source_key)
+    try:
+        if "new_status" in source:
+            new_status = source["new_status"]
+        else:
+            new_status = int(source_key)
+        docs = refactor_start_parsing(source_key, new_status, source["from_date"], app_id, session)
+        session.commit()
+        for doc in docs:
+            router(doc.doc_id, app_id, new_status)
+    except Exception as err:
+        #err_txt = repr(err)
+        logging.error("Неизвестная ошибка refactor краулера, source: " + source_key)
+        #print(err_txt)
+        print_exception()
+    session.remove()
+    print("REFACTOR CRAWL COMPLETE: "+source_key)
 
 
 @app.task(ignore_result=True, time_limit=660, soft_time_limit=600)
