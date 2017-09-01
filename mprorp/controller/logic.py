@@ -89,6 +89,7 @@ BAD_COUNTRY = 2003
 SITE_PAGE_PARSE_FAILED = 2004
 WITHOUT_ENTITIES = 2005
 SITE_PAGE_LOADING_FAILED = 2006
+SITE_PAGE_DECODING_FAILED = 2007
 
 mode_times = False
 cur_config = "last_config"
@@ -534,12 +535,16 @@ def regular_download_page(doc_id, new_status, **kwargs):
     except Exception as err:
         err_txt = str(err)
         err_type = type(err)
-        #error_found = False
-        #if err_type == HTTPError:
-        # print(url, err.code)
-        new_status = SITE_PAGE_LOADING_FAILED
-        logging.error("Ошибка загрузки код: " + str(err.code) + " doc_id: " + doc_id)  # + " url: " + url)
-        #error_found = True
+        error_found = False
+        if err_type == HTTPError:
+            # print(url, err.code)
+            new_status = SITE_PAGE_LOADING_FAILED
+            logging.error("Ошибка загрузки код: " + str(err.code) + " doc_id: " + doc_id)  # + " url: " + url)
+            error_found = True
+        if not error_found:
+            # print(url, type(err))
+            new_status = SITE_PAGE_DECODING_FAILED
+            logging.error("Ошибка декодинга doc_id: " + doc_id + "url:" + doc.url)
         print(err_txt)
         print_exception()
     return set_doc(doc, new_status, session)

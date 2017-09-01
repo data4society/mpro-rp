@@ -28,13 +28,13 @@ def download_page(doc, session):
 
     encoding = get_encoding(html_source) or 'utf-8'
     decoded_page = html_source.decode(encoding, 'replace')
-    doc.source = encoding + "|||" + decoded_page
+    doc.doc_source = encoding + "|||" + decoded_page
 
 
 def find_full_text(doc, session, countries):
     """finds full text for doc object by readability algorithm"""
     print('start readability ' + doc.url)
-    decoded_page = doc.source
+    decoded_page = doc.doc_source
     pos = decoded_page.find("|||")
     encoding = decoded_page[:pos]
     decoded_page = decoded_page[pos + 3:]
