@@ -5,6 +5,7 @@ import linecache
 import os
 import pwd
 import math
+import traceback
 from Levenshtein import distance
 
 
@@ -68,3 +69,4 @@ def print_exception():
     linecache.checkcache(filename)
     line = linecache.getline(filename, lineno, f.f_globals)
     print('EXCEPTION IN ({}, LINE {} "{}"): {}'.format(filename, lineno, line.strip(), exc_obj))
+    print(traceback.format_exc())
