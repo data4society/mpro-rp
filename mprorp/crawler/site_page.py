@@ -16,12 +16,17 @@ import logging
 logging.basicConfig(format = u'%(levelname)-8s [%(asctime)s] %(message)s', level = logging.DEBUG, filename = u'crawler_log.txt')
 
 
-def find_full_text(doc, session, countries):
-    """finds full text for doc object by readability algorithm"""
+def download_page(doc, session):
+    """download page"""
     url = doc.url
     print('start grabbing ' + url)
-    html_source = send_get_request(url, has_encoding=True, gen_useragent=True)# urllib.request.urlopen(url, timeout=10).read()
-    readability_and_meta(doc, session, html_source, countries)
+    doc.source = send_get_request(url, has_encoding=True, gen_useragent=True)
+
+
+def find_full_text(doc, session, countries):
+    """finds full text for doc object by readability algorithm"""
+    print('start readability ' + doc.url)
+    readability_and_meta(doc, session, doc.source, countries)
 
 
 def readability_and_meta(doc, session, html_source, countries):

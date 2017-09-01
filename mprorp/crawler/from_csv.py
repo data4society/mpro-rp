@@ -23,7 +23,7 @@ def from_csv_start_parsing(source_name, app_id, session):
                 if i < item_nums:
                     i += 1
                     continue
-                if i == item_nums+1000:
+                if i == item_nums+10000:
                     break
                 i += 1
                 url = row[0]

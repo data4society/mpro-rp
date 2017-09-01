@@ -5,7 +5,7 @@ from urllib.error import *
 import mprorp.analyzer.rubricator as rb
 import mprorp.ner.feature as ner_feature
 from mprorp.celery_app import app
-from mprorp.crawler.site_page import find_full_text
+from mprorp.crawler.site_page import find_full_text, download_page
 from mprorp.db.dbDriver import *
 from mprorp.db.models import *
 from sqlalchemy.orm.attributes import flag_modified
@@ -50,8 +50,8 @@ YANDEX_RSS_INIT_STATUS = 60
 SELECTOR_INIT_STATUS = 70
 FROM_CSV_INIT_STATUS = 80
 #GOOGLE_NEWS_COMPLETE_STATUS = 21
-SITE_PAGE_LOADING_FAILED = 91
-SITE_PAGE_COMPLETE_STATUS = 99
+SITE_PAGE_LOADING_COMPLETE_STATUS = 95
+SITE_PAGE_READABILITY_COMPLETE_STATUS = 99
 
 MORPHO_COMPLETE_STATUS = 100
 LEMMAS_COMPLETE_STATUS = 101
@@ -88,6 +88,7 @@ WITHOUT_RUBRICS = 2001
 BAD_COUNTRY = 2003
 SITE_PAGE_PARSE_FAILED = 2004
 WITHOUT_ENTITIES = 2005
+SITE_PAGE_LOADING_FAILED = 2006
 
 mode_times = False
 cur_config = "last_config"
@@ -112,7 +113,10 @@ def router(doc_id, app_id, status):
             session.remove()
         return
     if status in [GOOGLE_NEWS_INIT_STATUS, GOOGLE_ALERTS_INIT_STATUS, YANDEX_NEWS_INIT_STATUS, YANDEX_RSS_INIT_STATUS, CSV_INIT_STATUS, SELECTOR_INIT_STATUS, FROM_CSV_INIT_STATUS]:  # to find full text of HTML page
-        regular_find_full_text.delay(doc_id, SITE_PAGE_COMPLETE_STATUS, app_id=app_id)
+        regular_find_full_text.delay(doc_id, SITE_PAGE_LOADING_COMPLETE_STATUS, app_id=app_id)
+        return
+    if status == VK_INIT_STATUS:  # to complete vk item parsing
+        regular_find_full_text.delay(doc_id, SITE_PAGE_READABILITY_COMPLETE_STATUS, app_id=app_id)
         return
     if status == VK_INIT_STATUS:  # to complete vk item parsing
         regular_vk_parse_item.delay(doc_id, VK_COMPLETE_STATUS, app_id=app_id)
@@ -519,6 +523,28 @@ def regular_vk_parse_item(doc_id, new_status, **kwargs):
     return set_doc(doc, new_status, session)
 
 
+
+#@app.task(ignore_result=True)
+@app.task()
+def regular_download_page(doc_id, new_status, **kwargs):
+    """parsing HTML page to find full text"""
+    session, doc = get_doc(doc_id)
+    try:
+        download_page(doc, session)
+    except Exception as err:
+        err_txt = str(err)
+        err_type = type(err)
+        #error_found = False
+        #if err_type == HTTPError:
+        # print(url, err.code)
+        new_status = SITE_PAGE_LOADING_FAILED
+        logging.error("Ошибка загрузки код: " + str(err.code) + " doc_id: " + doc_id)  # + " url: " + url)
+        #error_found = True
+        print(err_txt)
+        print_exception()
+    return set_doc(doc, new_status, session)
+
+
 #@app.task(ignore_result=True)
 @app.task()
 def regular_find_full_text(doc_id, new_status, **kwargs):
@@ -543,11 +569,6 @@ def regular_find_full_text(doc_id, new_status, **kwargs):
                 logging.error("Плохая страна doc_id: " + doc_id)
                 new_status = BAD_COUNTRY
                 error_found = True
-        elif err_type == HTTPError:
-            # print(url, err.code)
-            new_status = SITE_PAGE_LOADING_FAILED
-            logging.error("Ошибка загрузки код: " + str(err.code) + " doc_id: " + doc_id)  # + " url: " + url)
-            error_found = True
         if not error_found:
             # print(url, type(err))
             new_status = SITE_PAGE_PARSE_FAILED
