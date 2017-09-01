@@ -105,7 +105,7 @@ def router(doc_id, app_id, status):
     apps_config = variable_get(cur_config)
     app_conf = apps_config[app_id]
     logging.info("route doc: " + str(doc_id) + " status: " + str(status) + " app_id: " + app_id)
-    if status in [SITE_PAGE_LOADING_FAILED, EMPTY_TEXT, BAD_COUNTRY, SITE_PAGE_PARSE_FAILED, WITHOUT_RUBRICS, WITHOUT_ENTITIES]:
+    if status >= 2000:  # ERROR
         if "mode" in app_conf and app_conf["mode"] == "live":
             logging.info("delete doc: " + str(doc_id) + " status: " + str(status) + " app_id: " + app_id)
             session = db_session()
@@ -116,7 +116,7 @@ def router(doc_id, app_id, status):
     if status in [GOOGLE_NEWS_INIT_STATUS, GOOGLE_ALERTS_INIT_STATUS, YANDEX_NEWS_INIT_STATUS, YANDEX_RSS_INIT_STATUS, CSV_INIT_STATUS, SELECTOR_INIT_STATUS, FROM_CSV_INIT_STATUS]:  # to find full text of HTML page
         regular_download_page.delay(doc_id, SITE_PAGE_LOADING_COMPLETE_STATUS, app_id=app_id)
         return
-    if status == SITE_PAGE_LOADING_COMPLETE_STATUS:  # to complete vk item parsing
+    if status == SITE_PAGE_LOADING_COMPLETE_STATUS:  # to readability
         regular_find_full_text.delay(doc_id, SITE_PAGE_READABILITY_COMPLETE_STATUS, app_id=app_id)
         return
     if status == VK_INIT_STATUS:  # to complete vk item parsing
