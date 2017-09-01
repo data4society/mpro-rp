@@ -14,6 +14,7 @@ from mprorp.celery_app import load_app_conf
 from mprorp.crawler.site_page import readability_and_meta
 from mprorp.config.settings import *
 from mprorp.utils import relative_file_path
+from readability.htmls import build_doc
 
 
 def write_to_spreadsheet(credentials_dict, spreadsheet_id, records):
@@ -132,7 +133,8 @@ if __name__ == '__main__':
             meta["publisher"] = {"name": 'test'}
             #meta["abstract"] = desc
             new_doc.meta = meta
-            readability_and_meta(new_doc, session, text, None)
+            bytes_source, encoding = build_doc(text)
+            readability_and_meta(new_doc, session, bytes_source, encoding, None)
             session.add(new_doc)
             session.commit()
             app_record = base_record.copy()

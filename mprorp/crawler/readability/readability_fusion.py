@@ -102,7 +102,7 @@ def compile_pattern(elements):
 class Document:
     """Class to build a etree document out of html."""
 
-    def __init__(self, input, positive_keywords=None, negative_keywords=None,
+    def __init__(self, input, encoding, positive_keywords=None, negative_keywords=None,
                  url=None, min_text_length=25, retry_length=250, xpath=False):
         """Generate the document
 
@@ -118,7 +118,7 @@ class Document:
         """
         self.input = input
         self.html = None
-        self.encoding = None
+        self.encoding = encoding
         self.positive_keywords = compile_pattern(positive_keywords)
         self.negative_keywords = compile_pattern(negative_keywords)
         self.url = url
@@ -139,7 +139,7 @@ class Document:
         return self.html
 
     def _parse(self, input):
-        doc, self.encoding = build_doc(input)
+        doc = input
         doc = html_cleaner.clean_html(doc)
         base_href = self.url
         if base_href:

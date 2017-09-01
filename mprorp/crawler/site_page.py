@@ -11,6 +11,10 @@ import urllib.parse as urlparse
 from mprorp.crawler.utils import send_get_request
 from mprorp.data.ya_smi import add_new_source
 
+from readability.encoding import get_encoding
+from readability.compat import str_
+from lxml.html import document_fromstring, HTMLParser
+
 
 import logging
 logging.basicConfig(format = u'%(levelname)-8s [%(asctime)s] %(message)s', level = logging.DEBUG, filename = u'crawler_log.txt')
@@ -20,20 +24,31 @@ def download_page(doc, session):
     """download page"""
     url = doc.url
     print('start grabbing ' + url)
-    doc.source = send_get_request(url, has_encoding=True, gen_useragent=True)
+    html_source = send_get_request(url, has_encoding=True, gen_useragent=True)
+
+    encoding = get_encoding(html_source) or 'utf-8'
+    decoded_page = html_source.decode(encoding, 'replace')
+    doc.source = encoding + "|||" + decoded_page
 
 
 def find_full_text(doc, session, countries):
     """finds full text for doc object by readability algorithm"""
     print('start readability ' + doc.url)
-    readability_and_meta(doc, session, doc.source, countries)
+    decoded_page = doc.source
+    pos = decoded_page.find("|||")
+    encoding = decoded_page[:pos]
+    decoded_page = decoded_page[pos + 3:]
+    utf8_parser = HTMLParser(encoding='utf-8')
+    byte_source = document_fromstring(decoded_page.encode('utf-8', 'replace'), parser=utf8_parser)
+
+    readability_and_meta(doc, session, byte_source, encoding, countries)
 
 
-def readability_and_meta(doc, session, html_source, countries):
+def readability_and_meta(doc, session, byte_source, encoding, countries):
     url = doc.url
     meta = doc.meta
     #print(html_source.decode("utf-8"))
-    rf_doc = Doc(html_source)
+    rf_doc = Doc(byte_source, encoding)
     title = doc.title
     if title == None:
         title = ''
@@ -70,6 +85,8 @@ def readability_and_meta(doc, session, html_source, countries):
 
 
 if __name__ == '__main__':
+    print("start")
+    exit()
     session = db_session()
     docs = session.query(Document).filter_by(app_id='ovd_ideal').all()
     for doc in docs:
