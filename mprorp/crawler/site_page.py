@@ -87,6 +87,7 @@ def readability_and_meta(doc, session, byte_source, encoding, countries):
 if __name__ == '__main__':
     print("start")
     exit()
+    """
     session = db_session()
     docs = session.query(Document).filter_by(app_id='ovd_ideal').all()
     for doc in docs:
@@ -117,3 +118,4 @@ if __name__ == '__main__':
     #print(articles)
     # delete("documents",Document.source_id == 'f4cb43e4-31bb-4d34-9367-66152e63daa8')
     # print(len(select(Document.created, Document.source_id == 'f4cb43e4-31bb-4d34-9367-66152e63daa8').fetchall()))
+    """
