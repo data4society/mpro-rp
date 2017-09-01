@@ -36,9 +36,18 @@ def from_csv_start_parsing(source_name, app_id, session):
                     if session.query(Document).filter_by(guid=guid).count() == 0:
                         meta = dict()
                         parsed_uri = urlparse.urlparse(url)
-                        publisher = parsed_uri.netloc
-                        meta["publisher"] = {"name": publisher}
+                        publisher_name = parsed_uri.netloc
+                        meta["publisher"] = {"name": publisher_name}
                         doc = Document(guid=guid, app_id=app_id, url=url, title=row[1], status=0, type='article', meta=meta)
+
+                        publisher = session.query(Publisher).filter_by(name=publisher_name).first()
+                        if publisher:
+                            doc.publisher_id = str(publisher.pub_id)
+                        else:
+                            publisher = Publisher(name=publisher_name, site=publisher_name, country=publisher_name[publisher_name.rfind('.')+1:])
+                            doc.publisher = publisher
+                            session.add(publisher)
+
                         session.add(doc)
                         docs.append(doc)
         variable_set("item_nums_csv_" + source_name, i)

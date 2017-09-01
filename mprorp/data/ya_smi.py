@@ -6,6 +6,7 @@ import json
 from mprorp.crawler.utils import send_get_request
 from lxml.html import document_fromstring
 import csv
+from readability.encoding import get_encoding
 
 from mprorp.crawler.readability.readability_fusion import Document as Doc
 
@@ -124,7 +125,8 @@ def ya_smi_import(file_in, file_out):
 def add_new_source(name):
     url = 'https://news.yandex.ru/smi'
     html_source = send_get_request(url, has_encoding=True, gen_useragent=True)
-    rf_doc = Doc(html_source)
+    encoding = get_encoding(html_source) or 'utf-8'
+    rf_doc = Doc(html_source, encoding)
     print(rf_doc._html().xpath("//form[contains(@class, 'filters_at_smi')]"))
     json_source = rf_doc._html().xpath("//form[contains(@class, 'filters_at_smi')]")[0].get('data-bem')
     json_obj = json.loads(json_source)
