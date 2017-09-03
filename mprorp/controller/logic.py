@@ -471,7 +471,7 @@ def regular_refactor_start_parsing(source_key, **kwargs):
             new_status = source["new_status"]
         else:
             new_status = status
-        docs = refactor_start_parsing(source_key, status, source["from_date"], app_id, session)
+        docs = refactor_start_parsing(source_key, new_status, source["from_date"], app_id, session)
         session.commit()
         for doc in docs:
             router(doc.doc_id, app_id, new_status)
