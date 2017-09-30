@@ -2,6 +2,7 @@
 # base settings config
 maindb_connection = ''
 testdb_connection = 'postgres://postgres:@localhost:5432/mprorp'  # for travis db
+fastart_connection = ''  # for fastart app
 google_private_key_id = ''
 google_private_key = ''
 google_client_email = ''
@@ -76,13 +77,6 @@ learning_parameters = {
 try:
     # trying override base settings with custom
     from mprorp.config.local_settings import *
-    for big_key in ['rubricator', 'paragraph embeddings', 'models and sets']:
-        if big_key in local_learning_parameters.keys():
-            params = local_learning_parameters[big_key]
-            print(big_key)
-            for key in params.keys():
-                learning_parameters[big_key][key] = params[key]
-                print(big_key, key, params[key])
 
 except ImportError:
     pass
