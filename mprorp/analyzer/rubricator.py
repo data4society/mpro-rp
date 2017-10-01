@@ -12,6 +12,7 @@ import pickle as pickle
 from mprorp.utils import home_dir
 from sqlalchemy.orm.attributes import flag_modified
 from mprorp.config.settings import learning_parameters as lp
+import mprorp.analyzer.fasttext_rubrication as fr
 
 # initialization mystem
 mystem_analyzer = Mystem(disambiguation=False)
@@ -837,6 +838,7 @@ def spot_doc_rubrics(doc, rubrics, session=None, commit_session=True, verbose=Fa
     embeddings = {}
     all_tf_idf_train_sets = set()
     all_embeddings = set()
+
     # fill set_id in rubrics and data in models
     for rubric_dict in rubrics:
         rubric_id = rubric_dict['rubric_id']
@@ -969,6 +971,38 @@ def spot_doc_rubrics(doc, rubrics, session=None, commit_session=True, verbose=Fa
                      'doc_id': doc.doc_id, 'probability': probability})
 
     db.put_rubrics(result, session, commit_session)
+    if verbose:
+        print(answers)
+    doc.rubric_ids = answers
+    if doc.meta is None:
+        doc.meta = dict()
+    doc.meta['rubric_probabilities'] = probabilities_for_client
+    flag_modified(doc, "meta")
+
+
+def fasttext_spot_doc_rubrics(doc, rubrics, session=None, commit_session=True, verbose=False):
+    """spot rubrics for document in fasttext case"""
+    txt = doc.stripped
+    probabilities_for_client = {}
+    answers = []
+
+    # get embedding vector
+    emb_vec = fr.get_embedding_vector(txt)
+
+    for rubric_dict in rubrics:
+        rubric_id = rubric_dict['rubric_id']
+        rubric_model_name = rubric_dict['model_name']
+        negative_rubric_id = rubric_dict.get('rubric_minus_id', None)
+
+        # get answer for current rubric
+        answer = fr.get_answer_by_model_name(rubric_model_name, emb_vec)
+
+        probabilities_for_client[rubric_id] = answer
+        if answer >= 0.5:
+            answers.append(rubric_id)
+        elif negative_rubric_id is not None:
+            answers.append(negative_rubric_id)
+
     if verbose:
         print(answers)
     doc.rubric_ids = answers

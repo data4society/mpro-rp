@@ -24,3 +24,6 @@ scipy
 gensim
 
 psutil
+
+flask
+flask_cors
