@@ -4,6 +4,9 @@ MPRORP_USER_PASS="123"
 POSTGRES_USER_PASS="123"
 POSTGRESMPRO_USER_PASS="123"
 POSTGRESMPRO_BASE_USER_PASS="123"
+FASTART_SERVER="11.12.13.14"
+FASTART_BASE="postgres_mpro"
+FASTART_BASE_USER_PASS="123"
 
 #time in seconds to block process
 CELERYD_TASK_SOFT_TIME_LIMIT="55"
@@ -48,10 +51,13 @@ echo 'host    all    all    0.0.0.0/0    md5' >> /etc/postgresql/$pg_version/mai
 sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'/g" /etc/postgresql/$pg_version/main/postgresql.conf
 service postgresql restart
 
+su -c 'mkdir /home/mprorp/models' - mprorp
+su -c 'mkdir /home/mprorp/weights' - mprorp
 su -c 'virtualenv -p /usr/bin/python3 --no-site-packages ~/mprorpenv' - mprorp
 su -c 'cd ~;git clone -b dev --single-branch https://github.com/data4society/mpro-rp.git;mv ~/mpro-rp ~/mpro-rp-dev' - mprorp
 su -c 'cp /home/mprorp/mpro-rp-dev/mprorp/config/local_settings.sample.py /home/mprorp/local_settings.py' - mprorp
 sed -i "s/maindb_connection = ''/maindb_connection = 'postgresql:\/\/postgres_mpro:$POSTGRESMPRO_BASE_USER_PASS@localhost\/postgres_mpro'/g" /home/mprorp/local_settings.py
+sed -i "s/fastart_connection = ''/fastart_connection = 'postgresql:\/\/postgres_mpro:$FASTART_BASE_USER_PASS@$FASTART_SERVER\/$FASTART_BASE'/g" /home/mprorp/local_settings.py
 su -c 'cp /home/mprorp/local_settings.py /home/mprorp/mpro-rp-dev/mprorp/config/local_settings.py' - mprorp
 su -c 'cp /home/mprorp/mpro-rp-dev/mprorp/config/app.sample.json /home/mprorp/app.json' - mprorp
 su -c 'cd ~/mpro-rp-dev; source ~/mprorpenv/bin/activate; pip3 install pip --upgrade; pip3 install -r requirements.txt; pip3 install flower' - mprorp
@@ -65,10 +71,11 @@ cp /home/mprorp/mpro-rp-dev/server/flower_nginx /etc/nginx/sites-available/flowe
 ln -s /etc/nginx/sites-available/flower /etc/nginx/sites-enabled/flower
 rm /etc/nginx/sites-enabled/default
 service nginx reload
-# creating flower, celerybeat and celery daemons
+# creating flower, celerybeat, celery and fastart  daemons
 cp /home/mprorp/mpro-rp-dev/server/celeryd.conf /etc/init/celeryd.conf
 cp /home/mprorp/mpro-rp-dev/server/celerybeat.conf /etc/init/celerybeat.conf
 cp /home/mprorp/mpro-rp-dev/server/flower.conf /etc/init/flower.conf
+cp /home/mprorp/mpro-rp-dev/server/fastart.conf /etc/init/fastart.conf
 sed -i "s/CELERY_LOG_LEVEL=\"DEBUG\"/CELERY_LOG_LEVEL=\"$CELERY_LOG_LEVEL\"/g" /etc/init/celeryd.conf
 sed -i "s/CELERYD_TASK_TIME_LIMIT=60/CELERYD_TASK_TIME_LIMIT=$CELERYD_TASK_TIME_LIMIT/g" /etc/init/celeryd.conf
 sed -i "s/CELERYD_TASK_SOFT_TIME_LIMIT=55/CELERYD_TASK_SOFT_TIME_LIMIT=$CELERYD_TASK_SOFT_TIME_LIMIT/g" /etc/init/celeryd.conf
@@ -84,6 +91,7 @@ sed -i "s/FLOWER_BASIC_AUTH=\"\"/FLOWER_BASIC_AUTH=\"$FLOWER_USER_PASS\"/g" /etc
 chmod 644 /etc/init/celeryd.conf
 chmod 644 /etc/init/celerybeat.conf
 chmod 644 /etc/init/flower.conf
+chmod 644 /etc/init/fastart.conf
 # update init configs
 # copy renew script to not renewing directory
 cp /home/mprorp/mpro-rp-dev/server/renew.sh /home/mprorp

@@ -1,8 +1,7 @@
 """program configuration override main config"""
 maindb_connection = ''  # put here connection string for your db
 testdb_connection = 'postgresql://postgres:password@localhost/postgres'  # local db for vagrant testing
-
-fastart_connection = ''
+fastart_connection = ''  # put here connection string for fastart db
 
 learning_parameters = {
     'rubricator':{
@@ -62,5 +61,11 @@ learning_parameters = {
         'train_set_name': 'train_set_10',
         'test_set_name': 'test_set_10',
         'embedding_id': 'ModelEP_0506_128_NonCons_6_3.pic'
+    },
+    'fasttext': {
+        'reg_coef': 0.01,
+        'lr':4.0,
+        'tf_steps': 10000,
+        'embedding_model': 'nkrja_fasttext_model'
     }
 }

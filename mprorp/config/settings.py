@@ -69,9 +69,14 @@ learning_parameters = {
         'train_set_name': 'train_set_10',
         'test_set_name': 'test_set_10',
         'embedding_id': 'ModelEP_0506_128_NonCons_6_3.pic'
+    },
+    'fasttext': {
+        'reg_coef': 0.01,
+        'lr':4.0,
+        'tf_steps': 10000,
+        'embedding_model': 'nkrja_fasttext_model'
     }
 }
-
 
 
 try:

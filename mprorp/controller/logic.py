@@ -515,8 +515,7 @@ def regular_vk_start_parsing(source_key, **kwargs):
     print("VK CRAWL COMPLETE: "+source_key)
 
 
-#@app.task(ignore_result=True)
-@app.task()
+@app.task(ignore_result=True)
 def regular_vk_parse_item(doc_id, new_status, **kwargs):
     """parsing vk request"""
     session, doc = get_doc(doc_id)
@@ -525,8 +524,7 @@ def regular_vk_parse_item(doc_id, new_status, **kwargs):
 
 
 
-#@app.task(ignore_result=True)
-@app.task()
+@app.task(ignore_result=True)
 def regular_download_page(doc_id, new_status, **kwargs):
     """parsing HTML page to find full text"""
     session, doc = get_doc(doc_id)
@@ -550,8 +548,7 @@ def regular_download_page(doc_id, new_status, **kwargs):
     return set_doc(doc, new_status, session)
 
 
-#@app.task(ignore_result=True)
-@app.task()
+@app.task(ignore_result=True)
 def regular_find_full_text(doc_id, new_status, **kwargs):
     """parsing HTML page to find full text"""
     session, doc = get_doc(doc_id)
@@ -583,8 +580,7 @@ def regular_find_full_text(doc_id, new_status, **kwargs):
     return set_doc(doc, new_status, session)
 
 
-#@app.task(ignore_result=True)
-@app.task()
+@app.task(ignore_result=True)
 def regular_morpho(doc_id, new_status, **kwargs):
     """morphologia"""
     session, doc = get_doc(doc_id)
@@ -592,8 +588,7 @@ def regular_morpho(doc_id, new_status, **kwargs):
     return set_doc(doc, new_status, session)
 
 
-#@app.task(ignore_result=True)
-@app.task()
+@app.task(ignore_result=True)
 def regular_lemmas(doc_id, new_status, **kwargs):
     """counting lemmas frequency for one document"""
     session, doc = get_doc(doc_id)
@@ -601,8 +596,7 @@ def regular_lemmas(doc_id, new_status, **kwargs):
     return set_doc(doc, new_status, session)
 
 
-#@app.task(ignore_result=True)
-@app.task()
+@app.task(ignore_result=True)
 def regular_calc_embedding(doc_id, new_status, **kwargs):
     """calculate paragraph embeddings"""
     session, doc = get_doc(doc_id)
@@ -610,14 +604,15 @@ def regular_calc_embedding(doc_id, new_status, **kwargs):
     return set_doc(doc, new_status, session)
 
 
-#@app.task(ignore_result=True)
-@app.task()
+@app.task(ignore_result=True)
 def regular_rubrication(rubrics, doc_id, with_rubrics_status, without_rubrics_status, **kwargs):
     """regular rubrication"""
     session, doc = get_doc(doc_id)
     # rb.spot_doc_rubrics2(doc_id, rubrics_for_regular, new_status)
-    # doc.rubric_ids = ['19848dd0-436a-11e6-beb8-9e71128cae50']
-    rb.spot_doc_rubrics(doc, rubrics, session, False)
+    if "rubrication_type" in rubrics[0] and rubrics[0]["rubrication_type"] == "fasttext":
+        rb.fasttext_spot_doc_rubrics(doc, rubrics, session, False)
+    else:
+        rb.spot_doc_rubrics(doc, rubrics, session, False)
 
     if len(doc.rubric_ids) == 0:
         new_status = without_rubrics_status
@@ -626,8 +621,7 @@ def regular_rubrication(rubrics, doc_id, with_rubrics_status, without_rubrics_st
     return set_doc(doc, new_status, session)
 
 
-#@app.task(ignore_result=True)
-@app.task()
+@app.task(ignore_result=True)
 def regular_capital_feature(doc_id, new_status, **kwargs):
     """create capital feature"""
     session, doc = get_doc(doc_id)
@@ -635,8 +629,7 @@ def regular_capital_feature(doc_id, new_status, **kwargs):
     return set_doc(doc, new_status, session)
 
 
-#@app.task(ignore_result=True)
-@app.task(time_limit=190, soft_time_limit=180)
+@app.task(ignore_result=True,time_limit=190, soft_time_limit=180)
 def regular_tomita(grammar, doc_id, new_status, **kwargs):
     """tomita"""
     session, doc = get_doc(doc_id, grammar=grammar)
@@ -644,8 +637,7 @@ def regular_tomita(grammar, doc_id, new_status, **kwargs):
     return set_doc(doc, new_status, session, grammar=grammar)
 
 
-#@app.task(ignore_result=True)
-@app.task()
+@app.task(ignore_result=True)
 def regular_tomita_features(grammars, doc_id, new_status, **kwargs):
     """tomita features (transform coordinates for ner)"""
     session, doc = get_doc(doc_id)
@@ -653,8 +645,7 @@ def regular_tomita_features(grammars, doc_id, new_status, **kwargs):
     return set_doc(doc, new_status, session)
 
 
-#@app.task(ignore_result=True)
-@app.task()
+@app.task(ignore_result=True)
 def regular_embedding_features(doc_id, new_status, **kwargs):
     """lemmas preparation for NER"""
     session, doc = get_doc(doc_id)
@@ -662,16 +653,14 @@ def regular_embedding_features(doc_id, new_status, **kwargs):
     return set_doc(doc, new_status, session)
 
 
-#@app.task(ignore_result=True)
-@app.task()
+@app.task(ignore_result=True)
 def regular_morpho_features(doc_id, new_status, **kwargs):
     session, doc = get_doc(doc_id)
     ner_feature.create_morpho_feature(doc, session, False)
     return set_doc(doc, new_status, session)
 
 
-#@app.task(ignore_result=True)
-@app.task(time_limit=190, soft_time_limit=180)
+@app.task(ignore_result=True,time_limit=190, soft_time_limit=180)
 def regular_NER_predict(ner_settings, doc_id, new_status, **kwargs):
     """NER computing"""
     session, doc = get_doc(doc_id)
@@ -679,8 +668,7 @@ def regular_NER_predict(ner_settings, doc_id, new_status, **kwargs):
     return set_doc(doc, new_status, session)
 
 
-#@app.task(ignore_result=True)
-@app.task()
+@app.task(ignore_result=True)
 def regular_create_markup(markup_settings, doc_id, new_status, **kwargs):
     """create entities if it needs and create markup"""
     session, doc = get_doc(doc_id)
@@ -689,8 +677,7 @@ def regular_create_markup(markup_settings, doc_id, new_status, **kwargs):
     return set_doc(doc, new_status, session)
 
 
-#@app.task(ignore_result=True)
-@app.task()
+@app.task(ignore_result=True)
 def regular_theming(doc_id, new_status, **kwargs):
     """regular theming"""
     session, doc = get_doc(doc_id)
@@ -698,8 +685,7 @@ def regular_theming(doc_id, new_status, **kwargs):
     return set_doc(doc, new_status, session)
 
 
-#@app.task(ignore_result=True)
-@app.task()
+@app.task(ignore_result=True)
 def tomita_entities(grammars_of_tomita_classes, doc_id, new_status, **kwargs):
     """
     grammars_of_tomita_classes = ['loc.cxx', 'org.cxx', 'norm_act.cxx']
@@ -717,8 +703,7 @@ def tomita_entities(grammars_of_tomita_classes, doc_id, new_status, **kwargs):
 
 
 
-#@app.task(ignore_result=True)
-@app.task()
+@app.task(ignore_result=True)
 def regular_rubrication_by_comparing(config, doc_id, new_status, **kwargs):
     """rubrication by comparing with clone source"""
     session, doc = get_doc(doc_id)
@@ -726,7 +711,7 @@ def regular_rubrication_by_comparing(config, doc_id, new_status, **kwargs):
     return set_doc(doc, new_status, session)
 
 
-@app.task()
+@app.task(ignore_result=True)
 def regular_cleaning(doc_id, new_status, **kwargs):
     """regular cleaning"""
     session, doc = get_doc(doc_id)

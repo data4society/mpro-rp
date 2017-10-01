@@ -14,13 +14,17 @@ from multiprocessing.util import register_after_fork
 from mprorp.config.settings import *
 from os import getcwd
 
-if ("maindb" in sys.argv) or ("worker" in sys.argv) or (getcwd().split("/")[-1] == "entrypoints"):
+script_dir = getcwd()
+if ("maindb" in sys.argv) or ("worker" in sys.argv) or (script_dir.split("/")[-1] == "entrypoints") or (script_dir.find("/fastart") != -1):
     db_type = "server"
 else:
     db_type = "local"
 
 if db_type == "server":
-    connection_string = maindb_connection
+    if script_dir.find("/fastart") != -1:
+        connection_string = fastart_connection
+    else:
+        connection_string = maindb_connection
 else:
     connection_string = testdb_connection
 

@@ -179,6 +179,8 @@ class Document(Base):
     # id of publisher
     publisher_id = Column(UUIDType(binary=False), ForeignKey('publishers.pub_id'))
     publisher = relationship(Publisher)
+    # vector with the lexemes for fulltext searching
+    tsv = Column(TSVECTOR())
 
     __table_args__ = (UniqueConstraint('app_id', 'url'), )
 
