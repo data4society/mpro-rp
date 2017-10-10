@@ -11,7 +11,7 @@ from mprorp.crawler.utils import *
 from oauth2client.service_account import ServiceAccountCredentials
 import mprorp.controller.logic as logic
 from mprorp.celery_app import load_app_conf
-from mprorp.crawler.site_page import readability_and_meta
+from mprorp.crawler.site_page import find_full_text
 from mprorp.config.settings import *
 from mprorp.utils import relative_file_path
 from readability.htmls import build_doc
@@ -114,7 +114,7 @@ if __name__ == '__main__':
     }
 
     #dropall_and_create()
-    with open(relative_file_path(__file__, '../mprorp/tests/test_docs/time_test.html'), 'rb') as f:
+    with open(relative_file_path(__file__, '../mprorp/tests/test_docs/time_test.html'), 'r') as f:
         text = f.read()
     apps_config = variable_get(cur_app_config)
     test_guid = 'time_test_guid'
@@ -133,8 +133,9 @@ if __name__ == '__main__':
             meta["publisher"] = {"name": 'test'}
             #meta["abstract"] = desc
             new_doc.meta = meta
-            bytes_source, encoding = build_doc(text)
-            readability_and_meta(new_doc, session, bytes_source, encoding, None)
+            encoding = 'utf-8'
+            new_doc.doc_source = encoding + "|||" + text
+            find_full_text(new_doc, session, None)
             session.add(new_doc)
             session.commit()
             app_record = base_record.copy()
