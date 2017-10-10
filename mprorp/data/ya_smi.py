@@ -4,7 +4,7 @@ from mprorp.db.dbDriver import *
 from mprorp.db.models import *
 import json
 from mprorp.crawler.utils import send_get_request
-from lxml.html import document_fromstring
+from lxml.html import document_fromstring, HTMLParser
 import csv
 from readability.encoding import get_encoding
 
@@ -126,8 +126,12 @@ def add_new_source(name):
     url = 'https://news.yandex.ru/smi'
     html_source = send_get_request(url, has_encoding=True, gen_useragent=True)
     encoding = get_encoding(html_source) or 'utf-8'
-    rf_doc = Doc(html_source, encoding)
-    print(rf_doc._html().xpath("//form[contains(@class, 'filters_at_smi')]"))
+
+    decoded_page = html_source.decode(encoding, 'replace')
+    utf8_parser = HTMLParser(encoding='utf-8')
+    byte_source = document_fromstring(decoded_page.encode('utf-8', 'replace'), parser=utf8_parser)
+    rf_doc = Doc(byte_source, 'utf-8', url=url)
+
     json_source = rf_doc._html().xpath("//form[contains(@class, 'filters_at_smi')]")[0].get('data-bem')
     json_obj = json.loads(json_source)
     filters = json_obj["filters"]

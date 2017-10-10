@@ -48,7 +48,7 @@ def readability_and_meta(doc, session, byte_source, encoding, countries):
     url = doc.url
     meta = doc.meta
     #print(html_source.decode("utf-8"))
-    rf_doc = Doc(byte_source, encoding)
+    rf_doc = Doc(byte_source, encoding, url=url)
     title = doc.title
     if title == None:
         title = ''
