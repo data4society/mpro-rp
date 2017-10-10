@@ -6,13 +6,14 @@ import math
 import tensorflow as tf
 from mprorp.config.settings import learning_parameters as lp
 
-fasttext_params = lp['fasttext']
-MODELS_PATH = "/home/mprorp/models/"
-embedding_model = FastText.load_fasttext_format(MODELS_PATH+fasttext_params['embedding_model'])
-TF_STEPS = fasttext_params['tf_steps']
-REG_COEF = fasttext_params['reg_coef']
-LR = fasttext_params['lr']
-print("READY!")
+if 'fasttext' in lp:
+    fasttext_params = lp['fasttext']
+    MODELS_PATH = "/home/mprorp/models/"
+    embedding_model = FastText.load_fasttext_format(MODELS_PATH+fasttext_params['embedding_model'])
+    TF_STEPS = fasttext_params['tf_steps']
+    REG_COEF = fasttext_params['reg_coef']
+    LR = fasttext_params['lr']
+    print("READY!")
 
 
 def compute_embedding(txt):
