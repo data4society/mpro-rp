@@ -29,95 +29,97 @@ import mprorp.db.dbDriver as Driver
 from mprorp.db.models import *
 from mprorp.config.settings import learning_parameters as lp
 
-# set_docs = {}
-# for cl in sets:
-#     set_docs[cl] = {}
-#     for set_type in sets[cl]:
-#         set_docs[cl][set_type] = db.get_set_docs(sets[cl][set_type])
-#         print(cl, set_type, len(set_docs[cl][set_type]), 'documents')
+
+if 'models and sets' in lp:
+    # set_docs = {}
+    # for cl in sets:
+    #     set_docs[cl] = {}
+    #     for set_type in sets[cl]:
+    #         set_docs[cl][set_type] = db.get_set_docs(sets[cl][set_type])
+    #         print(cl, set_type, len(set_docs[cl][set_type]), 'documents')
 
 
-models_and_set = lp['models and sets']
-rubric_num = models_and_set['rubric_num']
-train_set_name = models_and_set['train_set_name']
-training_set = set_list.sets[rubric_num][train_set_name]
+    models_and_set = lp['models and sets']
+    rubric_num = models_and_set['rubric_num']
+    train_set_name = models_and_set['train_set_name']
+    training_set = set_list.sets[rubric_num][train_set_name]
 
-embedding_id = models_and_set['embedding_id']
+    embedding_id = models_and_set['embedding_id']
 
-params = lp['paragraph embeddings']
-embedding_for_word_count = params['embedding_for_word_count'] # 5
-learning_steps = params['learning_steps']
-calc_steps = params['calc_steps']
+    params = lp['paragraph embeddings']
+    embedding_for_word_count = params['embedding_for_word_count'] # 5
+    learning_steps = params['learning_steps']
+    calc_steps = params['calc_steps']
 
-verbose = params['verbose'] # True
+    verbose = params['verbose'] # True
 
-params_consistent_words = params['consistent_words'] # True
-use_par_embed = params['use_par_embed'] # True
-use_NN = params['use_NN'] # True
-learning_rate = params['learning_rate'] # 1
+    params_consistent_words = params['consistent_words'] # True
+    use_par_embed = params['use_par_embed'] # True
+    use_NN = params['use_NN'] # True
+    learning_rate = params['learning_rate'] # 1
 
-params_batch_size = params['batch_size'] # 100
-params_embedding_size = params['embedding_size'] # 128  # 128  # Dimension of the embedding vector.
-# embed_par_size = 400
-params_skip_window = params['skip_window'] # 1  # How many words to consider left and right (if not consistent_words)
-params_num_skips = params['num_skips'] # 3  # Size of the window with consistent or random order words
-params_l1_size = params['l1_size'] # 512  # 256
+    params_batch_size = params['batch_size'] # 100
+    params_embedding_size = params['embedding_size'] # 128  # 128  # Dimension of the embedding vector.
+    # embed_par_size = 400
+    params_skip_window = params['skip_window'] # 1  # How many words to consider left and right (if not consistent_words)
+    params_num_skips = params['num_skips'] # 3  # Size of the window with consistent or random order words
+    params_l1_size = params['l1_size'] # 512  # 256
 
-reg_l1 = params['reg_l1'] # 0.0001
-reg_emded = params['reg_emded'] # 0.00005
-dropout = params['dropout'] # 0.7
+    reg_l1 = params['reg_l1'] # 0.0001
+    reg_emded = params['reg_emded'] # 0.00005
+    dropout = params['dropout'] # 0.7
 
-if use_NN:
-    filename = params['filename_NN'] # 'ModelEP_0406_128_NonCons_6_3.pic'
-else:
-    filename = params['filename_no_NN'] # 'ModelEP_0406_128_NonCons_6_3.pic'
+    if use_NN:
+        filename = params['filename_NN'] # 'ModelEP_0406_128_NonCons_6_3.pic'
+    else:
+        filename = params['filename_no_NN'] # 'ModelEP_0406_128_NonCons_6_3.pic'
 
-# parameters for rubrication
-reg_coef = params['reg_coef'] # 0.000005
-lr=params['lr'] # 0.0025
-tf_steps = params['tf_steps'] # 100000
+    # parameters for rubrication
+    reg_coef = params['reg_coef'] # 0.000005
+    lr=params['lr'] # 0.0025
+    tf_steps = params['tf_steps'] # 100000
 
-print('embedding_for_word_count', embedding_for_word_count)
+    print('embedding_for_word_count', embedding_for_word_count)
 
-print('consistent_words', params_consistent_words)
-print('use_par_embed', use_par_embed)
-print('use_NN', use_NN)
-print('learning_rate', learning_rate)
+    print('consistent_words', params_consistent_words)
+    print('use_par_embed', use_par_embed)
+    print('use_NN', use_NN)
+    print('learning_rate', learning_rate)
 
-print('batch_size',params_batch_size)
-print('embedding_size', params_embedding_size)
-# embed_par_size = 400
-print('skip_window', params_skip_window)
-print('num_skips', params_num_skips)
-print('l1_size', params_l1_size)
+    print('batch_size',params_batch_size)
+    print('embedding_size', params_embedding_size)
+    # embed_par_size = 400
+    print('skip_window', params_skip_window)
+    print('num_skips', params_num_skips)
+    print('l1_size', params_l1_size)
 
-print('reg_l1', reg_l1)
-print('reg_emded', reg_emded)
-print('dropout', dropout)
+    print('reg_l1', reg_l1)
+    print('reg_emded', reg_emded)
+    print('dropout', dropout)
 
-# reg_softmax = 0.00005
+    # reg_softmax = 0.00005
 
-# We pick a random validation set to sample nearest neighbors. here we limit the
-# validation samples to the words that have a low numeric ID, which by
-# construction are also the most frequent.
-valid_size = params['valid_size']  # 10  # Random set of words to evaluate similarity on.
-valid_window = params['valid_window']  #100  # Only pick dev samples in the head of the distribution.
-valid_examples = np.array(random.sample(range(valid_window), valid_size))
-num_sampled = params['num_sampled']  # 64  # Number of negative examples to sample.
+    # We pick a random validation set to sample nearest neighbors. here we limit the
+    # validation samples to the words that have a low numeric ID, which by
+    # construction are also the most frequent.
+    valid_size = params['valid_size']  # 10  # Random set of words to evaluate similarity on.
+    valid_window = params['valid_window']  #100  # Only pick dev samples in the head of the distribution.
+    valid_examples = np.array(random.sample(range(valid_window), valid_size))
+    num_sampled = params['num_sampled']  # 64  # Number of negative examples to sample.
 
-valid_examples_p = [0, 1, 2, 3, 4]
+    valid_examples_p = [0, 1, 2, 3, 4]
 
-data_index = 0
-par_index = 0
+    data_index = 0
+    par_index = 0
 
-with open(home_dir + '/weights' + filename, 'rb') as f:
-    model_params_reg = pickle.load(f)
-print(type(model_params_reg['dict']))
-if model_params_reg.get('word_list', None) is None:
-    model_params_reg['word_list'] = ['' for i in range(len(model_params_reg['dict']))]
-    for word in model_params_reg['dict']:
-        num = model_params_reg['dict'][word]
-        model_params_reg['word_list'][num] = word
+    with open(home_dir + '/weights' + filename, 'rb') as f:
+        model_params_reg = pickle.load(f)
+    print(type(model_params_reg['dict']))
+    if model_params_reg.get('word_list', None) is None:
+        model_params_reg['word_list'] = ['' for i in range(len(model_params_reg['dict']))]
+        for word in model_params_reg['dict']:
+            num = model_params_reg['dict'][word]
+            model_params_reg['word_list'][num] = word
 
 
 def new_buffer(span, paragraphs):
