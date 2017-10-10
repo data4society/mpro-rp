@@ -111,10 +111,10 @@ if __name__ == '__main__':
     exit()
     articles = select(Document.doc_id, Document.source_id == '71dc5343-c27d-44bf-aa76-f4d8085317fe').fetchall()
     print(len(articles))
-    from mprorp.controller.logic import SITE_PAGE_COMPLETE_STATUS, SITE_PAGE_LOADING_FAILED
+    from mprorp.controller.logic import SITE_PAGE_READABILITY_COMPLETE_STATUS, SITE_PAGE_LOADING_FAILED
     #articles = select(Document.doc_id, Document.guid == 'http://u-news24.com/archives/18306').fetchall()
     for article_id in articles:
-        find_full_text(article_id[0], SITE_PAGE_COMPLETE_STATUS, SITE_PAGE_LOADING_FAILED)
+        find_full_text(article_id[0], SITE_PAGE_READABILITY_COMPLETE_STATUS, SITE_PAGE_LOADING_FAILED)
     #print(articles)
     # delete("documents",Document.source_id == 'f4cb43e4-31bb-4d34-9367-66152e63daa8')
     # print(len(select(Document.created, Document.source_id == 'f4cb43e4-31bb-4d34-9367-66152e63daa8').fetchall()))

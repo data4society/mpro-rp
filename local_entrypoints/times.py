@@ -127,7 +127,7 @@ if __name__ == '__main__':
             old_doc = session.query(Document).filter_by(guid=test_guid).first()
             if old_doc:
                 delete_document(str(old_doc.doc_id))
-            new_doc = Document(guid=test_guid, app_id=app_id, url='http://test.com/test', status=logic.SITE_PAGE_COMPLETE_STATUS, type='article')
+            new_doc = Document(guid=test_guid, app_id=app_id, url='http://test.com/test', status=logic.SITE_PAGE_READABILITY_COMPLETE_STATUS, type='article')
             new_doc.published_date = datetime.datetime.now()
             meta = dict()
             meta["publisher"] = {"name": 'test'}
@@ -140,7 +140,7 @@ if __name__ == '__main__':
             app_record = base_record.copy()
             app_record['readability'] = (datetime.datetime.now() - time).total_seconds()
             logic.logic_times = {'total': 0}
-            logic.router(new_doc.doc_id, app_id, logic.SITE_PAGE_COMPLETE_STATUS)
+            logic.router(new_doc.doc_id, app_id, logic.SITE_PAGE_READABILITY_COMPLETE_STATUS)
             app_record.update(logic.logic_times)
             app_record['config'] = app_conf
             app_record['total'] = app_record['total']+app_record['readability']
