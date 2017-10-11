@@ -31,7 +31,7 @@ def find_nearest_location(court, all_courts, locs):
 def court_identification(facts):
     out = {}
     session = db_session()
-    all_courts = [i for i in session.query(Entity).filter(Entity.data["org_type"].astext == 'court').all()
+    all_courts = [i for i in session.query(Entity).filter(Entity.data["org_type"].astext == 'суд').all()
                  if i.external_data is not None]
     cities = [i for i in facts if i['type'] == 'CityFact']
     courts = [i for i in facts if i['type'] == 'CourtFact']
@@ -44,5 +44,6 @@ def court_identification(facts):
         if variants != {}:
             best_dist = min([i for i in variants.keys()])
             if best_dist <= 250:
-                out[str(court['fs'])+':'+str(court['ls'])] = str(variants[best_dist][0].entity_id).replace("UUID('", '').replace("')", '')
+                out[str(court['fs'])+':'+str(court['ls'])] = \
+                    str(variants[best_dist][0].entity_id).replace("UUID('", '').replace("')", '')
     return out
