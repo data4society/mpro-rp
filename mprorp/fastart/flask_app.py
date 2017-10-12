@@ -9,10 +9,12 @@ from sqlalchemy.orm.attributes import flag_modified
 import traceback
 
 from mprorp.fastart.learning_controller import create_model
+from mprorp.config.settings import learning_parameters as lp
 
-GOOD_THRESHOLD = 5
-BAD_THRESHOLD = 5
-DOCS_THRESHOLD = 500
+fasttext_params = lp['fasttext']
+GOOD_MIN_NUM = fasttext_params['good_min_num']
+BAD_MIN_NUM = fasttext_params['bad_min_num']
+DOCS_MIN_NUM = fasttext_params['docs_min_num']
 
 app = Flask(__name__)
 CORS(app)
@@ -52,7 +54,7 @@ def create_rubric():
         session = db_session()
         search_result, doc_num = search(sql_query, session)
         if search_result:
-            docs = session.query(Document.doc_id).filter_by(app_id='mediametrics').filter(Document.tsv.match(sql_query, postgresql_regconfig='russian')).limit(DOCS_THRESHOLD).all()
+            docs = session.query(Document.doc_id).filter_by(app_id='mediametrics').filter(Document.tsv.match(sql_query, postgresql_regconfig='russian')).limit(DOCS_MIN_NUM).all()
             docs = [{"doc_id":str(doc[0]),"answer":-1} for doc in docs]
             rubric = FastartRubric(name=in_json["name"],desc=in_json["desc"],query=query,sql_query=sql_query,docs={"all":docs})
             session.add(rubric)
@@ -89,14 +91,14 @@ def get_rubric(rubric_id):
                     good_num = len([1 for doc in all if doc["answer"]==good_ans])
                     bad_num = len([1 for doc in all if doc["answer"]==bad_ans])
                     #skip_num = len([1 for doc in all if doc["answer"]==skip_ans])
-                    response = {"name":rubric.name,"desc":rubric.desc,"query":rubric.query,"step":step,"good_remaining":GOOD_THRESHOLD-good_num,"bad_remaining":BAD_THRESHOLD-bad_num,"doc":get_doc(all[doc_ind]["doc_id"],session)}
-                    out_json = {"status":"OK","response":response}
+                    response = {"name": rubric.name, "desc": rubric.desc,"query":rubric.query,"step":step,"good_remaining":GOOD_MIN_NUM-good_num,"bad_remaining":BAD_MIN_NUM-bad_num,"doc":get_doc(all[doc_ind]["doc_id"],session)}
+                    out_json = {"status": "OK","response": response}
                 else:
-                    response = {"name":rubric.name,"desc":rubric.desc,"step":step}
-                    out_json = {"status":"Learning","response":response}
+                    response = {"name":rubric.name, "desc": rubric.desc, "step": step, "model_name": rubric.models['model_name']}
+                    out_json = {"status": "Learning", "response": response}
             else:
-                response = {"name":rubric.name,"desc":rubric.desc,"step":step}
-                out_json = {"status":"Complete","response":response}
+                response = {"name": rubric.name, "desc": rubric.desc, "step": step}
+                out_json = {"status": "Complete", "response": response}
         else:
             abort_num = 404
         session.close()
@@ -190,7 +192,7 @@ def set_answer(rubric_id):
                         skip_num = len([1 for doc in all if doc["answer"]==skip_ans])
                         flag_modified(rubric, "docs")
 
-                        if good_num >= GOOD_THRESHOLD and bad_num >= BAD_THRESHOLD:
+                        if good_num >= GOOD_MIN_NUM and bad_num >= BAD_MIN_NUM:
                             rubric.doc_ind = -1
                             #create_model(rubric_id)
                         else:
@@ -316,7 +318,7 @@ def search(sql_query, session=None):
     docs_num = session.query(Document).filter_by(app_id='mediametrics').filter(Document.tsv.match(sql_query, postgresql_regconfig='russian')).count()
     if not has_session:
         session.remove()
-    return (docs_num>=DOCS_THRESHOLD,docs_num)
+    return (docs_num>=DOCS_MIN_NUM,docs_num)
 
 
 def to_sql_query(query):

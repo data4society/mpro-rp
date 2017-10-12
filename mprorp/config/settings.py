@@ -74,7 +74,12 @@ learning_parameters = {
         'reg_coef': 0.01,
         'lr':4.0,
         'tf_steps': 10000,
-        'embedding_model': 'nkrja_fasttext_model'
+        'embedding_model': 'nkrja_fasttext_model',
+        'good_min_num': 50,
+        'bad_min_num': 50,
+        'docs_min_num': 5000,
+        'docs_to_step': 3000,
+        'marking_steps_num': 2
     }
 }
 
