@@ -202,30 +202,29 @@ def update_locality_and_jail():
 #            i.data["location"] = [str(loc[0].entity_id)]
 #            flag_modified(i, 'data')
 #            session.commit()
-#a = [i for i in session.query(Entity).filter(Entity.data['org_type'].astext == 'тюрьма').all() if i.data['jurisdiction'] == '']
-#print(len(a))
-#for i in a:
-#    if i.data['location'] != [] and str(i.data['location']).count('-') > 2:
-#        loc = session.query(Entity).filter(Entity.entity_id == i.data['location'][0]).all()
-#        if len(loc) == 1:
-#            i.external_data['location'] = loc[0].name
-#            flag_modified(i, 'external_data')
-#            session.commit()
-#        else:
-#            print(i.entity_id)
-
+a = [i for i in session.query(Entity).filter(Entity.data['org_type'].astext == 'суд').all()]
+print(len(a))
+for i in a:
+    if i.data['jurisdiction'] == [""]:
+        i.data['jurisdiction'] = []
+    if i.data['location'] == [""]:
+        i.data['location'] = []
+    flag_modified(i, 'data')
+    session.commit()
+#courts = session.query(Entity).filter(Entity.data["org_type"].astext == 'court').all()
 #update_locality_and_jail()
 #f1('jails')
 #jail = session.query(Entity).filter(Entity.name.contains('СИЗО-2 Лефортово')).first()
 #print(jail.external_data)
 #doc = Document()
 #doc.stripped = ''''''
-#jail = session.query(Entity).filter(Entity.entity_id == 'da796201-a4b7-459a-9e18-a2527f91690a').first()
-#print(jail.external_data)
-record = session.query(Record).filter(Record.document_id == '20caf89d-e155-d50f-0c80-596d4ebba4d4').first()
-print(record.source)
-doc = session.query(Document).filter(Document.doc_id == record.source).first()
-print(run_tomita(doc, 'court.cxx'))
+#jails = session.query(Entity).filter(Entity.data['org_type'].astext == 'тюрьма').all()
+#print(jails[12].entity_id)
+#print(jails[54].entity_id)
+#record = session.query(Record).filter(Record.document_id == '20caf89d-e155-d50f-0c80-596d4ebba4d4').first()
+#print(record.source)
+#doc = session.query(Document).filter(Document.doc_id == record.source).first()
+#print(run_tomita(doc, 'court.cxx'))
 #used = delete_old_locations()
 #print('Markup changed')
 #print(len(used))
