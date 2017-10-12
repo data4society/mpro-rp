@@ -1,11 +1,7 @@
 """start script for celery based running"""
 from celery import Celery
 import mprorp.config.celeryconfig as celeryconfig
-
-from mprorp.db.dbDriver import *
-from mprorp.db.models import *
-import json
-from mprorp.utils import relative_file_path
+import sys
 
 
 def load_app_conf(json_path, cur_config):
@@ -68,8 +64,6 @@ def load_app_conf(json_path, cur_config):
 
 
 print("STARTING CELERY APP")
-if sys.argv[0].split("/")[-1] != 'times.py':
-    load_app_conf('config/app.json', 'last_config')
 
 app = Celery('mprorp',
                  broker='amqp://',
@@ -77,6 +71,13 @@ app = Celery('mprorp',
                  )
 app.config_from_object(celeryconfig)
 # create Celery instance and load config
+if sys.argv[0].split("/")[-1] != 'times.py' and "--detach" not in sys.argv:
+    from mprorp.db.dbDriver import *
+    from mprorp.db.models import *
+    import json
+    from mprorp.utils import relative_file_path
+    load_app_conf('config/app.json', 'last_config')
+
 print("STARTING CELERY APP COMPLETE")
 
 if __name__ == '__main__':
