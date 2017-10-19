@@ -76,6 +76,7 @@ cp /home/mprorp/mpro-rp-dev/server/celeryd.conf /etc/init/celeryd.conf
 cp /home/mprorp/mpro-rp-dev/server/celerybeat.conf /etc/init/celerybeat.conf
 cp /home/mprorp/mpro-rp-dev/server/flower.conf /etc/init/flower.conf
 cp /home/mprorp/mpro-rp-dev/server/fastart.conf /etc/init/fastart.conf
+cp /home/mprorp/mpro-rp-dev/server/fastart_flask.conf /etc/init/fastart_flask.conf
 sed -i "s/CELERY_LOG_LEVEL=\"DEBUG\"/CELERY_LOG_LEVEL=\"$CELERY_LOG_LEVEL\"/g" /etc/init/celeryd.conf
 sed -i "s/CELERYD_TASK_TIME_LIMIT=60/CELERYD_TASK_TIME_LIMIT=$CELERYD_TASK_TIME_LIMIT/g" /etc/init/celeryd.conf
 sed -i "s/CELERYD_TASK_SOFT_TIME_LIMIT=55/CELERYD_TASK_SOFT_TIME_LIMIT=$CELERYD_TASK_SOFT_TIME_LIMIT/g" /etc/init/celeryd.conf

@@ -15,19 +15,20 @@ from mprorp.config.settings import *
 from os import getcwd
 
 script_dir = getcwd()
-if ("maindb" in sys.argv) or ("worker" in sys.argv) or (script_dir.split("/")[-1] == "entrypoints") or (script_dir.find("/fastart") != -1):
+full_sys_argv = "".join(sys.argv)
+if ("maindb" in sys.argv) or ("worker" in sys.argv) or (script_dir.split("/")[-1] == "entrypoints") or (full_sys_argv.find("fastart") != -1):
     db_type = "server"
 else:
     db_type = "local"
 
 if db_type == "server":
-    if script_dir.find("/fastart") != -1:
+    if full_sys_argv.find("fastart") != -1:
         connection_string = fastart_connection
     else:
         connection_string = maindb_connection
 else:
     connection_string = testdb_connection
-
+#print(connection_string)
 # main object which SQLA uses to connect to database
 engine = create_engine(connection_string, convert_unicode=True, poolclass=NullPool)  # pool_recycle=3600, pool_size=10)
 register_after_fork(engine, engine.dispose)

@@ -3,23 +3,30 @@ from flask import Flask, request, abort, jsonify
 from flask_cors import CORS
 import sys
 sys.path.append('../..')
-from mprorp.db.dbDriver import *
-from mprorp.db.models import *
-from sqlalchemy.orm.attributes import flag_modified
 import traceback
+from celery import Celery
 
-from mprorp.fastart.learning_controller import create_model
-from mprorp.config.settings import learning_parameters as lp
+import logging
 
-fasttext_params = lp['fasttext']
-GOOD_MIN_NUM = fasttext_params['good_min_num']
-BAD_MIN_NUM = fasttext_params['bad_min_num']
-DOCS_MIN_NUM = fasttext_params['docs_min_num']
+logging.basicConfig(format = u'%(levelname)-8s [%(asctime)s] %(message)s', filename = u'/home/mprorp/mpro-rp-dev/fastart.txt')
+root = logging.getLogger()
+root.setLevel(logging.DEBUG)
+#logging.info(sys.argv)
 
-app = Flask(__name__)
-CORS(app)
 
-@app.route('/rubrics', methods=['GET'])
+flask_app = Flask(__name__)
+CORS(flask_app)
+
+cel_app = Celery('mprorp',
+                 broker='amqp://',
+                 backend='rpc',
+                 )
+if 'fastart_app.py' not in sys.argv:
+    import mprorp.config.fastart_celeryconfig as celeryconfig
+    cel_app.config_from_object(celeryconfig)
+
+
+@flask_app.route('/rubrics', methods=['GET'])
 def get_all_rubrics():
     """get list of fastart rubrics with names and current statuses"""
     try:
@@ -38,13 +45,12 @@ def get_all_rubrics():
         out_json = {"status":"OK","response":response}
     except Exception as err:
         err_txt = traceback.format_exc()
-        print(err_txt)
         out_json = {"status":"Error"}
         out_json["text"] = "Python Server Error. "+err_txt
     return jsonify(out_json)
 
 
-@app.route('/rubrics', methods=['POST'])
+@flask_app.route('/rubrics', methods=['POST'])
 def create_rubric():
     """create new rubric if there is enough docs by query"""
     try:
@@ -54,7 +60,7 @@ def create_rubric():
         session = db_session()
         search_result, doc_num = search(sql_query, session)
         if search_result:
-            docs = session.query(Document.doc_id).filter_by(app_id='mediametrics').filter(Document.tsv.match(sql_query, postgresql_regconfig='russian')).limit(DOCS_MIN_NUM).all()
+            docs = session.query(Document.doc_id).filter_by(app_id='mediametrics').filter_by(status=1000).filter(Document.tsv.match(sql_query, postgresql_regconfig='russian')).limit(DOCS_MIN_NUM)
             docs = [{"doc_id":str(doc[0]),"answer":-1} for doc in docs]
             rubric = FastartRubric(name=in_json["name"],desc=in_json["desc"],query=query,sql_query=sql_query,docs={"all":docs})
             session.add(rubric)
@@ -66,13 +72,13 @@ def create_rubric():
         session.close()
     except Exception as err:
         err_txt = traceback.format_exc()
-        print(err_txt)
+        logging.info(err_txt)
         out_json = {"status":"Error"}
         out_json["text"] = "Python Server Error. "+err_txt
     return jsonify(out_json)
 
 
-@app.route('/rubrics/<rubric_id>', methods=['GET'])
+@flask_app.route('/rubrics/<rubric_id>', methods=['GET'])
 def get_rubric(rubric_id):
     abort_num = 0
     try:
@@ -82,29 +88,31 @@ def get_rubric(rubric_id):
             docs = rubric.docs
             all = docs["all"]
             step = rubric.step
+            #logging.info("step: "+str(step)+" len docs: "+str(len(all)))
             if step != -1:
                 doc_ind = rubric.doc_ind
+                #logging.info("doc_ind: "+str(doc_ind)+" step: "+str(step)+" len docs: "+str(len(all)))
                 if doc_ind != -1:
                     good_ans = step*3+1
                     bad_ans = step*3+2
-                    skip_ans = step*3
+                    #skip_ans = step*3
                     good_num = len([1 for doc in all if doc["answer"]==good_ans])
                     bad_num = len([1 for doc in all if doc["answer"]==bad_ans])
                     #skip_num = len([1 for doc in all if doc["answer"]==skip_ans])
                     response = {"name": rubric.name, "desc": rubric.desc,"query":rubric.query,"step":step,"good_remaining":GOOD_MIN_NUM-good_num,"bad_remaining":BAD_MIN_NUM-bad_num,"doc":get_doc(all[doc_ind]["doc_id"],session)}
                     out_json = {"status": "OK","response": response}
                 else:
-                    response = {"name":rubric.name, "desc": rubric.desc, "step": step, "model_name": rubric.models['model_name']}
+                    response = {"name":rubric.name, "desc": rubric.desc, "step": step}
                     out_json = {"status": "Learning", "response": response}
             else:
-                response = {"name": rubric.name, "desc": rubric.desc, "step": step}
+                response = {"name": rubric.name, "desc": rubric.desc, "step": step, "model_name": rubric.models['model_name']}
                 out_json = {"status": "Complete", "response": response}
         else:
             abort_num = 404
         session.close()
     except Exception as err:
         err_txt = traceback.format_exc()
-        print(err_txt)
+        logging.info(err_txt)
         out_json = {"status":"Error"}
         out_json["text"] = "Python Server Error. "+err_txt
     if abort_num:
@@ -112,7 +120,7 @@ def get_rubric(rubric_id):
     return jsonify(out_json)
 
 
-@app.route('/rubrics/<rubric_id>', methods=['DELETE'])
+@flask_app.route('/rubrics/<rubric_id>', methods=['DELETE'])
 def delete_rubric(rubric_id):
     abort_num = 0
     try:
@@ -126,7 +134,7 @@ def delete_rubric(rubric_id):
             abort_num = 404
     except Exception as err:
         err_txt = traceback.format_exc()
-        print(err_txt)
+        logging.info(err_txt)
         out_json = {"status":"Error"}
         out_json["text"] = "Python Server Error. "+err_txt
     if abort_num:
@@ -134,7 +142,7 @@ def delete_rubric(rubric_id):
     return jsonify(out_json)
 
 
-@app.route('/rubrics/<rubric_id>', methods=['PUT'])
+@flask_app.route('/rubrics/<rubric_id>', methods=['PUT'])
 def update_rubric(rubric_id):
     abort_num = 0
     try:
@@ -158,7 +166,7 @@ def update_rubric(rubric_id):
         session.close()
     except Exception as err:
         err_txt = traceback.format_exc()
-        print(err_txt)
+        logging.info(err_txt)
         out_json = {"status":"Error"}
         out_json["text"] = "Python Server Error. "+err_txt
     if abort_num:
@@ -167,7 +175,7 @@ def update_rubric(rubric_id):
 
 
 
-@app.route('/rubrics/<rubric_id>/answer', methods=['POST'])
+@flask_app.route('/rubrics/<rubric_id>/answer', methods=['POST'])
 def set_answer(rubric_id):
     abort_num = 0
     try:
@@ -194,12 +202,13 @@ def set_answer(rubric_id):
 
                         if good_num >= GOOD_MIN_NUM and bad_num >= BAD_MIN_NUM:
                             rubric.doc_ind = -1
-                            #create_model(rubric_id)
+                            session.commit()
+                            create_model.delay(rubric_id)
                         else:
                             rubric.doc_ind += 1
+                            session.commit()
                             #response = {"good_num":good_num,"bad_num":bad_num,"doc":get_doc(all[rubric.doc_ind].doc_id,session)}
                         out_json = {"status":"OK"}
-                        session.commit()
                     else:
                         out_json = {"status":"Error","text":"wrong doc"}
                 else:
@@ -212,7 +221,7 @@ def set_answer(rubric_id):
 
     except Exception as err:
         err_txt = traceback.format_exc()
-        print(err_txt)
+        logging.info(err_txt)
         out_json = {"status":"Error"}
         out_json["text"] = "Python Server Error. "+err_txt
     if abort_num:
@@ -220,7 +229,7 @@ def set_answer(rubric_id):
     return jsonify(out_json)
 
 
-@app.route('/rubrics/<rubric_id>/fulltext', methods=['GET'])
+@flask_app.route('/rubrics/<rubric_id>/fulltext', methods=['GET'])
 def get_fulltext(rubric_id):
     abort_num = 0
     try:
@@ -247,7 +256,7 @@ def get_fulltext(rubric_id):
 
     except Exception as err:
         err_txt = traceback.format_exc()
-        print(err_txt)
+        logging.info(err_txt)
         out_json = {"status":"Error"}
         out_json["text"] = "Python Server Error. "+err_txt
     if abort_num:
@@ -260,9 +269,9 @@ def get_fulltext(rubric_id):
 
 
 
-@app.route('/rubrics/<rubric_id>/learning', methods=['GET'])
+@flask_app.route('/rubrics/<rubric_id>/learning', methods=['GET'])
 def learning(rubric_id):
-    create_model(rubric_id)
+    create_model.delay(rubric_id)
     return jsonify({"status":"OK"})
 
 
@@ -270,7 +279,7 @@ def learning(rubric_id):
 
 
 
-@app.route('/rubrics/<rubric_id>/download', methods=['GET'])
+@flask_app.route('/rubrics/<rubric_id>/download', methods=['GET'])
 def download_rubric(rubric_id):
     abort_num = 0
     try:
@@ -289,7 +298,7 @@ def download_rubric(rubric_id):
 
     except Exception as err:
         err_txt = traceback.format_exc()
-        print(err_txt)
+        logging.info(err_txt)
         out_json = {"status":"Error"}
         out_json["text"] = "Python Server Error. "+err_txt
     if abort_num:
@@ -306,19 +315,22 @@ def get_doc(doc_id, session=None):
 
     if not has_session:
         session.remove()
-    return {"doc_id":doc_id,"abstract":doc.stripped.split("\n")[0],"title":doc.title}
-
+    return {"doc_id": doc_id, "abstract" :doc.stripped.split("\n")[0],"title":doc.title}
 
 
 def search(sql_query, session=None):
-    has_session = True
-    if not session:
-        has_session = False
-        session = db_session()
-    docs_num = session.query(Document).filter_by(app_id='mediametrics').filter(Document.tsv.match(sql_query, postgresql_regconfig='russian')).count()
-    if not has_session:
-        session.remove()
-    return (docs_num>=DOCS_MIN_NUM,docs_num)
+    try:
+        has_session = True
+        if not session:
+            has_session = False
+            session = db_session()
+        docs_num = session.query(Document).filter_by(app_id='mediametrics').filter_by(status=1000).filter(Document.tsv.match(sql_query, postgresql_regconfig='russian')).count()
+        if not has_session:
+            session.remove()
+        return (docs_num>=DOCS_MIN_NUM,docs_num)
+    except Exception as err:
+        err_txt = traceback.format_exc()
+        logging.info(err_txt)
 
 
 def to_sql_query(query):
@@ -334,5 +346,13 @@ def to_sql_query(query):
 
 
 if __name__ == '__main__':
-    print("hi!")
-    app.run(port=8000,debug=True)
+    from mprorp.fastart.learning_controller import create_model
+    from mprorp.db.dbDriver import *
+    from mprorp.db.models import *
+    from sqlalchemy.orm.attributes import flag_modified
+    from mprorp.config.settings import learning_parameters as lp
+    fasttext_params = lp['fasttext']
+    GOOD_MIN_NUM = fasttext_params['good_min_num']
+    BAD_MIN_NUM = fasttext_params['bad_min_num']
+    DOCS_MIN_NUM = fasttext_params['docs_min_num']
+    flask_app.run(port=8000,debug=False)

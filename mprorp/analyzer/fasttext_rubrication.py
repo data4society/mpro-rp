@@ -13,7 +13,7 @@ if 'fasttext' in lp:
     TF_STEPS = fasttext_params['tf_steps']
     REG_COEF = fasttext_params['reg_coef']
     LR = fasttext_params['lr']
-    print("READY!")
+    print("MODEL READY!")
 
 
 def compute_embedding(txt):
@@ -24,7 +24,7 @@ def compute_embedding(txt):
 
 def learning(embs, ans, filename):
     """compute fasttext model by document's embeddings and answers"""
-    batch_size = min(len(ans), 100)
+    batch_size = len(ans)#min(len(ans), 100)
     #answers_array = np.zeros((batch_size, 1))
     answers_array = np.zeros((len(ans), 1))
     answers_array[:, 0] = ans
