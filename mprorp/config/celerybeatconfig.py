@@ -13,4 +13,5 @@ beat_schedule  = {
 enable_utc = False
 timezone = os.environ['CELERY_TIMEZONE']
 task_default_queue = 'main'
+result_expires = None
 # CELERY_TIMEZONE = 'UTC'

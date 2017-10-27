@@ -28,13 +28,14 @@ def from_csv_start_parsing(source_name, app_id, session):
                     break
                 i += 1
                 url = row[0]
+                title = row[0]
                 if url.find('http') != 0:
                     url = 'http://'+url
                 guid = app_id + url
 
                 if guid not in guids:
                     guids.append(guid)
-                    guids_urls.append((guid, url))
+                    guids_urls.append((guid, url, title))
         if guids:
             result = session.query(Document.guid).filter(Document.guid.in_(guids)).all()
             result = [res[0] for res in result]
@@ -45,7 +46,6 @@ def from_csv_start_parsing(source_name, app_id, session):
                 publisher_names = list(set(publishers))
                 result = session.query(Publisher.name, Publisher.pub_id).filter(
                     Publisher.name.in_(publisher_names)).all()
-                print(result[0])
                 old_publishers = {res[0]: str(res[1]) for res in result}
                 new_publishers = [publisher_name for publisher_name in publisher_names if
                                   publisher_name not in old_publishers]
@@ -54,10 +54,11 @@ def from_csv_start_parsing(source_name, app_id, session):
                 for elem in guids_urls:
                     guid = elem[0]
                     url = elem[1]
+                    title = elem[2]
                     meta = dict()
                     publisher_name = publishers[k]
                     meta["publisher"] = {"name": publisher_name}
-                    doc = Document(guid=guid, app_id=app_id, url=url, title=row[1], status=0, type='article', meta=meta)
+                    doc = Document(guid=guid, app_id=app_id, url=url, title=title, status=0, type='article', meta=meta)
 
                     if publisher_name in new_publishers:
                         publisher = Publisher(name=publisher_name, site=publisher_name,

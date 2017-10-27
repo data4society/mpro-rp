@@ -1,42 +1,54 @@
 """main processes controller: statuses, route function and tasks"""
+import sys
+import traceback
 import logging
-from mprorp.controller.init import *
 
-if worker == "main":
-    from mprorp.crawler.google_news import gn_start_parsing
-    from mprorp.crawler.yandex_rss import ya_rss_start_parsing
-    from mprorp.crawler.yandex_news import yn_start_parsing
-    from mprorp.crawler.google_alerts import ga_start_parsing
-    from mprorp.crawler.vk import vk_start_parsing, vk_parse_item
-    from mprorp.crawler.csv_to_rubricator import csv_start_parsing
-    from mprorp.crawler.from_csv import from_csv_start_parsing
-    from mprorp.crawler.from_other_app import other_app_cloning
-    from mprorp.crawler.selector import selector_start_parsing
-    from mprorp.crawler.refactor import refactor_start_parsing
-elif worker == "default":
-    from mprorp.crawler.site_page import find_full_text
-    import mprorp.analyzer.rubricator as rb
-    import mprorp.ner.feature as ner_feature
-    from mprorp.ner.tomita_to_markup import convert_tomita_result_to_markup
-    from mprorp.tomita.tomita_run import run_tomita
-elif worker == "network":
-    from urllib.error import *
-    from mprorp.crawler.site_page import download_page
-    from mprorp.ner.feature import create_capital_feature
-    from mprorp.ner.NER import NER_predict
-    from mprorp.ner.identification import create_markup_regular
-    from mprorp.analyzer.rubrication_by_comparing import reg_rubrication_by_comparing
-    from mprorp.ner.paragraph_embedding import calc_paragraph_embedding
-elif worker == "theme":
-    from mprorp.analyzer.theming.themer import regular_themization
+logging.basicConfig(format = u'%(levelname)-8s [%(asctime)s] %(message)s', filename = u'/home/mprorp/mpro-rp-dev/cel.txt')
+root = logging.getLogger()
+root.setLevel(logging.DEBUG)
+logging.info(sys.argv)
+try:
+    from mprorp.controller.init import *
+    if worker == "main":
+        from mprorp.crawler.google_news import gn_start_parsing
+        from mprorp.crawler.yandex_rss import ya_rss_start_parsing
+        from mprorp.crawler.yandex_news import yn_start_parsing
+        from mprorp.crawler.google_alerts import ga_start_parsing
+        from mprorp.crawler.vk import vk_start_parsing, vk_parse_item
+        from mprorp.crawler.csv_to_rubricator import csv_start_parsing
+        from mprorp.crawler.from_csv import from_csv_start_parsing
+        from mprorp.crawler.from_other_app import other_app_cloning
+        from mprorp.crawler.selector import selector_start_parsing
+        from mprorp.crawler.refactor import refactor_start_parsing
+    elif worker == "default":
+        from mprorp.crawler.site_page import find_full_text
+        import mprorp.analyzer.rubricator as rb
+        from mprorp.analyzer.fasttext_rubrication import reg_fasttext_embedding
+        import mprorp.ner.feature as ner_feature
+        from mprorp.ner.tomita_to_markup import convert_tomita_result_to_markup
+        from mprorp.tomita.tomita_run import run_tomita
+        from mprorp.ner.feature import create_capital_feature
+        from mprorp.ner.NER import NER_predict
+        from mprorp.ner.identification import create_markup_regular
+        from mprorp.analyzer.rubrication_by_comparing import reg_rubrication_by_comparing
+        from mprorp.ner.paragraph_embedding import calc_paragraph_embedding
+    elif worker == "network":
+        from urllib.error import *
+        from mprorp.crawler.downloader import download_page
+    elif worker == "theme":
+        from mprorp.analyzer.theming.themer import regular_themization
 
-from mprorp.celery_app import app
-from mprorp.db.dbDriver import *
-from mprorp.db.models import *
-from sqlalchemy.orm.attributes import flag_modified
-from mprorp.utils import print_exception
-import datetime
-import inspect
+    from mprorp.celery_app import app
+    from mprorp.db.dbDriver import *
+    from mprorp.db.models import *
+    from sqlalchemy.orm.attributes import flag_modified
+    from mprorp.utils import print_exception
+    import datetime
+    import inspect
+except Exception as err:
+    logging.info(sys.argv)
+    err_txt = traceback.format_exc()
+    logging.info(err_txt)
 
 
 # statuses
@@ -155,8 +167,10 @@ def router(doc_id, app_id, status):
 
         session.commit()
         session.remove()
+    if "fasttext_embedding" in app_conf and status < FASTEXT_EMBEDDING_COMPLETE_STATUS :  # to calculate fasstext embedding
+        regular_calculate_fasttext_embedding.delay(doc_id, FASTEXT_EMBEDDING_COMPLETE_STATUS, app_id=app_id)
+        return
     if "morpho" in app_conf and status < MORPHO_COMPLETE_STATUS :  # to morpho
-        print("MORPHO")
         regular_morpho.delay(doc_id, MORPHO_COMPLETE_STATUS, app_id=app_id)
         return
     if "lemmas" in app_conf and status < LEMMAS_COMPLETE_STATUS:  # to lemmas
@@ -465,7 +479,7 @@ def regular_refactor_start_parsing(source_key, **kwargs):
             new_status = source["new_status"]
         else:
             new_status = status
-        doc_ids = refactor_start_parsing(source_key, new_status, source["from_date"], app_id, session)
+        doc_ids = refactor_start_parsing(status, new_status, source["from_date"], app_id, session)
         for doc_id in doc_ids:
             router(doc_id, app_id, new_status)
     except Exception as err:
@@ -512,7 +526,7 @@ def regular_vk_parse_item(doc_id, new_status, **kwargs):
     """parsing vk request"""
     session, doc = get_doc(doc_id)
     vk_parse_item(doc)
-    return set_doc(doc, new_status, session)
+    set_doc(doc, new_status, session)
 
 
 
@@ -537,7 +551,7 @@ def regular_download_page(doc_id, new_status, **kwargs):
             logging.error("Ошибка декодинга doc_id: " + doc_id + "url:" + doc.url)
         print(err_txt)
         print_exception()
-    return set_doc(doc, new_status, session)
+    set_doc(doc, new_status, session)
 
 
 @app.task(ignore_result=True)
@@ -568,7 +582,15 @@ def regular_find_full_text(doc_id, new_status, **kwargs):
             logging.error("Неизвестная ошибка парсинга doc_id: " + doc_id + "url:" + doc.url)
         print(err_txt)
         print_exception()
-    return set_doc(doc, new_status, session)
+    set_doc(doc, new_status, session)
+
+
+@app.task(ignore_result=True)
+def regular_calculate_fasttext_embedding(doc_id, new_status, **kwargs):
+    """calculate fasttext embedding"""
+    session, doc = get_doc(doc_id)
+    reg_fasttext_embedding(doc)
+    set_doc(doc, new_status, session)
 
 
 @app.task(ignore_result=True)
@@ -576,7 +598,7 @@ def regular_morpho(doc_id, new_status, **kwargs):
     """morphologia"""
     session, doc = get_doc(doc_id)
     rb.morpho_doc(doc)
-    return set_doc(doc, new_status, session)
+    set_doc(doc, new_status, session)
 
 
 @app.task(ignore_result=True)
@@ -584,7 +606,7 @@ def regular_lemmas(doc_id, new_status, **kwargs):
     """counting lemmas frequency for one document"""
     session, doc = get_doc(doc_id)
     rb.lemmas_freq_doc(doc)
-    return set_doc(doc, new_status, session)
+    set_doc(doc, new_status, session)
 
 
 @app.task(ignore_result=True)
@@ -592,7 +614,7 @@ def regular_calc_embedding(doc_id, new_status, **kwargs):
     """calculate paragraph embeddings"""
     session, doc = get_doc(doc_id)
     calc_paragraph_embedding(doc, session, False)
-    return set_doc(doc, new_status, session)
+    set_doc(doc, new_status, session)
 
 
 @app.task(ignore_result=True)
@@ -609,7 +631,7 @@ def regular_rubrication(rubrics, doc_id, with_rubrics_status, without_rubrics_st
         new_status = without_rubrics_status
     else:
         new_status = with_rubrics_status
-    return set_doc(doc, new_status, session)
+    set_doc(doc, new_status, session)
 
 
 @app.task(ignore_result=True)
@@ -617,7 +639,7 @@ def regular_capital_feature(doc_id, new_status, **kwargs):
     """create capital feature"""
     session, doc = get_doc(doc_id)
     create_capital_feature(doc, session, False)
-    return set_doc(doc, new_status, session)
+    set_doc(doc, new_status, session)
 
 
 @app.task(ignore_result=True,time_limit=190, soft_time_limit=180)
@@ -625,7 +647,7 @@ def regular_tomita(grammar, doc_id, new_status, **kwargs):
     """tomita"""
     session, doc = get_doc(doc_id, grammar=grammar)
     run_tomita(doc, grammar, session, False)
-    return set_doc(doc, new_status, session, grammar=grammar)
+    set_doc(doc, new_status, session, grammar=grammar)
 
 
 @app.task(ignore_result=True)
@@ -633,7 +655,7 @@ def regular_tomita_features(grammars, doc_id, new_status, **kwargs):
     """tomita features (transform coordinates for ner)"""
     session, doc = get_doc(doc_id)
     ner_feature.create_tomita_feature(doc, grammars, session, False)
-    return set_doc(doc, new_status, session)
+    set_doc(doc, new_status, session)
 
 
 @app.task(ignore_result=True)
@@ -641,14 +663,14 @@ def regular_embedding_features(doc_id, new_status, **kwargs):
     """lemmas preparation for NER"""
     session, doc = get_doc(doc_id)
     ner_feature.create_embedding_feature(doc, session, False)
-    return set_doc(doc, new_status, session)
+    set_doc(doc, new_status, session)
 
 
 @app.task(ignore_result=True)
 def regular_morpho_features(doc_id, new_status, **kwargs):
     session, doc = get_doc(doc_id)
     ner_feature.create_morpho_feature(doc, session, False)
-    return set_doc(doc, new_status, session)
+    set_doc(doc, new_status, session)
 
 
 @app.task(ignore_result=True,time_limit=190, soft_time_limit=180)
@@ -656,7 +678,7 @@ def regular_NER_predict(ner_settings, doc_id, new_status, **kwargs):
     """NER computing"""
     session, doc = get_doc(doc_id)
     NER_predict(doc, ner_settings, session, False)
-    return set_doc(doc, new_status, session)
+    set_doc(doc, new_status, session)
 
 
 @app.task(ignore_result=True)
@@ -665,7 +687,7 @@ def regular_create_markup(markup_settings, doc_id, new_status, **kwargs):
     session, doc = get_doc(doc_id)
     # create_markup(doc, session, False)
     create_markup_regular(doc, markup_settings, session, False)
-    return set_doc(doc, new_status, session)
+    set_doc(doc, new_status, session)
 
 
 @app.task(ignore_result=True)
@@ -673,7 +695,7 @@ def regular_theming(doc_id, new_status, **kwargs):
     """regular theming"""
     session, doc = get_doc(doc_id)
     regular_themization(doc, session)
-    return set_doc(doc, new_status, session)
+    set_doc(doc, new_status, session)
 
 
 @app.task(ignore_result=True)
@@ -690,7 +712,7 @@ def tomita_entities(grammars_of_tomita_classes, doc_id, new_status, **kwargs):
     session, doc = get_doc(doc_id)
     #grammars_of_tomita_classes = ['loc.cxx', 'org.cxx', 'norm_act.cxx']
     convert_tomita_result_to_markup(doc, grammars_of_tomita_classes, session=session, commit_session=False)
-    return set_doc(doc, new_status, session)
+    set_doc(doc, new_status, session)
 
 
 
@@ -699,7 +721,7 @@ def regular_rubrication_by_comparing(config, doc_id, new_status, **kwargs):
     """rubrication by comparing with clone source"""
     session, doc = get_doc(doc_id)
     reg_rubrication_by_comparing(doc, config, session)
-    return set_doc(doc, new_status, session)
+    set_doc(doc, new_status, session)
 
 
 @app.task(ignore_result=True)
@@ -711,7 +733,7 @@ def regular_cleaning(doc_id, new_status, **kwargs):
         new_status = WITHOUT_ENTITIES
     else:
         cleaning_document(doc, session)
-    return set_doc(doc, new_status, session)
+    set_doc(doc, new_status, session)
 
 
 def get_doc(doc_id, **kwargs):

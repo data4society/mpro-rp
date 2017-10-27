@@ -1,4 +1,6 @@
 """preinit script for writing config to database"""
+import sys
+sys.path.append('..')
 from mprorp.db.dbDriver import *
 from mprorp.db.models import *
 from mprorp.utils import relative_file_path
