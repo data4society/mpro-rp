@@ -1,7 +1,6 @@
 """celery config"""
 
 from datetime import timedelta
-import sys
 import os
 # we have one shedule-task:
 beat_schedule  = {
@@ -13,4 +12,5 @@ beat_schedule  = {
 # to using server time:
 enable_utc = False
 timezone = os.environ['CELERY_TIMEZONE']
+task_default_queue = 'main'
 # CELERY_TIMEZONE = 'UTC'

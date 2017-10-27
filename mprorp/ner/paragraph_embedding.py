@@ -112,7 +112,7 @@ if 'models and sets' in lp:
     data_index = 0
     par_index = 0
 
-    with open(home_dir + '/weights' + filename, 'rb') as f:
+    with open(home_dir + '/weights/' + filename, 'rb') as f:
         model_params_reg = pickle.load(f)
     print(type(model_params_reg['dict']))
     if model_params_reg.get('word_list', None) is None:
@@ -313,7 +313,7 @@ def run_model(learning, num_steps, filename=None, model_params=None):
             print('    labels:', [dictionary[li] for li in labels.reshape(8)])
     #
     # if not learning:
-    #     with open(home_dir + '/weights' + filename, 'rb') as f:
+    #     with open(home_dir + '/weights/' + filename, 'rb') as f:
     #         model_params = pickle.load(f)
 
     graph = tf.Graph()
@@ -482,7 +482,7 @@ def run_model(learning, num_steps, filename=None, model_params=None):
             if use_NN:
                 for_save['weights_l1'] = weights_l1.eval()
                 for_save['biases_l1'] = biases_l1.eval()
-            with open(home_dir + '/weights' + filename, 'wb') as f:
+            with open(home_dir + '/weights/' + filename, 'wb') as f:
                 pickle.dump(for_save, f)
             interesting_pars = {}
             sim = similarity.eval()
@@ -616,7 +616,7 @@ def model_emb_par_teach_or_calc(teach=True):
             paragraph_set.append(set_list.sets[ind]['test_set_0'])
         #     paragraph_set.append(set_list.sets[ind]['test_set'])
         # print(training_set, paragraph_set)
-        with open(home_dir + '/weights' + filename, 'rb') as f:
+        with open(home_dir + '/weights/' + filename, 'rb') as f:
             model_params = pickle.load(f)
 
         if verbose:
@@ -674,7 +674,7 @@ def calc_paragraph_embedding2(doc_id):
 def calc_paragraph_embedding(doc, session=None, commit_session=True):
     if session is None:
         session = Driver.db_session()
-    # with open(home_dir + '/weights' + filename, 'rb') as f:
+    # with open(home_dir + '/weights/' + filename, 'rb') as f:
     #     model_params = pickle.load(f)
     paragraphs, doc_ids, _, _ = fill_paragraphs_for_learning(None,
                                                              model_params_reg['params']['num_skips'],

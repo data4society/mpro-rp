@@ -1,19 +1,35 @@
 """celery config"""
 
+from datetime import timedelta
 import sys
 import os
 # these files contain celery tasks:
-CELERY_INCLUDE = ['mprorp.controller.start', 'mprorp.controller.logic']
+include = ['mprorp.controller.start', 'mprorp.controller.logic']
 # to using server time:
-CELERY_ENABLE_UTC = False
+enable_utc = False
+task_default_queue = 'default'
+
+task_routes = {
+    'mprorp.controller.start.check_sources': {
+        'queue': 'main'
+    },
+    'mprorp.controller.logic.regular_*_start_parsing': {
+        'queue': 'main'
+    },
+    'mprorp.controller.logic.regular_download_page': {
+        'queue': 'network'
+    },
+    'mprorp.controller.logic.regular_theming': {
+        'queue': 'theme'
+    }
+}
+
 
 if sys.argv[0].split("/")[-1] == 'times.py':
-    CELERY_ALWAYS_EAGER = True
-    CELERYD_TASK_TIME_LIMIT = 600
-    CELERYD_TASK_SOFT_TIME_LIMIT = 550
+    always_eager = True
+    task_time_limit = 600
+    task_soft_time_limit = 550
 else:
-    CELERYD_TASK_TIME_LIMIT = os.environ['CELERYD_TASK_TIME_LIMIT']
-    CELERYD_TASK_SOFT_TIME_LIMIT = os.environ['CELERYD_TASK_SOFT_TIME_LIMIT']
-    # number of parallel processes:
-    CELERYD_CONCURRENCY = os.environ['CELERYD_CONCURRENCY']
-    CELERY_TIMEZONE = os.environ['CELERY_TIMEZONE']
+    task_time_limit = os.environ['CELERYD_TASK_TIME_LIMIT']
+    task_soft_time_limit = os.environ['CELERYD_TASK_SOFT_TIME_LIMIT']
+    timezone = os.environ['CELERY_TIMEZONE']

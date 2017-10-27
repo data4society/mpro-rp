@@ -20,6 +20,9 @@ import logging
 logging.basicConfig(format = u'%(levelname)-8s [%(asctime)s] %(message)s', level = logging.DEBUG, filename = u'crawler_log.txt')
 
 
+def add_page():
+    """page init add"""
+
 def download_page(doc, session):
     """download page"""
     url = doc.url

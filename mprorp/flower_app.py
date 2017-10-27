@@ -4,10 +4,7 @@ import mprorp.config.flowerconfig as flowerconfig
 import os
 
 # create Celery instance and load config
-app = Celery('mprorp',
-                 broker='amqp://',
-                 # backend='amqp://',
-                 )
+app = Celery('mprorp', broker='redis://')
 app.config_from_object(flowerconfig)
 print("STARTING FLOWER APP COMPLETE")
 

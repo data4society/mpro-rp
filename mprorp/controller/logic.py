@@ -1,43 +1,43 @@
 """main processes controller: statuses, route function and tasks"""
 import logging
-from urllib.error import *
+from mprorp.controller.init import *
 
-import mprorp.analyzer.rubricator as rb
-import mprorp.ner.feature as ner_feature
+if worker == "main":
+    from mprorp.crawler.google_news import gn_start_parsing
+    from mprorp.crawler.yandex_rss import ya_rss_start_parsing
+    from mprorp.crawler.yandex_news import yn_start_parsing
+    from mprorp.crawler.google_alerts import ga_start_parsing
+    from mprorp.crawler.vk import vk_start_parsing, vk_parse_item
+    from mprorp.crawler.csv_to_rubricator import csv_start_parsing
+    from mprorp.crawler.from_csv import from_csv_start_parsing
+    from mprorp.crawler.from_other_app import other_app_cloning
+    from mprorp.crawler.selector import selector_start_parsing
+    from mprorp.crawler.refactor import refactor_start_parsing
+elif worker == "default":
+    from mprorp.crawler.site_page import find_full_text
+    import mprorp.analyzer.rubricator as rb
+    import mprorp.ner.feature as ner_feature
+    from mprorp.ner.tomita_to_markup import convert_tomita_result_to_markup
+    from mprorp.tomita.tomita_run import run_tomita
+elif worker == "network":
+    from urllib.error import *
+    from mprorp.crawler.site_page import download_page
+    from mprorp.ner.feature import create_capital_feature
+    from mprorp.ner.NER import NER_predict
+    from mprorp.ner.identification import create_markup_regular
+    from mprorp.analyzer.rubrication_by_comparing import reg_rubrication_by_comparing
+    from mprorp.ner.paragraph_embedding import calc_paragraph_embedding
+elif worker == "theme":
+    from mprorp.analyzer.theming.themer import regular_themization
+
 from mprorp.celery_app import app
-from mprorp.crawler.site_page import find_full_text, download_page
 from mprorp.db.dbDriver import *
 from mprorp.db.models import *
 from sqlalchemy.orm.attributes import flag_modified
-from mprorp.ner.tomita_to_markup import convert_tomita_result_to_markup
-from mprorp.tomita.tomita_run import run_tomita
-
-# from mprorp.db.dbDriver import DBSession
-
-from mprorp.crawler.google_news import gn_start_parsing
-from mprorp.crawler.yandex_rss import ya_rss_start_parsing
-from mprorp.crawler.yandex_news import yn_start_parsing
-from mprorp.crawler.google_alerts import ga_start_parsing
-from mprorp.crawler.vk import vk_start_parsing, vk_parse_item
-from mprorp.crawler.csv_to_rubricator import csv_start_parsing
-from mprorp.crawler.from_csv import from_csv_start_parsing
-from mprorp.crawler.from_other_app import other_app_cloning
-from mprorp.crawler.selector import selector_start_parsing
-from mprorp.crawler.refactor import refactor_start_parsing
-
-from mprorp.analyzer.theming.themer import regular_themization
-
-from mprorp.utils import home_dir, relative_file_path, print_exception
-from mprorp.ner.feature import create_capital_feature
-from mprorp.ner.NER import NER_predict
-from mprorp.ner.identification import create_markup_regular
-from mprorp.analyzer.rubrication_by_comparing import reg_rubrication_by_comparing
-
-from mprorp.ner.paragraph_embedding import calc_paragraph_embedding
-
-import json
+from mprorp.utils import print_exception
 import datetime
 import inspect
+
 
 # statuses
 VK_INIT_STATUS = 10
@@ -49,13 +49,16 @@ CSV_INIT_STATUS = 50
 YANDEX_RSS_INIT_STATUS = 60
 SELECTOR_INIT_STATUS = 70
 FROM_CSV_INIT_STATUS = 80
-#GOOGLE_NEWS_COMPLETE_STATUS = 21
 SITE_PAGE_LOADING_COMPLETE_STATUS = 95
 SITE_PAGE_READABILITY_COMPLETE_STATUS = 99
 
-MORPHO_COMPLETE_STATUS = 100
-LEMMAS_COMPLETE_STATUS = 101
-OLD_RUBRICATION_COMPLETE_STATUS = 102
+#OLD_MORPHO_COMPLETE_STATUS = 100
+#OLD_LEMMAS_COMPLETE_STATUS = 101
+#OLD_RUBRICATION_COMPLETE_STATUS = 102
+
+FASTEXT_EMBEDDING_COMPLETE_STATUS = 105
+MORPHO_COMPLETE_STATUS = 110
+LEMMAS_COMPLETE_STATUS = 115
 
 NER_TOMITA_EMBEDDING_FEATURES_COMPLETE_STATUS = 120
 
@@ -97,12 +100,12 @@ logic_times = {}
 if sys.argv[0].split("/")[-1] == 'times.py':
     mode_times = True
     cur_config = "test_config"
+apps_config = variable_get(cur_config)
 
 
 def router(doc_id, app_id, status):
     """route function, that adds new tasks by incoming result (document's status)"""
     doc_id = str(doc_id)
-    apps_config = variable_get(cur_config)
     app_conf = apps_config[app_id]
     logging.info("route doc: " + str(doc_id) + " status: " + str(status) + " app_id: " + app_id)
     if status >= 2000:  # ERROR
@@ -223,7 +226,6 @@ def regular_gn_start_parsing(source_key, **kwargs):
     """parsing google news request"""
     print("GN CRAWL START: "+source_key)
     session = db_session()
-    apps_config = variable_get(cur_config,session)
     app_id = kwargs["app_id"]
     source = apps_config[app_id]["crawler"]["google_news"][source_key]
     blacklist = apps_config[app_id]["blacklist"] if "blacklist" in apps_config[app_id] else []
@@ -254,7 +256,6 @@ def regular_ga_start_parsing(source_key, **kwargs):
     """parsing google alerts request"""
     print("GA CRAWL START: "+source_key)
     session = db_session()
-    apps_config = variable_get(cur_config,session)
     app_id = kwargs["app_id"]
     source = apps_config[app_id]["crawler"]["google_alerts"][source_key]
     blacklist = apps_config[app_id]["blacklist"] if "blacklist" in apps_config[app_id] else []
@@ -285,7 +286,6 @@ def regular_yn_start_parsing(source_key, **kwargs):
     """parsing yandex news request"""
     print("YN CRAWL START: "+source_key)
     session = db_session()
-    apps_config = variable_get(cur_config, session)
     app_id = kwargs["app_id"]
     source = apps_config[app_id]["crawler"]["yandex_news"][source_key]
     blacklist = apps_config[app_id]["blacklist"] if "blacklist" in apps_config[app_id] else []
@@ -316,7 +316,6 @@ def regular_ya_rss_start_parsing(source_key, **kwargs):
     """parsing yandex rss"""
     print("YR CRAWL START: "+source_key)
     session = db_session()
-    apps_config = variable_get(cur_config,session)
     app_id = kwargs["app_id"]
     source = apps_config[app_id]["crawler"]["yandex_rss"][source_key]
     blacklist = apps_config[app_id]["blacklist"] if "blacklist" in apps_config[app_id] else []
@@ -347,7 +346,6 @@ def regular_csv_start_parsing(source_key, **kwargs):
     """parsing csv"""
     print("CSV CRAWL START: "+source_key)
     session = db_session()
-    apps_config = variable_get(cur_config,session)
     app_id = kwargs["app_id"]
     source = apps_config[app_id]["crawler"]["csv_to_rubricator"][source_key]
     blacklist = apps_config[app_id]["blacklist"] if "blacklist" in apps_config[app_id] else []
@@ -374,7 +372,6 @@ def regular_from_csv_start_parsing(source_key, **kwargs):
     """parsing csv"""
     print("CSV CRAWL START: "+source_key)
     session = db_session()
-    apps_config = variable_get(cur_config,session)
     app_id = kwargs["app_id"]
     source = apps_config[app_id]["crawler"]["from_csv"][source_key]
     try:
@@ -405,7 +402,6 @@ def regular_selector_start_parsing(source_key, **kwargs):
     """parsing custom site request"""
     print("SELECTOR START: "+source_key)
     session = db_session()
-    apps_config = variable_get(cur_config, session)
     app_id = kwargs["app_id"]
     source = apps_config[app_id]["crawler"]["selector"][source_key]
     try:
@@ -435,7 +431,6 @@ def regular_other_app_start_parsing(source_key, **kwargs):
     """cloning docs from other app"""
     print("OA CRAWL START: "+source_key)
     session = db_session()
-    apps_config = variable_get(cur_config, session)
     app_id = kwargs["app_id"]
     source = apps_config[app_id]["crawler"]["other_app"][source_key]
     blacklist = apps_config[app_id]["blacklist"] if "blacklist" in apps_config[app_id] else []
@@ -462,7 +457,6 @@ def regular_refactor_start_parsing(source_key, **kwargs):
     """cloning docs from other app"""
     print("REFACTOR CRAWL START: "+source_key)
     session = db_session()
-    apps_config = variable_get(cur_config, session)
     app_id = kwargs["app_id"]
     source = apps_config[app_id]["crawler"]["refactor"][source_key]
     status = int(source_key)
@@ -471,10 +465,9 @@ def regular_refactor_start_parsing(source_key, **kwargs):
             new_status = source["new_status"]
         else:
             new_status = status
-        docs = refactor_start_parsing(source_key, new_status, source["from_date"], app_id, session)
-        session.commit()
-        for doc in docs:
-            router(doc.doc_id, app_id, new_status)
+        doc_ids = refactor_start_parsing(source_key, new_status, source["from_date"], app_id, session)
+        for doc_id in doc_ids:
+            router(doc_id, app_id, new_status)
     except Exception as err:
         #err_txt = repr(err)
         logging.error("Неизвестная ошибка refactor краулера, source: " + source_key)
@@ -489,7 +482,6 @@ def regular_vk_start_parsing(source_key, **kwargs):
     """parsing vk request"""
     print("VK CRAWL START: "+source_key)
     session = db_session()
-    apps_config = variable_get(cur_config,session)
     app_id = kwargs["app_id"]
     source = apps_config[app_id]["crawler"]["vk"][source_key]
     try:
@@ -553,7 +545,6 @@ def regular_find_full_text(doc_id, new_status, **kwargs):
     """parsing HTML page to find full text"""
     session, doc = get_doc(doc_id)
     try:
-        apps_config = variable_get(cur_config,session)
         app_id = kwargs["app_id"]
         countries = apps_config[app_id]["countries"] if "countries" in apps_config[app_id] else None
         find_full_text(doc, session, countries)
@@ -715,7 +706,6 @@ def regular_rubrication_by_comparing(config, doc_id, new_status, **kwargs):
 def regular_cleaning(doc_id, new_status, **kwargs):
     """regular cleaning"""
     session, doc = get_doc(doc_id)
-    apps_config = variable_get(cur_config, session)
     app_id = kwargs["app_id"]
     if "entities_required" in apps_config[app_id] and (not doc.entity_ids or len(doc.entity_ids) == 0):
         new_status = WITHOUT_ENTITIES
