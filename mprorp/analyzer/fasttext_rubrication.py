@@ -25,7 +25,7 @@ def compute_embedding(txt):
 def reg_fasttext_embedding(doc):
     """compute embedding in regular process"""
     emb = compute_embedding(doc.stripped)
-    doc.fasstext_embedding(emb.tolist())
+    doc.fasstext_embedding = emb.tolist()
 
 
 def learning(embs, ans, filename):

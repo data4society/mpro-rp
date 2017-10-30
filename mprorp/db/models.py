@@ -147,7 +147,7 @@ class Document(Base):
     # text for analyzator - without HTML tags
     stripped = Column(Text())
     # fasttext embedding
-    fasstext_embedding = Column(ARRAY(item_type=Float))
+    fasttext_embedding = Column(ARRAY(item_type=Float))
     # result of morphologia
     morpho = Column(JSONB())
     # result of lemmification
