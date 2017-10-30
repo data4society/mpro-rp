@@ -4,6 +4,7 @@ from datetime import timedelta
 import sys
 import os
 # these files contain celery tasks:
+broker_url = os.environ['CELERYD_BROKER_URL']
 include = ['mprorp.controller.start', 'mprorp.controller.logic']
 # to using server time:
 enable_utc = False

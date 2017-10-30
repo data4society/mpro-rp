@@ -2,7 +2,8 @@
 
 import os
 # these files contain celery tasks:
-CELERY_INCLUDE = ['mprorp.fastart.learning_controller']
+broker_url = os.environ['CELERYD_BROKER_URL']
+CELERY_INCLUDE = ['mprorp.fastart.learning_controller','mprorp.controller.logic']
 # to using server time:
 CELERY_ENABLE_UTC = False
 

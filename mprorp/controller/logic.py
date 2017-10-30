@@ -3,7 +3,7 @@ import sys
 import traceback
 import logging
 
-logging.basicConfig(format = u'%(levelname)-8s [%(asctime)s] %(message)s', filename = u'/home/mprorp/mpro-rp-dev/cel.txt')
+logging.basicConfig(format=u'%(levelname)-8s [%(asctime)s] %(message)s', filename = u'/home/mprorp/mpro-rp-dev/cel.txt')
 root = logging.getLogger()
 root.setLevel(logging.DEBUG)
 logging.info(sys.argv)
@@ -23,7 +23,6 @@ try:
     elif worker == "default":
         from mprorp.crawler.site_page import find_full_text
         import mprorp.analyzer.rubricator as rb
-        from mprorp.analyzer.fasttext_rubrication import reg_fasttext_embedding
         import mprorp.ner.feature as ner_feature
         from mprorp.ner.tomita_to_markup import convert_tomita_result_to_markup
         from mprorp.tomita.tomita_run import run_tomita
@@ -32,6 +31,8 @@ try:
         from mprorp.ner.identification import create_markup_regular
         from mprorp.analyzer.rubrication_by_comparing import reg_rubrication_by_comparing
         from mprorp.ner.paragraph_embedding import calc_paragraph_embedding
+    elif worker == "fastart":
+        from mprorp.analyzer.fasttext_rubrication import reg_fasttext_embedding
     elif worker == "network":
         from urllib.error import *
         from mprorp.crawler.downloader import download_page

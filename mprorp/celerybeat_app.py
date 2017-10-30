@@ -2,7 +2,7 @@
 from celery import Celery
 import mprorp.config.celerybeatconfig as celerybeatconfig
 
-app = Celery('mprorp', broker='redis://')
+app = Celery('mprorp')
 app.config_from_object(celerybeatconfig)
 # create Celery instance and load config
 print("STARTING CELERYBEAT APP COMPLETE")

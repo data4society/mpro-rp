@@ -6,6 +6,7 @@ sys.path.append('../..')
 import traceback
 from celery import Celery
 
+from mprorp.controller.init import *
 import logging
 
 logging.basicConfig(format = u'%(levelname)-8s [%(asctime)s] %(message)s', filename = u'/home/mprorp/mpro-rp-dev/fastart.txt')
@@ -17,11 +18,8 @@ root.setLevel(logging.DEBUG)
 flask_app = Flask(__name__)
 CORS(flask_app)
 
-cel_app = Celery('mprorp',
-                 broker='amqp://',
-                 backend='rpc',
-                 )
-if 'fastart_app.py' not in sys.argv:
+cel_app = Celery('mprorp', backend='rpc')
+if worker == 'fastart':
     import mprorp.config.fastart_celeryconfig as celeryconfig
     cel_app.config_from_object(celeryconfig)
 

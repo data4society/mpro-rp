@@ -12,7 +12,7 @@ import pickle as pickle
 from mprorp.utils import home_dir
 from sqlalchemy.orm.attributes import flag_modified
 from mprorp.config.settings import learning_parameters as lp
-import mprorp.analyzer.fasttext_rubrication as fr
+#import mprorp.analyzer.fasttext_rubrication as fr
 
 # initialization mystem
 mystem_analyzer = Mystem(disambiguation=False)
@@ -979,9 +979,9 @@ def spot_doc_rubrics(doc, rubrics, session=None, commit_session=True, verbose=Fa
     doc.meta['rubric_probabilities'] = probabilities_for_client
     flag_modified(doc, "meta")
 
-
+"""
 def fasttext_spot_doc_rubrics(doc, rubrics, session=None, commit_session=True, verbose=False):
-    """spot rubrics for document in fasttext case"""
+    #spot rubrics for document in fasttext case
     txt = doc.stripped
     probabilities_for_client = {}
     answers = []
@@ -1010,7 +1010,7 @@ def fasttext_spot_doc_rubrics(doc, rubrics, session=None, commit_session=True, v
         doc.meta = dict()
     doc.meta['rubric_probabilities'] = probabilities_for_client
     flag_modified(doc, "meta")
-
+"""
 
 # take 1 rubric and all doc from test_set
 # save in DB doc_id, rubric_id and YES or NO

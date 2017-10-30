@@ -8,7 +8,7 @@ root = logging.getLogger()
 root.setLevel(logging.DEBUG)
 
 logging.info("start init")
-app = Celery('mprorp', broker='redis://')
+app = Celery('mprorp')
 app.config_from_object(celeryconfig)
 logging.info("fin init")
 

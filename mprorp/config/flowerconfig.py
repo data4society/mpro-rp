@@ -1,8 +1,7 @@
 """celery config"""
 
-from datetime import timedelta
-import sys
 import os
+broker_url = os.environ['FLOWER_BROKER_URL']
 
 max_tasks = os.environ['FLOWER_MAX_TASKS']
 # to using server time:

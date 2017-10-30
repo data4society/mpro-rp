@@ -4,7 +4,7 @@ import mprorp.config.flowerconfig as flowerconfig
 import os
 
 # create Celery instance and load config
-app = Celery('mprorp', broker='redis://')
+app = Celery('mprorp')
 app.config_from_object(flowerconfig)
 print("STARTING FLOWER APP COMPLETE")
 
