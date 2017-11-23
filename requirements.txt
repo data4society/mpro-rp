@@ -27,3 +27,4 @@ psutil
 
 flask
 flask_cors
+gunicorn

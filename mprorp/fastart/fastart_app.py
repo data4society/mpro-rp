@@ -5,7 +5,7 @@ import sys
 sys.path.append('../..')
 import traceback
 from celery import Celery
-
+from mprorp.controller.init import *
 import logging
 
 logging.basicConfig(format=u'%(levelname)-8s [%(asctime)s] %(message)s', filename = u'/home/mprorp/mpro-rp-dev/fastart.txt')
@@ -21,7 +21,7 @@ cel_app = Celery('mprorp',
                  broker='redis://',
                  backend='rpc',
                  )
-if 'fastart_app.py' not in sys.argv:
+if worker:
     import mprorp.config.fastart_celeryconfig as celeryconfig
     cel_app.config_from_object(celeryconfig)
 
@@ -345,7 +345,9 @@ def to_sql_query(query):
     return sql_query
 
 
-if __name__ == '__main__':
+if flask_instance:
+    from werkzeug.contrib.fixers import ProxyFix
+    flask_app.wsgi_app = ProxyFix(flask_app.wsgi_app)
     from mprorp.fastart.learning_controller import create_model
     from mprorp.db.dbDriver import *
     from mprorp.db.models import *

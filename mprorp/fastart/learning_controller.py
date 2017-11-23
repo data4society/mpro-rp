@@ -8,8 +8,9 @@ root.setLevel(logging.DEBUG)
 
 import datetime
 sys.path.append('../..')
+from mprorp.controller.init import *
 from mprorp.fastart.fastart_app import cel_app
-if 'fastart_app.py' not in sys.argv:
+if worker:
     logging.info("LC INIT START")
     from mprorp.db.dbDriver import *
     from mprorp.db.models import *
