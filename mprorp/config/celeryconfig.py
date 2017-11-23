@@ -22,6 +22,9 @@ task_routes = {
     },
     'mprorp.controller.logic.regular_theming': {
         'queue': 'theme'
+    },
+    'mprorp.controller.logic.regular_calculate_fasttext_embedding': {
+        'queue': 'fastart'
     }
 }
 

@@ -69,7 +69,7 @@ SITE_PAGE_READABILITY_COMPLETE_STATUS = 99
 #OLD_LEMMAS_COMPLETE_STATUS = 101
 #OLD_RUBRICATION_COMPLETE_STATUS = 102
 
-FASTEXT_EMBEDDING_COMPLETE_STATUS = 105
+FASTTEXT_EMBEDDING_COMPLETE_STATUS = 105
 MORPHO_COMPLETE_STATUS = 110
 LEMMAS_COMPLETE_STATUS = 115
 
@@ -168,8 +168,8 @@ def router(doc_id, app_id, status):
 
         session.commit()
         session.remove()
-    if "fasttext_embedding" in app_conf and status < FASTEXT_EMBEDDING_COMPLETE_STATUS :  # to calculate fasstext embedding
-        regular_calculate_fasttext_embedding.delay(doc_id, FASTEXT_EMBEDDING_COMPLETE_STATUS, app_id=app_id)
+    if "fasttext_embedding" in app_conf and status < FASTTEXT_EMBEDDING_COMPLETE_STATUS :  # to calculate fasttext embedding
+        regular_calculate_fasttext_embedding.delay(doc_id, FASTTEXT_EMBEDDING_COMPLETE_STATUS, app_id=app_id)
         return
     if "morpho" in app_conf and status < MORPHO_COMPLETE_STATUS :  # to morpho
         regular_morpho.delay(doc_id, MORPHO_COMPLETE_STATUS, app_id=app_id)
