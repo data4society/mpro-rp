@@ -3,9 +3,9 @@ import re
 import sys
 pat = re.compile("/([a-zA-Z]+).pid")
 string = "".join(sys.argv)
-worker = pat.search(string).groups()
+worker = pat.search(string)
 if worker:
-    worker = worker[0]
+    worker = worker.groups()[0]
 else:
     worker = False
 flask_instance = (string.find('gunicorn') != -1)

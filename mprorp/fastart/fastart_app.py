@@ -345,7 +345,7 @@ def to_sql_query(query):
     return sql_query
 
 
-if flask_instance:
+if flask_instance and __name__ == 'fastart_app':
     from werkzeug.contrib.fixers import ProxyFix
     flask_app.wsgi_app = ProxyFix(flask_app.wsgi_app)
     from mprorp.fastart.learning_controller import create_model
@@ -357,4 +357,4 @@ if flask_instance:
     GOOD_MIN_NUM = fasttext_params['good_min_num']
     BAD_MIN_NUM = fasttext_params['bad_min_num']
     DOCS_MIN_NUM = fasttext_params['docs_min_num']
-    flask_app.run(port=8000,debug=False)
+    #flask_app.run(port=8000,debug=False)

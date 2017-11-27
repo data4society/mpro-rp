@@ -20,6 +20,9 @@ task_routes = {
     'mprorp.controller.logic.regular_download_page': {
         'queue': 'network'
     },
+    'mprorp.controller.logic.regular_one_rss_parsing': {
+        'queue': 'network'
+    },
     'mprorp.controller.logic.regular_theming': {
         'queue': 'theme'
     },

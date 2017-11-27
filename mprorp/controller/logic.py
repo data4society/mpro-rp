@@ -36,6 +36,7 @@ try:
     elif worker == "network":
         from urllib.error import *
         from mprorp.crawler.downloader import download_page
+        from mprorp.crawler.rss import rss_start_parsing, one_rss_parsing
     elif worker == "theme":
         from mprorp.analyzer.theming.themer import regular_themization
 
@@ -60,6 +61,7 @@ GOOGLE_ALERTS_INIT_STATUS = 20
 YANDEX_NEWS_INIT_STATUS = 40
 CSV_INIT_STATUS = 50
 YANDEX_RSS_INIT_STATUS = 60
+RSS_INIT_STATUS = 65
 SELECTOR_INIT_STATUS = 70
 FROM_CSV_INIT_STATUS = 80
 SITE_PAGE_LOADING_COMPLETE_STATUS = 95
@@ -490,6 +492,54 @@ def regular_refactor_start_parsing(source_key, **kwargs):
         print_exception()
     session.remove()
     print("REFACTOR CRAWL COMPLETE: "+source_key)
+
+
+@app.task(ignore_result=True, time_limit=660, soft_time_limit=600)
+def regular_rss_start_parsing(source_key, **kwargs):
+    """load rsses"""
+    print("RSS CRAWL START: "+source_key)
+    session = db_session()
+    app_id = kwargs["app_id"]
+    source = apps_config[app_id]["crawler"]["rss"][source_key]
+    blacklist = apps_config[app_id]["blacklist"] if "blacklist" in apps_config[app_id] else []
+    try:
+        results = rss_start_parsing(source_key, blacklist, session)
+
+        for result in results:
+            regular_one_rss_parsing.delay(result[0].url, str(result[0].publisher_id), result[1].name, app_id)
+    except Exception as err:
+        #err_txt = repr(err)
+        logging.error("Неизвестная ошибка rss краулера, source: " + source_key)
+        #print(err_txt)
+        print_exception()
+    source_status = session.query(SourceStatus).filter_by(app_id=app_id, type='rss', source_key=source_key).first()
+    source_status.ready = True
+    source_status.next_crawling_time = datetime.datetime.now().timestamp() + source["period"]
+    session.commit()
+    session.remove()
+    print("RSS CRAWL COMPLETE: "+source_key)
+
+
+@app.task(ignore_result=True)
+def regular_one_rss_parsing(source_url, publisher_id, publisher_name, app_id):
+    """parsing site rss"""
+    session = db_session()
+    try:
+        docs = one_rss_parsing(source_url, publisher_id, publisher_name, app_id, session)
+        for doc in docs:
+            doc.status = SELECTOR_INIT_STATUS
+            doc.source_with_type = "rss " + source_url
+            doc.app_id = app_id
+        session.commit()
+        for doc in docs:
+            router(doc.doc_id, app_id, SELECTOR_INIT_STATUS)
+    except Exception as err:
+        # err_txt = repr(err)
+        logging.error("Неизвестная ошибка rss краулера, source: " + source_url)
+        # print(err_txt)
+        print_exception()
+    session.remove()
+
 
 
 @app.task(ignore_result=True, time_limit=660, soft_time_limit=600)

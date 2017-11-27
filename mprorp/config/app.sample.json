@@ -37,6 +37,9 @@
       },
       "google_alerts":{
         "https://www.google.ru/alerts/feeds/01670104253645512148/4749341977166306530":600
+      },
+      "rss":{
+        "ya_rss":600
       }
     },
     "morpho": true,

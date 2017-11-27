@@ -19,26 +19,6 @@ class SourceType(Base):
     name = Column(String(255), nullable=False)
 
 
-class Source(Base):
-    """sources for crawler and other"""
-    __tablename__ = 'sources'
-
-    source_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
-    # url of source
-    url = Column(String(1023))
-    # reference to source type
-    source_type_id = Column(UUIDType(binary=False), ForeignKey('sourcetypes.source_type_id'))
-    sourceType = relationship(SourceType)
-    # human-readable name
-    name = Column(String(255), nullable=False)
-    # period in seconds for parsing. -1 if source is off now
-    parse_period = Column(Integer())
-    # time for next crawling the source
-    next_crawling_time = Column(TIMESTAMP(), server_default=functions.current_timestamp())
-    # Is it waits or in work now
-    wait = Column(Boolean(), server_default="False")
-
-
 class SourceStatus(Base):
     """sources for crawler and other"""
     __tablename__ = 'sourcestatuses'
@@ -107,7 +87,7 @@ class Publisher(Base):
     __tablename__ = 'publishers'
 
     # id of publisher
-    pub_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
+    pub_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True, unique=True)
     # publisher's name
     name = Column(String(127))
     # publisher's type
@@ -126,6 +106,26 @@ class Publisher(Base):
     rss = Column(String(127))
     # for yandex rss path
     ya_rss = Column(String(127))
+
+
+class Source(Base):
+    """sources for crawler and other"""
+    __tablename__ = 'sources'
+
+    source_id = Column(UUIDType(binary=False), server_default=text("uuid_generate_v4()"), primary_key=True)
+    # url of source
+    url = Column(String(1023))
+    # source type('rss' or...)
+    source_type = Column(String(127))
+    # package of sources
+    package = Column(String(127))
+    # period in seconds for parsing. -1 if source is off now
+    parse_period = Column(Integer())
+    # time for next crawling the source
+    next_crawling_time = Column(TIMESTAMP(), server_default=functions.current_timestamp())
+    # id of publisher
+    publisher_id = Column(UUIDType(binary=False), ForeignKey('publishers.pub_id'))
+    publisher = relationship(Publisher)
 
 
 class Document(Base):
