@@ -20,6 +20,7 @@ try:
         from mprorp.crawler.from_other_app import other_app_cloning
         from mprorp.crawler.selector import selector_start_parsing
         from mprorp.crawler.refactor import refactor_start_parsing
+        from mprorp.crawler.rss import rss_start_parsing
     elif worker == "default":
         from mprorp.crawler.site_page import find_full_text
         import mprorp.analyzer.rubricator as rb
@@ -36,7 +37,7 @@ try:
     elif worker == "network":
         from urllib.error import *
         from mprorp.crawler.downloader import download_page
-        from mprorp.crawler.rss import rss_start_parsing, one_rss_parsing
+        from mprorp.crawler.rss import one_rss_parsing
     elif worker == "theme":
         from mprorp.analyzer.theming.themer import regular_themization
 
