@@ -132,7 +132,7 @@ def router(doc_id, app_id, status):
             session.commit()
             session.remove()
         return
-    if status in [GOOGLE_NEWS_INIT_STATUS, GOOGLE_ALERTS_INIT_STATUS, YANDEX_NEWS_INIT_STATUS, YANDEX_RSS_INIT_STATUS, CSV_INIT_STATUS, SELECTOR_INIT_STATUS, FROM_CSV_INIT_STATUS]:  # to find full text of HTML page
+    if status in [GOOGLE_NEWS_INIT_STATUS, GOOGLE_ALERTS_INIT_STATUS, YANDEX_NEWS_INIT_STATUS, YANDEX_RSS_INIT_STATUS, CSV_INIT_STATUS, SELECTOR_INIT_STATUS, FROM_CSV_INIT_STATUS, RSS_INIT_STATUS]:  # to find full text of HTML page
         regular_download_page.delay(doc_id, SITE_PAGE_LOADING_COMPLETE_STATUS, app_id=app_id)
         return
     if status == SITE_PAGE_LOADING_COMPLETE_STATUS:  # to readability

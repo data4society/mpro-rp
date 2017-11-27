@@ -67,7 +67,7 @@ def readability_and_meta(doc, session, byte_source, encoding, countries):
     doc.doc_source = content
     doc.stripped = stripped
     if "abstract" not in meta:
-        meta["abstract"] = cutter(250, 100, 120)
+        meta["abstract"] = cutter(stripped, 250, 100, 120)
     doc.meta = meta
 
 

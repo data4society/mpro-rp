@@ -32,7 +32,7 @@ def one_rss_parsing(source_url, publisher_id, publisher_name, app_id, session):
         url = item.find("link").text
         title = item.find("title").text
         date_text = item.find("pubDate").text
-        date = datetime.datetime.strptime(date_text, "%d %b %Y %H:%M:%S %z")  # 10 Jan 2017 13:16:00 +0300
+        date = datetime.datetime.strptime(date_text, "%a, %d %b %Y %H:%M:%S %z")  # Mon, 10 Jan 2017 13:16:00 +0300
         new_doc = Document(guid=app_id + url, url=url, status=0, type='article', publisher_id=publisher_id)
         new_doc.published_date = date
         new_doc.title = title
