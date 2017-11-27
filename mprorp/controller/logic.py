@@ -501,9 +501,9 @@ def regular_rss_start_parsing(source_key, **kwargs):
     session = db_session()
     app_id = kwargs["app_id"]
     source = apps_config[app_id]["crawler"]["rss"][source_key]
-    blacklist = apps_config[app_id]["blacklist"] if "blacklist" in apps_config[app_id] else []
+    countries = apps_config[app_id]["countries"] if "countries" in apps_config[app_id] else []
     try:
-        results = rss_start_parsing(source_key, blacklist, session)
+        results = rss_start_parsing(source_key, countries, session)
 
         for result in results:
             regular_one_rss_parsing.delay(result[0].url, str(result[0].publisher_id), result[1].name, app_id)

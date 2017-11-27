@@ -8,11 +8,9 @@ from mprorp.crawler.utils import send_get_request, check_url_with_blacklist
 import datetime
 
 
-def rss_start_parsing(package, blacklist, session):
-    session = db_session()
+def rss_start_parsing(package, countries, session):
     results = session.query(Source, Publisher).join(Publisher, Source.publisher).filter(Source.source_type == 'rss')\
-        .filter(Source.package == package).filter(Publisher.country.in_(blacklist)).all()
-    session.remove()
+        .filter(Source.package == package).filter(Publisher.country.in_(countries)).all()
     return results
 
 
