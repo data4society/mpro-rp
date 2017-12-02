@@ -507,7 +507,7 @@ def regular_rss_start_parsing(source_key, **kwargs):
         results = rss_start_parsing(source_key, countries, session)
 
         for result in results:
-            regular_one_rss_parsing.delay(result[0].url, str(result[0].publisher_id), result[1].name, app_id)
+            regular_one_rss_parsing.delay(result[0].url, result[0].package, str(result[0].publisher_id), result[1].name, app_id)
     except Exception as err:
         #err_txt = repr(err)
         logging.error("Неизвестная ошибка rss краулера, source: " + source_key)
@@ -522,18 +522,18 @@ def regular_rss_start_parsing(source_key, **kwargs):
 
 
 @app.task(ignore_result=True)
-def regular_one_rss_parsing(source_url, publisher_id, publisher_name, app_id):
+def regular_one_rss_parsing(source_url, source_package, publisher_id, publisher_name, app_id):
     """parsing site rss"""
     session = db_session()
     try:
-        docs = one_rss_parsing(source_url, publisher_id, publisher_name, app_id, session)
+        docs = one_rss_parsing(source_url, source_package, publisher_id, publisher_name, app_id, session)
         for doc in docs:
-            doc.status = SELECTOR_INIT_STATUS
-            doc.source_with_type = "rss " + source_url
+            doc.status = RSS_INIT_STATUS
+            doc.source_with_type = "rss " + source_package + " " + source_url
             doc.app_id = app_id
         session.commit()
         for doc in docs:
-            router(doc.doc_id, app_id, SELECTOR_INIT_STATUS)
+            router(doc.doc_id, app_id, RSS_INIT_STATUS)
     except Exception as err:
         # err_txt = repr(err)
         logging.error("Неизвестная ошибка rss краулера, source: " + source_url)
