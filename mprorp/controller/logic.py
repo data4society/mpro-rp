@@ -535,15 +535,14 @@ def regular_one_rss_parsing(source_url, package, publisher_id, publisher_name, a
         for doc in docs:
             router(doc.doc_id, app_id, RSS_INIT_STATUS)
     except Exception as err:
-        if type(err).__name__ == 'SoftTimeLimitExceeded':
-            pos = package.find('_')
-            kind = "" if pos == -1 else package[pos:]
-            pack = package if pos == -1 else package[:pos]
-            newkind = "_bad"
-            if newkind != kind:
-                source = session.query(Source).filter(Source.url == source_url).first()
-                source.package = pack+newkind
-                session.commit()
+        pos = package.find('_')
+        kind = "" if pos == -1 else package[pos:]
+        pack = package if pos == -1 else package[:pos]
+        newkind = "_bad" if type(err).__name__ == 'SoftTimeLimitExceeded' else "_long"
+        if newkind != kind:
+            source = session.query(Source).filter(Source.url == source_url).first()
+            source.package = pack+newkind
+            session.commit()
         print_exception()
         # err_txt = repr(err)
         logging.error("Неизвестная ошибка rss краулера, source: " + source_url)
