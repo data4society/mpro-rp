@@ -6,7 +6,7 @@ from user_agent import generate_user_agent, generate_navigator
 from urllib.parse import urlparse
 
 
-def send_get_request(url, encoding='', gen_useragent=False, has_encoding=False):
+def send_get_request(url, encoding='', gen_useragent=False, has_encoding=False, content_text_status=False):
     """accessory function for sending requests"""
     s = Session()
     req = Request('GET', url)
@@ -23,6 +23,8 @@ def send_get_request(url, encoding='', gen_useragent=False, has_encoding=False):
     r = s.send(prepped)
     if encoding:
         r.encoding = encoding
+    if content_text_status:
+        return r.content, r.text, r.status_code
     if has_encoding:
         return r.content
     else:

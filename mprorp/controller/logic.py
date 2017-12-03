@@ -522,19 +522,29 @@ def regular_rss_start_parsing(source_key, **kwargs):
 
 
 @app.task(ignore_result=True)
-def regular_one_rss_parsing(source_url, source_package, publisher_id, publisher_name, app_id):
+def regular_one_rss_parsing(source_url, package, publisher_id, publisher_name, app_id):
     """parsing site rss"""
     session = db_session()
     try:
-        docs = one_rss_parsing(source_url, source_package, publisher_id, publisher_name, app_id, session)
+        docs = one_rss_parsing(source_url, package, publisher_id, publisher_name, app_id, session)
         for doc in docs:
             doc.status = RSS_INIT_STATUS
-            doc.source_with_type = "rss " + source_package + " " + source_url
+            doc.source_with_type = "rss " + package + " " + source_url
             doc.app_id = app_id
         session.commit()
         for doc in docs:
             router(doc.doc_id, app_id, RSS_INIT_STATUS)
     except Exception as err:
+        if type(err).__name__ == 'SoftTimeLimitExceeded':
+            pos = package.find('_')
+            kind = "" if pos == -1 else package[pos:]
+            pack = package if pos == -1 else package[:pos]
+            newkind = "_bad"
+            if newkind != kind:
+                source = session.query(Source).filter(Source.url == source_url).first()
+                source.package = pack+newkind
+                session.commit()
+        print_exception()
         # err_txt = repr(err)
         logging.error("Неизвестная ошибка rss краулера, source: " + source_url)
         # print(err_txt)

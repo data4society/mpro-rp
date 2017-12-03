@@ -19,14 +19,25 @@ def one_rss_parsing(source_url, package, publisher_id, publisher_name, app_id, s
     """download and parse rss feed"""
     docs = []
     # download rss feed
-    req_result = send_get_request(source_url, 'utf-8', gen_useragent=True, has_encoding=True)
+    req_result, txt, status_code = send_get_request(source_url, 'utf-8', gen_useragent=True, has_encoding=True, content_text_status=True)
     req_result = re.sub(b"(<rss[^>]*)(xmlns=\".+?\")([^>]*>)", r"\1\3",  req_result)
     req_result = re.sub(b"(<\?xml[^>]*encoding=\")([^\"]*?)([A-Za-z0-9\-]+)([^\"]*)(\"[^>]*>)", r"\1\3\5",  req_result)
     pos = package.find('_')
     kind = "" if pos == -1 else package[pos:]
     pack = package if pos == -1 else package[:pos]
-    bad = str(req_result).find('<channel') == -1
-    long = len(req_result) > 100000
+    bad = False
+    long = False
+    if status_code == 404:
+        bad = True
+    elif status_code == 503:
+        long = True
+    elif txt.find('<channel') == -1:
+        if txt.find('Ошибка') == -1 and txt.find('Error') == -1:
+            bad = True
+        else:
+            long = True
+    elif len(req_result) > 200000:
+        long = True
     newkind = "_bad" if bad else "_long" if long else ""
     if newkind != kind:
         source = session.query(Source).filter(Source.url == source_url).first()
@@ -56,9 +67,6 @@ def one_rss_parsing(source_url, package, publisher_id, publisher_name, app_id, s
         description = item.find("descripton")
         if description:
             meta["abstract"] = description.text.strip('\n\t')
-        fulltext = item.find("yandex:full-text")
-        if fulltext:
-            new_doc.stripped = fulltext.text.strip('\n\t')
         new_doc.meta = meta
         session.add(new_doc)
         docs.append(new_doc)
