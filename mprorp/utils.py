@@ -70,3 +70,15 @@ def print_exception():
     line = linecache.getline(filename, lineno, f.f_globals)
     print('EXCEPTION IN ({}, LINE {} "{}"): {}'.format(filename, lineno, line.strip(), exc_obj))
     print(traceback.format_exc())
+
+
+def to_sql_query(query):
+    parts = query.split(',')
+    new_parts = []
+    for part in parts:
+        part = part.strip(' ')
+        part = part.replace('_','<->')
+        part = part.replace(' ','&')
+        new_parts.append(part)
+    sql_query = '|'.join(new_parts)
+    return sql_query

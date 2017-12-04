@@ -11,14 +11,15 @@ import logging
 logging.basicConfig(format=u'%(levelname)-8s [%(asctime)s] %(message)s', filename = u'/home/mprorp/mpro-rp-dev/fastart.txt')
 root = logging.getLogger()
 root.setLevel(logging.DEBUG)
-#logging.info(sys.argv)
 
 
 flask_app = Flask(__name__)
 CORS(flask_app)
 
+import os
+
 cel_app = Celery('mprorp',
-                 broker='redis://',
+                 broker=os.environ['CELERYD_BROKER_URL'],
                  backend='rpc',
                  )
 if worker:
@@ -333,18 +334,6 @@ def search(sql_query, session=None):
         logging.info(err_txt)
 
 
-def to_sql_query(query):
-    parts = query.split(',')
-    new_parts = []
-    for part in parts:
-        part = part.strip(' ')
-        part = part.replace('_','<->')
-        part = part.replace(' ','&')
-        new_parts.append(part)
-    sql_query = '|'.join(new_parts)
-    return sql_query
-
-
 if flask_instance and __name__ == 'fastart_app':
     from werkzeug.contrib.fixers import ProxyFix
     flask_app.wsgi_app = ProxyFix(flask_app.wsgi_app)
@@ -353,6 +342,7 @@ if flask_instance and __name__ == 'fastart_app':
     from mprorp.db.models import *
     from sqlalchemy.orm.attributes import flag_modified
     from mprorp.config.settings import learning_parameters as lp
+    from mprorp.utils import to_sql_query
     fasttext_params = lp['fasttext']
     GOOD_MIN_NUM = fasttext_params['good_min_num']
     BAD_MIN_NUM = fasttext_params['bad_min_num']

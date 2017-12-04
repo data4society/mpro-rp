@@ -1,6 +1,10 @@
 """start celery task (checking sources)"""
 from __future__ import absolute_import
-from mprorp.celery_app import app
+from mprorp.controller.init import *
+if flask_instance:
+    from mprorp.central_app import app
+else:
+    from mprorp.celery_app import app
 
 from mprorp.db.dbDriver import *
 from mprorp.db.models import *

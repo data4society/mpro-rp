@@ -40,8 +40,10 @@ try:
         from mprorp.crawler.rss import one_rss_parsing
     elif worker == "theme":
         from mprorp.analyzer.theming.themer import regular_themization
-
-    from mprorp.celery_app import app
+    if flask_instance:
+        from mprorp.central_app import app
+    else:
+        from mprorp.celery_app import app
     from mprorp.db.dbDriver import *
     from mprorp.db.models import *
     from sqlalchemy.orm.attributes import flag_modified
