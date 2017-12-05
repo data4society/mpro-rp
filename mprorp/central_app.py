@@ -33,19 +33,22 @@ if worker:
     app.config_from_object(celeryconfig)
 
 
-@flask_app.route('/last_docs/<status>/<date>/<sql_query>', methods=['GET'])
+@flask_app.route('/api/last_docs/<status>/<date>/<sql_query>', methods=['GET'])
 def get_last_docs(status, date, sql_query):
     """get list of docs created after date"""
     try:
         session = db_session()
         docs = session.query(Document).filter_by(status=status).filter(Document.created > date) \
-        .filter(Document.tsv.match(sql_query, postgresql_regconfig='russian')).all()
-        session.close()
+            .filter(Document.tsv.match(sql_query, postgresql_regconfig='russian')).all()
+        session.remove()
         response = []
         for doc in docs:
             doc_dict = doc.__dict__
             doc_dict.pop('_sa_instance_state')
             doc_dict.pop('tsv')
+            doc_dict.pop('doc_id')
+            doc_dict.pop('app_id')
+            doc_dict.source_with_type = "central " + doc_dict.source_with_type
             response.append(doc_dict)
         out_json = {"status": "OK", "response": response}
     except Exception as err:

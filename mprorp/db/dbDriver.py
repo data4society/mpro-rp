@@ -1,5 +1,6 @@
 """database driver for more simple working with sqlalchemy and postgres"""
 
+from mprorp.controller.init import *
 from sqlalchemy import MetaData
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
@@ -16,7 +17,7 @@ from os import getcwd
 
 script_dir = getcwd()
 full_sys_argv = "".join(sys.argv)
-if ("preinit.py" in sys.argv) or ("maindb" in sys.argv) or ("worker" in sys.argv) or (script_dir.split("/")[-1] == "entrypoints") or (full_sys_argv.find("fastart") != -1):
+if ("preinit.py" in sys.argv) or ("maindb" in sys.argv) or worker or flask_instance or (script_dir.split("/")[-1] == "entrypoints"):
     db_type = "server"
 else:
     db_type = "local"

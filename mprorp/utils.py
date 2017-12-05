@@ -77,8 +77,8 @@ def to_sql_query(query):
     new_parts = []
     for part in parts:
         part = part.strip(' ')
-        part = part.replace('_','<->')
-        part = part.replace(' ','&')
+        part = part.replace('_', '<->')
+        part = part.replace(' ', '&')
         new_parts.append(part)
     sql_query = '|'.join(new_parts)
     return sql_query

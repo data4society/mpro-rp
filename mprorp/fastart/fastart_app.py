@@ -33,7 +33,7 @@ def get_all_rubrics():
     try:
         session = db_session()
         rubrics = session.query(FastartRubric.rubric_id,FastartRubric.name,FastartRubric.step,FastartRubric.doc_ind).all()
-        session.close()
+        session.remove()
         response = []
         for rubric in rubrics:
             if rubric.step == -1:
@@ -70,7 +70,7 @@ def create_rubric():
             out_json = {"status":"OK","response":response}
         else:
             out_json = {"status":"Error","code":"Not enough docs","doc_num":doc_num}
-        session.close()
+        session.remove()
     except Exception as err:
         err_txt = traceback.format_exc()
         logging.info(err_txt)
@@ -110,7 +110,7 @@ def get_rubric(rubric_id):
                 out_json = {"status": "Complete", "response": response}
         else:
             abort_num = 404
-        session.close()
+            session.remove()
     except Exception as err:
         err_txt = traceback.format_exc()
         logging.info(err_txt)
@@ -128,7 +128,7 @@ def delete_rubric(rubric_id):
         session = db_session()
         result = session.query(FastartRubric).filter_by(rubric_id = rubric_id).delete()
         session.commit()
-        session.close()
+        session.remove()
         if result:
             out_json = {"status":"OK"}
         else:
@@ -164,7 +164,7 @@ def update_rubric(rubric_id):
             out_json = {"status":"OK"}
         else:
             abort_num = 404
-        session.close()
+            session.remove()
     except Exception as err:
         err_txt = traceback.format_exc()
         logging.info(err_txt)
@@ -218,7 +218,7 @@ def set_answer(rubric_id):
                 out_json = {"status":"Error","text":"rubric complete"}
         else:
             abort_num = 404
-        session.close()
+            session.remove()
 
     except Exception as err:
         err_txt = traceback.format_exc()
@@ -253,7 +253,7 @@ def get_fulltext(rubric_id):
                 out_json = {"status":"Error","text":"rubric complete"}
         else:
             abort_num = 404
-        session.close()
+            session.remove()
 
     except Exception as err:
         err_txt = traceback.format_exc()
@@ -295,7 +295,7 @@ def download_rubric(rubric_id):
                 out_json = {"status":"Error","text":"rubric is not complete"}
         else:
             abort_num = 404
-        session.close()
+            session.remove()
 
     except Exception as err:
         err_txt = traceback.format_exc()

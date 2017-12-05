@@ -70,7 +70,7 @@ def create_model(rubric_id):
     rubric.models = {'model_name': model_filename}
 
     session.commit()
-    session.close()
+    session.remove()
 
 
 def sort_docs(docs, model, session):

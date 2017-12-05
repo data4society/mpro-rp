@@ -31,7 +31,7 @@ class SimpleVKTest(unittest.TestCase):
         session.commit()
         for doc in documents:
             doc_ids.append(doc.doc_id)
-        session.close()
+            session.remove()
         docs = select(Document.doc_id, Document.app_id == app_id).fetchall()
         self.assertEqual(len(docs), 2)
 
@@ -39,7 +39,7 @@ class SimpleVKTest(unittest.TestCase):
         session = db_session()
         vk_parse_list(s, app_id, session)
         session.commit()
-        session.close()
+        session.remove()
         docs = select(Document.doc_id, Document.app_id == app_id).fetchall()
         self.assertEqual(len(docs), 2)
 
