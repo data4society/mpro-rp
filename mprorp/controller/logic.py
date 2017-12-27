@@ -21,6 +21,7 @@ try:
         from mprorp.crawler.selector import selector_start_parsing
         from mprorp.crawler.refactor import refactor_start_parsing
         from mprorp.crawler.rss import rss_start_parsing
+        from mprorp.crawler.central import central_start_parsing
     elif worker == "default":
         from mprorp.crawler.site_page import find_full_text
         import mprorp.analyzer.rubricator as rb
@@ -229,14 +230,19 @@ def router(doc_id, app_id, status):
     # finish regular procedures:
     session = db_session()
     doc = session.query(Document).filter_by(doc_id=doc_id).first()
+    changed = False
     if "special_type" in app_conf:
         doc.type = app_conf["special_type"]
+        changed = True
     if "special_final_status" in app_conf:
-        status = app_conf["special_final_status"]
+        new_status = app_conf["special_final_status"]
     else:
-        status = REGULAR_PROCESSES_FINISH_STATUS
-    doc.status = status
-    session.commit()
+        new_status = REGULAR_PROCESSES_FINISH_STATUS
+    if new_status != doc.status:
+        doc.status = new_status
+        changed = True
+    if changed:
+        session.commit()
     session.remove()
     return status
 
@@ -493,6 +499,31 @@ def regular_refactor_start_parsing(source_key, **kwargs):
         logging.error("Неизвестная ошибка refactor краулера, source: " + source_key)
         #print(err_txt)
         print_exception()
+    session.remove()
+    print("REFACTOR CRAWL COMPLETE: "+source_key)
+
+
+@app.task(ignore_result=True, time_limit=660, soft_time_limit=600)
+def regular_central_start_parsing(source_key, **kwargs):
+    """get docs from central server"""
+    print("CENTRAL CRAWL START: "+source_key)
+    session = db_session()
+    app_id = kwargs["app_id"]
+    source = apps_config[app_id]["crawler"]["central"][source_key]
+    try:
+        doc_ids = central_start_parsing(source_key, source["query"], app_id, session)
+        session.commit()
+        for doc_id in doc_ids:
+            router(doc_id, app_id, FASTTEXT_EMBEDDING_COMPLETE_STATUS)
+    except Exception as err:
+        #err_txt = repr(err)
+        logging.error("Неизвестная ошибка central краулера, source: " + source_key)
+        #print(err_txt)
+        print_exception()
+    source_status = session.query(SourceStatus).filter_by(app_id=app_id, type='selector', source_key=source_key).first()
+    source_status.ready = True
+    source_status.next_crawling_time = datetime.datetime.now().timestamp() + source["period"]
+    session.commit()
     session.remove()
     print("REFACTOR CRAWL COMPLETE: "+source_key)
 

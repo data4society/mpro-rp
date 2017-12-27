@@ -696,4 +696,29 @@ class NERModel(Base):
 
 ######################################## NO USED FIN
 
+"""
+CREATE FUNCTION documents_search_trigger() RETURNS trigger AS $$
+begin
+  if (new.status=105 AND old.status!=105)
+  then
+  new.tsv :=
+    setweight(to_tsvector('russian', COALESCE(new.title,'')), 'A') ||
+    setweight(to_tsvector('russian', COALESCE(new.stripped,'')),'B');
+  new.created := now();
+  end if;
+  return new;
+end
+$$ LANGUAGE plpgsql;
+CREATE FUNCTION created_date_update_trigger() RETURNS trigger AS $$
+begin
+  return new;
+end
+$$ LANGUAGE plpgsql;
+CREATE TRIGGER tsvectordocsupdate BEFORE UPDATE ON documents FOR EACH ROW EXECUTE PROCEDURE documents_search_trigger();
+tsvectordocsupdate BEFORE UPDATE OF stripped ON documents FOR EACH ROW EXECUTE PROCEDURE documents_search_trigger();
+CREATE INDEX tsv_docs_idx ON documents USING gin(tsv);
+CREATE INDEX doc_id_index ON documents USING btree(doc_id);
+CREATE INDEX guid_index ON documents USING btree(guid);
+CREATE INDEX created_index ON documents USING btree(created) WHERE app_id = 'central' AND status = 105;
+"""
 

@@ -3,7 +3,7 @@ import sys
 sys.path.append('..')
 from mprorp.db.dbDriver import *
 from mprorp.db.models import *
-from mprorp.utils import relative_file_path
+from mprorp.utils import relative_file_path, to_sql_query
 import json
 import traceback
 import logging
@@ -47,6 +47,11 @@ def load_app_conf(json_path, cur_config):
                         for rubr_name in rubrics:
                             rubric_ids.append(rubric_ids_by_names[rubr_name])
                         crawler[source_type][source_key]["force_rubrication"] = rubric_ids
+                    if source_type == "central":
+                        queries = crawler[source_type][source_key]["queries"]
+                        queries = '(' + '), ('.join(queries) + ')'
+                        queries = to_sql_query(queries)
+                        crawler[source_type][source_key]["queries"] = queries
         if "rubrication" in app:
             rubricator = app["rubrication"]
             new_rubricator = []

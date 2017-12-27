@@ -5,7 +5,6 @@ import sys
 sys.path.append('..')
 import traceback
 from celery import Celery
-import mprorp.config.celeryconfig as celeryconfig
 from mprorp.controller.init import *
 import logging
 
@@ -13,48 +12,65 @@ logging.basicConfig(format = u'%(levelname)-8s [%(asctime)s] %(message)s', filen
 root = logging.getLogger()
 root.setLevel(logging.DEBUG)
 
-logging.info("start init")
-app = Celery('mprorp')
-app.config_from_object(celeryconfig)
-logging.info("fin init")
-
 
 flask_app = Flask(__name__)
 CORS(flask_app)
 
 import os
 
-app = Celery('mprorp',
+if worker:
+    logging.info("start init")
+    app = Celery('mprorp',
                  broker=os.environ['CELERYD_BROKER_URL'],
                  backend='rpc',
                  )
-if worker:
     import mprorp.config.celeryconfig as celeryconfig
     app.config_from_object(celeryconfig)
+    logging.info("fin init")
 
 
-@flask_app.route('/api/last_docs/<status>/<date>/<sql_query>', methods=['GET'])
-def get_last_docs(status, date, sql_query):
+@flask_app.route('/api/test', methods=['GET'])
+def test():
+    try:
+        out_json = {"status": "OK"}
+    except Exception as err:
+        err_txt = traceback.format_exc()
+        logging.info(err_txt)
+        out_json = {"status":"Error"}
+        out_json["text"] = "Python Server Error. "+err_txt
+    return jsonify(out_json)
+
+
+@flask_app.route('/api/last_docs', methods=['POST'])
+def get_last_docs():
     """get list of docs created after date"""
     try:
+        app_id = "central"
+        status = "105"
+        in_json = request.json
+        sql_query = in_json["sql_query"]
+        date = in_json["date"]
+
         session = db_session()
-        docs = session.query(Document).filter_by(status=status).filter(Document.created > date) \
+        docs = session.query(Document).filter_by(status=status).filter_by(app_id=app_id).filter(Document.created > date) \
             .filter(Document.tsv.match(sql_query, postgresql_regconfig='russian')).all()
         session.remove()
         response = []
         for doc in docs:
+            doc.source_with_type = "central " + doc.source_with_type
             doc_dict = doc.__dict__
             doc_dict.pop('_sa_instance_state')
             doc_dict.pop('tsv')
-            doc_dict.pop('doc_id')
             doc_dict.pop('app_id')
-            doc_dict.source_with_type = "central " + doc_dict.source_with_type
+            doc_dict['created'] = str(doc_dict['created'])
+            doc_dict['published_date'] = str(doc_dict['published_date'])
             response.append(doc_dict)
         out_json = {"status": "OK", "response": response}
     except Exception as err:
         err_txt = traceback.format_exc()
         out_json = {"status":"Error"}
         out_json["text"] = "Python Server Error. "+err_txt
+    logging.info("FIN LAST DOCS2")
     return jsonify(out_json)
 
 if flask_instance and __name__ == 'central_app':
