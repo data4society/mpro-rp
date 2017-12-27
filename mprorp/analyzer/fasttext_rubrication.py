@@ -6,9 +6,9 @@ import math
 import tensorflow as tf
 from mprorp.config.settings import learning_parameters as lp
 
+MODELS_PATH = "/home/mprorp/models/"
 if 'fasttext' in lp:
     fasttext_params = lp['fasttext']
-    MODELS_PATH = "/home/mprorp/models/"
     embedding_model = FastText.load_fasttext_format(MODELS_PATH+fasttext_params['embedding_model'])
     TF_STEPS = fasttext_params['tf_steps']
     REG_COEF = fasttext_params['reg_coef']
@@ -138,3 +138,34 @@ def build_rubric_model(tr_data, labels, batch_size):
 def sigmoid(x):
     """sigmoid for value x"""
     return 1/(1 + math.exp(-x))
+
+
+def fasttext_spot_doc_rubrics(doc, rubrics, verbose=False):
+    #spot rubrics for document in fasttext case
+    #probabilities_for_client = {}
+    answers = []
+
+    # get embedding vector
+    emb_vec = doc.fasttext_embedding
+
+    for rubric_dict in rubrics:
+        rubric_id = rubric_dict['rubric_id']
+        rubric_model_name = rubric_dict['fasttext_model']
+        negative_rubric_id = rubric_dict.get('rubric_minus_id', None)
+
+        # get answer for current rubric
+        answer = get_answer_by_model_name(rubric_model_name, emb_vec)
+
+        #probabilities_for_client[rubric_id] = answer
+        if answer >= 0.5:
+            answers.append(rubric_id)
+        elif negative_rubric_id is not None:
+            answers.append(negative_rubric_id)
+
+    if verbose:
+        print(answers)
+    doc.rubric_ids = answers
+    #if doc.meta is None:
+    #    doc.meta = dict()
+    #doc.meta['rubric_probabilities'] = probabilities_for_client
+    #flag_modified(doc, "meta")

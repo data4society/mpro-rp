@@ -11,7 +11,7 @@ import json
 def central_start_parsing(ip, sql_query, app_id, session):
     """get all docs by condition and set status"""
 
-    from_date = variable_get("last_date_for_"+ip+"_"+app_id,str(datetime.datetime.now()))
+    from_date = variable_get("last_date_for_"+ip+"_"+app_id, str(datetime.datetime.now()), session)
     url = 'http://'+ip+'/api/last_docs'
     docs = []
     s = Session()
@@ -34,6 +34,7 @@ def central_start_parsing(ip, sql_query, app_id, session):
         doc.app_id = app_id
         docs.append(doc)
         session.add(doc)
+    variable_set("last_date_for_"+ip+"_"+app_id, max([doc.created for doc in docs]), session)
     doc_ids = [doc.doc_id for doc in docs]
     return doc_ids
 

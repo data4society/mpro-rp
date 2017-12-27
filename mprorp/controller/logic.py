@@ -25,6 +25,7 @@ try:
     elif worker == "default":
         from mprorp.crawler.site_page import find_full_text
         import mprorp.analyzer.rubricator as rb
+        from mprorp.analyzer.fasttext_rubrication import fasttext_spot_doc_rubrics
         import mprorp.ner.feature as ner_feature
         from mprorp.ner.tomita_to_markup import convert_tomita_result_to_markup
         from mprorp.tomita.tomita_run import run_tomita
@@ -76,6 +77,7 @@ SITE_PAGE_READABILITY_COMPLETE_STATUS = 99
 #OLD_RUBRICATION_COMPLETE_STATUS = 102
 
 FASTTEXT_EMBEDDING_COMPLETE_STATUS = 105
+FASTTEXT_PRERUBRICATION_COMPLETE_STATUS = 107
 MORPHO_COMPLETE_STATUS = 110
 LEMMAS_COMPLETE_STATUS = 115
 
@@ -177,6 +179,9 @@ def router(doc_id, app_id, status):
     if "fasttext_embedding" in app_conf and status < FASTTEXT_EMBEDDING_COMPLETE_STATUS :  # to calculate fasttext embedding
         regular_calculate_fasttext_embedding.delay(doc_id, FASTTEXT_EMBEDDING_COMPLETE_STATUS, app_id=app_id)
         return
+    if "fasttext_prerubrication" in app_conf and status < FASTTEXT_PRERUBRICATION_COMPLETE_STATUS:
+        regular_fasttext_prerubrication.delay(app_conf["rubrication"], doc_id, FASTTEXT_PRERUBRICATION_COMPLETE_STATUS, WITHOUT_RUBRICS)
+        return
     if "morpho" in app_conf and status < MORPHO_COMPLETE_STATUS :  # to morpho
         regular_morpho.delay(doc_id, MORPHO_COMPLETE_STATUS, app_id=app_id)
         return
@@ -190,7 +195,7 @@ def router(doc_id, app_id, status):
         regular_calc_embedding.delay(doc_id, CALC_EMBEDDING_COMPLETE_STATUS, app_id=app_id)
         return
     if "rubrication" in app_conf and status < RUBRICATION_COMPLETE_STATUS:  # to rubrication
-        regular_rubrication.delay(app_conf["rubrication"], doc_id, RUBRICATION_COMPLETE_STATUS, WITHOUT_RUBRICS, app_id=app_id)
+        regular_rubrication.delay(app_conf["rubrication"], doc_id, "fasttext_prerubrication" in app_conf, RUBRICATION_COMPLETE_STATUS, WITHOUT_RUBRICS, app_id=app_id)
         return
     if "capital_feature" in app_conf and status < CAPITAL_FEATURE_COMPLETE_STATUS:  # to create capital feature
         regular_capital_feature.delay(doc_id, CAPITAL_FEATURE_COMPLETE_STATUS, app_id=app_id)
@@ -710,16 +715,25 @@ def regular_calc_embedding(doc_id, new_status, **kwargs):
     calc_paragraph_embedding(doc, session, False)
     set_doc(doc, new_status, session)
 
+@app.task(ignore_result=True)
+def regular_fasttext_prerubrication(rubrics, doc_id, with_rubrics_status, without_rubrics_status, **kwargs):
+    """regular fasttext prerubrication"""
+    session, doc = get_doc(doc_id)
+    fasttext_spot_doc_rubrics(doc, rubrics, False)
+
+    if len(doc.rubric_ids) == 0:
+        new_status = without_rubrics_status
+    else:
+        new_status = with_rubrics_status
+    set_doc(doc, new_status, session)
+
 
 @app.task(ignore_result=True)
-def regular_rubrication(rubrics, doc_id, with_rubrics_status, without_rubrics_status, **kwargs):
+def regular_rubrication(rubrics, doc_id, fasttext_prerubrication, with_rubrics_status, without_rubrics_status, **kwargs):
     """regular rubrication"""
     session, doc = get_doc(doc_id)
     # rb.spot_doc_rubrics2(doc_id, rubrics_for_regular, new_status)
-    if "rubrication_type" in rubrics[0] and rubrics[0]["rubrication_type"] == "fasttext":
-        rb.fasttext_spot_doc_rubrics(doc, rubrics, session, False)
-    else:
-        rb.spot_doc_rubrics(doc, rubrics, session, False)
+    rb.spot_doc_rubrics(doc, rubrics, fasttext_prerubrication, session, False)
 
     if len(doc.rubric_ids) == 0:
         new_status = without_rubrics_status

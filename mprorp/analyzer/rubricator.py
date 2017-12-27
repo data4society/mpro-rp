@@ -818,7 +818,7 @@ def spot_doc_rubrics2(doc_id, rubrics, verbose=False):
     db.doc_apply(doc_id, spot_doc_rubrics, rubrics, verbose=verbose)
 
 
-def spot_doc_rubrics(doc, rubrics, session=None, commit_session=True, verbose=False):
+def spot_doc_rubrics(doc, rubrics, fasttext_prerubrication, session=None, commit_session=True, verbose=False):
     """spot rubrics for document"""
     # get lemmas by doc_id
     lemmas = doc.lemmas
@@ -839,6 +839,10 @@ def spot_doc_rubrics(doc, rubrics, session=None, commit_session=True, verbose=Fa
     all_tf_idf_train_sets = set()
     all_embeddings = set()
 
+
+    if fasttext_prerubrication:
+        rubric_ids = [str(id) for id in doc.rubric_ids]
+        rubrics = [rubric_dict for rubric_dict in rubrics if rubric_dict['rubric_id'] in rubric_ids]
     # fill set_id in rubrics and data in models
     for rubric_dict in rubrics:
         rubric_id = rubric_dict['rubric_id']
@@ -979,38 +983,6 @@ def spot_doc_rubrics(doc, rubrics, session=None, commit_session=True, verbose=Fa
     doc.meta['rubric_probabilities'] = probabilities_for_client
     flag_modified(doc, "meta")
 
-"""
-def fasttext_spot_doc_rubrics(doc, rubrics, session=None, commit_session=True, verbose=False):
-    #spot rubrics for document in fasttext case
-    txt = doc.stripped
-    probabilities_for_client = {}
-    answers = []
-
-    # get embedding vector
-    emb_vec = fr.get_embedding_vector(txt)
-
-    for rubric_dict in rubrics:
-        rubric_id = rubric_dict['rubric_id']
-        rubric_model_name = rubric_dict['model_name']
-        negative_rubric_id = rubric_dict.get('rubric_minus_id', None)
-
-        # get answer for current rubric
-        answer = fr.get_answer_by_model_name(rubric_model_name, emb_vec)
-
-        probabilities_for_client[rubric_id] = answer
-        if answer >= 0.5:
-            answers.append(rubric_id)
-        elif negative_rubric_id is not None:
-            answers.append(negative_rubric_id)
-
-    if verbose:
-        print(answers)
-    doc.rubric_ids = answers
-    if doc.meta is None:
-        doc.meta = dict()
-    doc.meta['rubric_probabilities'] = probabilities_for_client
-    flag_modified(doc, "meta")
-"""
 
 # take 1 rubric and all doc from test_set
 # save in DB doc_id, rubric_id and YES or NO
