@@ -516,7 +516,7 @@ def regular_central_start_parsing(source_key, **kwargs):
     app_id = kwargs["app_id"]
     source = apps_config[app_id]["crawler"]["central"][source_key]
     try:
-        doc_ids = central_start_parsing(source_key, source["query"], app_id, session)
+        doc_ids = central_start_parsing(source_key, source["queries"], app_id, session)
         session.commit()
         for doc_id in doc_ids:
             router(doc_id, app_id, FASTTEXT_EMBEDDING_COMPLETE_STATUS)
@@ -525,7 +525,7 @@ def regular_central_start_parsing(source_key, **kwargs):
         logging.error("Неизвестная ошибка central краулера, source: " + source_key)
         #print(err_txt)
         print_exception()
-    source_status = session.query(SourceStatus).filter_by(app_id=app_id, type='selector', source_key=source_key).first()
+    source_status = session.query(SourceStatus).filter_by(app_id=app_id, type='central', source_key=source_key).first()
     source_status.ready = True
     source_status.next_crawling_time = datetime.datetime.now().timestamp() + source["period"]
     session.commit()

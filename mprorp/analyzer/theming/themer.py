@@ -16,8 +16,8 @@ from mprorp.utils import *
 
 WORD_MIN_MENTIONS = 30
 WORD_GOOD_THRESHOLD = 0.68
-MAX_THEME_PAUSE = 3*24*3600
-THEME_THRESHOLD = 0.25
+MAX_THEME_PAUSE = 24*3600
+THEME_THRESHOLD = 0.45
 MAIN_WORDS_FROM_TEXT_LENGTH = 10
 THEMING_SOURCE = "title_morpho"  #""title"  # "morpho"
 THEMING_GEOMETRIA = "shar"
@@ -613,9 +613,7 @@ def main_words_by_title(doc, session):
 def main_words_by_morpho(doc, session):
     mains = dict()
     morpho = doc.morpho
-    docs_len = variable_get("idf_corpus_count", session.query(Document).options(load_only("doc_id")). \
-        join(Source, Source.source_id == Document.source_id).filter(Document.status == 1001,
-                                                                    Source.source_type_id == '1d6210b2-5ff3-401c-b0ba-892d43e0b741').count())
+    docs_len = variable_get("idf_corpus_count")
 
     words_probabilities = dict()
     words_len = 0
@@ -648,9 +646,7 @@ def main_words_by_morpho(doc, session):
     mains = {k: v/words_len for k, v in mains.items()}  #tf
     words_list = list(mains.keys())
     idf_objs = session.query(IDF).options(load_only("word","num")).filter(IDF.word.in_(words_list)).all()
-    idf_dict = dict()
-    for idf_obj in idf_objs:
-        idf_dict[idf_obj.word] = idf_obj.num
+    idf_dict = {idf_obj.word: idf_obj.num for idf_obj in idf_objs}
 
     for word in mains:
         if word in idf_dict:
@@ -658,8 +654,8 @@ def main_words_by_morpho(doc, session):
         else:
             idf = math.log((docs_len+1)/words_probabilities[word],2)
         #print(word, idf)
-        mains[word] *= idf
     #print(sorted(mains.items()))
+        mains[word] *= idf
     #print(sorted(mains.items(), key=lambda tup: tup[1], reverse=True))
     mains = {k: v for k, v in sorted(mains.items(), key=lambda tup: tup[1], reverse=True)[:MAIN_WORDS_FROM_TEXT_LENGTH]}
     return dict_normalize(mains)
@@ -668,9 +664,7 @@ def main_words_by_morpho(doc, session):
 def main_words_by_lemmas(doc, session):
     mains = dict()
     morpho = doc.morpho
-    docs_len = variable_get("idf_corpus_count", session.query(Document).options(load_only("doc_id")). \
-        join(Source, Source.source_id == Document.source_id).filter(Document.status == 1001,
-                                                                    Source.source_type_id == '1d6210b2-5ff3-401c-b0ba-892d43e0b741').count())
+    docs_len = variable_get("idf_corpus_count")
 
     words_probabilities = dict()
     words_len = 0

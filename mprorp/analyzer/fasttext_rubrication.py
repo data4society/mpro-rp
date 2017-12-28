@@ -42,14 +42,14 @@ def learning(embs, ans, filename):
 
 def get_embedding_vector(txt):
     """get special embedding vector"""
-    return np.concatenate([compute_embedding(txt),np.array([1])])
+    return np.concatenate([compute_embedding(txt), np.array([1])])
 
 
 def get_answer_by_model_name(filename, emb_vec):
     """get probability answer for embedding by model name"""
     with open(MODELS_PATH+filename, 'rb') as f:
         model = pickle.load(f)
-    return sigmoid(np.dot(emb_vec, model))
+    return sigmoid(np.dot(np.array(emb_vec+[1]), model))
 
 
 def get_answer(model, txt):

@@ -34,7 +34,8 @@ def central_start_parsing(ip, sql_query, app_id, session):
         doc.app_id = app_id
         docs.append(doc)
         session.add(doc)
-    variable_set("last_date_for_"+ip+"_"+app_id, max([doc.created for doc in docs]), session)
+    if docs:
+        variable_set("last_date_for_"+ip+"_"+app_id, max([doc.created for doc in docs]), session)
     doc_ids = [doc.doc_id for doc in docs]
     return doc_ids
 
