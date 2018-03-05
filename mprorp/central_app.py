@@ -6,6 +6,7 @@ sys.path.append('..')
 import traceback
 from celery import Celery
 from mprorp.controller.init import *
+from mprorp.crawler.utils import domain_from_path
 import logging
 
 logging.basicConfig(format = u'%(levelname)-8s [%(asctime)s] %(message)s', filename = u'/home/mprorp/mpro-rp-dev/cel.txt')
@@ -49,6 +50,7 @@ def get_last_docs():
         status = "105"
         in_json = request.json
         sql_query = in_json["sql_query"]
+        black_list = in_json["black_list"]
         date = in_json["date"]
 
         session = db_session()
@@ -57,14 +59,15 @@ def get_last_docs():
         session.remove()
         response = []
         for doc in docs:
-            doc.source_with_type = "central " + doc.source_with_type
-            doc_dict = doc.__dict__
-            doc_dict.pop('_sa_instance_state')
-            doc_dict.pop('tsv')
-            doc_dict.pop('app_id')
-            doc_dict['created'] = str(doc_dict['created'])
-            doc_dict['published_date'] = str(doc_dict['published_date'])
-            response.append(doc_dict)
+            if domain_from_path(doc.url) not in black_list:
+                doc.source_with_type = "central " + doc.source_with_type
+                doc_dict = doc.__dict__
+                doc_dict.pop('_sa_instance_state')
+                doc_dict.pop('tsv')
+                doc_dict.pop('app_id')
+                doc_dict['created'] = str(doc_dict['created'])
+                doc_dict['published_date'] = str(doc_dict['published_date'])
+                response.append(doc_dict)
         out_json = {"status": "OK", "response": response}
     except Exception as err:
         err_txt = traceback.format_exc()

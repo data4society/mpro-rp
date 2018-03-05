@@ -8,7 +8,7 @@ from requests import Request, Session
 import json
 
 
-def central_start_parsing(ip, sql_query, app_id, session):
+def central_start_parsing(ip, sql_query, black_list, app_id, session):
     """get all docs by condition and set status"""
 
     from_date = variable_get("last_date_for_"+ip+"_"+app_id, str(datetime.datetime.now()), session)
@@ -18,6 +18,7 @@ def central_start_parsing(ip, sql_query, app_id, session):
     raw_data = {}
     raw_data["date"] = from_date
     raw_data["sql_query"] = sql_query
+    raw_data["black_list"] = black_list
     data = json.dumps(raw_data, ensure_ascii=False).encode('utf8').decode('Latin-1')
     # print(data)
     req = Request('POST', url, data=data)
