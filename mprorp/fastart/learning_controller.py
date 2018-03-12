@@ -25,6 +25,7 @@ if worker:
     MARKING_STEPS_NUM = fasttext_params['marking_steps_num']
     logging.info("LC INIT COMPLETE")
 
+
 @cel_app.task(ignore_result=True, time_limit=3660, soft_time_limit=3600)
 def create_model(rubric_id):
     """create model by bad and good docs"""
@@ -36,28 +37,14 @@ def create_model(rubric_id):
     doc_ids = [doc["doc_id"] for doc in marked]
 
     print("start get")
-    doc_objs = session.query(Document).options(load_only("doc_id", "stripped")).filter(Document.doc_id.in_(doc_ids)).all()
+    doc_objs = session.query(Document).options(load_only("doc_id", "fasttext_embedding")).filter(Document.doc_id.in_(doc_ids)).all()
     print("fin get")
 
-    """
-    with allow_join_result():
-        tasks_list = [get_embedding.s(str(doc.doc_id),doc.stripped) for doc in doc_objs]
-        new_group = group(tasks_list)
-        tasks = new_group()
-        results = tasks.get()
-        results = {doc_id:np.array(ans) for doc_id, ans in results}
-        for doc in marked:
-            print(doc["doc_id"])
-            print(results[doc["doc_id"]])
-        embeddings = [results[doc["doc_id"]] for doc in marked]
-        answers = [2-doc["answer"]%3 for doc in marked]
-    """
-
-    results = {str(doc.doc_id):compute_embedding(doc.stripped) for doc in doc_objs}
+    results = {str(doc.doc_id): np.array(doc.fasttext_embedding) for doc in doc_objs}
     embeddings = [results[doc["doc_id"]] for doc in marked]
-    answers = [2-doc["answer"]%3 for doc in marked]
+    answers = [2 - doc["answer"] % 3 for doc in marked]
 
-    model_filename = 'fasttext_'+rubric_id+'_'+str(datetime.datetime.now()).replace(' ','_').replace('.','_')
+    model_filename = 'fasttext_'+rubric_id+'_'+str(datetime.datetime.now()).replace(' ', '_').replace('.', '_')
     print("learning_start")
     model = learning(embeddings, answers, model_filename)
     print("learning_complete")
@@ -89,32 +76,22 @@ def sort_docs(docs, model, session):
 
 
     print("start get2")
-    docs = session.query(Document).options(load_only("doc_id", "stripped")).filter(Document.doc_id.in_(doc_ids)).all()
+    docs = session.query(Document).options(load_only("doc_id", "fasttext_embedding")).filter(Document.doc_id.in_(doc_ids)).all()
     print("fin get2")
 
 
     with allow_join_result():
-        tasks_list = [get_answer_task.s(model, doc.stripped, str(doc.doc_id)) for doc in docs]
+        tasks_list = [get_answer_task.s(model, doc.fasttext_embedding, str(doc.doc_id)) for doc in docs]
         new_group = group(tasks_list)
         tasks = new_group()
         results = tasks.get()
         answers_for_news = {doc_id:ans for doc_id, ans in results}
 
-    #for doc in new:
-    #    doc_id = doc["doc_id"]
-    #    stripped = session.query(Document.stripped).filter(doc_id = doc_id).first()[0]
     new = sorted(new, key=lambda doc: abs(answers_for_news[doc["doc_id"]]-0.5))
     return old+new+end, i
 
 
 @cel_app.task(ignore_result=False)
-def get_answer_task(model, txt, doc_id):
+def get_answer_task(model, emb, doc_id):
     """get probability answer for doc by model"""
-    return doc_id, get_answer(model, txt)
-
-
-@cel_app.task(ignore_result=False)
-def get_embedding(doc_id, stripped):
-    """get embedding for doc"""
-    res = list(compute_embedding(stripped))
-    return doc_id, res
+    return doc_id, get_answer(model, emb)

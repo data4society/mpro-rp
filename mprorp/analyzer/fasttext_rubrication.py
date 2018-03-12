@@ -40,10 +40,6 @@ def learning(embs, ans, filename):
     return model
 
 
-def get_embedding_vector(txt):
-    """get special embedding vector"""
-    return np.concatenate([compute_embedding(txt), np.array([1])])
-
 
 def get_answer_by_model_name(filename, emb_vec):
     """get probability answer for embedding by model name"""
@@ -52,9 +48,9 @@ def get_answer_by_model_name(filename, emb_vec):
     return sigmoid(np.dot(np.array(emb_vec+[1]), model))
 
 
-def get_answer(model, txt):
+def get_answer(model, emb):
     """get probability answer for doc by model"""
-    emb_vec = get_embedding_vector(txt)
+    emb_vec = np.array(emb+[1])
     probability = sigmoid(np.dot(emb_vec, model))
     return probability
 
