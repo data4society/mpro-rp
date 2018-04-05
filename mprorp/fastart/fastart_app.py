@@ -59,9 +59,10 @@ def create_rubric():
         query = in_json["query"]
         sql_query = to_sql_query(query)
         session = db_session()
-        search_result, doc_num = search(sql_query, session)
-        if search_result:
-            docs = session.query(Document.doc_id).filter_by(app_id='central').filter_by(status=105).filter(Document.tsv.match(sql_query, postgresql_regconfig='russian')).limit(DOCS_MIN_NUM)
+        #search_result, doc_num = search(sql_query, session)
+        docs = session.query(Document.doc_id).filter_by(app_id='central').filter_by(status=105).filter(Document.tsv.match(sql_query, postgresql_regconfig='russian')).limit(DOCS_MIN_NUM)
+        doc_num = len(docs)
+        if doc_num == DOCS_MIN_NUM:
             docs = [{"doc_id":str(doc[0]),"answer":-1} for doc in docs]
             rubric = FastartRubric(name=in_json["name"],desc=in_json["desc"],query=query,sql_query=sql_query,docs={"all":docs})
             session.add(rubric)
@@ -325,7 +326,7 @@ def search(sql_query, session=None):
         if not session:
             has_session = False
             session = db_session()
-        docs_num = session.query(Document).filter_by(app_id='central').filter_by(status=105).filter(Document.tsv.match(sql_query, postgresql_regconfig='russian')).count()
+        docs_num = session.query(Document).filter_by(status=105).filter_by(app_id='central').filter(Document.tsv.match(sql_query, postgresql_regconfig='russian')).count()
         if not has_session:
             session.remove()
         return (docs_num>=DOCS_MIN_NUM,docs_num)
