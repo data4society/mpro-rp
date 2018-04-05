@@ -61,9 +61,9 @@ def create_rubric():
         session = db_session()
         #search_result, doc_num = search(sql_query, session)
         docs = session.query(Document.doc_id).filter_by(app_id='central').filter_by(status=105).filter(Document.tsv.match(sql_query, postgresql_regconfig='russian')).limit(DOCS_MIN_NUM)
+        docs = [{"doc_id":str(doc[0]),"answer":-1} for doc in docs]
         doc_num = len(docs)
         if doc_num == DOCS_MIN_NUM:
-            docs = [{"doc_id":str(doc[0]),"answer":-1} for doc in docs]
             rubric = FastartRubric(name=in_json["name"],desc=in_json["desc"],query=query,sql_query=sql_query,docs={"all":docs})
             session.add(rubric)
             session.commit()
