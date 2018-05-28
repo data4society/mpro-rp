@@ -3,7 +3,7 @@
 from mprorp.db.models import *
 import csv
 from mprorp.utils import relative_file_path
-from mprorp.crawler.utils import check_url_with_blacklist
+from mprorp.crawler.utils import check_url_with_blacklist, normalize_url
 import datetime
 import urllib.parse as urlparse
 
@@ -17,6 +17,7 @@ def csv_start_parsing(source_name, blacklist, app_id, session):
         for row in spamreader:
             rubric = session.query(Rubric).filter_by(name=row[0]).first()
             url = row[1]
+            url = normalize_url(url)
             if check_url_with_blacklist(url, blacklist):
                 print("BLACKLIST STOP: "+url)
                 continue

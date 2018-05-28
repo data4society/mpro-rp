@@ -12,6 +12,7 @@ def other_app_cloning(other_app_id, blacklist, fields_to_clone, complete_status,
     docs = []
     for origin_doc in origin_docs:
         url = origin_doc.url
+        url = normalize_url(url)
         guid = app_id + url
         if session.query(Document).filter_by(guid=guid).count() == 0:
             origin_doc_id = str(origin_doc.doc_id)

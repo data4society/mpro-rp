@@ -6,7 +6,7 @@ import urllib.parse as urlparse
 
 from mprorp.db.models import *
 
-from mprorp.crawler.utils import send_get_request, check_url_with_blacklist
+from mprorp.crawler.utils import send_get_request, check_url_with_blacklist, normalize_url
 import datetime
 
 
@@ -45,7 +45,7 @@ def parse_gn_item(item, blacklist, app_id, session, docs, guids):
     """parses one news item and create new Document object"""
     title = item.find("title").text
     gnews_link = item.find("link").text
-    url = urlparse.parse_qs(urlparse.urlparse(gnews_link).query)['url'][0]
+    url = normalize_url(urlparse.parse_qs(urlparse.urlparse(gnews_link).query)['url'][0])
     if check_url_with_blacklist(url, blacklist):
         print("BLACKLIST STOP: "+url)
         return

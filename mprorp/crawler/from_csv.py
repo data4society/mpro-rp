@@ -5,7 +5,7 @@ import urllib.parse as urlparse
 
 import csv
 from mprorp.utils import relative_file_path
-from mprorp.crawler.utils import check_url_with_blacklist
+from mprorp.crawler.utils import check_url_with_blacklist, normalize_url
 import datetime
 
 
@@ -31,6 +31,7 @@ def from_csv_start_parsing(source_name, app_id, session):
                 title = row[0]
                 if url.find('http') != 0:
                     url = 'http://'+url
+                url = normalize_url(url)
                 guid = app_id + url
 
                 if guid not in guids:

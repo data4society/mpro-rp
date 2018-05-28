@@ -124,3 +124,11 @@ def path_clear(path):
     if pos != -1:
         path = path[:pos]
     return path
+
+
+def normalize_url(path):
+    """remove hash string to exclude difference by link to comments"""
+    pos = path.find('#')
+    if pos != -1:
+        path = path[:pos]
+    return path

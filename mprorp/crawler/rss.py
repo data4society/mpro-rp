@@ -4,7 +4,7 @@ from lxml import etree
 from mprorp.db.dbDriver import db_session
 from mprorp.db.models import *
 
-from mprorp.crawler.utils import send_get_request, check_url_with_blacklist
+from mprorp.crawler.utils import send_get_request, check_url_with_blacklist, normalize_url
 import dateparser
 import re
 
@@ -47,7 +47,7 @@ def one_rss_parsing(source_url, package, publisher_id, publisher_name, app_id, s
     root_xml = etree.fromstring(req_result)
     channel = root_xml.find("channel")
     items = channel.findall("item")
-    items_by_links = {app_id + item.find("link").text.strip('\n\t'): item for item in items}
+    items_by_links = {app_id + normalize_url(item.find("link").text.strip('\n\t')): item for item in items}
     guids = list(items_by_links.keys())
     if guids:
         q = session.query(Document.guid).filter(Document.guid.in_(guids))
@@ -55,7 +55,7 @@ def one_rss_parsing(source_url, package, publisher_id, publisher_name, app_id, s
         result = [res[0] for res in result]
         items = [items_by_links[key] for key in items_by_links if key not in result]
     for item in items:
-        url = item.find("link").text.strip('\n\t')
+        url = normalize_url(item.find("link").text.strip('\n\t'))
         title = item.find("title").text.strip('\n\t')
         date_text = item.find("pubDate").text
         date = dateparser.parse(date_text)

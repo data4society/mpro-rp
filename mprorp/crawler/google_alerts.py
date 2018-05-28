@@ -7,7 +7,7 @@ from mprorp.crawler.utils import *
 
 from mprorp.db.models import *
 
-from mprorp.crawler.utils import send_get_request
+from mprorp.crawler.utils import send_get_request, normalize_url
 import datetime
 
 
@@ -33,7 +33,7 @@ def parse_ga_item(item, blacklist, app_id, session, docs, guids):
     title = strip_tags('<html><body>' + item.find("{http://www.w3.org/2005/Atom}title").text + '</body></html>')
     gnews_link = item.find("{http://www.w3.org/2005/Atom}link").get("href")
     parsed_uri = urlparse.urlparse(gnews_link)
-    url = urlparse.parse_qs(parsed_uri.query)['url'][0]
+    url = normalize_url(urlparse.parse_qs(parsed_uri.query)['url'][0])
     if check_url_with_blacklist(url, blacklist):
         print("BLACKLIST STOP: "+url)
         return

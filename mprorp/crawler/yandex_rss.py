@@ -6,7 +6,7 @@ import urllib.parse as urlparse
 
 from mprorp.db.models import *
 
-from mprorp.crawler.utils import send_get_request, check_url_with_blacklist
+from mprorp.crawler.utils import send_get_request, check_url_with_blacklist, normalize_url
 import datetime
 
 
@@ -26,6 +26,7 @@ def ya_rss_start_parsing(source_url, blacklist, app_id, session):
         title = item.find("title").text
         link = item.find("link").text
         url = "http://"+urlparse.parse_qs(urlparse.urlparse(link).query)['cl4url'][0]
+        url = normalize_url(url)
         print(url)
         if check_url_with_blacklist(url, blacklist):
             print("BLACKLIST STOP: "+url)

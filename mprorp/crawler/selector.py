@@ -44,6 +44,7 @@ def selector_start_parsing(source_url, link_patterns, app_id, session, test_mode
 
 def add_item(url, publisher, app_id, session, docs, guids):
     """parses one news item and create new Document object"""
+    url = normalize_url(url)
     guid = app_id + url
     if guid not in guids and session.query(Document).filter_by(guid=guid).count() == 0:
         # initial insert with guid, start status and reference to source

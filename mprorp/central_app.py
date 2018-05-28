@@ -56,6 +56,7 @@ def get_last_docs():
         session = db_session()
         docs = session.query(Document).filter_by(status=status).filter_by(app_id=app_id).filter(Document.created > date) \
             .filter(Document.tsv.match(sql_query, postgresql_regconfig='russian')).all()
+        #select * from documents where status=105 and app_id='central' and created>'2018-04-17 02:00:00.107869' and
         session.remove()
         response = []
         for doc in docs:
