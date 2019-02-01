@@ -517,10 +517,10 @@ def regular_central_start_parsing(source_key, **kwargs):
     source = apps_config[app_id]["crawler"]["central"][source_key]
     try:
         black_list = source["black_list"] if "black_list" in source else []
-        doc_ids = central_start_parsing(source_key, source["queries"], black_list, app_id, session)
+        docs = central_start_parsing(source_key, source["queries"], black_list, app_id, session)
         session.commit()
-        for doc_id in doc_ids:
-            router(doc_id, app_id, FASTTEXT_EMBEDDING_COMPLETE_STATUS)
+        for doc in docs:
+            router(doc.doc_id, app_id, FASTTEXT_EMBEDDING_COMPLETE_STATUS)
     except Exception as err:
         #err_txt = repr(err)
         logging.error("Неизвестная ошибка central краулера, source: " + source_key)

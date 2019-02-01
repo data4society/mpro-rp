@@ -34,14 +34,13 @@ def central_start_parsing(ip, sql_query, black_list, app_id, session):
             setattr(doc, prop, elem[prop])
         doc.app_id = app_id
         doc.guid = app_id + doc.url
-        doc.source_doc_id = str(doc.doc_id)
+        doc.source_doc_id = doc.doc_id
         del doc.doc_id
         docs.append(doc)
         session.add(doc)
     if docs:
         variable_set("last_date_for_"+ip+"_"+app_id, max([doc.created for doc in docs]), session)
-    doc_ids = [doc.doc_id for doc in docs]
-    return doc_ids
+    return docs
 
 
 if __name__ == '__main__':
