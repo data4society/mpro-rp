@@ -183,6 +183,8 @@ class Document(Base):
     publisher = relationship(Publisher)
     # vector with the lexemes for fulltext searching
     tsv = Column(TSVECTOR())
+    # unic identificator from remote source
+    source_doc_id = Column(UUIDType(binary=False))
 
     __table_args__ = (UniqueConstraint('app_id', 'url'), )
 

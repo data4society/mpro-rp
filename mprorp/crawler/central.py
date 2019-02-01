@@ -33,6 +33,8 @@ def central_start_parsing(ip, sql_query, black_list, app_id, session):
         for prop in elem:
             setattr(doc, prop, elem[prop])
         doc.app_id = app_id
+        doc.source_doc_id = doc.doc_id
+        del doc.doc_id
         docs.append(doc)
         session.add(doc)
     if docs:
